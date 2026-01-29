@@ -41,6 +41,7 @@ export const screens = mysqlTable("screens", {
   subtitle: varchar("subtitle", { length: 255 }),
   body: text("body"),
   imagePath: varchar("imagePath", { length: 1024 }), // GitHub path or full raw URL
+  imageDisplayMode: varchar("imageDisplayMode", { length: 16 }).default("cover"), // "cover" or "contain"
   qrUrl: varchar("qrUrl", { length: 1024 }),
   // Scheduling fields
   startAt: timestamp("startAt"),

@@ -13,11 +13,15 @@ function ScreenLayout({
   children, 
   bgColor,
   imagePath,
+  imageDisplayMode = "cover",
 }: { 
   children: React.ReactNode;
   bgColor?: string;
   imagePath?: string | null;
+  imageDisplayMode?: "cover" | "contain" | null;
 }) {
+  const isContain = imageDisplayMode === "contain";
+  
   return (
     <div 
       className="tv-screen relative flex items-center justify-center"
@@ -28,18 +32,34 @@ function ScreenLayout({
       {/* Background image with overlay */}
       {imagePath && (
         <>
-          <div 
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url(${imagePath})` }}
-          />
-          <div className="absolute inset-0 bg-black/40" />
+          {isContain ? (
+            // Contain mode: show full image centered on themed background
+            <div className="absolute inset-0 flex items-center justify-center p-8">
+              <img 
+                src={imagePath} 
+                alt="" 
+                className="max-w-full max-h-full object-contain drop-shadow-2xl"
+              />
+            </div>
+          ) : (
+            // Cover mode: fill screen with dark overlay
+            <>
+              <div 
+                className="absolute inset-0 bg-cover bg-center"
+                style={{ backgroundImage: `url(${imagePath})` }}
+              />
+              <div className="absolute inset-0 bg-black/40" />
+            </>
+          )}
         </>
       )}
       
-      {/* Content */}
-      <div className="relative z-10 w-full h-full flex items-center justify-center p-8 md:p-16">
-        {children}
-      </div>
+      {/* Content - only show text overlay if not in contain mode or no image */}
+      {(!imagePath || !isContain) && (
+        <div className="relative z-10 w-full h-full flex items-center justify-center p-8 md:p-16">
+          {children}
+        </div>
+      )}
     </div>
   );
 }
@@ -66,7 +86,7 @@ function SnapAndPurrScreen({ screen, settings }: ScreenRendererProps) {
   const bodyColorClass = hasImage ? "text-white/80 drop-shadow" : "text-pink-700";
   
   return (
-    <ScreenLayout imagePath={screen.imagePath} bgColor="#fce7f3">
+    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#fce7f3">
       <div className="text-center max-w-4xl">
         <h1 className={`tv-text-large mb-6 ${textColorClass}`}>
           {screen.title || "Snap & Purr!"}
@@ -99,7 +119,7 @@ function EventScreen({ screen, settings }: ScreenRendererProps) {
   const bodyColorClass = hasImage ? "text-white/80 drop-shadow" : "text-purple-700";
   
   return (
-    <ScreenLayout imagePath={screen.imagePath} bgColor="#ede9fe">
+    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#ede9fe">
       <div className="flex flex-col md:flex-row items-center justify-between w-full max-w-6xl gap-8">
         <div className="flex-1">
           <div className="inline-block px-4 py-2 rounded-full bg-purple-500 text-white text-lg mb-4">
@@ -132,7 +152,7 @@ function EventScreen({ screen, settings }: ScreenRendererProps) {
 // TODAY_AT_CATFE - Daily specials/activities
 function TodayAtCatfeScreen({ screen, settings }: ScreenRendererProps) {
   return (
-    <ScreenLayout imagePath={screen.imagePath} bgColor="#fef3c7">
+    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#fef3c7">
       <div className="text-center max-w-5xl">
         <div className="inline-block px-6 py-3 rounded-full bg-amber-500 text-white text-xl mb-6">
           Today at {settings?.locationName || "Catfé"}
@@ -163,7 +183,7 @@ function TodayAtCatfeScreen({ screen, settings }: ScreenRendererProps) {
 // MEMBERSHIP - Membership promotion
 function MembershipScreen({ screen, settings }: ScreenRendererProps) {
   return (
-    <ScreenLayout imagePath={screen.imagePath} bgColor="#d1fae5">
+    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#d1fae5">
       <div className="flex flex-col md:flex-row items-center justify-between w-full max-w-6xl gap-8">
         <div className="flex-1">
           <div className="inline-block px-4 py-2 rounded-full bg-emerald-500 text-white text-lg mb-4">
@@ -196,7 +216,7 @@ function MembershipScreen({ screen, settings }: ScreenRendererProps) {
 // REMINDER - General reminders
 function ReminderScreen({ screen, settings }: ScreenRendererProps) {
   return (
-    <ScreenLayout imagePath={screen.imagePath} bgColor="#dbeafe">
+    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#dbeafe">
       <div className="text-center max-w-4xl">
         <div className="inline-block px-4 py-2 rounded-full bg-blue-500 text-white text-lg mb-6">
           Reminder
@@ -227,7 +247,7 @@ function AdoptionScreen({ screen, settings }: ScreenRendererProps) {
   const bodyColorClass = hasImage ? "text-white/80 drop-shadow" : "text-red-700";
   
   return (
-    <ScreenLayout imagePath={screen.imagePath} bgColor="#fee2e2">
+    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#fee2e2">
       <div className="flex flex-col md:flex-row items-center justify-between w-full max-w-6xl gap-8">
         <div className="flex-1">
           <div className="inline-block px-4 py-2 rounded-full bg-red-500 text-white text-lg mb-4">
@@ -260,7 +280,7 @@ function AdoptionScreen({ screen, settings }: ScreenRendererProps) {
 // THANK_YOU - Appreciation messages
 function ThankYouScreen({ screen, settings }: ScreenRendererProps) {
   return (
-    <ScreenLayout imagePath={screen.imagePath} bgColor="#e0e7ff">
+    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#e0e7ff">
       <div className="text-center max-w-4xl">
         <h1 className="tv-text-large mb-6 text-indigo-900">
           {screen.title || "Thank You!"}

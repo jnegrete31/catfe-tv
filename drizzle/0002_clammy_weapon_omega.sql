@@ -1,0 +1,1 @@
+ALTER TABLE `screens` ADD `imageDisplayMode` varchar(16) DEFAULT 'cover';

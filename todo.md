@@ -108,3 +108,5 @@
 - [ ] Verify App Store publishing option appears
 
 - [x] Fix: Event slides text is white and hard to read - change to dark text color
+- [x] Fix: End time shows "invalid value" error when setting end time
+- [x] Add: Option to upload PNG images without dark overlay (transparent background support)

@@ -19,18 +19,25 @@ import { cn } from "@/lib/utils";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 
+// Time validation that allows empty string or valid HH:MM format
+const timeSchema = z.string().refine(
+  (val) => val === "" || /^([01]\d|2[0-3]):([0-5]\d)$/.test(val),
+  { message: "Use HH:MM format" }
+).optional().nullable();
+
 const screenSchema = z.object({
   type: z.enum(SCREEN_TYPES),
   title: z.string().min(1, "Title is required").max(TEXT_LIMITS.title),
   subtitle: z.string().max(TEXT_LIMITS.subtitle).optional().nullable(),
   body: z.string().max(TEXT_LIMITS.body).optional().nullable(),
   imagePath: z.string().optional().nullable(),
+  imageDisplayMode: z.enum(["cover", "contain"]).optional().nullable(),
   qrUrl: z.string().url("Invalid URL").optional().nullable().or(z.literal("")),
   startAt: z.date().optional().nullable(),
   endAt: z.date().optional().nullable(),
   daysOfWeek: z.array(z.number()).optional().nullable(),
-  timeStart: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Use HH:MM format").optional().nullable().or(z.literal("")),
-  timeEnd: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Use HH:MM format").optional().nullable().or(z.literal("")),
+  timeStart: timeSchema,
+  timeEnd: timeSchema,
   priority: z.number().min(1).max(10),
   durationSeconds: z.number().min(1).max(300),
   isActive: z.boolean(),
@@ -102,6 +109,7 @@ export function ScreenForm({ screen, onSuccess, onCancel }: ScreenFormProps) {
       subtitle: screen?.subtitle || "",
       body: screen?.body || "",
       imagePath: screen?.imagePath || "",
+      imageDisplayMode: (screen as any)?.imageDisplayMode || "cover",
       qrUrl: screen?.qrUrl || "",
       startAt: screen?.startAt ? new Date(screen.startAt) : null,
       endAt: screen?.endAt ? new Date(screen.endAt) : null,
@@ -180,6 +188,7 @@ export function ScreenForm({ screen, onSuccess, onCancel }: ScreenFormProps) {
       body: data.body || null,
       // Preserve existing image if no new image was uploaded and imagePreview still has the original
       imagePath: data.imagePath || imagePreview || null,
+      imageDisplayMode: data.imageDisplayMode || "cover",
       qrUrl: data.qrUrl || null,
       timeStart: data.timeStart || null,
       timeEnd: data.timeEnd || null,
@@ -338,6 +347,41 @@ export function ScreenForm({ screen, onSuccess, onCancel }: ScreenFormProps) {
               disabled={isUploading}
             />
           </label>
+        )}
+        
+        {/* Image Display Mode - only show when image is present */}
+        {imagePreview && (
+          <div className="mt-3 p-3 bg-muted/50 rounded-lg">
+            <Label className="text-sm">Image Display Mode</Label>
+            <p className="text-xs text-muted-foreground mb-2">
+              Choose how the image appears on the TV screen
+            </p>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant={watch("imageDisplayMode") === "cover" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setValue("imageDisplayMode", "cover")}
+                className="flex-1"
+              >
+                Fill Screen
+              </Button>
+              <Button
+                type="button"
+                variant={watch("imageDisplayMode") === "contain" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setValue("imageDisplayMode", "contain")}
+                className="flex-1"
+              >
+                Show Full Image
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              {watch("imageDisplayMode") === "cover" 
+                ? "Image fills the screen (may crop edges). Best for photos."
+                : "Shows entire image on themed background. Best for PNGs with transparency."}
+            </p>
+          </div>
         )}
       </div>
       

@@ -15,6 +15,13 @@
       "when": 1769714362082,
       "tag": "0001_rare_loners",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1769728012529,
+      "tag": "0002_clammy_weapon_omega",
+      "breakpoints": true
     }
   ]
 }
