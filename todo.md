@@ -91,3 +91,18 @@
 
 ## Bug Fixes
 - [x] Fix: Editing a screen removes existing image - should preserve image when not uploading new one
+
+## App Store Publishing
+- [ ] Configure native apps for Manus App Store publishing
+- [ ] Set up proper Xcode project structure
+- [ ] Add required app metadata and configurations
+- [ ] Test publishing workflow
+
+## React Native/Expo Mobile App
+- [x] Set up Expo project structure
+- [x] Create app.json with iOS and tvOS configurations
+- [x] Build TV display screen for tvOS
+- [x] Build admin screens for iOS
+- [x] Configure API client to connect to existing backend
+- [ ] Test mobile app builds
+- [ ] Verify App Store publishing option appears
