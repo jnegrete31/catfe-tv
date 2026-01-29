@@ -60,19 +60,24 @@ function QRCode({ url, size = 180 }: { url: string; size?: number }) {
 
 // SNAP_AND_PURR - Photo sharing prompt
 function SnapAndPurrScreen({ screen, settings }: ScreenRendererProps) {
+  const hasImage = !!screen.imagePath;
+  const textColorClass = hasImage ? "text-white drop-shadow-lg" : "text-pink-900";
+  const subtitleColorClass = hasImage ? "text-white/90 drop-shadow-md" : "text-pink-800";
+  const bodyColorClass = hasImage ? "text-white/80 drop-shadow" : "text-pink-700";
+  
   return (
     <ScreenLayout imagePath={screen.imagePath} bgColor="#fce7f3">
-      <div className="text-center text-white max-w-4xl">
-        <h1 className="tv-text-large mb-6 drop-shadow-lg">
+      <div className="text-center max-w-4xl">
+        <h1 className={`tv-text-large mb-6 ${textColorClass}`}>
           {screen.title || "Snap & Purr!"}
         </h1>
         {screen.subtitle && (
-          <p className="tv-text-medium mb-8 drop-shadow-md">
+          <p className={`tv-text-medium mb-8 ${subtitleColorClass}`}>
             {screen.subtitle}
           </p>
         )}
         {screen.body && (
-          <p className="tv-text-body mb-8 drop-shadow">
+          <p className={`tv-text-body mb-8 ${bodyColorClass}`}>
             {screen.body}
           </p>
         )}
@@ -88,23 +93,28 @@ function SnapAndPurrScreen({ screen, settings }: ScreenRendererProps) {
 
 // EVENT - Special events
 function EventScreen({ screen, settings }: ScreenRendererProps) {
+  const hasImage = !!screen.imagePath;
+  const textColorClass = hasImage ? "text-white drop-shadow-lg" : "text-purple-900";
+  const subtitleColorClass = hasImage ? "text-white/90 drop-shadow-md" : "text-purple-800";
+  const bodyColorClass = hasImage ? "text-white/80 drop-shadow" : "text-purple-700";
+  
   return (
     <ScreenLayout imagePath={screen.imagePath} bgColor="#ede9fe">
       <div className="flex flex-col md:flex-row items-center justify-between w-full max-w-6xl gap-8">
-        <div className="text-white flex-1">
+        <div className="flex-1">
           <div className="inline-block px-4 py-2 rounded-full bg-purple-500 text-white text-lg mb-4">
             Event
           </div>
-          <h1 className="tv-text-large mb-4 drop-shadow-lg">
+          <h1 className={`tv-text-large mb-4 ${textColorClass}`}>
             {screen.title}
           </h1>
           {screen.subtitle && (
-            <p className="tv-text-medium mb-4 drop-shadow-md">
+            <p className={`tv-text-medium mb-4 ${subtitleColorClass}`}>
               {screen.subtitle}
             </p>
           )}
           {screen.body && (
-            <p className="tv-text-body drop-shadow">
+            <p className={`tv-text-body ${bodyColorClass}`}>
               {screen.body}
             </p>
           )}
@@ -211,23 +221,28 @@ function ReminderScreen({ screen, settings }: ScreenRendererProps) {
 
 // ADOPTION - Cat adoption promotion
 function AdoptionScreen({ screen, settings }: ScreenRendererProps) {
+  const hasImage = !!screen.imagePath;
+  const textColorClass = hasImage ? "text-white drop-shadow-lg" : "text-red-900";
+  const subtitleColorClass = hasImage ? "text-white/90 drop-shadow-md" : "text-red-800";
+  const bodyColorClass = hasImage ? "text-white/80 drop-shadow" : "text-red-700";
+  
   return (
     <ScreenLayout imagePath={screen.imagePath} bgColor="#fee2e2">
       <div className="flex flex-col md:flex-row items-center justify-between w-full max-w-6xl gap-8">
-        <div className="text-white flex-1">
+        <div className="flex-1">
           <div className="inline-block px-4 py-2 rounded-full bg-red-500 text-white text-lg mb-4">
             Adopt Me!
           </div>
-          <h1 className="tv-text-large mb-4 drop-shadow-lg">
+          <h1 className={`tv-text-large mb-4 ${textColorClass}`}>
             {screen.title}
           </h1>
           {screen.subtitle && (
-            <p className="tv-text-medium mb-4 drop-shadow-md">
+            <p className={`tv-text-medium mb-4 ${subtitleColorClass}`}>
               {screen.subtitle}
             </p>
           )}
           {screen.body && (
-            <p className="tv-text-body drop-shadow">
+            <p className={`tv-text-body ${bodyColorClass}`}>
               {screen.body}
             </p>
           )}

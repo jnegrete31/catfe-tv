@@ -106,3 +106,5 @@
 - [x] Configure API client to connect to existing backend
 - [ ] Test mobile app builds
 - [ ] Verify App Store publishing option appears
+
+- [x] Fix: Event slides text is white and hard to read - change to dark text color
