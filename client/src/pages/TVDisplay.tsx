@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { usePlaylist } from "@/hooks/usePlaylist";
 import { ScreenRenderer, FallbackScreen } from "@/components/tv/ScreenRenderer";
+import { WeatherClockOverlay } from "@/components/tv/WeatherClockOverlay";
 import { Wifi, WifiOff, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function TVDisplay() {
@@ -118,6 +119,9 @@ export default function TVDisplay() {
     >
       {/* Main content */}
       <ScreenRenderer screen={currentScreen} settings={settings} />
+      
+      {/* Weather and Clock Overlay - always visible */}
+      <WeatherClockOverlay />
       
       {/* Overlay controls */}
       <div 

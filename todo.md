@@ -59,3 +59,10 @@
 - [x] Default SNAP_AND_PURR screen
 - [x] Example event screens
 - [x] Example time slot configurations
+
+## TV Display Enhancements
+- [x] Add live clock display in corner of TV screen
+- [x] Add weather widget showing current conditions
+- [x] Weather data for Santa Clarita, CA location
+- [x] Auto-refresh weather data periodically
+- [x] Overlay visible on all screen types
