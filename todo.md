@@ -66,3 +66,14 @@
 - [x] Weather data for Santa Clarita, CA location
 - [x] Auto-refresh weather data periodically
 - [x] Overlay visible on all screen types
+
+## Apple Device Support
+- [x] Add PWA manifest.json for home screen installation
+- [x] Add service worker for offline support
+- [x] Add Apple-specific meta tags (apple-mobile-web-app-capable, status-bar-style)
+- [x] Create app icons for iOS (180x180, 152x152, 120x120)
+- [x] Create Apple TV icon (400x240 for top shelf, 1280x768 for app icon)
+- [x] Add iOS splash screens for various device sizes
+- [x] Optimize TV display for Apple TV remote (focus states, keyboard navigation)
+- [x] Add touch-friendly controls for iPhone admin app
+- [x] Test standalone mode on iOS Safari

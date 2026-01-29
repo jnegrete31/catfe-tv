@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { usePlaylist } from "@/hooks/usePlaylist";
 import { ScreenRenderer, FallbackScreen } from "@/components/tv/ScreenRenderer";
 import { WeatherClockOverlay } from "@/components/tv/WeatherClockOverlay";
-import { Wifi, WifiOff, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
+import { Wifi, WifiOff, RefreshCw, ChevronLeft, ChevronRight, Play, Pause } from "lucide-react";
 
 export default function TVDisplay() {
   const {
@@ -20,46 +20,139 @@ export default function TVDisplay() {
   } = usePlaylist();
   
   const [showControls, setShowControls] = useState(false);
-  const [controlsTimeout, setControlsTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [focusedButton, setFocusedButton] = useState<number>(1); // 0=prev, 1=play/pause, 2=next, 3=refresh
+  const [isPaused, setIsPaused] = useState(false);
+  const controlsTimeout = useRef<NodeJS.Timeout | null>(null);
+  const autoAdvanceTimeout = useRef<NodeJS.Timeout | null>(null);
   
-  // Show controls on mouse movement
-  const handleMouseMove = () => {
+  // Show controls temporarily
+  const showControlsTemporarily = useCallback(() => {
     setShowControls(true);
     
-    if (controlsTimeout) {
-      clearTimeout(controlsTimeout);
+    if (controlsTimeout.current) {
+      clearTimeout(controlsTimeout.current);
     }
     
-    const timeout = setTimeout(() => {
+    controlsTimeout.current = setTimeout(() => {
       setShowControls(false);
-    }, 3000);
-    
-    setControlsTimeout(timeout);
+    }, 5000); // Longer timeout for TV remote users
+  }, []);
+  
+  // Handle mouse/touch movement
+  const handleInteraction = () => {
+    showControlsTemporarily();
   };
   
-  // Keyboard navigation
+  // Keyboard and Apple TV remote navigation
+  // Apple TV remote maps: Menu, Play/Pause, Select (click), and swipe gestures to arrow keys
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Show controls on any key press
+      showControlsTemporarily();
+      
       switch (e.key) {
+        // Arrow navigation (Apple TV swipe gestures)
         case "ArrowRight":
-        case " ":
-          nextScreen();
+          if (showControls) {
+            setFocusedButton(prev => Math.min(prev + 1, 3));
+          } else {
+            nextScreen();
+          }
+          e.preventDefault();
           break;
         case "ArrowLeft":
-          prevScreen();
+          if (showControls) {
+            setFocusedButton(prev => Math.max(prev - 1, 0));
+          } else {
+            prevScreen();
+          }
+          e.preventDefault();
           break;
+        case "ArrowUp":
+        case "ArrowDown":
+          // Toggle controls visibility
+          setShowControls(prev => !prev);
+          e.preventDefault();
+          break;
+          
+        // Select/Enter (Apple TV click or select button)
+        case "Enter":
+        case " ":
+          if (showControls) {
+            // Execute focused button action
+            switch (focusedButton) {
+              case 0:
+                prevScreen();
+                break;
+              case 1:
+                setIsPaused(prev => !prev);
+                break;
+              case 2:
+                nextScreen();
+                break;
+              case 3:
+                refresh();
+                break;
+            }
+          } else {
+            // Toggle play/pause when controls hidden
+            setIsPaused(prev => !prev);
+          }
+          e.preventDefault();
+          break;
+          
+        // Play/Pause button (Apple TV remote)
+        case "MediaPlayPause":
+        case "p":
+        case "P":
+          setIsPaused(prev => !prev);
+          e.preventDefault();
+          break;
+          
+        // Refresh
         case "r":
         case "R":
           refresh();
+          e.preventDefault();
+          break;
+          
+        // Escape/Menu (Apple TV menu button)
+        case "Escape":
+          if (showControls) {
+            setShowControls(false);
+          }
+          e.preventDefault();
           break;
       }
     };
     
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [nextScreen, prevScreen, refresh]);
+  }, [showControls, focusedButton, nextScreen, prevScreen, refresh, showControlsTemporarily]);
   
-  // Hide cursor when controls are hidden
+  // Auto-advance when not paused
+  useEffect(() => {
+    if (isPaused || !currentScreen) {
+      if (autoAdvanceTimeout.current) {
+        clearTimeout(autoAdvanceTimeout.current);
+      }
+      return;
+    }
+    
+    const duration = (currentScreen.durationSeconds || settings?.defaultDurationSeconds || 10) * 1000;
+    
+    autoAdvanceTimeout.current = setTimeout(() => {
+      nextScreen();
+    }, duration);
+    
+    return () => {
+      if (autoAdvanceTimeout.current) {
+        clearTimeout(autoAdvanceTimeout.current);
+      }
+    };
+  }, [isPaused, currentScreen, currentIndex, settings?.defaultDurationSeconds, nextScreen]);
+  
+  // Hide cursor when controls are hidden (for non-TV displays)
   useEffect(() => {
     document.body.style.cursor = showControls ? "default" : "none";
     return () => {
@@ -78,6 +171,17 @@ export default function TVDisplay() {
       }
     }
   }, [currentIndex, playlist]);
+  
+  // Button styles with focus state for Apple TV
+  const getButtonClass = (index: number) => {
+    const base = "p-4 rounded-full backdrop-blur transition-all duration-200";
+    const focused = focusedButton === index && showControls;
+    
+    if (focused) {
+      return `${base} bg-white/40 ring-4 ring-white scale-110`;
+    }
+    return `${base} bg-white/20 hover:bg-white/30`;
+  };
   
   if (isLoading) {
     return (
@@ -98,7 +202,8 @@ export default function TVDisplay() {
           <p className="tv-text-body text-red-600">{error}</p>
           <button
             onClick={refresh}
-            className="mt-8 px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+            className="mt-8 px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition focus:ring-4 focus:ring-red-300"
+            autoFocus
           >
             Try Again
           </button>
@@ -114,8 +219,9 @@ export default function TVDisplay() {
   return (
     <div 
       className="relative w-full h-screen overflow-hidden"
-      onMouseMove={handleMouseMove}
-      onClick={handleMouseMove}
+      onMouseMove={handleInteraction}
+      onClick={handleInteraction}
+      onTouchStart={handleInteraction}
     >
       {/* Main content */}
       <ScreenRenderer screen={currentScreen} settings={settings} />
@@ -123,7 +229,15 @@ export default function TVDisplay() {
       {/* Weather and Clock Overlay - always visible */}
       <WeatherClockOverlay />
       
-      {/* Overlay controls */}
+      {/* Paused indicator */}
+      {isPaused && !showControls && (
+        <div className="absolute top-4 left-4 z-50 flex items-center gap-2 bg-black/40 backdrop-blur-sm rounded-lg px-3 py-2 text-white">
+          <Pause className="w-4 h-4" />
+          <span className="text-sm">Paused</span>
+        </div>
+      )}
+      
+      {/* Overlay controls - optimized for Apple TV remote */}
       <div 
         className={`absolute inset-0 pointer-events-none transition-opacity duration-300 ${
           showControls ? "opacity-100" : "opacity-0"
@@ -141,6 +255,11 @@ export default function TVDisplay() {
               <span className="text-sm">
                 {isOffline ? "Offline Mode" : "Connected"}
               </span>
+              {isPaused && (
+                <span className="ml-2 px-2 py-0.5 bg-yellow-500/80 rounded text-xs font-medium">
+                  PAUSED
+                </span>
+              )}
             </div>
             <div className="text-sm">
               {currentIndex + 1} / {totalScreens}
@@ -148,28 +267,47 @@ export default function TVDisplay() {
           </div>
         </div>
         
-        {/* Bottom bar - navigation */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent">
-          <div className="flex items-center justify-center gap-4 pointer-events-auto">
+        {/* Bottom bar - navigation with Apple TV focus states */}
+        <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/50 to-transparent">
+          <div className="flex items-center justify-center gap-6 pointer-events-auto">
             <button
               onClick={prevScreen}
-              className="p-3 bg-white/20 hover:bg-white/30 rounded-full backdrop-blur transition"
+              className={getButtonClass(0)}
+              tabIndex={0}
+              aria-label="Previous screen"
             >
-              <ChevronLeft className="w-6 h-6 text-white" />
+              <ChevronLeft className="w-8 h-8 text-white" />
             </button>
             
             <button
-              onClick={refresh}
-              className="p-3 bg-white/20 hover:bg-white/30 rounded-full backdrop-blur transition"
+              onClick={() => setIsPaused(prev => !prev)}
+              className={getButtonClass(1)}
+              tabIndex={0}
+              aria-label={isPaused ? "Play" : "Pause"}
             >
-              <RefreshCw className="w-6 h-6 text-white" />
+              {isPaused ? (
+                <Play className="w-8 h-8 text-white" />
+              ) : (
+                <Pause className="w-8 h-8 text-white" />
+              )}
             </button>
             
             <button
               onClick={nextScreen}
-              className="p-3 bg-white/20 hover:bg-white/30 rounded-full backdrop-blur transition"
+              className={getButtonClass(2)}
+              tabIndex={0}
+              aria-label="Next screen"
             >
-              <ChevronRight className="w-6 h-6 text-white" />
+              <ChevronRight className="w-8 h-8 text-white" />
+            </button>
+            
+            <button
+              onClick={refresh}
+              className={getButtonClass(3)}
+              tabIndex={0}
+              aria-label="Refresh content"
+            >
+              <RefreshCw className="w-8 h-8 text-white" />
             </button>
           </div>
           
@@ -178,15 +316,20 @@ export default function TVDisplay() {
             {playlist.slice(0, 10).map((_, idx) => (
               <div
                 key={idx}
-                className={`w-2 h-2 rounded-full transition ${
-                  idx === currentIndex % 10 ? "bg-white" : "bg-white/40"
+                className={`w-3 h-3 rounded-full transition ${
+                  idx === currentIndex % 10 ? "bg-white scale-125" : "bg-white/40"
                 }`}
               />
             ))}
             {totalScreens > 10 && (
-              <span className="text-white/60 text-xs ml-2">+{totalScreens - 10}</span>
+              <span className="text-white/60 text-sm ml-2">+{totalScreens - 10}</span>
             )}
           </div>
+          
+          {/* Remote hint */}
+          <p className="text-center text-white/50 text-xs mt-4">
+            Use arrow keys or swipe to navigate • Press select to activate
+          </p>
         </div>
       </div>
     </div>
