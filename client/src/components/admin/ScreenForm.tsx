@@ -178,7 +178,8 @@ export function ScreenForm({ screen, onSuccess, onCancel }: ScreenFormProps) {
       ...data,
       subtitle: data.subtitle || null,
       body: data.body || null,
-      imagePath: data.imagePath || null,
+      // Preserve existing image if no new image was uploaded and imagePreview still has the original
+      imagePath: data.imagePath || imagePreview || null,
       qrUrl: data.qrUrl || null,
       timeStart: data.timeStart || null,
       timeEnd: data.timeEnd || null,
@@ -186,7 +187,13 @@ export function ScreenForm({ screen, onSuccess, onCancel }: ScreenFormProps) {
     };
     
     if (screen) {
-      updateMutation.mutate({ id: screen.id, data: cleanData });
+      // For updates, only include imagePath if it changed or was explicitly cleared
+      const updateData = { ...cleanData };
+      // If imagePreview matches the original and form imagePath is empty, keep original
+      if (!data.imagePath && imagePreview === screen.imagePath) {
+        updateData.imagePath = screen.imagePath;
+      }
+      updateMutation.mutate({ id: screen.id, data: updateData });
     } else {
       createMutation.mutate(cleanData);
     }

@@ -77,3 +77,17 @@
 - [x] Optimize TV display for Apple TV remote (focus states, keyboard navigation)
 - [x] Add touch-friendly controls for iPhone admin app
 - [x] Test standalone mode on iOS Safari
+
+## Native Apple Apps (TestFlight)
+- [x] Create tvOS app project structure for Apple TV
+- [x] Build TV display UI with SwiftUI for tvOS
+- [x] Implement Siri Remote navigation with focus states
+- [x] Create iOS app project structure for iPhone
+- [x] Build admin dashboard UI with SwiftUI for iOS
+- [x] Create shared API client for backend communication
+- [x] Add image caching and offline support
+- [x] Create Xcode projects for both targets
+- [x] Write TestFlight deployment documentation
+
+## Bug Fixes
+- [x] Fix: Editing a screen removes existing image - should preserve image when not uploading new one
