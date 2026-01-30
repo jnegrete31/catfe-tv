@@ -110,3 +110,13 @@
 - [x] Fix: Event slides text is white and hard to read - change to dark text color
 - [x] Fix: End time shows "invalid value" error when setting end time
 - [x] Add: Option to upload PNG images without dark overlay (transparent background support)
+
+## Native tvOS App (Apple TV Viewer)
+- [x] Create tvOS Swift project structure
+- [x] Build API client to connect to https://catfetv-amdmxcoq.manus.space
+- [x] Create TV display UI with SwiftUI
+- [x] Implement Siri Remote navigation (swipe, click, play/pause)
+- [x] Add weather and clock overlay
+- [x] Add offline caching for reliable playback
+- [x] Create Xcode project files
+- [x] Write TestFlight deployment documentation
