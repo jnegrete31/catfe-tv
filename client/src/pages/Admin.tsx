@@ -20,6 +20,7 @@ import {
   LayoutGrid,
   ExternalLink,
 } from "lucide-react";
+import { IOSInstallPrompt } from "@/components/IOSInstallPrompt";
 
 export default function Admin() {
   const { user, loading, isAuthenticated, logout } = useAuth();
@@ -116,6 +117,8 @@ export default function Admin() {
   
   return (
     <div className="min-h-screen bg-background">
+      {/* iOS Install Prompt */}
+      <IOSInstallPrompt />
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b">
         <div className="container flex items-center justify-between h-14">

@@ -176,3 +176,10 @@
 - [x] Update file picker to open Photos library on Mac instead of all files
 - [x] Add drag-and-drop image upload support
 - [x] Update upload UI with instructions for Mac Photos access
+
+## Feature - iOS PWA Enhancement
+- [x] Add PWA manifest for Add to Home Screen support
+- [x] Add iOS-specific meta tags (apple-touch-icon, status bar style)
+- [x] Create app icons for iOS home screen
+- [x] Optimize mobile touch interactions and layout (iOS install prompt)
+- [x] Add iOS Photos picker integration for image upload
