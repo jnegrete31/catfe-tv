@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct ContentView: View {
     @EnvironmentObject var apiClient: APIClient
@@ -79,9 +80,12 @@ struct ContentView: View {
             showControls = false
         }
         .task {
+            // Ensure screen stays on
+            UIApplication.shared.isIdleTimerDisabled = true
             await apiClient.refresh()
             startAutoAdvance()
             startPeriodicRefresh()
+            startKeepAlive()
         }
         .onChange(of: isPlaying) { _, newValue in
             if newValue {
@@ -143,6 +147,15 @@ struct ContentView: View {
         Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { _ in
             Task { @MainActor in
                 await apiClient.refresh()
+            }
+        }
+    }
+    
+    private func startKeepAlive() {
+        // Periodically ensure idle timer stays disabled (every 30 seconds)
+        Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { _ in
+            Task { @MainActor in
+                UIApplication.shared.isIdleTimerDisabled = true
             }
         }
     }

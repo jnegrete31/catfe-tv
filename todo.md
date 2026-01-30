@@ -135,3 +135,5 @@
 - [x] Fix: tvOS app icon asset catalog errors - restructured brandassets with proper 2-layer image stacks
 
 - [x] Fix: tvOS App Icon missing @2x scale images for background layer
+
+- [x] Fix: Apple TV wallpaper/screensaver keeps appearing - added isIdleTimerDisabled and keep-alive timer
