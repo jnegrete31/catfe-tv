@@ -131,3 +131,5 @@
 - [x] Set up complete asset catalog structure with all required sizes
 
 - [x] Fix: tvOS app UI and fonts don't match web version - updated colors, fonts, and layout to match web exactly
+
+- [x] Fix: tvOS app icon asset catalog errors - restructured brandassets with proper 2-layer image stacks
