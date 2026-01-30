@@ -124,3 +124,8 @@
 - [x] Fix: tvOS app shows "Offline" and doesn't display content - fixed tRPC response parsing (nested json property)
 
 - [x] Fix: tvOS app event screen text not appearing when there's an image - added gradient overlay and text shadows
+
+- [x] Create tvOS App Icon (multiple layers: back, middle, front for parallax effect)
+- [x] Create Top Shelf image (wide banner for tvOS home screen)
+- [x] Create Top Shelf image wide (2320x720)
+- [x] Set up complete asset catalog structure with all required sizes
