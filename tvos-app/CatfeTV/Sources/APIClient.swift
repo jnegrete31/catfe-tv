@@ -5,6 +5,7 @@ enum APIConfig {
     static let baseURL = "https://catfetv-amdmxcoq.manus.space"
     static let screensEndpoint = "/api/trpc/screens.getActive"
     static let settingsEndpoint = "/api/trpc/settings.get"
+    static let randomAdoptionsEndpoint = "/api/trpc/screens.getRandomAdoptions"
 }
 
 // MARK: - Models
@@ -77,6 +78,7 @@ struct TRPCData<T: Codable>: Codable {
 class APIClient: ObservableObject {
     @Published var screens: [Screen] = []
     @Published var settings: Settings?
+    @Published var adoptionCats: [Screen] = []
     @Published var isLoading = false
     @Published var error: String?
     @Published var isOffline = false
@@ -190,6 +192,33 @@ class APIClient: ObservableObject {
     func refresh() async {
         await fetchScreens()
         await fetchSettings()
+    }
+    
+    func fetchRandomAdoptions(count: Int = 4) async {
+        guard let url = URL(string: "\(APIConfig.baseURL)\(APIConfig.randomAdoptionsEndpoint)?input=\("{\"count\":\(count)}".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")") else {
+            return
+        }
+        
+        do {
+            var request = URLRequest(url: url)
+            request.httpMethod = "GET"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.timeoutInterval = 15
+            
+            let (data, response) = try await URLSession.shared.data(for: request)
+            
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+                throw URLError(.badServerResponse)
+            }
+            
+            let decoded = try JSONDecoder().decode(TRPCResponse<[Screen]>.self, from: data)
+            self.adoptionCats = decoded.result.data.json
+            
+            print("[APIClient] Successfully fetched \(self.adoptionCats.count) random adoption cats")
+            
+        } catch {
+            print("[APIClient] Error fetching random adoptions: \(error)")
+        }
     }
 }
 

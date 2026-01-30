@@ -22,6 +22,13 @@
       "when": 1769728012529,
       "tag": "0002_clammy_weapon_omega",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1769796915080,
+      "tag": "0003_black_terrax",
+      "breakpoints": true
     }
   ]
 }

@@ -34,6 +34,7 @@ const screenTypes = [
   "MEMBERSHIP",
   "REMINDER",
   "ADOPTION",
+  "ADOPTION_SHOWCASE",
   "THANK_YOU",
 ] as const;
 
@@ -197,6 +198,18 @@ export const appRouter = router({
     getViewCounts: protectedProcedure.query(async () => {
       return getScreenViewCounts();
     }),
+
+    // Get random adoption screens for showcase
+    getRandomAdoptions: publicProcedure
+      .input(z.object({ count: z.number().min(1).max(8).default(4) }))
+      .query(async ({ input }) => {
+        const allScreens = await getActiveScreens();
+        const adoptionScreens = allScreens.filter(s => s.type === 'ADOPTION' && s.imagePath);
+        
+        // Shuffle and take requested count
+        const shuffled = adoptionScreens.sort(() => Math.random() - 0.5);
+        return shuffled.slice(0, input.count);
+      }),
   }),
 
   // ============ SETTINGS ============

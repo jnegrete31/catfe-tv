@@ -6,6 +6,7 @@ import { QRCodeSVG } from "qrcode.react";
 interface ScreenRendererProps {
   screen: Screen;
   settings: Settings | null;
+  adoptionCats?: Screen[]; // For ADOPTION_SHOWCASE
 }
 
 // Base layout for all screen types
@@ -277,6 +278,78 @@ function AdoptionScreen({ screen, settings }: ScreenRendererProps) {
   );
 }
 
+// ADOPTION_SHOWCASE - Grid of 4 random adoptable cats
+function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRendererProps) {
+  const cats = adoptionCats || [];
+  
+  return (
+    <ScreenLayout bgColor="#ffedd5">
+      <div className="w-full h-full flex flex-col p-8">
+        <div className="text-center mb-6">
+          <div className="inline-block px-6 py-3 rounded-full bg-orange-500 text-white text-xl mb-2">
+            Meet Our Adoptable Cats
+          </div>
+          <h1 className="tv-text-medium text-orange-900">
+            {screen.title || "Find Your Purrfect Match"}
+          </h1>
+        </div>
+        
+        {/* 2x2 Grid of cats */}
+        <div className="flex-1 grid grid-cols-2 gap-6 max-w-5xl mx-auto w-full">
+          {cats.slice(0, 4).map((cat, index) => (
+            <div 
+              key={cat.id || index}
+              className="relative bg-white rounded-2xl overflow-hidden shadow-lg flex flex-col"
+            >
+              {cat.imagePath ? (
+                <div className="flex-1 relative min-h-0">
+                  <img 
+                    src={cat.imagePath} 
+                    alt={cat.title}
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="flex-1 bg-orange-100 flex items-center justify-center">
+                  <span className="text-6xl">🐱</span>
+                </div>
+              )}
+              <div className="p-4 bg-white">
+                <h3 className="text-2xl font-bold text-orange-900 truncate">{cat.title}</h3>
+                {cat.subtitle && (
+                  <p className="text-lg text-orange-700 truncate">{cat.subtitle}</p>
+                )}
+              </div>
+            </div>
+          ))}
+          
+          {/* Fill empty slots with placeholders */}
+          {cats.length < 4 && Array.from({ length: 4 - cats.length }).map((_, i) => (
+            <div 
+              key={`empty-${i}`}
+              className="bg-orange-100 rounded-2xl flex items-center justify-center shadow-lg"
+            >
+              <div className="text-center text-orange-400">
+                <span className="text-6xl block mb-2">🐱</span>
+                <span className="text-xl">Coming Soon</span>
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        {screen.qrUrl && (
+          <div className="text-center mt-6">
+            <p className="text-lg text-orange-700 mb-2">Scan to see all adoptable cats</p>
+            <div className="inline-block">
+              <QRCode url={screen.qrUrl} size={120} />
+            </div>
+          </div>
+        )}
+      </div>
+    </ScreenLayout>
+  );
+}
+
 // THANK_YOU - Appreciation messages
 function ThankYouScreen({ screen, settings }: ScreenRendererProps) {
   return (
@@ -301,7 +374,7 @@ function ThankYouScreen({ screen, settings }: ScreenRendererProps) {
 }
 
 // Main renderer that selects the appropriate component
-export function ScreenRenderer({ screen, settings }: ScreenRendererProps) {
+export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendererProps) {
   const renderers: Record<string, React.FC<ScreenRendererProps>> = {
     SNAP_AND_PURR: SnapAndPurrScreen,
     EVENT: EventScreen,
@@ -309,6 +382,7 @@ export function ScreenRenderer({ screen, settings }: ScreenRendererProps) {
     MEMBERSHIP: MembershipScreen,
     REMINDER: ReminderScreen,
     ADOPTION: AdoptionScreen,
+    ADOPTION_SHOWCASE: AdoptionShowcaseScreen,
     THANK_YOU: ThankYouScreen,
   };
   
@@ -324,7 +398,7 @@ export function ScreenRenderer({ screen, settings }: ScreenRendererProps) {
         transition={{ duration: 0.5 }}
         className="w-full h-full"
       >
-        <Renderer screen={screen} settings={settings} />
+        <Renderer screen={screen} settings={settings} adoptionCats={adoptionCats} />
       </motion.div>
     </AnimatePresence>
   );

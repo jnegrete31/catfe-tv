@@ -19,6 +19,7 @@ struct ContentView: View {
                 TVDisplayView(
                     screens: apiClient.screens,
                     settings: apiClient.settings,
+                    adoptionCats: apiClient.adoptionCats,
                     currentIndex: $currentIndex,
                     isPlaying: $isPlaying
                 )
@@ -83,6 +84,7 @@ struct ContentView: View {
             // Ensure screen stays on
             UIApplication.shared.isIdleTimerDisabled = true
             await apiClient.refresh()
+            await apiClient.fetchRandomAdoptions(count: 4)
             startAutoAdvance()
             startPeriodicRefresh()
             startKeepAlive()
@@ -147,6 +149,7 @@ struct ContentView: View {
         Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { _ in
             Task { @MainActor in
                 await apiClient.refresh()
+                await apiClient.fetchRandomAdoptions(count: 4)
             }
         }
     }

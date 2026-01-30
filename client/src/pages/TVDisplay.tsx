@@ -3,6 +3,8 @@ import { usePlaylist } from "@/hooks/usePlaylist";
 import { ScreenRenderer, FallbackScreen } from "@/components/tv/ScreenRenderer";
 import { WeatherClockOverlay } from "@/components/tv/WeatherClockOverlay";
 import { Wifi, WifiOff, RefreshCw, ChevronLeft, ChevronRight, Play, Pause } from "lucide-react";
+import { trpc } from "@/lib/trpc";
+import type { Screen } from "@shared/types";
 
 export default function TVDisplay() {
   const {
@@ -22,8 +24,28 @@ export default function TVDisplay() {
   const [showControls, setShowControls] = useState(false);
   const [focusedButton, setFocusedButton] = useState<number>(1); // 0=prev, 1=play/pause, 2=next, 3=refresh
   const [isPaused, setIsPaused] = useState(false);
+  const [adoptionCats, setAdoptionCats] = useState<Screen[]>([]);
   const controlsTimeout = useRef<NodeJS.Timeout | null>(null);
   const autoAdvanceTimeout = useRef<NodeJS.Timeout | null>(null);
+  
+  // Fetch random adoption cats for showcase screens
+  const { data: randomAdoptions, refetch: refetchAdoptions } = trpc.screens.getRandomAdoptions.useQuery(
+    { count: 4 },
+    { enabled: currentScreen?.type === "ADOPTION_SHOWCASE" }
+  );
+  
+  // Update adoption cats when the query returns or when we show a showcase screen
+  useEffect(() => {
+    if (currentScreen?.type === "ADOPTION_SHOWCASE") {
+      refetchAdoptions();
+    }
+  }, [currentScreen?.id, currentScreen?.type, refetchAdoptions]);
+  
+  useEffect(() => {
+    if (randomAdoptions) {
+      setAdoptionCats(randomAdoptions);
+    }
+  }, [randomAdoptions]);
   
   // Show controls temporarily
   const showControlsTemporarily = useCallback(() => {
@@ -224,7 +246,11 @@ export default function TVDisplay() {
       onTouchStart={handleInteraction}
     >
       {/* Main content */}
-      <ScreenRenderer screen={currentScreen} settings={settings} />
+      <ScreenRenderer 
+        screen={currentScreen} 
+        settings={settings} 
+        adoptionCats={currentScreen.type === "ADOPTION_SHOWCASE" ? adoptionCats : undefined}
+      />
       
       {/* Weather and Clock Overlay - always visible */}
       <WeatherClockOverlay />

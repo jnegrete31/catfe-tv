@@ -28,6 +28,7 @@ export const screenTypeEnum = mysqlEnum("screenType", [
   "MEMBERSHIP",
   "REMINDER",
   "ADOPTION",
+  "ADOPTION_SHOWCASE",
   "THANK_YOU"
 ]);
 

@@ -137,3 +137,10 @@
 - [x] Fix: tvOS App Icon missing @2x scale images for background layer
 
 - [x] Fix: Apple TV wallpaper/screensaver keeps appearing - added isIdleTimerDisabled and keep-alive timer
+
+## Adoption Showcase Feature
+- [x] Add ADOPTION_SHOWCASE screen type to database schema
+- [x] Create backend logic to fetch 4 random adoption screens
+- [x] Create web TV display renderer with 4-cat grid layout
+- [x] Update tvOS app with matching ADOPTION_SHOWCASE screen type
+- [ ] Test the new screen type on both web and tvOS
