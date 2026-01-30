@@ -166,3 +166,6 @@
 - [x] Integrate banner into TV display screens (shows on applicable screens)
 - [x] Update tvOS app with Recently Adopted banner
 - [x] Test banner on web and tvOS
+
+## Bug Fix - Jan 30 (tvOS)
+- [x] Fix: RecentlyAdoptedBanner.swift not included in Xcode project
