@@ -396,7 +396,6 @@ export function ScreenForm({ screen, onSuccess, onCancel }: ScreenFormProps) {
             <input
               type="file"
               accept="image/*"
-              capture="environment"
               className="hidden"
               onChange={handleImageUpload}
               disabled={isUploading}

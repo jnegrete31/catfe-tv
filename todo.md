@@ -183,3 +183,6 @@
 - [x] Create app icons for iOS home screen
 - [x] Optimize mobile touch interactions and layout (iOS install prompt)
 - [x] Add iOS Photos picker integration for image upload
+
+## Bug Fix - Mobile Image Upload
+- [x] Fix: Mobile image upload opens camera instead of photo library
