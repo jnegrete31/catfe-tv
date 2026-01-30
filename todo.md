@@ -122,3 +122,5 @@
 - [x] Write TestFlight deployment documentation
 
 - [x] Fix: tvOS app shows "Offline" and doesn't display content - fixed tRPC response parsing (nested json property)
+
+- [x] Fix: tvOS app event screen text not appearing when there's an image - added gradient overlay and text shadows

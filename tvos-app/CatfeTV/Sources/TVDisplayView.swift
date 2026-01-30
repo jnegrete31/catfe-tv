@@ -24,14 +24,14 @@ struct ScreenContentView: View {
     
     var body: some View {
         ZStack {
-            // Background
+            // Background color
             backgroundColor
                 .ignoresSafeArea()
             
-            // Background image
+            // Background image (if any)
             if let imagePath = screen.imagePath, !imagePath.isEmpty {
                 if screen.imageDisplayMode == "contain" {
-                    // Show full image centered on background
+                    // Show full image centered on background - no text overlay needed for contain mode
                     AsyncImage(url: URL(string: imagePath)) { phase in
                         switch phase {
                         case .success(let image):
@@ -48,14 +48,22 @@ struct ScreenContentView: View {
                         }
                     }
                     .padding(60)
+                    
+                    // Still show text content at bottom for contain mode
+                    VStack {
+                        Spacer()
+                        containModeContent
+                    }
                 } else {
-                    // Cover mode with overlay
+                    // Cover mode - image fills screen
                     AsyncImage(url: URL(string: imagePath)) { phase in
                         switch phase {
                         case .success(let image):
                             image
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .clipped()
                                 .ignoresSafeArea()
                         case .failure:
                             EmptyView()
@@ -66,11 +74,20 @@ struct ScreenContentView: View {
                         }
                     }
                     
-                    // Dark overlay for text readability
-                    Color.black.opacity(0.4)
-                        .ignoresSafeArea()
+                    // Dark gradient overlay for text readability
+                    LinearGradient(
+                        colors: [
+                            Color.black.opacity(0.7),
+                            Color.black.opacity(0.3),
+                            Color.black.opacity(0.3),
+                            Color.black.opacity(0.7)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .ignoresSafeArea()
                     
-                    // Content
+                    // Text content overlay
                     screenContent
                 }
             } else {
@@ -128,11 +145,11 @@ struct ScreenContentView: View {
     }
     
     private var subtitleColor: Color {
-        textColor.opacity(0.85)
+        textColor.opacity(0.9)
     }
     
     private var bodyColor: Color {
-        textColor.opacity(0.75)
+        textColor.opacity(0.85)
     }
     
     private var badgeColor: Color {
@@ -156,11 +173,62 @@ struct ScreenContentView: View {
         }
     }
     
+    // Content for contain mode (shown at bottom)
+    @ViewBuilder
+    private var containModeContent: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 12) {
+                // Badge
+                Text(badgeText)
+                    .font(.system(size: 24, weight: .semibold))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 10)
+                    .background(badgeColor)
+                    .cornerRadius(16)
+                
+                // Title
+                Text(screen.title)
+                    .font(.system(size: 48, weight: .bold))
+                    .foregroundColor(textColor)
+                
+                // Subtitle
+                if let subtitle = screen.subtitle, !subtitle.isEmpty {
+                    Text(subtitle)
+                        .font(.system(size: 32, weight: .medium))
+                        .foregroundColor(subtitleColor)
+                }
+            }
+            .padding(.leading, 80)
+            .padding(.bottom, 60)
+            
+            Spacer()
+            
+            // QR Code
+            if let qrUrl = screen.qrUrl, !qrUrl.isEmpty {
+                QRCodeView(url: qrUrl)
+                    .frame(width: 200, height: 200)
+                    .padding(.trailing, 80)
+                    .padding(.bottom, 60)
+            }
+        }
+        .background(
+            LinearGradient(
+                colors: [.clear, backgroundColor.opacity(0.9)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .frame(height: 250)
+            .offset(y: 50)
+        )
+    }
+    
+    // Main content for cover mode and no-image mode
     @ViewBuilder
     private var screenContent: some View {
         HStack(spacing: 80) {
             // Text content
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: 24) {
                 // Badge
                 Text(badgeText)
                     .font(.system(size: 28, weight: .semibold))
@@ -174,14 +242,14 @@ struct ScreenContentView: View {
                 Text(screen.title)
                     .font(.system(size: 72, weight: .bold))
                     .foregroundColor(textColor)
-                    .shadow(radius: hasImageOverlay ? 10 : 0)
+                    .shadow(color: hasImageOverlay ? .black.opacity(0.5) : .clear, radius: 10, x: 0, y: 4)
                 
                 // Subtitle
                 if let subtitle = screen.subtitle, !subtitle.isEmpty {
                     Text(subtitle)
                         .font(.system(size: 48, weight: .medium))
                         .foregroundColor(subtitleColor)
-                        .shadow(radius: hasImageOverlay ? 8 : 0)
+                        .shadow(color: hasImageOverlay ? .black.opacity(0.5) : .clear, radius: 8, x: 0, y: 3)
                 }
                 
                 // Body
@@ -190,7 +258,7 @@ struct ScreenContentView: View {
                         .font(.system(size: 36))
                         .foregroundColor(bodyColor)
                         .lineLimit(4)
-                        .shadow(radius: hasImageOverlay ? 6 : 0)
+                        .shadow(color: hasImageOverlay ? .black.opacity(0.5) : .clear, radius: 6, x: 0, y: 2)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -294,8 +362,8 @@ struct QRCodeView: View {
                 title: "Movie Night",
                 subtitle: "Join us for a cozy evening",
                 body: "Bring your favorite snacks!",
-                imagePath: nil,
-                imageDisplayMode: nil,
+                imagePath: "https://example.com/image.jpg",
+                imageDisplayMode: "cover",
                 qrUrl: "https://example.com",
                 startAt: nil,
                 endAt: nil,
