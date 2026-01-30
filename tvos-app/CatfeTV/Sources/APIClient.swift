@@ -59,12 +59,17 @@ struct BrandColors: Codable {
 }
 
 // MARK: - tRPC Response Wrappers
+// tRPC with superjson returns: { result: { data: { json: [...] } } }
 struct TRPCResponse<T: Codable>: Codable {
     let result: TRPCResult<T>
 }
 
 struct TRPCResult<T: Codable>: Codable {
-    let data: T
+    let data: TRPCData<T>
+}
+
+struct TRPCData<T: Codable>: Codable {
+    let json: T
 }
 
 // MARK: - API Client
@@ -102,27 +107,44 @@ class APIClient: ObservableObject {
             var request = URLRequest(url: url)
             request.httpMethod = "GET"
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.timeoutInterval = 15
             
             let (data, response) = try await URLSession.shared.data(for: request)
             
-            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+            guard let httpResponse = response as? HTTPURLResponse else {
                 throw URLError(.badServerResponse)
             }
             
+            // Log for debugging
+            print("[APIClient] Response status: \(httpResponse.statusCode)")
+            
+            guard httpResponse.statusCode == 200 else {
+                throw URLError(.badServerResponse)
+            }
+            
+            // Debug: print raw response
+            if let jsonString = String(data: data, encoding: .utf8) {
+                print("[APIClient] Raw response (first 500 chars): \(String(jsonString.prefix(500)))")
+            }
+            
             let decoded = try JSONDecoder().decode(TRPCResponse<[Screen]>.self, from: data)
-            self.screens = decoded.result.data
+            self.screens = decoded.result.data.json
             self.isOffline = false
             
+            print("[APIClient] Successfully fetched \(self.screens.count) screens")
+            
             // Cache the screens
-            cache.saveScreens(decoded.result.data)
+            cache.saveScreens(decoded.result.data.json)
             
         } catch {
+            print("[APIClient] Error fetching screens: \(error)")
             self.error = error.localizedDescription
             self.isOffline = true
             
             // Use cached data if available
             if let cachedScreens = cache.loadScreens(), !cachedScreens.isEmpty {
                 self.screens = cachedScreens
+                print("[APIClient] Using \(cachedScreens.count) cached screens")
             }
         }
         
@@ -138,6 +160,7 @@ class APIClient: ObservableObject {
             var request = URLRequest(url: url)
             request.httpMethod = "GET"
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.timeoutInterval = 15
             
             let (data, response) = try await URLSession.shared.data(for: request)
             
@@ -146,14 +169,17 @@ class APIClient: ObservableObject {
             }
             
             let decoded = try JSONDecoder().decode(TRPCResponse<Settings?>.self, from: data)
-            self.settings = decoded.result.data
+            self.settings = decoded.result.data.json
+            
+            print("[APIClient] Successfully fetched settings")
             
             // Cache the settings
-            if let settings = decoded.result.data {
+            if let settings = decoded.result.data.json {
                 cache.saveSettings(settings)
             }
             
         } catch {
+            print("[APIClient] Error fetching settings: \(error)")
             // Use cached settings if available
             if let cachedSettings = cache.loadSettings() {
                 self.settings = cachedSettings

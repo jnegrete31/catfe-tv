@@ -120,3 +120,5 @@
 - [x] Add offline caching for reliable playback
 - [x] Create Xcode project files
 - [x] Write TestFlight deployment documentation
+
+- [x] Fix: tvOS app shows "Offline" and doesn't display content - fixed tRPC response parsing (nested json property)
