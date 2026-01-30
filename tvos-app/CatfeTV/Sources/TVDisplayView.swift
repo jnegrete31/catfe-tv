@@ -22,6 +22,10 @@ struct ScreenContentView: View {
     let screen: Screen
     let settings: Settings?
     
+    // Font names - using system fonts that match web styling
+    private let displayFont = "Georgia" // Serif font similar to Playfair Display
+    private let bodyFont = "Helvetica Neue" // Sans-serif similar to Inter
+    
     var body: some View {
         ZStack {
             // Background color
@@ -31,31 +35,26 @@ struct ScreenContentView: View {
             // Background image (if any)
             if let imagePath = screen.imagePath, !imagePath.isEmpty {
                 if screen.imageDisplayMode == "contain" {
-                    // Show full image centered on background - no text overlay needed for contain mode
+                    // Contain mode: show full image centered on themed background
                     AsyncImage(url: URL(string: imagePath)) { phase in
                         switch phase {
                         case .success(let image):
                             image
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
-                                .shadow(radius: 30)
+                                .shadow(color: .black.opacity(0.3), radius: 30, x: 0, y: 10)
                         case .failure:
                             EmptyView()
                         case .empty:
                             ProgressView()
+                                .scaleEffect(2)
                         @unknown default:
                             EmptyView()
                         }
                     }
                     .padding(60)
-                    
-                    // Still show text content at bottom for contain mode
-                    VStack {
-                        Spacer()
-                        containModeContent
-                    }
                 } else {
-                    // Cover mode - image fills screen
+                    // Cover mode: fill screen with dark overlay
                     AsyncImage(url: URL(string: imagePath)) { phase in
                         switch phase {
                         case .success(let image):
@@ -69,236 +68,232 @@ struct ScreenContentView: View {
                             EmptyView()
                         case .empty:
                             ProgressView()
+                                .scaleEffect(2)
                         @unknown default:
                             EmptyView()
                         }
                     }
                     
-                    // Dark gradient overlay for text readability
-                    LinearGradient(
-                        colors: [
-                            Color.black.opacity(0.7),
-                            Color.black.opacity(0.3),
-                            Color.black.opacity(0.3),
-                            Color.black.opacity(0.7)
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                    .ignoresSafeArea()
-                    
-                    // Text content overlay
-                    screenContent
+                    // Dark overlay for text readability (40% black like web)
+                    Color.black.opacity(0.4)
+                        .ignoresSafeArea()
                 }
-            } else {
-                // No image - show content on colored background
-                screenContent
             }
+            
+            // Content overlay
+            contentOverlay
         }
     }
     
+    // MARK: - Background Colors (matching web version exactly)
     private var backgroundColor: Color {
         switch screen.type {
         case "SNAP_AND_PURR":
-            return Color(hex: "#fce7f3")
+            return Color(hex: "#fce7f3") // pink-100
         case "EVENT":
-            return Color(hex: "#ede9fe")
+            return Color(hex: "#ede9fe") // purple-100
         case "TODAY_AT_CATFE":
-            return Color(hex: "#fef3c7")
+            return Color(hex: "#fef3c7") // amber-100
         case "MEMBERSHIP":
-            return Color(hex: "#d1fae5")
+            return Color(hex: "#d1fae5") // emerald-100
         case "REMINDER":
-            return Color(hex: "#dbeafe")
+            return Color(hex: "#dbeafe") // blue-100
         case "ADOPTION":
-            return Color(hex: "#fee2e2")
+            return Color(hex: "#fee2e2") // red-100
         case "THANK_YOU":
-            return Color(hex: "#e0e7ff")
+            return Color(hex: "#e0e7ff") // indigo-100
         default:
-            return Color(hex: "#FDF6E3")
+            return Color(hex: "#FDF6E3") // cream
         }
     }
     
-    private var textColor: Color {
-        let hasImage = screen.imagePath != nil && !screen.imagePath!.isEmpty && screen.imageDisplayMode != "contain"
-        if hasImage {
-            return .white
-        }
-        
+    // MARK: - Text Colors (matching web version)
+    private var hasImage: Bool {
+        screen.imagePath != nil && !screen.imagePath!.isEmpty && screen.imageDisplayMode != "contain"
+    }
+    
+    private var titleColor: Color {
+        if hasImage { return .white }
         switch screen.type {
-        case "SNAP_AND_PURR":
-            return Color(hex: "#831843")
-        case "EVENT":
-            return Color(hex: "#581c87")
-        case "TODAY_AT_CATFE":
-            return Color(hex: "#78350f")
-        case "MEMBERSHIP":
-            return Color(hex: "#064e3b")
-        case "REMINDER":
-            return Color(hex: "#1e3a8a")
-        case "ADOPTION":
-            return Color(hex: "#7f1d1d")
-        case "THANK_YOU":
-            return Color(hex: "#312e81")
-        default:
-            return Color(hex: "#3D2914")
+        case "SNAP_AND_PURR": return Color(hex: "#831843") // pink-900
+        case "EVENT": return Color(hex: "#581c87") // purple-900
+        case "TODAY_AT_CATFE": return Color(hex: "#78350f") // amber-900
+        case "MEMBERSHIP": return Color(hex: "#064e3b") // emerald-900
+        case "REMINDER": return Color(hex: "#1e3a8a") // blue-900
+        case "ADOPTION": return Color(hex: "#7f1d1d") // red-900
+        case "THANK_YOU": return Color(hex: "#312e81") // indigo-900
+        default: return Color(hex: "#3D2914")
         }
     }
     
     private var subtitleColor: Color {
-        textColor.opacity(0.9)
+        if hasImage { return .white.opacity(0.9) }
+        switch screen.type {
+        case "SNAP_AND_PURR": return Color(hex: "#9d174d") // pink-800
+        case "EVENT": return Color(hex: "#6b21a8") // purple-800
+        case "TODAY_AT_CATFE": return Color(hex: "#92400e") // amber-800
+        case "MEMBERSHIP": return Color(hex: "#065f46") // emerald-800
+        case "REMINDER": return Color(hex: "#1e40af") // blue-800
+        case "ADOPTION": return Color(hex: "#991b1b") // red-800
+        case "THANK_YOU": return Color(hex: "#3730a3") // indigo-800
+        default: return Color(hex: "#5D4930")
+        }
     }
     
     private var bodyColor: Color {
-        textColor.opacity(0.85)
+        if hasImage { return .white.opacity(0.8) }
+        switch screen.type {
+        case "SNAP_AND_PURR": return Color(hex: "#be185d") // pink-700
+        case "EVENT": return Color(hex: "#7c3aed") // purple-700
+        case "TODAY_AT_CATFE": return Color(hex: "#b45309") // amber-700
+        case "MEMBERSHIP": return Color(hex: "#047857") // emerald-700
+        case "REMINDER": return Color(hex: "#1d4ed8") // blue-700
+        case "ADOPTION": return Color(hex: "#b91c1c") // red-700
+        case "THANK_YOU": return Color(hex: "#4338ca") // indigo-700
+        default: return Color(hex: "#7D6950")
+        }
     }
     
     private var badgeColor: Color {
         switch screen.type {
-        case "SNAP_AND_PURR":
-            return Color(hex: "#ec4899")
-        case "EVENT":
-            return Color(hex: "#8b5cf6")
-        case "TODAY_AT_CATFE":
-            return Color(hex: "#f59e0b")
-        case "MEMBERSHIP":
-            return Color(hex: "#10b981")
-        case "REMINDER":
-            return Color(hex: "#3b82f6")
-        case "ADOPTION":
-            return Color(hex: "#ef4444")
-        case "THANK_YOU":
-            return Color(hex: "#6366f1")
-        default:
-            return Color(hex: "#C4704F")
+        case "SNAP_AND_PURR": return Color(hex: "#ec4899") // pink-500
+        case "EVENT": return Color(hex: "#a855f7") // purple-500
+        case "TODAY_AT_CATFE": return Color(hex: "#f59e0b") // amber-500
+        case "MEMBERSHIP": return Color(hex: "#10b981") // emerald-500
+        case "REMINDER": return Color(hex: "#3b82f6") // blue-500
+        case "ADOPTION": return Color(hex: "#ef4444") // red-500
+        case "THANK_YOU": return Color(hex: "#6366f1") // indigo-500
+        default: return Color(hex: "#C4704F")
         }
     }
     
-    // Content for contain mode (shown at bottom)
+    private var badgeText: String {
+        switch screen.type {
+        case "SNAP_AND_PURR": return "Snap & Purr!"
+        case "EVENT": return "Event"
+        case "TODAY_AT_CATFE": return "Today at \(settings?.locationName ?? "Catfé")"
+        case "MEMBERSHIP": return "Membership"
+        case "REMINDER": return "Reminder"
+        case "ADOPTION": return "Adopt Me!"
+        case "THANK_YOU": return "Thank You"
+        default: return screen.type
+        }
+    }
+    
+    // MARK: - Content Layout
     @ViewBuilder
-    private var containModeContent: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 12) {
-                // Badge
-                Text(badgeText)
-                    .font(.system(size: 24, weight: .semibold))
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 10)
-                    .background(badgeColor)
-                    .cornerRadius(16)
-                
-                // Title
-                Text(screen.title)
-                    .font(.system(size: 48, weight: .bold))
-                    .foregroundColor(textColor)
-                
-                // Subtitle
-                if let subtitle = screen.subtitle, !subtitle.isEmpty {
-                    Text(subtitle)
-                        .font(.system(size: 32, weight: .medium))
-                        .foregroundColor(subtitleColor)
-                }
-            }
-            .padding(.leading, 80)
-            .padding(.bottom, 60)
+    private var contentOverlay: some View {
+        switch screen.type {
+        case "SNAP_AND_PURR", "TODAY_AT_CATFE", "REMINDER", "THANK_YOU":
+            // Centered layout
+            centeredContent
+        default:
+            // Side-by-side layout (Event, Membership, Adoption)
+            sideBySideContent
+        }
+    }
+    
+    // Centered content layout (for Snap & Purr, Today, Reminder, Thank You)
+    private var centeredContent: some View {
+        VStack(spacing: 24) {
+            // Badge
+            Text(badgeText)
+                .font(.custom(bodyFont, size: 28))
+                .fontWeight(.semibold)
+                .foregroundColor(.white)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 12)
+                .background(badgeColor)
+                .cornerRadius(50)
             
-            Spacer()
+            // Title
+            Text(screen.title)
+                .font(.custom(displayFont, size: 80))
+                .fontWeight(.bold)
+                .foregroundColor(titleColor)
+                .multilineTextAlignment(.center)
+                .shadow(color: hasImage ? .black.opacity(0.5) : .clear, radius: 10, x: 0, y: 4)
+            
+            // Subtitle
+            if let subtitle = screen.subtitle, !subtitle.isEmpty {
+                Text(subtitle)
+                    .font(.custom(displayFont, size: 48))
+                    .foregroundColor(subtitleColor)
+                    .multilineTextAlignment(.center)
+                    .shadow(color: hasImage ? .black.opacity(0.4) : .clear, radius: 8, x: 0, y: 3)
+            }
+            
+            // Body
+            if let body = screen.body, !body.isEmpty {
+                Text(body)
+                    .font(.custom(bodyFont, size: 32))
+                    .foregroundColor(bodyColor)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(4)
+                    .shadow(color: hasImage ? .black.opacity(0.3) : .clear, radius: 6, x: 0, y: 2)
+            }
             
             // QR Code
             if let qrUrl = screen.qrUrl, !qrUrl.isEmpty {
                 QRCodeView(url: qrUrl)
                     .frame(width: 200, height: 200)
-                    .padding(.trailing, 80)
-                    .padding(.bottom, 60)
+                    .padding(.top, 20)
             }
         }
-        .background(
-            LinearGradient(
-                colors: [.clear, backgroundColor.opacity(0.9)],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .frame(height: 250)
-            .offset(y: 50)
-        )
+        .padding(60)
     }
     
-    // Main content for cover mode and no-image mode
-    @ViewBuilder
-    private var screenContent: some View {
-        HStack(spacing: 80) {
-            // Text content
-            VStack(alignment: .leading, spacing: 24) {
+    // Side-by-side content layout (for Event, Membership, Adoption)
+    private var sideBySideContent: some View {
+        HStack(alignment: .center, spacing: 60) {
+            // Left side - text content
+            VStack(alignment: .leading, spacing: 16) {
                 // Badge
                 Text(badgeText)
-                    .font(.system(size: 28, weight: .semibold))
+                    .font(.custom(bodyFont, size: 24))
+                    .fontWeight(.semibold)
                     .foregroundColor(.white)
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 12)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 10)
                     .background(badgeColor)
-                    .cornerRadius(20)
+                    .cornerRadius(50)
                 
                 // Title
                 Text(screen.title)
-                    .font(.system(size: 72, weight: .bold))
-                    .foregroundColor(textColor)
-                    .shadow(color: hasImageOverlay ? .black.opacity(0.5) : .clear, radius: 10, x: 0, y: 4)
+                    .font(.custom(displayFont, size: 72))
+                    .fontWeight(.bold)
+                    .foregroundColor(titleColor)
+                    .shadow(color: hasImage ? .black.opacity(0.5) : .clear, radius: 10, x: 0, y: 4)
                 
                 // Subtitle
                 if let subtitle = screen.subtitle, !subtitle.isEmpty {
                     Text(subtitle)
-                        .font(.system(size: 48, weight: .medium))
+                        .font(.custom(displayFont, size: 40))
                         .foregroundColor(subtitleColor)
-                        .shadow(color: hasImageOverlay ? .black.opacity(0.5) : .clear, radius: 8, x: 0, y: 3)
+                        .shadow(color: hasImage ? .black.opacity(0.4) : .clear, radius: 8, x: 0, y: 3)
                 }
                 
                 // Body
                 if let body = screen.body, !body.isEmpty {
                     Text(body)
-                        .font(.system(size: 36))
+                        .font(.custom(bodyFont, size: 28))
                         .foregroundColor(bodyColor)
                         .lineLimit(4)
-                        .shadow(color: hasImageOverlay ? .black.opacity(0.5) : .clear, radius: 6, x: 0, y: 2)
+                        .shadow(color: hasImage ? .black.opacity(0.3) : .clear, radius: 6, x: 0, y: 2)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.leading, 100)
             
             Spacer()
             
-            // QR Code
+            // Right side - QR code
             if let qrUrl = screen.qrUrl, !qrUrl.isEmpty {
                 QRCodeView(url: qrUrl)
-                    .frame(width: 300, height: 300)
-                    .padding(.trailing, 100)
+                    .frame(width: 180, height: 180)
             }
         }
-        .padding(.vertical, 80)
-    }
-    
-    private var badgeText: String {
-        switch screen.type {
-        case "SNAP_AND_PURR":
-            return "📸 Snap & Purr"
-        case "EVENT":
-            return "🎉 Event"
-        case "TODAY_AT_CATFE":
-            return "☕️ Today at \(settings?.locationName ?? "Catfé")"
-        case "MEMBERSHIP":
-            return "⭐️ Membership"
-        case "REMINDER":
-            return "📢 Reminder"
-        case "ADOPTION":
-            return "🐱 Adopt Me!"
-        case "THANK_YOU":
-            return "💕 Thank You"
-        default:
-            return "📺 \(screen.type)"
-        }
-    }
-    
-    private var hasImageOverlay: Bool {
-        screen.imagePath != nil && !screen.imagePath!.isEmpty && screen.imageDisplayMode != "contain"
+        .padding(.horizontal, 80)
+        .padding(.vertical, 60)
     }
 }
 
@@ -308,9 +303,9 @@ struct QRCodeView: View {
     
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 20)
+            RoundedRectangle(cornerRadius: 12)
                 .fill(.white)
-                .shadow(radius: 10)
+                .shadow(color: .black.opacity(0.1), radius: 6, x: 0, y: 4)
             
             // Generate QR code
             if let qrImage = generateQRCode(from: url) {
@@ -318,11 +313,11 @@ struct QRCodeView: View {
                     .interpolation(.none)
                     .resizable()
                     .aspectRatio(1, contentMode: .fit)
-                    .padding(20)
+                    .padding(16)
             } else {
-                VStack {
+                VStack(spacing: 8) {
                     Image(systemName: "qrcode")
-                        .font(.system(size: 60))
+                        .font(.system(size: 50))
                     Text("Scan Me")
                         .font(.caption)
                 }
@@ -358,11 +353,11 @@ struct QRCodeView: View {
         screens: [
             Screen(
                 id: 1,
-                type: "EVENT",
-                title: "Movie Night",
-                subtitle: "Join us for a cozy evening",
-                body: "Bring your favorite snacks!",
-                imagePath: "https://example.com/image.jpg",
+                type: "ADOPTION",
+                title: "Meet Alpaca",
+                subtitle: "9 months old • Male",
+                body: nil,
+                imagePath: "https://example.com/cat.jpg",
                 imageDisplayMode: "cover",
                 qrUrl: "https://example.com",
                 startAt: nil,
