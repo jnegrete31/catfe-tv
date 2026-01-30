@@ -133,3 +133,5 @@
 - [x] Fix: tvOS app UI and fonts don't match web version - updated colors, fonts, and layout to match web exactly
 
 - [x] Fix: tvOS app icon asset catalog errors - restructured brandassets with proper 2-layer image stacks
+
+- [x] Fix: tvOS App Icon missing @2x scale images for background layer

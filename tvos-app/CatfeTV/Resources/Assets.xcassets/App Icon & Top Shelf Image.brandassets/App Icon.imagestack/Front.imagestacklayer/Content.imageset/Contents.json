@@ -4,6 +4,11 @@
       "filename" : "icon-front-400x240.png",
       "idiom" : "tv",
       "scale" : "1x"
+    },
+    {
+      "filename" : "icon-front-400x240@2x.png",
+      "idiom" : "tv",
+      "scale" : "2x"
     }
   ],
   "info" : {
