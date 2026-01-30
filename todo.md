@@ -159,3 +159,10 @@
 ## Bug Fixes - Jan 30
 - [x] Fix: Event screen text missing/not visible
 - [x] Fix: Adoption grid cat pictures cut off - should be square instead of rectangles
+
+## Recently Adopted Banner Feature
+- [x] Create RecentlyAdoptedBanner component for TV display
+- [x] Add backend query to fetch recently adopted cats
+- [x] Integrate banner into TV display screens (shows on applicable screens)
+- [x] Update tvOS app with Recently Adopted banner
+- [x] Test banner on web and tvOS

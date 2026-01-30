@@ -6,6 +6,7 @@ enum APIConfig {
     static let screensEndpoint = "/api/trpc/screens.getActive"
     static let settingsEndpoint = "/api/trpc/settings.get"
     static let randomAdoptionsEndpoint = "/api/trpc/screens.getRandomAdoptions"
+    static let recentlyAdoptedEndpoint = "/api/trpc/screens.getRecentlyAdopted"
 }
 
 // MARK: - Models
@@ -80,6 +81,7 @@ class APIClient: ObservableObject {
     @Published var screens: [Screen] = []
     @Published var settings: Settings?
     @Published var adoptionCats: [Screen] = []
+    @Published var recentlyAdopted: [Screen] = []
     @Published var isLoading = false
     @Published var error: String?
     @Published var isOffline = false
@@ -193,6 +195,34 @@ class APIClient: ObservableObject {
     func refresh() async {
         await fetchScreens()
         await fetchSettings()
+        await fetchRecentlyAdopted()
+    }
+    
+    func fetchRecentlyAdopted(limit: Int = 5) async {
+        guard let url = URL(string: "\(APIConfig.baseURL)\(APIConfig.recentlyAdoptedEndpoint)?input=\("{\"limit\":\(limit)}".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")") else {
+            return
+        }
+        
+        do {
+            var request = URLRequest(url: url)
+            request.httpMethod = "GET"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.timeoutInterval = 15
+            
+            let (data, response) = try await URLSession.shared.data(for: request)
+            
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+                throw URLError(.badServerResponse)
+            }
+            
+            let decoded = try JSONDecoder().decode(TRPCResponse<[Screen]>.self, from: data)
+            self.recentlyAdopted = decoded.result.data.json
+            
+            print("[APIClient] Successfully fetched \(self.recentlyAdopted.count) recently adopted cats")
+            
+        } catch {
+            print("[APIClient] Error fetching recently adopted: \(error)")
+        }
     }
     
     func fetchRandomAdoptions(count: Int = 4) async {

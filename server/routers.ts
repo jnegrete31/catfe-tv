@@ -211,6 +211,23 @@ export const appRouter = router({
         const shuffled = adoptionScreens.sort(() => Math.random() - 0.5);
         return shuffled.slice(0, input.count);
       }),
+
+    // Get recently adopted cats for celebration banner
+    getRecentlyAdopted: publicProcedure
+      .input(z.object({ limit: z.number().min(1).max(10).default(5) }))
+      .query(async ({ input }) => {
+        const allScreens = await getActiveScreens();
+        // Filter for adopted cats (isAdopted = true) with images
+        const adoptedCats = allScreens.filter(s => 
+          s.type === 'ADOPTION' && 
+          (s as any).isAdopted === true && 
+          s.imagePath
+        );
+        // Return the most recent ones (by id descending as proxy for recency)
+        return adoptedCats
+          .sort((a, b) => b.id - a.id)
+          .slice(0, input.limit);
+      }),
   }),
 
   // ============ SETTINGS ============

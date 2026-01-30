@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { usePlaylist } from "@/hooks/usePlaylist";
 import { ScreenRenderer, FallbackScreen } from "@/components/tv/ScreenRenderer";
 import { WeatherClockOverlay } from "@/components/tv/WeatherClockOverlay";
+import { RecentlyAdoptedBanner } from "@/components/tv/RecentlyAdoptedBanner";
 import { Wifi, WifiOff, RefreshCw, ChevronLeft, ChevronRight, Play, Pause } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import type { Screen } from "@shared/types";
@@ -32,6 +33,15 @@ export default function TVDisplay() {
   const { data: randomAdoptions, refetch: refetchAdoptions } = trpc.screens.getRandomAdoptions.useQuery(
     { count: 4 },
     { enabled: currentScreen?.type === "ADOPTION_SHOWCASE" }
+  );
+  
+  // Fetch recently adopted cats for celebration banner
+  const { data: recentlyAdopted } = trpc.screens.getRecentlyAdopted.useQuery(
+    { limit: 5 },
+    { 
+      staleTime: 60000, // Cache for 1 minute
+      refetchInterval: 60000, // Refetch every minute
+    }
   );
   
   // Update adoption cats when the query returns or when we show a showcase screen
@@ -254,6 +264,13 @@ export default function TVDisplay() {
       
       {/* Weather and Clock Overlay - always visible */}
       <WeatherClockOverlay />
+      
+      {/* Recently Adopted Banner - shows at bottom when there are adopted cats */}
+      {recentlyAdopted && recentlyAdopted.length > 0 && (
+        <div className="absolute bottom-0 left-0 right-0 z-30">
+          <RecentlyAdoptedBanner adoptedCats={recentlyAdopted} />
+        </div>
+      )}
       
       {/* Paused indicator */}
       {isPaused && !showControls && (

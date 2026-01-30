@@ -1,0 +1,73 @@
+{
+  "query": "SELECT column_name FROM information_schema.columns WHERE table_name = 'screens' ORDER BY ordinal_position;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2KjT5kGWaGHMws6.75433b4e530a --database aMDMXCoQ2ycSYTjhkKKJzm --execute SELECT column_name FROM information_schema.columns WHERE table_name = 'screens' ORDER BY ordinal_position;",
+  "rows": [
+    {
+      "column_name": "id"
+    },
+    {
+      "column_name": "screenType"
+    },
+    {
+      "column_name": "title"
+    },
+    {
+      "column_name": "subtitle"
+    },
+    {
+      "column_name": "body"
+    },
+    {
+      "column_name": "imagePath"
+    },
+    {
+      "column_name": "qrUrl"
+    },
+    {
+      "column_name": "startAt"
+    },
+    {
+      "column_name": "endAt"
+    },
+    {
+      "column_name": "daysOfWeek"
+    },
+    {
+      "column_name": "timeStart"
+    },
+    {
+      "column_name": "timeEnd"
+    },
+    {
+      "column_name": "priority"
+    },
+    {
+      "column_name": "durationSeconds"
+    },
+    {
+      "column_name": "sortOrder"
+    },
+    {
+      "column_name": "isActive"
+    },
+    {
+      "column_name": "isProtected"
+    },
+    {
+      "column_name": "createdAt"
+    },
+    {
+      "column_name": "updatedAt"
+    },
+    {
+      "column_name": "imageDisplayMode"
+    },
+    {
+      "column_name": "isAdopted"
+    }
+  ],
+  "messages": [],
+  "stdout": "column_name\nid\nscreenType\ntitle\nsubtitle\nbody\nimagePath\nqrUrl\nstartAt\nendAt\ndaysOfWeek\ntimeStart\ntimeEnd\npriority\ndurationSeconds\nsortOrder\nisActive\nisProtected\ncreatedAt\nupdatedAt\nimageDisplayMode\nisAdopted\n",
+  "stderr": "",
+  "execution_time_ms": 58
+}

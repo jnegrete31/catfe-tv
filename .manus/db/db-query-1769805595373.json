@@ -1,0 +1,20 @@
+{
+  "query": "SELECT id, title, isAdopted FROM screens WHERE isAdopted = 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2KjT5kGWaGHMws6.75433b4e530a --database aMDMXCoQ2ycSYTjhkKKJzm --execute SELECT id, title, isAdopted FROM screens WHERE isAdopted = 1;",
+  "rows": [
+    {
+      "id": "5",
+      "title": "Meet Scout",
+      "isAdopted": "1"
+    },
+    {
+      "id": "17",
+      "title": "Meet Elvira",
+      "isAdopted": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\ttitle\tisAdopted\n5\tMeet Scout\t1\n17\tMeet Elvira\t1\n",
+  "stderr": "",
+  "execution_time_ms": 53
+}

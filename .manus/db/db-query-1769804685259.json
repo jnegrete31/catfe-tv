@@ -1,0 +1,70 @@
+{
+  "query": "SELECT id, title, isAdopted, imagePath FROM screens WHERE title LIKE '%Meet%' LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2KjT5kGWaGHMws6.75433b4e530a --database aMDMXCoQ2ycSYTjhkKKJzm --execute SELECT id, title, isAdopted, imagePath FROM screens WHERE title LIKE '%Meet%' LIMIT 10;",
+  "rows": [
+    {
+      "id": "5",
+      "title": "Meet Scout",
+      "isAdopted": "0",
+      "imagePath": "https://raw.githubusercontent.com/jnegrete31/catfe-tv/main/assets/catfe-tv/2026/01/1769720111167-scout.jpg"
+    },
+    {
+      "id": "8",
+      "title": "Meet Jupiter",
+      "isAdopted": "0",
+      "imagePath": "https://raw.githubusercontent.com/jnegrete31/catfe-tv/main/assets/catfe-tv/2026/01/1769728600354-shutterstock_1898354080.jpg.avif"
+    },
+    {
+      "id": "9",
+      "title": "Meet Cuervo",
+      "isAdopted": "0",
+      "imagePath": "https://raw.githubusercontent.com/jnegrete31/catfe-tv/main/assets/catfe-tv/2026/01/1769729226483-shutterstock_1898354080-1.jpg.avif"
+    },
+    {
+      "id": "10",
+      "title": "Meet Rex",
+      "isAdopted": "0",
+      "imagePath": "https://raw.githubusercontent.com/jnegrete31/catfe-tv/main/assets/catfe-tv/2026/01/1769729407929-1afedb3078357a19a63a9a7cee2de14f.jpg"
+    },
+    {
+      "id": "11",
+      "title": "Meet Apollo",
+      "isAdopted": "0",
+      "imagePath": "https://raw.githubusercontent.com/jnegrete31/catfe-tv/main/assets/catfe-tv/2026/01/1769729628985-10ff69b0200eb14485e879689968f99f.jpg"
+    },
+    {
+      "id": "12",
+      "title": "Meet Celia",
+      "isAdopted": "0",
+      "imagePath": "https://raw.githubusercontent.com/jnegrete31/catfe-tv/main/assets/catfe-tv/2026/01/1769729730358-shutterstock_1898354080-1.png.avif"
+    },
+    {
+      "id": "13",
+      "title": "Meet Seiko",
+      "isAdopted": "0",
+      "imagePath": "https://raw.githubusercontent.com/jnegrete31/catfe-tv/main/assets/catfe-tv/2026/01/1769729890877-shutterstock_1898354080-2.png.avif"
+    },
+    {
+      "id": "14",
+      "title": "Meet Alpaca",
+      "isAdopted": "0",
+      "imagePath": "https://raw.githubusercontent.com/jnegrete31/catfe-tv/main/assets/catfe-tv/2026/01/1769730042492-shutterstock_1898354080-3.png.avif"
+    },
+    {
+      "id": "15",
+      "title": "Meet Bruce",
+      "isAdopted": "0",
+      "imagePath": "https://raw.githubusercontent.com/jnegrete31/catfe-tv/main/assets/catfe-tv/2026/01/1769730144213-shutterstock_1898354080-4.png.avif"
+    },
+    {
+      "id": "16",
+      "title": "Meet Chun-Li",
+      "isAdopted": "0",
+      "imagePath": "https://raw.githubusercontent.com/jnegrete31/catfe-tv/main/assets/catfe-tv/2026/01/1769730665903-shutterstock_1898354080-5.png.avif"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\ttitle\tisAdopted\timagePath\n5\tMeet Scout\t0\thttps://raw.githubusercontent.com/jnegrete31/catfe-tv/main/assets/catfe-tv/2026/01/1769720111167-scout.jpg\n8\tMeet Jupiter\t0\thttps://raw.githubusercontent.com/jnegrete31/catfe-tv/main/assets/catfe-tv/2026/01/1769728600354-shutterstock_1898354080.jpg.avif\n9\tMeet Cuervo\t0\thttps://raw.githubusercontent.com/jnegrete31/catfe-tv/main/assets/catfe-tv/2026/01/1769729226483-shutterstock_1898354080-1.jpg.avif\n10\tMeet Rex\t0\thttps://raw.githubusercontent.com/jnegrete31/catfe-tv/main/assets/catfe-tv/2026/01/1769729407929-1afedb3078357a19a63a9a7cee2de14f.jpg\n11\tMeet Apollo\t0\thttps://raw.githubusercontent.com/jnegrete31/catfe-tv/main/assets/catfe-tv/2026/01/1769729628985-10ff69b0200eb14485e879689968f99f.jpg\n12\tMeet Celia\t0\thttps://raw.githubusercontent.com/jnegrete31/catfe-tv/main/assets/catfe-tv/2026/01/1769729730358-shutterstock_1898354080-1.png.avif\n13\tMeet Seiko\t0\thttps://raw.githubusercontent.com/jnegrete31/catfe-tv/main/assets/catfe-tv/2026/01/1769729890877-shutterstock_1898354080-2.png.avif\n14\tMeet Alpaca\t0\thttps://raw.githubusercontent.com/jnegrete31/catfe-tv/main/assets/catfe-tv/2026/01/1769730042492-shutterstock_1898354080-3.png.avif\n15\tMeet Bruce\t0\thttps://raw.githubusercontent.com/jnegrete31/catfe-tv/main/assets/catfe-tv/2026/01/1769730144213-shutterstock_1898354080-4.png.avif\n16\tMeet Chun-Li\t0\thttps://raw.githubusercontent.com/jnegrete31/catfe-tv/main/assets/catfe-tv/2026/01/1769730665903-shutterstock_1898354080-5.png.avif\n",
+  "stderr": "",
+  "execution_time_ms": 67
+}

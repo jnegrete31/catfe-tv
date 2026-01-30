@@ -36,6 +36,14 @@ struct ContentView: View {
                 Spacer()
             }
             
+            // Recently Adopted banner at bottom
+            if !apiClient.recentlyAdopted.isEmpty {
+                VStack {
+                    Spacer()
+                    RecentlyAdoptedBanner(adoptedCats: apiClient.recentlyAdopted)
+                }
+            }
+            
             // Offline indicator
             if apiClient.isOffline {
                 VStack {

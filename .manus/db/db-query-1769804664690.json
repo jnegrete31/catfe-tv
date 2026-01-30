@@ -1,0 +1,33 @@
+{
+  "query": "SELECT * FROM screens LIMIT 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2KjT5kGWaGHMws6.75433b4e530a --database aMDMXCoQ2ycSYTjhkKKJzm --execute SELECT * FROM screens LIMIT 1;",
+  "rows": [
+    {
+      "id": "1",
+      "screenType": "SNAP_AND_PURR",
+      "title": "Snap & Purr!",
+      "subtitle": "Share your cat café moments",
+      "body": "Tag us @catfescv on Instagram for a chance to be featured!",
+      "imagePath": "NULL",
+      "qrUrl": "https://www.instagram.com/catfescv",
+      "startAt": "NULL",
+      "endAt": "NULL",
+      "daysOfWeek": "NULL",
+      "timeStart": "NULL",
+      "timeEnd": "NULL",
+      "priority": "5",
+      "durationSeconds": "12",
+      "sortOrder": "0",
+      "isActive": "1",
+      "isProtected": "0",
+      "createdAt": "2026-01-29 19:29:00",
+      "updatedAt": "2026-01-29 22:19:30",
+      "imageDisplayMode": "cover",
+      "isAdopted": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tscreenType\ttitle\tsubtitle\tbody\timagePath\tqrUrl\tstartAt\tendAt\tdaysOfWeek\ttimeStart\ttimeEnd\tpriority\tdurationSeconds\tsortOrder\tisActive\tisProtected\tcreatedAt\tupdatedAt\timageDisplayMode\tisAdopted\n1\tSNAP_AND_PURR\tSnap & Purr!\tShare your cat café moments\tTag us @catfescv on Instagram for a chance to be featured!\tNULL\thttps://www.instagram.com/catfescv\tNULL\tNULL\tNULL\tNULL\tNULL\t5\t12\t0\t1\t0\t2026-01-29 19:29:00\t2026-01-29 22:19:30\tcover\t0\n",
+  "stderr": "",
+  "execution_time_ms": 55
+}
