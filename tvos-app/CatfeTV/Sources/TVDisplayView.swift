@@ -385,6 +385,7 @@ struct QRCodeView: View {
             )
         ],
         settings: nil,
+        adoptionCats: [],
         currentIndex: .constant(0),
         isPlaying: .constant(true)
     )

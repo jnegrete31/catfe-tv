@@ -144,3 +144,5 @@
 - [x] Create web TV display renderer with 4-cat grid layout
 - [x] Update tvOS app with matching ADOPTION_SHOWCASE screen type
 - [ ] Test the new screen type on both web and tvOS
+
+- [x] Fix: TVDisplayView Preview missing adoptionCats parameter causing Xcode build error
