@@ -345,7 +345,8 @@ export function ScreenForm({ screen, onSuccess, onCancel }: ScreenFormProps) {
             </div>
             <input
               type="file"
-              accept="image/*,.heic,.heif,image/heic,image/heif"
+              accept="image/jpeg,image/png,image/gif,image/webp,image/heic,image/heif,.heic,.heif"
+              capture="environment"
               className="hidden"
               onChange={handleImageUpload}
               disabled={isUploading}
