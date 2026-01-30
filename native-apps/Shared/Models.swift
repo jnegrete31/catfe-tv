@@ -8,6 +8,7 @@ enum ScreenType: String, Codable, CaseIterable {
     case membership = "MEMBERSHIP"
     case reminder = "REMINDER"
     case adoption = "ADOPTION"
+    case adoptionShowcase = "ADOPTION_SHOWCASE"
     case thankYou = "THANK_YOU"
     
     var displayName: String {
@@ -18,6 +19,7 @@ enum ScreenType: String, Codable, CaseIterable {
         case .membership: return "Membership"
         case .reminder: return "Reminder"
         case .adoption: return "Adoption"
+        case .adoptionShowcase: return "Adoption Showcase"
         case .thankYou: return "Thank You"
         }
     }
@@ -30,6 +32,7 @@ enum ScreenType: String, Codable, CaseIterable {
         case .membership: return "#d1fae5"
         case .reminder: return "#fee2e2"
         case .adoption: return "#ede9fe"
+        case .adoptionShowcase: return "#ffedd5"
         case .thankYou: return "#e0e7ff"
         }
     }
@@ -52,6 +55,7 @@ struct Screen: Codable, Identifiable {
     let priority: Int
     let durationSeconds: Int
     let isActive: Bool
+    let isAdopted: Bool?
     let sortOrder: Int
     let createdAt: Date
     let updatedAt: Date
@@ -59,7 +63,7 @@ struct Screen: Codable, Identifiable {
     enum CodingKeys: String, CodingKey {
         case id, type, title, subtitle, body, imagePath, qrUrl
         case startDate, endDate, daysOfWeek, startTime, endTime
-        case priority, durationSeconds, isActive, sortOrder
+        case priority, durationSeconds, isActive, isAdopted, sortOrder
         case createdAt, updatedAt
     }
 }

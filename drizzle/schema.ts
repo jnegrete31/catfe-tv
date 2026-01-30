@@ -56,6 +56,7 @@ export const screens = mysqlTable("screens", {
   sortOrder: int("sortOrder").notNull().default(0), // For drag-and-drop ordering
   isActive: boolean("isActive").notNull().default(true),
   isProtected: boolean("isProtected").notNull().default(false), // Prevent deletion of core screens
+  isAdopted: boolean("isAdopted").notNull().default(false), // Mark adoption cats as adopted
   // Timestamps
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

@@ -243,6 +243,7 @@ function ReminderScreen({ screen, settings }: ScreenRendererProps) {
 // ADOPTION - Cat adoption promotion
 function AdoptionScreen({ screen, settings }: ScreenRendererProps) {
   const hasImage = !!screen.imagePath;
+  const isAdopted = (screen as any).isAdopted;
   const textColorClass = hasImage ? "text-white drop-shadow-lg" : "text-red-900";
   const subtitleColorClass = hasImage ? "text-white/90 drop-shadow-md" : "text-red-800";
   const bodyColorClass = hasImage ? "text-white/80 drop-shadow" : "text-red-700";
@@ -251,9 +252,15 @@ function AdoptionScreen({ screen, settings }: ScreenRendererProps) {
     <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#fee2e2">
       <div className="flex flex-col md:flex-row items-center justify-between w-full max-w-6xl gap-8">
         <div className="flex-1">
-          <div className="inline-block px-4 py-2 rounded-full bg-red-500 text-white text-lg mb-4">
-            Adopt Me!
-          </div>
+          {isAdopted ? (
+            <div className="inline-block px-4 py-2 rounded-full bg-green-500 text-white text-lg mb-4 animate-pulse">
+              🎉 Adopted!
+            </div>
+          ) : (
+            <div className="inline-block px-4 py-2 rounded-full bg-red-500 text-white text-lg mb-4">
+              Adopt Me!
+            </div>
+          )}
           <h1 className={`tv-text-large mb-4 ${textColorClass}`}>
             {screen.title}
           </h1>
@@ -308,10 +315,22 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRender
                     alt={cat.title}
                     className="absolute inset-0 w-full h-full object-cover"
                   />
+                  {/* Adopted badge overlay */}
+                  {(cat as any).isAdopted && (
+                    <div className="absolute top-3 right-3 px-3 py-1 rounded-full bg-green-500 text-white text-sm font-bold shadow-lg animate-pulse">
+                      🎉 Adopted!
+                    </div>
+                  )}
                 </div>
               ) : (
-                <div className="flex-1 bg-orange-100 flex items-center justify-center">
+                <div className="flex-1 bg-orange-100 flex items-center justify-center relative">
                   <span className="text-6xl">🐱</span>
+                  {/* Adopted badge overlay for no-image cats */}
+                  {(cat as any).isAdopted && (
+                    <div className="absolute top-3 right-3 px-3 py-1 rounded-full bg-green-500 text-white text-sm font-bold shadow-lg animate-pulse">
+                      🎉 Adopted!
+                    </div>
+                  )}
                 </div>
               )}
               <div className="p-4 bg-white">

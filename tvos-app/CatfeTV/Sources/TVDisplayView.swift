@@ -177,6 +177,10 @@ struct ScreenContentView: View {
     }
     
     private var badgeText: String {
+        // Show "Adopted!" badge for adopted cats
+        if screen.type == "ADOPTION" && screen.isAdopted == true {
+            return "🎉 Adopted!"
+        }
         switch screen.type {
         case "SNAP_AND_PURR": return "Snap & Purr!"
         case "EVENT": return "Event"
@@ -188,6 +192,14 @@ struct ScreenContentView: View {
         case "THANK_YOU": return "Thank You"
         default: return screen.type
         }
+    }
+    
+    private var badgeColorForAdoption: Color {
+        // Green badge for adopted cats
+        if screen.type == "ADOPTION" && screen.isAdopted == true {
+            return Color(hex: "#22c55e") // green-500
+        }
+        return badgeColor
     }
     
     // MARK: - Content Layout
@@ -258,14 +270,14 @@ struct ScreenContentView: View {
         HStack(alignment: .center, spacing: 60) {
             // Left side - text content
             VStack(alignment: .leading, spacing: 16) {
-                // Badge
+                // Badge (green for adopted cats)
                 Text(badgeText)
                     .font(.custom(bodyFont, size: 24))
                     .fontWeight(.semibold)
                     .foregroundColor(.white)
                     .padding(.horizontal, 20)
                     .padding(.vertical, 10)
-                    .background(badgeColor)
+                    .background(badgeColorForAdoption)
                     .cornerRadius(50)
                 
                 // Title
@@ -380,6 +392,7 @@ struct QRCodeView: View {
                 sortOrder: 0,
                 isActive: true,
                 isProtected: false,
+                isAdopted: false,
                 createdAt: "",
                 updatedAt: ""
             )
@@ -467,27 +480,43 @@ struct CatCard: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Cat image
-            if let imagePath = cat.imagePath, !imagePath.isEmpty {
-                AsyncImage(url: URL(string: imagePath)) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(height: 200)
-                            .clipped()
-                    case .failure:
-                        catPlaceholder
-                    case .empty:
-                        ProgressView()
-                            .frame(height: 200)
-                    @unknown default:
-                        catPlaceholder
+            // Cat image with Adopted badge overlay
+            ZStack(alignment: .topTrailing) {
+                if let imagePath = cat.imagePath, !imagePath.isEmpty {
+                    AsyncImage(url: URL(string: imagePath)) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(height: 200)
+                                .clipped()
+                        case .failure:
+                            catPlaceholder
+                        case .empty:
+                            ProgressView()
+                                .frame(height: 200)
+                        @unknown default:
+                            catPlaceholder
+                        }
                     }
+                } else {
+                    catPlaceholder
                 }
-            } else {
-                catPlaceholder
+                
+                // Adopted badge overlay
+                if cat.isAdopted == true {
+                    Text("🎉 Adopted!")
+                        .font(.custom("Helvetica Neue", size: 14))
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Color(hex: "#22c55e")) // green-500
+                        .cornerRadius(20)
+                        .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
+                        .padding(12)
+                }
             }
             
             // Cat info

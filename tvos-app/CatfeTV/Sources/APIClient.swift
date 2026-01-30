@@ -28,6 +28,7 @@ struct Screen: Codable, Identifiable, Hashable {
     let sortOrder: Int
     let isActive: Bool
     let isProtected: Bool
+    let isAdopted: Bool?
     let createdAt: String
     let updatedAt: String
     

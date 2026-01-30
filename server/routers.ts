@@ -57,6 +57,7 @@ const screenInput = z.object({
   sortOrder: z.number().default(0),
   isActive: z.boolean().default(true),
   isProtected: z.boolean().default(false),
+  isAdopted: z.boolean().default(false),
 });
 
 const timeSlotInput = z.object({

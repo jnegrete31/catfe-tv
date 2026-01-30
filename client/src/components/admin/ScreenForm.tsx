@@ -41,6 +41,7 @@ const screenSchema = z.object({
   priority: z.number().min(1).max(10),
   durationSeconds: z.number().min(1).max(300),
   isActive: z.boolean(),
+  isAdopted: z.boolean(),
 });
 
 type ScreenFormData = z.infer<typeof screenSchema>;
@@ -119,6 +120,7 @@ export function ScreenForm({ screen, onSuccess, onCancel }: ScreenFormProps) {
       priority: screen?.priority || 1,
       durationSeconds: screen?.durationSeconds || 10,
       isActive: screen?.isActive ?? true,
+      isAdopted: (screen as any)?.isAdopted ?? false,
     },
   });
   
@@ -525,6 +527,23 @@ export function ScreenForm({ screen, onSuccess, onCancel }: ScreenFormProps) {
           </div>
         </CardContent>
       </Card>
+      
+      {/* Adopted Toggle - Only show for Adoption type screens */}
+      {watchedType === "ADOPTION" && (
+        <div className="flex items-center justify-between rounded-lg border border-green-200 bg-green-50 p-4">
+          <div>
+            <Label htmlFor="isAdopted" className="text-green-800">Adopted!</Label>
+            <p className="text-sm text-green-600">
+              Mark this cat as adopted (shows "Adopted!" badge)
+            </p>
+          </div>
+          <Switch
+            id="isAdopted"
+            checked={watch("isAdopted")}
+            onCheckedChange={(checked) => setValue("isAdopted", checked)}
+          />
+        </div>
+      )}
       
       {/* Active Toggle */}
       <div className="flex items-center justify-between">

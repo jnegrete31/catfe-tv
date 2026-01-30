@@ -13,14 +13,27 @@ struct ScreenContentView: View {
             HStack(spacing: 0) {
                 // Text content
                 VStack(alignment: .leading, spacing: 24) {
-                    // Type badge
-                    Text(screen.type.displayName)
+                    // Type badge (or Adopted badge for adoption screens)
+                    if screen.type == .adoption && screen.isAdopted == true {
+                        HStack(spacing: 8) {
+                            Text("🎉")
+                            Text("Adopted!")
+                        }
                         .font(.headline)
                         .foregroundColor(.white)
                         .padding(.horizontal, 20)
                         .padding(.vertical, 10)
-                        .background(Color(hex: getAccentColor()))
+                        .background(Color(hex: "#22c55e"))
                         .clipShape(Capsule())
+                    } else {
+                        Text(screen.type.displayName)
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 10)
+                            .background(Color(hex: getAccentColor()))
+                            .clipShape(Capsule())
+                    }
                     
                     // Title
                     Text(screen.title)
@@ -92,6 +105,7 @@ struct ScreenContentView: View {
         case .membership: return "#059669"
         case .reminder: return "#dc2626"
         case .adoption: return "#7c3aed"
+        case .adoptionShowcase: return "#f97316"
         case .thankYou: return "#4f46e5"
         }
     }
@@ -104,6 +118,7 @@ struct ScreenContentView: View {
         case .membership: return "#064e3b"
         case .reminder: return "#7f1d1d"
         case .adoption: return "#4c1d95"
+        case .adoptionShowcase: return "#7c2d12"
         case .thankYou: return "#312e81"
         }
     }
@@ -163,6 +178,7 @@ struct AsyncImageView: View {
         priority: 1,
         durationSeconds: 10,
         isActive: true,
+        isAdopted: false,
         sortOrder: 0,
         createdAt: Date(),
         updatedAt: Date()

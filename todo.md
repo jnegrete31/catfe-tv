@@ -147,3 +147,11 @@
 
 - [x] Fix: TVDisplayView Preview missing adoptionCats parameter causing Xcode build error
 - [x] Create Adoption Showcase screen in admin dashboard to test 4-cat grid
+
+## Adopted Badge Feature
+- [x] Add isAdopted field to screens database schema
+- [x] Update backend routers to handle isAdopted field
+- [x] Add Adopted toggle to admin screen editor (for Adoption type screens)
+- [x] Update TV display to show "Adopted!" badge on adopted cats
+- [x] Update tvOS app to display Adopted badge
+- [x] Test adopted badge on web and tvOS
