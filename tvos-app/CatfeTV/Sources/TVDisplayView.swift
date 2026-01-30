@@ -477,10 +477,11 @@ struct AdoptionShowcaseView: View {
 
 struct CatCard: View {
     let cat: Screen
+    private let cardSize: CGFloat = 280 // Square card size
     
     var body: some View {
         VStack(spacing: 0) {
-            // Cat image with Adopted badge overlay
+            // Cat image with Adopted badge overlay - SQUARE aspect ratio
             ZStack(alignment: .topTrailing) {
                 if let imagePath = cat.imagePath, !imagePath.isEmpty {
                     AsyncImage(url: URL(string: imagePath)) { phase in
@@ -489,13 +490,13 @@ struct CatCard: View {
                             image
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)
-                                .frame(height: 200)
+                                .frame(width: cardSize, height: cardSize) // Square frame
                                 .clipped()
                         case .failure:
                             catPlaceholder
                         case .empty:
                             ProgressView()
-                                .frame(height: 200)
+                                .frame(width: cardSize, height: cardSize)
                         @unknown default:
                             catPlaceholder
                         }
@@ -518,6 +519,7 @@ struct CatCard: View {
                         .padding(12)
                 }
             }
+            .frame(width: cardSize, height: cardSize)
             
             // Cat info
             VStack(alignment: .leading, spacing: 4) {
@@ -538,7 +540,7 @@ struct CatCard: View {
             .padding(16)
             .background(Color.white)
         }
-        .frame(width: 350, height: 280)
+        .frame(width: cardSize)
         .background(Color.white)
         .cornerRadius(20)
         .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
@@ -550,21 +552,34 @@ struct CatCard: View {
             Text("🐱")
                 .font(.system(size: 60))
         }
-        .frame(height: 200)
+        .frame(width: cardSize, height: cardSize) // Square placeholder
     }
 }
 
 struct EmptyCatCard: View {
+    private let cardSize: CGFloat = 280 // Match CatCard square size
+    
     var body: some View {
-        VStack(spacing: 8) {
-            Text("🐱")
-                .font(.system(size: 50))
-            Text("Coming Soon")
-                .font(.custom("Helvetica Neue", size: 18))
-                .foregroundColor(Color(hex: "#fb923c")) // orange-400
+        VStack(spacing: 0) {
+            // Square placeholder area
+            VStack(spacing: 8) {
+                Text("🐱")
+                    .font(.system(size: 50))
+                Text("Coming Soon")
+                    .font(.custom("Helvetica Neue", size: 18))
+                    .foregroundColor(Color(hex: "#fb923c")) // orange-400
+            }
+            .frame(width: cardSize, height: cardSize)
+            .background(Color(hex: "#fed7aa").opacity(0.5)) // orange-200
+            
+            // Empty info area to match CatCard height
+            Spacer()
+                .frame(height: 70)
+                .frame(maxWidth: .infinity)
+                .background(Color(hex: "#fed7aa").opacity(0.3))
         }
-        .frame(width: 350, height: 280)
-        .background(Color(hex: "#fed7aa").opacity(0.5)) // orange-200
+        .frame(width: cardSize)
+        .background(Color(hex: "#fed7aa").opacity(0.5))
         .cornerRadius(20)
     }
 }

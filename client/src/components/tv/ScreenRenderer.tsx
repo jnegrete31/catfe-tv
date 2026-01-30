@@ -55,8 +55,8 @@ function ScreenLayout({
         </>
       )}
       
-      {/* Content - only show text overlay if not in contain mode or no image */}
-      {(!imagePath || !isContain) && (
+      {/* Content - always show text overlay for cover mode, hide for contain mode */}
+      {(!isContain) && (
         <div className="relative z-10 w-full h-full flex items-center justify-center p-8 md:p-16">
           {children}
         </div>
@@ -301,38 +301,41 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRender
           </h1>
         </div>
         
-        {/* 2x2 Grid of cats */}
-        <div className="flex-1 grid grid-cols-2 gap-6 max-w-5xl mx-auto w-full">
+        {/* 2x2 Grid of cats - using square aspect ratio */}
+        <div className="flex-1 grid grid-cols-2 gap-6 max-w-4xl mx-auto w-full">
           {cats.slice(0, 4).map((cat, index) => (
             <div 
               key={cat.id || index}
               className="relative bg-white rounded-2xl overflow-hidden shadow-lg flex flex-col"
             >
-              {cat.imagePath ? (
-                <div className="flex-1 relative min-h-0">
-                  <img 
-                    src={cat.imagePath} 
-                    alt={cat.title}
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-                  {/* Adopted badge overlay */}
-                  {(cat as any).isAdopted && (
-                    <div className="absolute top-3 right-3 px-3 py-1 rounded-full bg-green-500 text-white text-sm font-bold shadow-lg animate-pulse">
-                      🎉 Adopted!
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="flex-1 bg-orange-100 flex items-center justify-center relative">
-                  <span className="text-6xl">🐱</span>
-                  {/* Adopted badge overlay for no-image cats */}
-                  {(cat as any).isAdopted && (
-                    <div className="absolute top-3 right-3 px-3 py-1 rounded-full bg-green-500 text-white text-sm font-bold shadow-lg animate-pulse">
-                      🎉 Adopted!
-                    </div>
-                  )}
-                </div>
-              )}
+              {/* Square image container using aspect-square */}
+              <div className="relative aspect-square">
+                {cat.imagePath ? (
+                  <>
+                    <img 
+                      src={cat.imagePath} 
+                      alt={cat.title}
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                    {/* Adopted badge overlay */}
+                    {(cat as any).isAdopted && (
+                      <div className="absolute top-3 right-3 px-3 py-1 rounded-full bg-green-500 text-white text-sm font-bold shadow-lg animate-pulse">
+                        🎉 Adopted!
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="absolute inset-0 bg-orange-100 flex items-center justify-center">
+                    <span className="text-6xl">🐱</span>
+                    {/* Adopted badge overlay for no-image cats */}
+                    {(cat as any).isAdopted && (
+                      <div className="absolute top-3 right-3 px-3 py-1 rounded-full bg-green-500 text-white text-sm font-bold shadow-lg animate-pulse">
+                        🎉 Adopted!
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
               <div className="p-4 bg-white">
                 <h3 className="text-2xl font-bold text-orange-900 truncate">{cat.title}</h3>
                 {cat.subtitle && (
@@ -346,11 +349,13 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRender
           {cats.length < 4 && Array.from({ length: 4 - cats.length }).map((_, i) => (
             <div 
               key={`empty-${i}`}
-              className="bg-orange-100 rounded-2xl flex items-center justify-center shadow-lg"
+              className="bg-orange-100 rounded-2xl flex flex-col overflow-hidden shadow-lg"
             >
-              <div className="text-center text-orange-400">
-                <span className="text-6xl block mb-2">🐱</span>
-                <span className="text-xl">Coming Soon</span>
+              <div className="aspect-square flex items-center justify-center">
+                <div className="text-center text-orange-400">
+                  <span className="text-6xl block mb-2">🐱</span>
+                  <span className="text-xl">Coming Soon</span>
+                </div>
               </div>
             </div>
           ))}

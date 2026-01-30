@@ -155,3 +155,7 @@
 - [x] Update TV display to show "Adopted!" badge on adopted cats
 - [x] Update tvOS app to display Adopted badge
 - [x] Test adopted badge on web and tvOS
+
+## Bug Fixes - Jan 30
+- [x] Fix: Event screen text missing/not visible
+- [x] Fix: Adoption grid cat pictures cut off - should be square instead of rectangles
