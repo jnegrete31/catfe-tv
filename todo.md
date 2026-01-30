@@ -143,6 +143,7 @@
 - [x] Create backend logic to fetch 4 random adoption screens
 - [x] Create web TV display renderer with 4-cat grid layout
 - [x] Update tvOS app with matching ADOPTION_SHOWCASE screen type
-- [ ] Test the new screen type on both web and tvOS
+- [x] Test the new screen type on both web and tvOS
 
 - [x] Fix: TVDisplayView Preview missing adoptionCats parameter causing Xcode build error
+- [x] Create Adoption Showcase screen in admin dashboard to test 4-cat grid

@@ -1,0 +1,32 @@
+{
+  "query": "SELECT * FROM screens WHERE title LIKE '%Meet our Cats%' LIMIT 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2KjT5kGWaGHMws6.75433b4e530a --database aMDMXCoQ2ycSYTjhkKKJzm --execute SELECT * FROM screens WHERE title LIKE '%Meet our Cats%' LIMIT 1;",
+  "rows": [
+    {
+      "id": "30001",
+      "screenType": "ADOPTION_SHOWCASE",
+      "title": "Meet our Cats",
+      "subtitle": "NULL",
+      "body": "NULL",
+      "imagePath": "NULL",
+      "qrUrl": "NULL",
+      "startAt": "NULL",
+      "endAt": "NULL",
+      "daysOfWeek": "NULL",
+      "timeStart": "NULL",
+      "timeEnd": "NULL",
+      "priority": "1",
+      "durationSeconds": "10",
+      "sortOrder": "0",
+      "isActive": "1",
+      "isProtected": "0",
+      "createdAt": "2026-01-30 18:31:43",
+      "updatedAt": "2026-01-30 18:31:43",
+      "imageDisplayMode": "cover"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tscreenType\ttitle\tsubtitle\tbody\timagePath\tqrUrl\tstartAt\tendAt\tdaysOfWeek\ttimeStart\ttimeEnd\tpriority\tdurationSeconds\tsortOrder\tisActive\tisProtected\tcreatedAt\tupdatedAt\timageDisplayMode\n30001\tADOPTION_SHOWCASE\tMeet our Cats\tNULL\tNULL\tNULL\tNULL\tNULL\tNULL\tNULL\tNULL\tNULL\t1\t10\t0\t1\t0\t2026-01-30 18:31:43\t2026-01-30 18:31:43\tcover\n",
+  "stderr": "",
+  "execution_time_ms": 62
+}
