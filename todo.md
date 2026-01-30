@@ -174,3 +174,5 @@
 ## Feature - Apple Photo Format Support
 - [x] Add HEIC/HEIF file format support to admin image upload
 - [x] Update file picker to open Photos library on Mac instead of all files
+- [x] Add drag-and-drop image upload support
+- [x] Update upload UI with instructions for Mac Photos access

@@ -56,6 +56,7 @@ export function ScreenForm({ screen, onSuccess, onCancel }: ScreenFormProps) {
   const [selectedDays, setSelectedDays] = useState<number[]>(screen?.daysOfWeek || []);
   const [imagePreview, setImagePreview] = useState<string | null>(screen?.imagePath || null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   
   const utils = trpc.useUtils();
   
@@ -146,8 +147,13 @@ export function ScreenForm({ screen, onSuccess, onCancel }: ScreenFormProps) {
   
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    
+    if (file) {
+      processFile(file);
+    }
+  };
+  
+  // Shared file processing logic
+  const processFile = (file: File) => {
     // Validate file type - accept standard images and Apple HEIC/HEIF
     const isImage = file.type.startsWith("image/");
     const isAppleFormat = file.name.toLowerCase().endsWith(".heic") || file.name.toLowerCase().endsWith(".heif");
@@ -177,6 +183,30 @@ export function ScreenForm({ screen, onSuccess, onCancel }: ScreenFormProps) {
       });
     };
     reader.readAsDataURL(file);
+  };
+  
+  // Drag and drop handlers
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+  
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+  
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      processFile(file);
+    }
   };
   
   const removeImage = () => {
@@ -327,18 +357,38 @@ export function ScreenForm({ screen, onSuccess, onCancel }: ScreenFormProps) {
             </Button>
           </div>
         ) : (
-          <label className="flex flex-col items-center justify-center w-full aspect-video border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-muted/50 transition">
-            <div className="flex flex-col items-center justify-center py-6">
+          <label 
+            className={cn(
+              "flex flex-col items-center justify-center w-full aspect-video border-2 border-dashed rounded-lg cursor-pointer transition",
+              isDragging 
+                ? "border-primary bg-primary/10" 
+                : "border-border hover:bg-muted/50"
+            )}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
+            <div className="flex flex-col items-center justify-center py-6 pointer-events-none">
               {isUploading ? (
                 <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" />
+              ) : isDragging ? (
+                <>
+                  <ImageIcon className="w-10 h-10 text-primary mb-2" />
+                  <p className="text-sm text-primary font-medium">
+                    Drop image here
+                  </p>
+                </>
               ) : (
                 <>
                   <ImageIcon className="w-10 h-10 text-muted-foreground mb-2" />
-                  <p className="text-sm text-muted-foreground">
-                    Tap to select image
+                  <p className="text-sm text-muted-foreground font-medium">
+                    Drag photo here or tap to browse
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Max 5MB, will upload to GitHub
+                    Drag from Photos app, or browse files
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Max 5MB · JPG, PNG, HEIC supported
                   </p>
                 </>
               )}
@@ -346,7 +396,6 @@ export function ScreenForm({ screen, onSuccess, onCancel }: ScreenFormProps) {
             <input
               type="file"
               accept="image/jpeg,image/png,image/gif,image/webp,image/heic,image/heif,.heic,.heif"
-              capture="environment"
               className="hidden"
               onChange={handleImageUpload}
               disabled={isUploading}
