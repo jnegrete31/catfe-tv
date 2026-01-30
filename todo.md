@@ -170,3 +170,6 @@
 ## Bug Fix - Jan 30 (tvOS)
 - [x] Fix: RecentlyAdoptedBanner.swift not included in Xcode project
 - [x] Fix: Corrupted project.pbxproj file causing Xcode to fail opening project
+
+## Feature - Apple Photo Format Support
+- [x] Add HEIC/HEIF file format support to admin image upload

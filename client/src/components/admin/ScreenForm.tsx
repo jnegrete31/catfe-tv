@@ -148,8 +148,10 @@ export function ScreenForm({ screen, onSuccess, onCancel }: ScreenFormProps) {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    // Validate file type
-    if (!file.type.startsWith("image/")) {
+    // Validate file type - accept standard images and Apple HEIC/HEIF
+    const isImage = file.type.startsWith("image/");
+    const isAppleFormat = file.name.toLowerCase().endsWith(".heic") || file.name.toLowerCase().endsWith(".heif");
+    if (!isImage && !isAppleFormat) {
       toast.error("Please select an image file");
       return;
     }
@@ -343,7 +345,7 @@ export function ScreenForm({ screen, onSuccess, onCancel }: ScreenFormProps) {
             </div>
             <input
               type="file"
-              accept="image/*"
+              accept="image/*,.heic,.heif,image/heic,image/heif"
               className="hidden"
               onChange={handleImageUpload}
               disabled={isUploading}
