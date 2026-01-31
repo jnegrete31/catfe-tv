@@ -3,7 +3,6 @@ import SwiftUI
 // Unified overlay component that appears on ALL screens in the same position
 struct ScreenOverlay: View {
     let logoUrl: String?
-    let weatherData: WeatherData?
     
     var body: some View {
         ZStack {
@@ -22,7 +21,7 @@ struct ScreenOverlay: View {
             VStack {
                 HStack {
                     Spacer()
-                    WeatherClockOverlay(weatherData: weatherData)
+                    WeatherClockOverlay()
                         .padding(.trailing, 60)
                         .padding(.top, 60)
                 }
@@ -35,6 +34,6 @@ struct ScreenOverlay: View {
 #Preview {
     ZStack {
         Color.blue
-        ScreenOverlay(logoUrl: nil, weatherData: nil)
+        ScreenOverlay(logoUrl: nil)
     }
 }
