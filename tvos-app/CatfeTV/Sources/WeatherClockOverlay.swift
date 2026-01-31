@@ -12,35 +12,42 @@ struct WeatherClockOverlay: View {
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
     var body: some View {
-        VStack(alignment: .trailing, spacing: 12) {
+        VStack(alignment: .trailing, spacing: 8) {
             // Time
             Text(timeString)
-                .font(.system(size: 48, weight: .semibold, design: .rounded))
+                .font(.system(size: 42, weight: .semibold, design: .rounded))
                 .foregroundColor(.white)
+                .shadow(color: .black.opacity(0.5), radius: 4, x: 0, y: 2)
             
             // Date
             Text(dateString)
-                .font(.system(size: 24, weight: .medium))
+                .font(.system(size: 20, weight: .medium))
                 .foregroundColor(.white.opacity(0.9))
+                .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
             
             // Weather
             if let weather = weather {
-                HStack(spacing: 12) {
+                HStack(spacing: 8) {
                     Image(systemName: weather.icon)
-                        .font(.system(size: 32))
+                        .font(.system(size: 28))
                     
                     Text("\(weather.temperature)°F")
-                        .font(.system(size: 32, weight: .medium))
+                        .font(.system(size: 28, weight: .medium))
                 }
                 .foregroundColor(.white)
+                .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
             }
         }
-        .padding(24)
+        .padding(20)
         .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(.ultraThinMaterial)
-                .opacity(0.8)
+            RoundedRectangle(cornerRadius: 16)
+                .fill(.black.opacity(0.5))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(.white.opacity(0.2), lineWidth: 1)
+                )
         )
+        .fixedSize()
         .onReceive(timer) { _ in
             currentTime = Date()
         }

@@ -15,6 +15,10 @@ struct TVDisplayView: View {
                     AdoptionShowcaseView(screen: screen, settings: settings, cats: adoptionCats, adoptionCount: adoptionCount)
                         .id("showcase-\(screen.id)")
                         .transition(.opacity)
+                } else if screen.type == "ADOPTION_COUNTER" {
+                    AdoptionCounterView(screen: screen, settings: settings)
+                        .id("counter-\(screen.id)")
+                        .transition(.opacity)
                 } else {
                     ScreenContentView(screen: screen, settings: settings)
                         .id(screen.id)
@@ -602,4 +606,109 @@ struct EmptyCatCard: View {
         .background(Color(hex: "#fed7aa").opacity(0.5))
         .cornerRadius(20)
     }
+}
+
+// MARK: - Adoption Counter View (Full-screen celebration)
+struct AdoptionCounterView: View {
+    let screen: Screen
+    let settings: Settings?
+    
+    private let displayFont = "Georgia"
+    private let bodyFont = "Helvetica Neue"
+    
+    private var totalCount: Int {
+        settings?.totalAdoptionCount ?? 0
+    }
+    
+    var body: some View {
+        ZStack {
+            // Background color - green-100
+            Color(hex: "#dcfce7")
+                .ignoresSafeArea()
+            
+            // Confetti-style decorations
+            VStack {
+                HStack {
+                    Text("🎉")
+                        .font(.system(size: 80))
+                        .offset(y: bounceAnimation ? -10 : 10)
+                        .animation(.easeInOut(duration: 1).repeatForever(autoreverses: true), value: bounceAnimation)
+                    Spacer()
+                    Text("🎊")
+                        .font(.system(size: 70))
+                        .offset(y: bounceAnimation ? 10 : -10)
+                        .animation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true), value: bounceAnimation)
+                }
+                Spacer()
+                HStack {
+                    Text("❤️")
+                        .font(.system(size: 70))
+                        .offset(y: bounceAnimation ? -8 : 8)
+                        .animation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true), value: bounceAnimation)
+                    Spacer()
+                    Text("🐱")
+                        .font(.system(size: 80))
+                        .offset(y: bounceAnimation ? 8 : -8)
+                        .animation(.easeInOut(duration: 1.1).repeatForever(autoreverses: true), value: bounceAnimation)
+                }
+            }
+            .padding(60)
+            
+            // Main content
+            VStack(spacing: 20) {
+                // Header badge
+                Text("🏠 Forever Homes Found!")
+                    .font(.custom(bodyFont, size: 32))
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 32)
+                    .padding(.vertical, 16)
+                    .background(Color(hex: "#22c55e")) // green-500
+                    .cornerRadius(50)
+                    .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
+                
+                // Big counter number
+                Text("\(totalCount)")
+                    .font(.system(size: 300, weight: .black, design: .rounded))
+                    .foregroundColor(Color(hex: "#15803d")) // green-700
+                    .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+                
+                // Title
+                Text(screen.title.isEmpty ? "Cats Adopted" : screen.title)
+                    .font(.custom(displayFont, size: 64))
+                    .fontWeight(.bold)
+                    .foregroundColor(Color(hex: "#166534")) // green-800
+                
+                // Subtitle (if any)
+                if let subtitle = screen.subtitle, !subtitle.isEmpty {
+                    Text(subtitle)
+                        .font(.custom(bodyFont, size: 36))
+                        .foregroundColor(Color(hex: "#15803d")) // green-700
+                }
+                
+                // Thank you message
+                HStack(spacing: 12) {
+                    Text("💚")
+                        .font(.system(size: 28))
+                    Text("Thank you for making a difference!")
+                        .font(.custom(bodyFont, size: 24))
+                        .fontWeight(.medium)
+                        .foregroundColor(Color(hex: "#166534"))
+                    Text("💚")
+                        .font(.system(size: 28))
+                }
+                .padding(.horizontal, 24)
+                .padding(.vertical, 12)
+                .background(Color.white.opacity(0.8))
+                .cornerRadius(50)
+                .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
+                .padding(.top, 20)
+            }
+        }
+        .onAppear {
+            bounceAnimation = true
+        }
+    }
+    
+    @State private var bounceAnimation = false
 }

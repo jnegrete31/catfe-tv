@@ -15,6 +15,7 @@ export const SCREEN_TYPES = [
   "REMINDER",
   "ADOPTION",
   "ADOPTION_SHOWCASE",
+  "ADOPTION_COUNTER",
   "THANK_YOU",
 ] as const;
 
@@ -29,6 +30,7 @@ export const SCREEN_TYPE_CONFIG: Record<ScreenType, { label: string; color: stri
   REMINDER: { label: "Reminder", color: "#3b82f6", bgColor: "#dbeafe" },
   ADOPTION: { label: "Adoption", color: "#ef4444", bgColor: "#fee2e2" },
   ADOPTION_SHOWCASE: { label: "Adoption Showcase", color: "#f97316", bgColor: "#ffedd5" },
+  ADOPTION_COUNTER: { label: "Adoption Counter", color: "#16a34a", bgColor: "#dcfce7" },
   THANK_YOU: { label: "Thank You", color: "#6366f1", bgColor: "#e0e7ff" },
 };
 

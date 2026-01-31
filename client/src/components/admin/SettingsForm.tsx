@@ -16,6 +16,7 @@ const settingsSchema = z.object({
   defaultDurationSeconds: z.number().min(1).max(300),
   fallbackMode: z.enum(["AMBIENT", "LOOP_DEFAULT"]),
   snapAndPurrFrequency: z.number().min(1).max(20),
+  totalAdoptionCount: z.number().min(0),
   refreshIntervalSeconds: z.number().min(10).max(600),
   githubRepo: z.string().max(255).optional().nullable(),
   githubBranch: z.string().max(64).optional(),
@@ -55,6 +56,7 @@ export function SettingsForm({ settings, onSuccess }: SettingsFormProps) {
       defaultDurationSeconds: settings?.defaultDurationSeconds || 10,
       fallbackMode: settings?.fallbackMode || "LOOP_DEFAULT",
       snapAndPurrFrequency: settings?.snapAndPurrFrequency || 5,
+      totalAdoptionCount: settings?.totalAdoptionCount || 0,
       refreshIntervalSeconds: settings?.refreshIntervalSeconds || 60,
       githubRepo: settings?.githubRepo || "",
       githubBranch: settings?.githubBranch || "main",
@@ -116,6 +118,29 @@ export function SettingsForm({ settings, onSuccess }: SettingsFormProps) {
                 How often TV checks for new content
               </p>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+      
+      {/* Adoption Counter */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-green-700">🎉 Adoption Counter</CardTitle>
+          <CardDescription>Track your total adoptions for the celebration display</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="totalAdoptionCount">Total Cats Adopted</Label>
+            <Input
+              id="totalAdoptionCount"
+              type="number"
+              min={0}
+              {...register("totalAdoptionCount", { valueAsNumber: true })}
+              className="text-2xl font-bold text-center h-14"
+            />
+            <p className="text-xs text-muted-foreground">
+              Enter the total number of cats adopted (including before this system was set up)
+            </p>
           </div>
         </CardContent>
       </Card>

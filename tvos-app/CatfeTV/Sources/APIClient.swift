@@ -55,6 +55,7 @@ struct Settings: Codable {
     let fallbackMode: String?
     let brandColors: BrandColors?
     let snapAndPurrFrequency: Int?
+    let totalAdoptionCount: Int?
     let githubRepo: String?
     let githubBranch: String?
     let refreshIntervalSeconds: Int?

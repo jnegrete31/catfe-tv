@@ -386,6 +386,58 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRender
   );
 }
 
+// ADOPTION_COUNTER - Full-screen celebration of total adoptions
+function AdoptionCounterScreen({ screen, settings }: ScreenRendererProps) {
+  const { data: settingsData } = trpc.settings.get.useQuery();
+  const totalCount = settingsData?.totalAdoptionCount || 0;
+  
+  return (
+    <ScreenLayout bgColor="#dcfce7">
+      <div className="text-center max-w-5xl">
+        {/* Confetti-style decorations */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-10 left-10 text-6xl animate-bounce" style={{ animationDelay: '0s' }}>🎉</div>
+          <div className="absolute top-20 right-20 text-5xl animate-bounce" style={{ animationDelay: '0.2s' }}>🎊</div>
+          <div className="absolute bottom-20 left-20 text-5xl animate-bounce" style={{ animationDelay: '0.4s' }}>❤️</div>
+          <div className="absolute bottom-10 right-10 text-6xl animate-bounce" style={{ animationDelay: '0.6s' }}>🐱</div>
+          <div className="absolute top-1/4 left-1/4 text-4xl animate-pulse" style={{ animationDelay: '0.3s' }}>⭐</div>
+          <div className="absolute top-1/3 right-1/4 text-4xl animate-pulse" style={{ animationDelay: '0.5s' }}>🌟</div>
+        </div>
+        
+        {/* Main content */}
+        <div className="relative z-10">
+          <div className="inline-block px-8 py-3 mb-6 rounded-full bg-green-500 text-white text-2xl font-bold shadow-lg">
+            🏠 Forever Homes Found!
+          </div>
+          
+          {/* Big counter number */}
+          <div className="my-8">
+            <span className="text-[12rem] font-black text-green-700 leading-none drop-shadow-lg">
+              {totalCount}
+            </span>
+          </div>
+          
+          <h1 className="text-5xl font-bold text-green-800 mb-4">
+            {screen.title || "Cats Adopted"}
+          </h1>
+          
+          {screen.subtitle && (
+            <p className="text-3xl text-green-700 mb-6">
+              {screen.subtitle}
+            </p>
+          )}
+          
+          <div className="mt-8 inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white/80 text-green-800 text-xl font-medium shadow-md">
+            <span>💚</span>
+            <span>Thank you for making a difference!</span>
+            <span>💚</span>
+          </div>
+        </div>
+      </div>
+    </ScreenLayout>
+  );
+}
+
 // THANK_YOU - Appreciation messages
 function ThankYouScreen({ screen, settings }: ScreenRendererProps) {
   return (
@@ -419,6 +471,7 @@ export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendere
     REMINDER: ReminderScreen,
     ADOPTION: AdoptionScreen,
     ADOPTION_SHOWCASE: AdoptionShowcaseScreen,
+    ADOPTION_COUNTER: AdoptionCounterScreen,
     THANK_YOU: ThankYouScreen,
   };
   

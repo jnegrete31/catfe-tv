@@ -194,3 +194,13 @@
 - [x] Add backend API to count adopted cats this month
 - [x] Update web Adoption Showcase to display "X cats adopted and counting!"
 - [x] Update tvOS Adoption Showcase to display the counter
+
+## Feature - Full-Screen Adoption Counter
+- [x] Add total adoption count setting to database
+- [x] Add manual input field in admin settings for total adoptions
+- [x] Create ADOPTION_COUNTER screen type for full-screen display
+- [x] Update web TV display with celebratory counter screen
+- [x] Update tvOS app with full-screen counter
+
+## Bug Fix - tvOS Time/Weather Display
+- [x] Fix time and weather overlay getting cut off or disappearing on tvOS

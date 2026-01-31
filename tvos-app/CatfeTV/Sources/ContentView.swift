@@ -26,16 +26,17 @@ struct ContentView: View {
                 )
             }
             
-            // Weather and clock overlay
+            // Weather and clock overlay - positioned in safe area
             VStack {
                 HStack {
                     Spacer()
                     WeatherClockOverlay()
-                        .padding(.top, 60)
-                        .padding(.trailing, 60)
                 }
                 Spacer()
             }
+            .padding(.top, 40)
+            .padding(.trailing, 80)
+            .ignoresSafeArea()
             
             // Recently Adopted banner at bottom
             if !apiClient.recentlyAdopted.isEmpty {

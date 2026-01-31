@@ -35,6 +35,7 @@ const screenTypes = [
   "REMINDER",
   "ADOPTION",
   "ADOPTION_SHOWCASE",
+  "ADOPTION_COUNTER",
   "THANK_YOU",
 ] as const;
 
@@ -79,6 +80,7 @@ const settingsInput = z.object({
     text: z.string(),
   }).nullable().optional(),
   snapAndPurrFrequency: z.number().min(1).max(20).optional(),
+  totalAdoptionCount: z.number().min(0).optional(),
   githubRepo: z.string().max(255).nullable().optional(),
   githubBranch: z.string().max(64).optional(),
   refreshIntervalSeconds: z.number().min(10).max(600).optional(),

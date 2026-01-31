@@ -29,6 +29,7 @@ export const screenTypeEnum = mysqlEnum("screenType", [
   "REMINDER",
   "ADOPTION",
   "ADOPTION_SHOWCASE",
+  "ADOPTION_COUNTER",
   "THANK_YOU"
 ]);
 
@@ -85,6 +86,7 @@ export const settings = mysqlTable("settings", {
     text: string;
   }>(),
   snapAndPurrFrequency: int("snapAndPurrFrequency").notNull().default(5), // Show SNAP_AND_PURR every N screens
+  totalAdoptionCount: int("totalAdoptionCount").notNull().default(0), // Manual total adoption count for display
   githubRepo: varchar("githubRepo", { length: 255 }), // e.g., "username/repo"
   githubBranch: varchar("githubBranch", { length: 64 }).default("main"),
   refreshIntervalSeconds: int("refreshIntervalSeconds").notNull().default(60),
