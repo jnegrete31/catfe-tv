@@ -228,6 +228,18 @@ export const appRouter = router({
           .sort((a, b) => b.id - a.id)
           .slice(0, input.limit);
       }),
+
+    // Get count of adopted cats (for success counter)
+    getAdoptionCount: publicProcedure
+      .query(async () => {
+        const allScreens = await getAllScreens();
+        // Count all adopted cats (both active and inactive)
+        const adoptedCount = allScreens.filter(s => 
+          s.type === 'ADOPTION' && 
+          (s as any).isAdopted === true
+        ).length;
+        return { count: adoptedCount };
+      }),
   }),
 
   // ============ SETTINGS ============

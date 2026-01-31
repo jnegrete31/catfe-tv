@@ -4,6 +4,7 @@ struct TVDisplayView: View {
     let screens: [Screen]
     let settings: Settings?
     let adoptionCats: [Screen]
+    var adoptionCount: Int = 0
     @Binding var currentIndex: Int
     @Binding var isPlaying: Bool
     
@@ -11,7 +12,7 @@ struct TVDisplayView: View {
         ZStack {
             if let screen = screens[safe: currentIndex] {
                 if screen.type == "ADOPTION_SHOWCASE" {
-                    AdoptionShowcaseView(screen: screen, settings: settings, cats: adoptionCats)
+                    AdoptionShowcaseView(screen: screen, settings: settings, cats: adoptionCats, adoptionCount: adoptionCount)
                         .id("showcase-\(screen.id)")
                         .transition(.opacity)
                 } else {
@@ -399,6 +400,7 @@ struct QRCodeView: View {
         ],
         settings: nil,
         adoptionCats: [],
+        adoptionCount: 5,
         currentIndex: .constant(0),
         isPlaying: .constant(true)
     )
@@ -410,6 +412,7 @@ struct AdoptionShowcaseView: View {
     let screen: Screen
     let settings: Settings?
     let cats: [Screen]
+    var adoptionCount: Int = 0
     
     private let displayFont = "Georgia"
     private let bodyFont = "Helvetica Neue"
@@ -436,6 +439,23 @@ struct AdoptionShowcaseView: View {
                         .font(.custom(displayFont, size: 48))
                         .fontWeight(.bold)
                         .foregroundColor(Color(hex: "#7c2d12")) // orange-900
+                    
+                    // Adoption success counter
+                    if adoptionCount > 0 {
+                        HStack(spacing: 8) {
+                            Text("🎉")
+                                .font(.system(size: 24))
+                            Text("\(adoptionCount) \(adoptionCount == 1 ? "cat" : "cats") adopted and counting!")
+                                .font(.custom(bodyFont, size: 20))
+                                .fontWeight(.semibold)
+                                .foregroundColor(Color(hex: "#166534")) // green-800
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(Color(hex: "#dcfce7")) // green-100
+                        .cornerRadius(50)
+                        .padding(.top, 8)
+                    }
                 }
                 .padding(.top, 40)
                 

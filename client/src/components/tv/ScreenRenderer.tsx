@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { Screen, Settings } from "@shared/types";
 import { SCREEN_TYPE_CONFIG } from "@shared/types";
 import { QRCodeSVG } from "qrcode.react";
+import { trpc } from "@/lib/trpc";
 
 interface ScreenRendererProps {
   screen: Screen;
@@ -288,6 +289,8 @@ function AdoptionScreen({ screen, settings }: ScreenRendererProps) {
 // ADOPTION_SHOWCASE - Grid of 4 random adoptable cats
 function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRendererProps) {
   const cats = adoptionCats || [];
+  const { data: adoptionCountData } = trpc.screens.getAdoptionCount.useQuery();
+  const adoptedCount = adoptionCountData?.count || 0;
   
   return (
     <ScreenLayout bgColor="#ffedd5">
@@ -299,6 +302,15 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRender
           <h1 className="tv-text-medium text-orange-900">
             {screen.title || "Find Your Purrfect Match"}
           </h1>
+          {/* Adoption success counter */}
+          {adoptedCount > 0 && (
+            <div className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 text-green-800">
+              <span className="text-2xl">🎉</span>
+              <span className="text-lg font-semibold">
+                {adoptedCount} {adoptedCount === 1 ? 'cat' : 'cats'} adopted and counting!
+              </span>
+            </div>
+          )}
         </div>
         
         {/* 2x2 Grid of cats - using square aspect ratio */}

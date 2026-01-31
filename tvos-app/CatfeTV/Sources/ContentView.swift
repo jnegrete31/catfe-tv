@@ -20,6 +20,7 @@ struct ContentView: View {
                     screens: apiClient.screens,
                     settings: apiClient.settings,
                     adoptionCats: apiClient.adoptionCats,
+                    adoptionCount: apiClient.adoptionCount,
                     currentIndex: $currentIndex,
                     isPlaying: $isPlaying
                 )
@@ -93,6 +94,7 @@ struct ContentView: View {
             UIApplication.shared.isIdleTimerDisabled = true
             await apiClient.refresh()
             await apiClient.fetchRandomAdoptions(count: 4)
+            await apiClient.fetchAdoptionCount()
             startAutoAdvance()
             startPeriodicRefresh()
             startKeepAlive()
@@ -158,6 +160,7 @@ struct ContentView: View {
             Task { @MainActor in
                 await apiClient.refresh()
                 await apiClient.fetchRandomAdoptions(count: 4)
+                await apiClient.fetchAdoptionCount()
             }
         }
     }

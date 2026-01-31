@@ -7,6 +7,12 @@ enum APIConfig {
     static let settingsEndpoint = "/api/trpc/settings.get"
     static let randomAdoptionsEndpoint = "/api/trpc/screens.getRandomAdoptions"
     static let recentlyAdoptedEndpoint = "/api/trpc/screens.getRecentlyAdopted"
+    static let adoptionCountEndpoint = "/api/trpc/screens.getAdoptionCount"
+}
+
+// Adoption count response model
+struct AdoptionCountResponse: Codable {
+    let count: Int
 }
 
 // MARK: - Models
@@ -82,6 +88,7 @@ class APIClient: ObservableObject {
     @Published var settings: Settings?
     @Published var adoptionCats: [Screen] = []
     @Published var recentlyAdopted: [Screen] = []
+    @Published var adoptionCount: Int = 0
     @Published var isLoading = false
     @Published var error: String?
     @Published var isOffline = false
@@ -255,6 +262,33 @@ func fetchRandomAdoptions(count: Int = 4) async {
             
         } catch {
             print("[APIClient] Error fetching random adoptions: \(error)")
+        }
+    }
+    
+    func fetchAdoptionCount() async {
+        guard let url = URL(string: "\(APIConfig.baseURL)\(APIConfig.adoptionCountEndpoint)") else {
+            return
+        }
+        
+        do {
+            var request = URLRequest(url: url)
+            request.httpMethod = "GET"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.timeoutInterval = 10
+            
+            let (data, response) = try await URLSession.shared.data(for: request)
+            
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+                throw URLError(.badServerResponse)
+            }
+            
+            let decoded = try JSONDecoder().decode(TRPCResponse<AdoptionCountResponse>.self, from: data)
+            self.adoptionCount = decoded.result.data.json.count
+            
+            print("[APIClient] Adoption count: \(self.adoptionCount)")
+            
+        } catch {
+            print("[APIClient] Error fetching adoption count: \(error)")
         }
     }
 }

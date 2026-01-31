@@ -189,3 +189,8 @@
 
 ## Bug Fix - tvOS Adoption Showcase
 - [x] Fix: tvOS Adoption Showcase showing "Coming Soon" placeholders instead of actual cat photos (API input format)
+
+## Feature - Adoption Success Counter
+- [x] Add backend API to count adopted cats this month
+- [x] Update web Adoption Showcase to display "X cats adopted and counting!"
+- [x] Update tvOS Adoption Showcase to display the counter
