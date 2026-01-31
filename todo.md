@@ -253,3 +253,8 @@
 - [x] Create GuestReminderOverlay component for TV display
 - [x] Show 5-minute warning reminder on TV when guest session is expiring
 - [x] Auto-dismiss reminders after 30 seconds
+
+## Bug Fix - Adoption Grid Size
+- [x] Fix: Adoption cat grid cards are too small and hard to see on TV display
+- [x] Make cat photos larger and more prominent (changed from 4x2 grid to 2x2 grid)
+- [x] Improve readability from a distance (larger text, bigger cards)

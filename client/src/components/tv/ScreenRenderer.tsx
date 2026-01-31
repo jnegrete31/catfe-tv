@@ -369,37 +369,40 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRender
   const { data: adoptionCountData } = trpc.screens.getAdoptionCount.useQuery();
   const adoptedCount = adoptionCountData?.count || 0;
   
+  // Show only 4 cats for larger display
+  const displayCats = cats.slice(0, 4);
+  
   return (
     <ScreenLayout bgColor="#ffedd5" logoUrl={settings?.logoUrl}>
-      <div className="w-full h-full flex flex-col p-6">
-        {/* Header - more compact */}
+      <div className="w-full h-full flex flex-col px-8 py-6">
+        {/* Header - compact */}
         <div className="text-center mb-4">
-          <div className="inline-block px-5 py-2 rounded-full bg-orange-500 text-white text-lg mb-1">
+          <div className="inline-block px-6 py-2 rounded-full bg-orange-500 text-white text-2xl font-semibold mb-2">
             Meet Our Adoptable Cats
           </div>
-          <h1 className="text-3xl font-bold text-orange-900">
+          <h1 className="text-4xl font-bold text-orange-900">
             {screen.title || "Find Your Purrfect Match"}
           </h1>
           {/* Adoption success counter */}
           {adoptedCount > 0 && (
-            <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 text-green-800">
-              <span className="text-xl">🎉</span>
-              <span className="text-base font-semibold">
+            <div className="mt-2 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-green-100 text-green-800">
+              <span className="text-2xl">🎉</span>
+              <span className="text-lg font-semibold">
                 {adoptedCount} {adoptedCount === 1 ? 'cat' : 'cats'} adopted and counting!
               </span>
             </div>
           )}
         </div>
         
-        {/* 4x2 Grid of cats - 8 cats total */}
-        <div className="flex-1 grid grid-cols-4 grid-rows-2 gap-4 max-w-6xl mx-auto w-full">
-          {cats.slice(0, 8).map((cat, index) => (
+        {/* 2x2 Grid of cats - 4 cats for larger display */}
+        <div className="flex-1 grid grid-cols-2 grid-rows-2 gap-6 max-w-5xl mx-auto w-full">
+          {displayCats.map((cat, index) => (
             <div 
               key={cat.id || index}
-              className="relative bg-white rounded-xl overflow-hidden shadow-lg flex flex-col"
+              className="relative bg-white rounded-2xl overflow-hidden shadow-xl flex flex-col"
             >
-              {/* Square image container */}
-              <div className="relative aspect-square">
+              {/* Large square image container */}
+              <div className="relative flex-1 min-h-0">
                 {cat.imagePath ? (
                   <>
                     <img 
@@ -407,44 +410,45 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRender
                       alt={cat.title}
                       className="absolute inset-0 w-full h-full object-cover"
                     />
-                    {/* Adopted badge overlay */}
+                    {/* Adopted badge overlay - larger */}
                     {(cat as any).isAdopted && (
-                      <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-green-500 text-white text-xs font-bold shadow-lg animate-pulse">
+                      <div className="absolute top-3 right-3 px-4 py-1.5 rounded-full bg-green-500 text-white text-lg font-bold shadow-lg animate-pulse">
                         🎉 Adopted!
                       </div>
                     )}
                   </>
                 ) : (
                   <div className="absolute inset-0 bg-orange-100 flex items-center justify-center">
-                    <span className="text-4xl">🐱</span>
+                    <span className="text-8xl">🐱</span>
                     {/* Adopted badge overlay for no-image cats */}
                     {(cat as any).isAdopted && (
-                      <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-green-500 text-white text-xs font-bold shadow-lg animate-pulse">
+                      <div className="absolute top-3 right-3 px-4 py-1.5 rounded-full bg-green-500 text-white text-lg font-bold shadow-lg animate-pulse">
                         🎉 Adopted!
                       </div>
                     )}
                   </div>
                 )}
               </div>
-              <div className="p-2 bg-white">
-                <h3 className="text-lg font-bold text-orange-900 truncate">{cat.title}</h3>
+              {/* Cat info - larger text */}
+              <div className="p-4 bg-white">
+                <h3 className="text-2xl font-bold text-orange-900 truncate">{cat.title}</h3>
                 {cat.subtitle && (
-                  <p className="text-sm text-orange-700 truncate">{cat.subtitle}</p>
+                  <p className="text-lg text-orange-700 truncate">{cat.subtitle}</p>
                 )}
               </div>
             </div>
           ))}
           
-          {/* Fill empty slots with placeholders if less than 8 cats */}
-          {cats.length < 8 && Array.from({ length: 8 - cats.length }).map((_, i) => (
+          {/* Fill empty slots with placeholders if less than 4 cats */}
+          {displayCats.length < 4 && Array.from({ length: 4 - displayCats.length }).map((_, i) => (
             <div 
               key={`empty-${i}`}
-              className="bg-orange-100 rounded-xl flex flex-col overflow-hidden shadow-lg"
+              className="bg-orange-100 rounded-2xl flex flex-col overflow-hidden shadow-xl"
             >
-              <div className="aspect-square flex items-center justify-center">
+              <div className="flex-1 flex items-center justify-center">
                 <div className="text-center text-orange-400">
-                  <span className="text-4xl block mb-1">🐱</span>
-                  <span className="text-sm">Coming Soon</span>
+                  <span className="text-8xl block mb-2">🐱</span>
+                  <span className="text-xl">Coming Soon</span>
                 </div>
               </div>
             </div>
@@ -453,9 +457,9 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRender
         
         {screen.qrUrl && (
           <div className="text-center mt-4">
-            <p className="text-base text-orange-700 mb-1">Scan to see all adoptable cats</p>
+            <p className="text-lg text-orange-700 mb-1">Scan to see all adoptable cats</p>
             <div className="inline-block">
-              <QRCode url={screen.qrUrl} size={100} />
+              <QRCode url={screen.qrUrl} size={120} />
             </div>
           </div>
         )}
