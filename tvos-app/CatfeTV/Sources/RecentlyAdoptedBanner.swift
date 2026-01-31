@@ -207,7 +207,6 @@ struct PulseEffect: ViewModifier {
                 isActive: true,
                 isProtected: false,
                 isAdopted: true,
-                livestreamUrl: nil,
                 createdAt: "",
                 updatedAt: ""
             ),
@@ -231,7 +230,6 @@ struct PulseEffect: ViewModifier {
                 isActive: true,
                 isProtected: false,
                 isAdopted: true,
-                livestreamUrl: nil,
                 createdAt: "",
                 updatedAt: ""
             )

@@ -36,7 +36,6 @@ struct Screen: Codable, Identifiable, Hashable {
     let isActive: Bool
     let isProtected: Bool
     let isAdopted: Bool?
-    let livestreamUrl: String?
     let createdAt: String
     let updatedAt: String
     

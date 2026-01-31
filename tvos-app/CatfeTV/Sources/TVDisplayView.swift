@@ -19,10 +19,6 @@ struct TVDisplayView: View {
                     AdoptionCounterView(screen: screen, settings: settings)
                         .id("counter-\(screen.id)")
                         .transition(.opacity)
-                } else if screen.type == "LIVESTREAM" {
-                    LivestreamView(screen: screen, settings: settings)
-                        .id("livestream-\(screen.id)")
-                        .transition(.opacity)
                 } else {
                     ScreenContentView(screen: screen, settings: settings)
                         .id(screen.id)
