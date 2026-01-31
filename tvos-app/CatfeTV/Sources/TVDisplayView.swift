@@ -1,0 +1,767 @@
+import SwiftUI
+
+struct TVDisplayView: View {
+    let screens: [Screen]
+    let settings: Settings?
+    let adoptionCats: [Screen]
+    var adoptionCount: Int = 0
+    @Binding var currentIndex: Int
+    @Binding var isPlaying: Bool
+    
+    var body: some View {
+        ZStack {
+            if let screen = screens[safe: currentIndex] {
+                if screen.type == "ADOPTION_SHOWCASE" {
+                    AdoptionShowcaseView(screen: screen, settings: settings, cats: adoptionCats, adoptionCount: adoptionCount)
+                        .id("showcase-\(screen.id)")
+                        .transition(.opacity)
+                } else if screen.type == "ADOPTION_COUNTER" {
+                    AdoptionCounterView(screen: screen, settings: settings)
+                        .id("counter-\(screen.id)")
+                        .transition(.opacity)
+                } else {
+                    ScreenContentView(screen: screen, settings: settings)
+                        .id(screen.id)
+                        .transition(.opacity)
+                }
+            }
+        }
+        .animation(.easeInOut(duration: 0.5), value: currentIndex)
+    }
+}
+
+struct ScreenContentView: View {
+    let screen: Screen
+    let settings: Settings?
+    
+    // Font names - using system fonts that match web styling
+    private let displayFont = "Georgia" // Serif font similar to Playfair Display
+    private let bodyFont = "Helvetica Neue" // Sans-serif similar to Inter
+    
+    var body: some View {
+        ZStack {
+            // Background color
+            backgroundColor
+                .ignoresSafeArea()
+            
+            // Background image (if any)
+            if let imagePath = screen.imagePath, !imagePath.isEmpty {
+                if screen.imageDisplayMode == "contain" {
+                    // Contain mode: show full image centered on themed background
+                    AsyncImage(url: URL(string: imagePath)) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .shadow(color: .black.opacity(0.3), radius: 30, x: 0, y: 10)
+                        case .failure:
+                            EmptyView()
+                        case .empty:
+                            ProgressView()
+                                .scaleEffect(2)
+                        @unknown default:
+                            EmptyView()
+                        }
+                    }
+                    .padding(60)
+                } else {
+                    // Cover mode: fill screen with dark overlay
+                    AsyncImage(url: URL(string: imagePath)) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .clipped()
+                                .ignoresSafeArea()
+                        case .failure:
+                            EmptyView()
+                        case .empty:
+                            ProgressView()
+                                .scaleEffect(2)
+                        @unknown default:
+                            EmptyView()
+                        }
+                    }
+                    
+                    // Dark overlay for text readability (40% black like web)
+                    Color.black.opacity(0.4)
+                        .ignoresSafeArea()
+                }
+            }
+            
+            // Content overlay
+            contentOverlay
+            
+            // Logo in bottom-left corner
+            VStack {
+                Spacer()
+                HStack {
+                    CatfeLogo(logoUrl: settings?.logoUrl)
+                        .padding(40)
+                    Spacer()
+                }
+            }
+        }
+    }
+    
+    // MARK: - Background Colors (matching web version exactly)
+    private var backgroundColor: Color {
+        switch screen.type {
+        case "SNAP_AND_PURR":
+            return Color(hex: "#fce7f3") // pink-100
+        case "EVENT":
+            return Color(hex: "#ede9fe") // purple-100
+        case "TODAY_AT_CATFE":
+            return Color(hex: "#fef3c7") // amber-100
+        case "MEMBERSHIP":
+            return Color(hex: "#d1fae5") // emerald-100
+        case "REMINDER":
+            return Color(hex: "#dbeafe") // blue-100
+        case "ADOPTION":
+            return Color(hex: "#fee2e2") // red-100
+        case "ADOPTION_SHOWCASE":
+            return Color(hex: "#ffedd5") // orange-100
+        case "THANK_YOU":
+            return Color(hex: "#e0e7ff") // indigo-100
+        default:
+            return Color(hex: "#FDF6E3") // cream
+        }
+    }
+    
+    // MARK: - Text Colors (matching web version)
+    private var hasImage: Bool {
+        screen.imagePath != nil && !screen.imagePath!.isEmpty && screen.imageDisplayMode != "contain"
+    }
+    
+    private var titleColor: Color {
+        if hasImage { return .white }
+        switch screen.type {
+        case "SNAP_AND_PURR": return Color(hex: "#831843") // pink-900
+        case "EVENT": return Color(hex: "#581c87") // purple-900
+        case "TODAY_AT_CATFE": return Color(hex: "#78350f") // amber-900
+        case "MEMBERSHIP": return Color(hex: "#064e3b") // emerald-900
+        case "REMINDER": return Color(hex: "#1e3a8a") // blue-900
+        case "ADOPTION": return Color(hex: "#7f1d1d") // red-900
+        case "THANK_YOU": return Color(hex: "#312e81") // indigo-900
+        default: return Color(hex: "#3D2914")
+        }
+    }
+    
+    private var subtitleColor: Color {
+        if hasImage { return .white.opacity(0.9) }
+        switch screen.type {
+        case "SNAP_AND_PURR": return Color(hex: "#9d174d") // pink-800
+        case "EVENT": return Color(hex: "#6b21a8") // purple-800
+        case "TODAY_AT_CATFE": return Color(hex: "#92400e") // amber-800
+        case "MEMBERSHIP": return Color(hex: "#065f46") // emerald-800
+        case "REMINDER": return Color(hex: "#1e40af") // blue-800
+        case "ADOPTION": return Color(hex: "#991b1b") // red-800
+        case "THANK_YOU": return Color(hex: "#3730a3") // indigo-800
+        default: return Color(hex: "#5D4930")
+        }
+    }
+    
+    private var bodyColor: Color {
+        if hasImage { return .white.opacity(0.8) }
+        switch screen.type {
+        case "SNAP_AND_PURR": return Color(hex: "#be185d") // pink-700
+        case "EVENT": return Color(hex: "#7c3aed") // purple-700
+        case "TODAY_AT_CATFE": return Color(hex: "#b45309") // amber-700
+        case "MEMBERSHIP": return Color(hex: "#047857") // emerald-700
+        case "REMINDER": return Color(hex: "#1d4ed8") // blue-700
+        case "ADOPTION": return Color(hex: "#b91c1c") // red-700
+        case "THANK_YOU": return Color(hex: "#4338ca") // indigo-700
+        default: return Color(hex: "#7D6950")
+        }
+    }
+    
+    private var badgeColor: Color {
+        switch screen.type {
+        case "SNAP_AND_PURR": return Color(hex: "#ec4899") // pink-500
+        case "EVENT": return Color(hex: "#a855f7") // purple-500
+        case "TODAY_AT_CATFE": return Color(hex: "#f59e0b") // amber-500
+        case "MEMBERSHIP": return Color(hex: "#10b981") // emerald-500
+        case "REMINDER": return Color(hex: "#3b82f6") // blue-500
+        case "ADOPTION": return Color(hex: "#ef4444") // red-500
+        case "THANK_YOU": return Color(hex: "#6366f1") // indigo-500
+        default: return Color(hex: "#C4704F")
+        }
+    }
+    
+    private var badgeText: String {
+        // Show "Adopted!" badge for adopted cats
+        if screen.type == "ADOPTION" && screen.isAdopted == true {
+            return "🎉 Adopted!"
+        }
+        switch screen.type {
+        case "SNAP_AND_PURR": return "Snap & Purr!"
+        case "EVENT": return "Event"
+        case "TODAY_AT_CATFE": return "Today at \(settings?.locationName ?? "Catfé")"
+        case "MEMBERSHIP": return "Membership"
+        case "REMINDER": return "Reminder"
+        case "ADOPTION": return "Adopt Me!"
+        case "ADOPTION_SHOWCASE": return "Meet Our Adoptable Cats"
+        case "THANK_YOU": return "Thank You"
+        default: return screen.type
+        }
+    }
+    
+    private var badgeColorForAdoption: Color {
+        // Green badge for adopted cats
+        if screen.type == "ADOPTION" && screen.isAdopted == true {
+            return Color(hex: "#22c55e") // green-500
+        }
+        return badgeColor
+    }
+    
+    // MARK: - Content Layout
+    @ViewBuilder
+    private var contentOverlay: some View {
+        switch screen.type {
+        case "SNAP_AND_PURR", "TODAY_AT_CATFE", "REMINDER", "THANK_YOU":
+            // Centered layout
+            centeredContent
+        default:
+            // Side-by-side layout (Event, Membership, Adoption)
+            sideBySideContent
+        }
+    }
+    
+    // Centered content layout (for Snap & Purr, Today, Reminder, Thank You)
+    private var centeredContent: some View {
+        VStack(spacing: 24) {
+            // Badge
+            Text(badgeText)
+                .font(.custom(bodyFont, size: 28))
+                .fontWeight(.semibold)
+                .foregroundColor(.white)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 12)
+                .background(badgeColor)
+                .cornerRadius(50)
+            
+            // Title
+            Text(screen.title)
+                .font(.custom(displayFont, size: 80))
+                .fontWeight(.bold)
+                .foregroundColor(titleColor)
+                .multilineTextAlignment(.center)
+                .shadow(color: hasImage ? .black.opacity(0.5) : .clear, radius: 10, x: 0, y: 4)
+            
+            // Subtitle
+            if let subtitle = screen.subtitle, !subtitle.isEmpty {
+                Text(subtitle)
+                    .font(.custom(displayFont, size: 48))
+                    .foregroundColor(subtitleColor)
+                    .multilineTextAlignment(.center)
+                    .shadow(color: hasImage ? .black.opacity(0.4) : .clear, radius: 8, x: 0, y: 3)
+            }
+            
+            // Body
+            if let body = screen.body, !body.isEmpty {
+                Text(body)
+                    .font(.custom(bodyFont, size: 32))
+                    .foregroundColor(bodyColor)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(4)
+                    .shadow(color: hasImage ? .black.opacity(0.3) : .clear, radius: 6, x: 0, y: 2)
+            }
+            
+            // QR Code
+            if let qrUrl = screen.qrUrl, !qrUrl.isEmpty {
+                QRCodeView(url: qrUrl)
+                    .frame(width: 200, height: 200)
+                    .padding(.top, 20)
+            }
+        }
+        .padding(60)
+    }
+    
+    // Side-by-side content layout (for Event, Membership, Adoption)
+    private var sideBySideContent: some View {
+        HStack(alignment: .center, spacing: 60) {
+            // Left side - text content
+            VStack(alignment: .leading, spacing: 16) {
+                // Badge (green for adopted cats)
+                Text(badgeText)
+                    .font(.custom(bodyFont, size: 24))
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 10)
+                    .background(badgeColorForAdoption)
+                    .cornerRadius(50)
+                
+                // Title
+                Text(screen.title)
+                    .font(.custom(displayFont, size: 72))
+                    .fontWeight(.bold)
+                    .foregroundColor(titleColor)
+                    .shadow(color: hasImage ? .black.opacity(0.5) : .clear, radius: 10, x: 0, y: 4)
+                
+                // Subtitle
+                if let subtitle = screen.subtitle, !subtitle.isEmpty {
+                    Text(subtitle)
+                        .font(.custom(displayFont, size: 40))
+                        .foregroundColor(subtitleColor)
+                        .shadow(color: hasImage ? .black.opacity(0.4) : .clear, radius: 8, x: 0, y: 3)
+                }
+                
+                // Body
+                if let body = screen.body, !body.isEmpty {
+                    Text(body)
+                        .font(.custom(bodyFont, size: 28))
+                        .foregroundColor(bodyColor)
+                        .lineLimit(4)
+                        .shadow(color: hasImage ? .black.opacity(0.3) : .clear, radius: 6, x: 0, y: 2)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            
+            Spacer()
+            
+            // Right side - QR code
+            if let qrUrl = screen.qrUrl, !qrUrl.isEmpty {
+                QRCodeView(url: qrUrl)
+                    .frame(width: 180, height: 180)
+            }
+        }
+        .padding(.horizontal, 80)
+        .padding(.vertical, 60)
+    }
+}
+
+// MARK: - QR Code View
+struct QRCodeView: View {
+    let url: String
+    
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 12)
+                .fill(.white)
+                .shadow(color: .black.opacity(0.1), radius: 6, x: 0, y: 4)
+            
+            // Generate QR code
+            if let qrImage = generateQRCode(from: url) {
+                Image(uiImage: qrImage)
+                    .interpolation(.none)
+                    .resizable()
+                    .aspectRatio(1, contentMode: .fit)
+                    .padding(16)
+            } else {
+                VStack(spacing: 8) {
+                    Image(systemName: "qrcode")
+                        .font(.system(size: 50))
+                    Text("Scan Me")
+                        .font(.caption)
+                }
+                .foregroundColor(.gray)
+            }
+        }
+    }
+    
+    private func generateQRCode(from string: String) -> UIImage? {
+        let data = string.data(using: .ascii)
+        
+        if let filter = CIFilter(name: "CIQRCodeGenerator") {
+            filter.setValue(data, forKey: "inputMessage")
+            filter.setValue("M", forKey: "inputCorrectionLevel")
+            
+            if let output = filter.outputImage {
+                let transform = CGAffineTransform(scaleX: 10, y: 10)
+                let scaledOutput = output.transformed(by: transform)
+                
+                let context = CIContext()
+                if let cgImage = context.createCGImage(scaledOutput, from: scaledOutput.extent) {
+                    return UIImage(cgImage: cgImage)
+                }
+            }
+        }
+        
+        return nil
+    }
+}
+
+#Preview {
+    TVDisplayView(
+        screens: [
+            Screen(
+                id: 1,
+                type: "ADOPTION",
+                title: "Meet Alpaca",
+                subtitle: "9 months old • Male",
+                body: nil,
+                imagePath: "https://example.com/cat.jpg",
+                imageDisplayMode: "cover",
+                qrUrl: "https://example.com",
+                startAt: nil,
+                endAt: nil,
+                daysOfWeek: nil,
+                timeStart: nil,
+                timeEnd: nil,
+                priority: 1,
+                durationSeconds: 10,
+                sortOrder: 0,
+                isActive: true,
+                isProtected: false,
+                isAdopted: false,
+                createdAt: "",
+                updatedAt: ""
+            )
+        ],
+        settings: nil,
+        adoptionCats: [],
+        adoptionCount: 5,
+        currentIndex: .constant(0),
+        isPlaying: .constant(true)
+    )
+}
+
+
+// MARK: - Adoption Showcase View (4-cat grid)
+struct AdoptionShowcaseView: View {
+    let screen: Screen
+    let settings: Settings?
+    let cats: [Screen]
+    var adoptionCount: Int = 0
+    
+    private let displayFont = "Georgia"
+    private let bodyFont = "Helvetica Neue"
+    
+    var body: some View {
+        ZStack {
+            // Background color
+            Color(hex: "#ffedd5") // orange-100
+                .ignoresSafeArea()
+            
+            VStack(spacing: 24) {
+                // Header
+                VStack(spacing: 8) {
+                    Text("Meet Our Adoptable Cats")
+                        .font(.custom(bodyFont, size: 28))
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 12)
+                        .background(Color(hex: "#f97316")) // orange-500
+                        .cornerRadius(50)
+                    
+                    Text(screen.title.isEmpty ? "Find Your Purrfect Match" : screen.title)
+                        .font(.custom(displayFont, size: 48))
+                        .fontWeight(.bold)
+                        .foregroundColor(Color(hex: "#7c2d12")) // orange-900
+                    
+                    // Adoption success counter
+                    if adoptionCount > 0 {
+                        HStack(spacing: 8) {
+                            Text("🎉")
+                                .font(.system(size: 24))
+                            Text("\(adoptionCount) \(adoptionCount == 1 ? "cat" : "cats") adopted and counting!")
+                                .font(.custom(bodyFont, size: 20))
+                                .fontWeight(.semibold)
+                                .foregroundColor(Color(hex: "#166534")) // green-800
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(Color(hex: "#dcfce7")) // green-100
+                        .cornerRadius(50)
+                        .padding(.top, 8)
+                    }
+                }
+                .padding(.top, 40)
+                
+                // 2x2 Grid of cats
+                HStack(spacing: 24) {
+                    ForEach(0..<2, id: \.self) { col in
+                        VStack(spacing: 24) {
+                            ForEach(0..<2, id: \.self) { row in
+                                let index = col * 2 + row
+                                if index < cats.count {
+                                    CatCard(cat: cats[index])
+                                } else {
+                                    EmptyCatCard()
+                                }
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal, 60)
+                
+                // QR Code (if available)
+                if let qrUrl = screen.qrUrl, !qrUrl.isEmpty {
+                    HStack(spacing: 16) {
+                        Text("Scan to see all adoptable cats")
+                            .font(.custom(bodyFont, size: 20))
+                            .foregroundColor(Color(hex: "#c2410c")) // orange-700
+                        
+                        QRCodeView(url: qrUrl)
+                            .frame(width: 100, height: 100)
+                    }
+                    .padding(.bottom, 30)
+                }
+                
+                Spacer()
+            }
+        }
+    }
+}
+
+struct CatCard: View {
+    let cat: Screen
+    private let cardSize: CGFloat = 280 // Square card size
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Cat image with Adopted badge overlay - SQUARE aspect ratio
+            ZStack(alignment: .topTrailing) {
+                if let imagePath = cat.imagePath, !imagePath.isEmpty {
+                    AsyncImage(url: URL(string: imagePath)) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: cardSize, height: cardSize) // Square frame
+                                .clipped()
+                        case .failure:
+                            catPlaceholder
+                        case .empty:
+                            ProgressView()
+                                .frame(width: cardSize, height: cardSize)
+                        @unknown default:
+                            catPlaceholder
+                        }
+                    }
+                } else {
+                    catPlaceholder
+                }
+                
+                // Adopted badge overlay
+                if cat.isAdopted == true {
+                    Text("🎉 Adopted!")
+                        .font(.custom("Helvetica Neue", size: 14))
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Color(hex: "#22c55e")) // green-500
+                        .cornerRadius(20)
+                        .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
+                        .padding(12)
+                }
+            }
+            .frame(width: cardSize, height: cardSize)
+            
+            // Cat info
+            VStack(alignment: .leading, spacing: 4) {
+                Text(cat.title)
+                    .font(.custom("Georgia", size: 28))
+                    .fontWeight(.bold)
+                    .foregroundColor(Color(hex: "#7c2d12"))
+                    .lineLimit(1)
+                
+                if let subtitle = cat.subtitle, !subtitle.isEmpty {
+                    Text(subtitle)
+                        .font(.custom("Helvetica Neue", size: 18))
+                        .foregroundColor(Color(hex: "#c2410c"))
+                        .lineLimit(1)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(16)
+            .background(Color.white)
+        }
+        .frame(width: cardSize)
+        .background(Color.white)
+        .cornerRadius(20)
+        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+    }
+    
+    private var catPlaceholder: some View {
+        ZStack {
+            Color(hex: "#fed7aa") // orange-200
+            Text("🐱")
+                .font(.system(size: 60))
+        }
+        .frame(width: cardSize, height: cardSize) // Square placeholder
+    }
+}
+
+struct EmptyCatCard: View {
+    private let cardSize: CGFloat = 280 // Match CatCard square size
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Square placeholder area
+            VStack(spacing: 8) {
+                Text("🐱")
+                    .font(.system(size: 50))
+                Text("Coming Soon")
+                    .font(.custom("Helvetica Neue", size: 18))
+                    .foregroundColor(Color(hex: "#fb923c")) // orange-400
+            }
+            .frame(width: cardSize, height: cardSize)
+            .background(Color(hex: "#fed7aa").opacity(0.5)) // orange-200
+            
+            // Empty info area to match CatCard height
+            Spacer()
+                .frame(height: 70)
+                .frame(maxWidth: .infinity)
+                .background(Color(hex: "#fed7aa").opacity(0.3))
+        }
+        .frame(width: cardSize)
+        .background(Color(hex: "#fed7aa").opacity(0.5))
+        .cornerRadius(20)
+    }
+}
+
+// MARK: - Adoption Counter View (Full-screen celebration with counting animation)
+struct AdoptionCounterView: View {
+    let screen: Screen
+    let settings: Settings?
+    
+    private let displayFont = "Georgia"
+    private let bodyFont = "Helvetica Neue"
+    
+    private var totalCount: Int {
+        settings?.totalAdoptionCount ?? 0
+    }
+    
+    @State private var bounceAnimation = false
+    @State private var displayedCount: Int = 0
+    @State private var showContent = false
+    
+    var body: some View {
+        ZStack {
+            // Background color - green-100
+            Color(hex: "#dcfce7")
+                .ignoresSafeArea()
+            
+            // Confetti-style decorations
+            VStack {
+                HStack {
+                    Text("🎉")
+                        .font(.system(size: 80))
+                        .offset(y: bounceAnimation ? -10 : 10)
+                        .animation(.easeInOut(duration: 1).repeatForever(autoreverses: true), value: bounceAnimation)
+                    Spacer()
+                    Text("🎊")
+                        .font(.system(size: 70))
+                        .offset(y: bounceAnimation ? 10 : -10)
+                        .animation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true), value: bounceAnimation)
+                }
+                Spacer()
+                HStack {
+                    Text("❤️")
+                        .font(.system(size: 70))
+                        .offset(y: bounceAnimation ? -8 : 8)
+                        .animation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true), value: bounceAnimation)
+                    Spacer()
+                    Text("🐱")
+                        .font(.system(size: 80))
+                        .offset(y: bounceAnimation ? 8 : -8)
+                        .animation(.easeInOut(duration: 1.1).repeatForever(autoreverses: true), value: bounceAnimation)
+                }
+            }
+            .padding(60)
+            
+            // Main content
+            VStack(spacing: 20) {
+                // Header badge
+                Text("🏠 Forever Homes Found!")
+                    .font(.custom(bodyFont, size: 32))
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 32)
+                    .padding(.vertical, 16)
+                    .background(Color(hex: "#22c55e")) // green-500
+                    .cornerRadius(50)
+                    .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
+                
+                // Big counter number with count-up animation
+                Text("\(displayedCount)")
+                    .font(.system(size: 300, weight: .black, design: .rounded))
+                    .foregroundColor(Color(hex: "#15803d")) // green-700
+                    .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+                    .scaleEffect(showContent ? 1.0 : 0.5)
+                    .opacity(showContent ? 1.0 : 0.0)
+                    .animation(.spring(response: 0.5, dampingFraction: 0.7), value: showContent)
+                
+                // Title
+                Text(screen.title.isEmpty ? "Cats Adopted" : screen.title)
+                    .font(.custom(displayFont, size: 64))
+                    .fontWeight(.bold)
+                    .foregroundColor(Color(hex: "#166534")) // green-800
+                    .opacity(showContent ? 1.0 : 0.0)
+                    .offset(y: showContent ? 0 : 20)
+                    .animation(.easeOut(duration: 0.5).delay(2.5), value: showContent)
+                
+                // Subtitle (if any)
+                if let subtitle = screen.subtitle, !subtitle.isEmpty {
+                    Text(subtitle)
+                        .font(.custom(bodyFont, size: 36))
+                        .foregroundColor(Color(hex: "#15803d")) // green-700
+                        .opacity(showContent ? 1.0 : 0.0)
+                        .offset(y: showContent ? 0 : 20)
+                        .animation(.easeOut(duration: 0.5).delay(2.7), value: showContent)
+                }
+                
+                // Thank you message
+                HStack(spacing: 12) {
+                    Text("💚")
+                        .font(.system(size: 28))
+                    Text("Thank you for making a difference!")
+                        .font(.custom(bodyFont, size: 24))
+                        .fontWeight(.medium)
+                        .foregroundColor(Color(hex: "#166534"))
+                    Text("💚")
+                        .font(.system(size: 28))
+                }
+                .padding(.horizontal, 24)
+                .padding(.vertical, 12)
+                .background(Color.white.opacity(0.8))
+                .cornerRadius(50)
+                .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
+                .padding(.top, 20)
+                .opacity(showContent ? 1.0 : 0.0)
+                .offset(y: showContent ? 0 : 20)
+                .animation(.easeOut(duration: 0.5).delay(2.9), value: showContent)
+            }
+            
+            // Logo in bottom-left corner
+            VStack {
+                Spacer()
+                HStack {
+                    CatfeLogo(logoUrl: settings?.logoUrl)
+                        .padding(40)
+                    Spacer()
+                }
+            }
+        }
+        .onAppear {
+            bounceAnimation = true
+            showContent = true
+            startCountingAnimation()
+        }
+    }
+    
+    private func startCountingAnimation() {
+        // Count up animation over 2.5 seconds
+        let duration: Double = 2.5
+        let steps = 60 // Number of animation steps
+        let stepDuration = duration / Double(steps)
+        
+        for i in 0...steps {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5 + (stepDuration * Double(i))) {
+                let progress = Double(i) / Double(steps)
+                // Ease-out cubic for smooth deceleration
+                let easeOut = 1 - pow(1 - progress, 3)
+                displayedCount = Int(Double(totalCount) * easeOut)
+            }
+        }
+    }
+}
+
