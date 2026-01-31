@@ -24,6 +24,16 @@ import {
   setScreensForTimeSlot,
   logScreenView,
   getScreenViewCounts,
+  getAllGuestSessions,
+  getActiveGuestSessions,
+  getGuestSessionById,
+  createGuestSession,
+  updateGuestSession,
+  checkOutGuestSession,
+  extendGuestSession,
+  getSessionsNeedingReminder,
+  markReminderShown,
+  getTodayGuestStats,
 } from "./db";
 
 // Screen type enum values
@@ -317,6 +327,105 @@ export const appRouter = router({
       }))
       .mutation(async ({ input }) => {
         return setScreensForTimeSlot(input.timeSlotId, input.screenIds);
+      }),
+  }),
+
+  // ============ GUEST SESSIONS ============
+  guestSessions: router({
+    // Get all sessions (for admin history)
+    getAll: protectedProcedure.query(async () => {
+      return getAllGuestSessions();
+    }),
+
+    // Get active sessions (for admin dashboard and TV display)
+    getActive: publicProcedure.query(async () => {
+      return getActiveGuestSessions();
+    }),
+
+    // Get single session
+    getById: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        const session = await getGuestSessionById(input.id);
+        if (!session) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Session not found' });
+        }
+        return session;
+      }),
+
+    // Check in a new guest
+    checkIn: adminProcedure
+      .input(z.object({
+        guestName: z.string().min(1).max(255),
+        guestCount: z.number().min(1).max(20).default(1),
+        duration: z.enum(["15", "30", "60"]),
+        notes: z.string().max(500).nullable().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const now = new Date();
+        const durationMinutes = parseInt(input.duration);
+        const expiresAt = new Date(now.getTime() + durationMinutes * 60 * 1000);
+        
+        return createGuestSession({
+          guestName: input.guestName,
+          guestCount: input.guestCount,
+          duration: input.duration,
+          notes: input.notes,
+          checkInAt: now,
+          expiresAt,
+        });
+      }),
+
+    // Check out a guest
+    checkOut: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const session = await getGuestSessionById(input.id);
+        if (!session) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Session not found' });
+        }
+        return checkOutGuestSession(input.id);
+      }),
+
+    // Extend a session
+    extend: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        additionalMinutes: z.number().min(5).max(60),
+      }))
+      .mutation(async ({ input }) => {
+        const session = await getGuestSessionById(input.id);
+        if (!session) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Session not found' });
+        }
+        return extendGuestSession(input.id, input.additionalMinutes);
+      }),
+
+    // Get sessions needing reminder (for TV display)
+    getNeedingReminder: publicProcedure.query(async () => {
+      return getSessionsNeedingReminder();
+    }),
+
+    // Mark reminder as shown
+    markReminderShown: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        return markReminderShown(input.id);
+      }),
+
+    // Get today's stats
+    getTodayStats: protectedProcedure.query(async () => {
+      return getTodayGuestStats();
+    }),
+
+    // Update session notes
+    updateNotes: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        notes: z.string().max(500).nullable(),
+      }))
+      .mutation(async ({ input }) => {
+        return updateGuestSession(input.id, { notes: input.notes });
       }),
   }),
 

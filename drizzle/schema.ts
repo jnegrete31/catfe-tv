@@ -143,3 +143,34 @@ export const screenViews = mysqlTable("screenViews", {
 
 export type ScreenView = typeof screenViews.$inferSelect;
 export type InsertScreenView = typeof screenViews.$inferInsert;
+
+/**
+ * Session duration options for guest check-in
+ */
+export const sessionDurationEnum = mysqlEnum("sessionDuration", ["15", "30", "60"]);
+
+/**
+ * Session status options
+ */
+export const sessionStatusEnum = mysqlEnum("sessionStatus", ["active", "completed", "extended"]);
+
+/**
+ * Guest sessions table - tracks guest visits with time-based sessions
+ */
+export const guestSessions = mysqlTable("guestSessions", {
+  id: int("id").autoincrement().primaryKey(),
+  guestName: varchar("guestName", { length: 255 }).notNull(),
+  guestCount: int("guestCount").notNull().default(1), // Number of guests in the party
+  duration: sessionDurationEnum.notNull(), // 15, 30, or 60 minutes
+  status: sessionStatusEnum.notNull().default("active"),
+  checkInAt: timestamp("checkInAt").defaultNow().notNull(),
+  expiresAt: timestamp("expiresAt").notNull(),
+  checkedOutAt: timestamp("checkedOutAt"),
+  notes: text("notes"),
+  reminderShown: boolean("reminderShown").notNull().default(false), // Track if 5-min reminder was shown
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type GuestSession = typeof guestSessions.$inferSelect;
+export type InsertGuestSession = typeof guestSessions.$inferInsert;

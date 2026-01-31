@@ -6,7 +6,8 @@ import {
   settings, InsertSettings, Settings,
   timeSlots, InsertTimeSlot, TimeSlot,
   screenTimeSlots, InsertScreenTimeSlot,
-  screenViews, InsertScreenView
+  screenViews, InsertScreenView,
+  guestSessions, InsertGuestSession, GuestSession
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -307,4 +308,121 @@ export async function getScreenViewCounts() {
     screenId: parseInt(screenId),
     count,
   }));
+}
+
+// ============ GUEST SESSION QUERIES ============
+
+export async function getAllGuestSessions() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db.select().from(guestSessions).orderBy(desc(guestSessions.checkInAt));
+}
+
+export async function getActiveGuestSessions() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db.select().from(guestSessions)
+    .where(eq(guestSessions.status, "active"))
+    .orderBy(asc(guestSessions.expiresAt));
+}
+
+export async function getGuestSessionById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.select().from(guestSessions).where(eq(guestSessions.id, id)).limit(1);
+  return result[0] || null;
+}
+
+export async function createGuestSession(data: InsertGuestSession) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(guestSessions).values(data);
+  return { id: result[0].insertId };
+}
+
+export async function updateGuestSession(id: number, data: Partial<InsertGuestSession>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(guestSessions).set(data).where(eq(guestSessions.id, id));
+  return { success: true };
+}
+
+export async function checkOutGuestSession(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(guestSessions).set({
+    status: "completed",
+    checkedOutAt: new Date(),
+  }).where(eq(guestSessions.id, id));
+  return { success: true };
+}
+
+export async function extendGuestSession(id: number, additionalMinutes: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const session = await getGuestSessionById(id);
+  if (!session) throw new Error("Session not found");
+  
+  const newExpiry = new Date(session.expiresAt.getTime() + additionalMinutes * 60 * 1000);
+  
+  await db.update(guestSessions).set({
+    expiresAt: newExpiry,
+    status: "extended",
+    reminderShown: false, // Reset reminder flag when extended
+  }).where(eq(guestSessions.id, id));
+  
+  return { success: true, newExpiresAt: newExpiry };
+}
+
+export async function getSessionsNeedingReminder() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const now = new Date();
+  const fiveMinutesFromNow = new Date(now.getTime() + 5 * 60 * 1000);
+  
+  // Get active sessions that expire within 5 minutes and haven't shown reminder
+  return db.select().from(guestSessions)
+    .where(
+      and(
+        eq(guestSessions.status, "active"),
+        eq(guestSessions.reminderShown, false),
+        lte(guestSessions.expiresAt, fiveMinutesFromNow),
+        gte(guestSessions.expiresAt, now)
+      )
+    )
+    .orderBy(asc(guestSessions.expiresAt));
+}
+
+export async function markReminderShown(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(guestSessions).set({ reminderShown: true }).where(eq(guestSessions.id, id));
+  return { success: true };
+}
+
+export async function getTodayGuestStats() {
+  const db = await getDb();
+  if (!db) return { totalGuests: 0, activeSessions: 0, completedSessions: 0 };
+  
+  // Get start of today in local time
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const sessions = await db.select().from(guestSessions)
+    .where(gte(guestSessions.checkInAt, today));
+  
+  const totalGuests = sessions.reduce((sum, s) => sum + s.guestCount, 0);
+  const activeSessions = sessions.filter(s => s.status === "active").length;
+  const completedSessions = sessions.filter(s => s.status === "completed").length;
+  
+  return { totalGuests, activeSessions, completedSessions };
 }

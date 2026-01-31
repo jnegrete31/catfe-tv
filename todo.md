@@ -240,3 +240,16 @@
 - [x] Update web Adoption Showcase screen to show 8 cat profiles (4x2 grid)
 - [x] Update tvOS Adoption Showcase to show 8 cat profiles (4x2 grid)
 - [x] Adjust layout and sizing for 8-cat grid
+
+## Feature - Guest Session Tracking
+- [x] Add guestSessions table to database schema (guest name, party size, duration, status, check-in/expiry times)
+- [x] Create backend API for guest session CRUD operations (check-in, check-out, extend, get active)
+- [x] Add Guests tab to admin dashboard
+- [x] Create GuestCheckIn component with check-in dialog (name, party size, 15/30/60 min duration)
+- [x] Display active sessions with countdown timer
+- [x] Add extend session buttons (+15 min, +30 min)
+- [x] Add check-out functionality
+- [x] Display today's guest statistics (total guests, active sessions, completed sessions)
+- [x] Create GuestReminderOverlay component for TV display
+- [x] Show 5-minute warning reminder on TV when guest session is expiring
+- [x] Auto-dismiss reminders after 30 seconds
