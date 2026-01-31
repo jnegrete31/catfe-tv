@@ -38,13 +38,15 @@ struct ContentView: View {
             .padding(.trailing, 80)
             .ignoresSafeArea()
             
-            // Recently Adopted banner at bottom
+            // Recently Adopted banner at bottom - DISABLED (wonky behavior)
+            /*
             if !apiClient.recentlyAdopted.isEmpty {
                 VStack {
                     Spacer()
                     RecentlyAdoptedBanner(adoptedCats: apiClient.recentlyAdopted)
                 }
             }
+            */
             
             // Offline indicator
             if apiClient.isOffline {

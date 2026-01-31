@@ -224,3 +224,7 @@
 - [x] Add AirPlay icon button to TV display overlay
 - [x] Implement AirPlay instructions modal without disrupting slideshow
 - [x] Position icon appropriately (non-intrusive)
+
+## Bug Fix - Disable Recently Adopted Banner
+- [x] Disable Recently Adopted banner on web TV display (wonky behavior)
+- [x] Disable Recently Adopted banner on tvOS app

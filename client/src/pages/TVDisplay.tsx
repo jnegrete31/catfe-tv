@@ -266,12 +266,13 @@ export default function TVDisplay() {
       {/* Weather and Clock Overlay - always visible */}
       <WeatherClockOverlay />
       
-      {/* Recently Adopted Banner - shows at bottom when there are adopted cats */}
+      {/* Recently Adopted Banner - DISABLED (wonky behavior on tvOS)
       {recentlyAdopted && recentlyAdopted.length > 0 && (
         <div className="absolute bottom-0 left-0 right-0 z-30">
           <RecentlyAdoptedBanner adoptedCats={recentlyAdopted} />
         </div>
       )}
+      */}
       
       {/* Paused indicator */}
       {isPaused && !showControls && (
