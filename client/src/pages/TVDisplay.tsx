@@ -30,9 +30,9 @@ export default function TVDisplay() {
   const controlsTimeout = useRef<NodeJS.Timeout | null>(null);
   const autoAdvanceTimeout = useRef<NodeJS.Timeout | null>(null);
   
-  // Fetch random adoption cats for showcase screens
+  // Fetch random adoption cats for showcase screens (8 cats for 4x2 grid)
   const { data: randomAdoptions, refetch: refetchAdoptions } = trpc.screens.getRandomAdoptions.useQuery(
-    { count: 4 },
+    { count: 8 },
     { enabled: currentScreen?.type === "ADOPTION_SHOWCASE" }
   );
   

@@ -30,7 +30,8 @@ export const screenTypeEnum = mysqlEnum("screenType", [
   "ADOPTION",
   "ADOPTION_SHOWCASE",
   "ADOPTION_COUNTER",
-  "THANK_YOU"
+  "THANK_YOU",
+  "LIVESTREAM"
 ]);
 
 /**
@@ -58,6 +59,7 @@ export const screens = mysqlTable("screens", {
   isActive: boolean("isActive").notNull().default(true),
   isProtected: boolean("isProtected").notNull().default(false), // Prevent deletion of core screens
   isAdopted: boolean("isAdopted").notNull().default(false), // Mark adoption cats as adopted
+  livestreamUrl: varchar("livestreamUrl", { length: 1024 }), // HLS stream URL for livestream screen type
   // Timestamps
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -88,6 +90,7 @@ export const settings = mysqlTable("settings", {
   snapAndPurrFrequency: int("snapAndPurrFrequency").notNull().default(5), // Show SNAP_AND_PURR every N screens
   totalAdoptionCount: int("totalAdoptionCount").notNull().default(0), // Manual total adoption count for display
   logoUrl: varchar("logoUrl", { length: 1024 }), // Custom logo image URL for TV display
+  livestreamUrl: varchar("livestreamUrl", { length: 1024 }), // HLS stream URL for live camera feed
   githubRepo: varchar("githubRepo", { length: 255 }), // e.g., "username/repo"
   githubBranch: varchar("githubBranch", { length: 64 }).default("main"),
   refreshIntervalSeconds: int("refreshIntervalSeconds").notNull().default(60),

@@ -2,10 +2,15 @@ import SwiftUI
 import AVKit
 
 struct LivestreamView: View {
-    let streamUrl: String
+    let screen: Screen
+    let settings: Settings?
     @State private var player: AVPlayer?
     @State private var isLoading = true
     @State private var hasError = false
+    
+    private var streamUrl: String? {
+        screen.livestreamUrl
+    }
     
     var body: some View {
         ZStack {
@@ -17,7 +22,22 @@ struct LivestreamView: View {
             )
             .ignoresSafeArea()
             
-            if hasError {
+            if streamUrl == nil || streamUrl?.isEmpty == true {
+                // No stream URL configured
+                VStack(spacing: 30) {
+                    Image(systemName: "video.fill")
+                        .font(.system(size: 80))
+                        .foregroundColor(.white.opacity(0.5))
+                    
+                    Text("Livestream")
+                        .font(.system(size: 60, weight: .bold))
+                        .foregroundColor(.white)
+                    
+                    Text("No stream URL configured")
+                        .font(.system(size: 30))
+                        .foregroundColor(.white.opacity(0.6))
+                }
+            } else if hasError {
                 // Error state
                 VStack(spacing: 30) {
                     Image(systemName: "video.slash.fill")
@@ -28,7 +48,7 @@ struct LivestreamView: View {
                         .font(.system(size: 40, weight: .semibold))
                         .foregroundColor(.white)
                     
-                    Text("Please check the stream URL in settings")
+                    Text("Please check the stream URL")
                         .font(.system(size: 24))
                         .foregroundColor(.white.opacity(0.7))
                 }
@@ -70,7 +90,7 @@ struct LivestreamView: View {
             }
             
             // Live indicator
-            if !hasError && player != nil {
+            if !hasError && player != nil && !isLoading {
                 VStack {
                     HStack {
                         HStack(spacing: 8) {
@@ -93,6 +113,44 @@ struct LivestreamView: View {
                     Spacer()
                 }
             }
+            
+            // Logo overlay
+            VStack {
+                Spacer()
+                HStack {
+                    CatfeLogo(logoUrl: settings?.logoUrl)
+                        .padding(.leading, 60)
+                        .padding(.bottom, 120)
+                    Spacer()
+                }
+            }
+            
+            // Title overlay if provided
+            if !screen.title.isEmpty {
+                VStack {
+                    Spacer()
+                    HStack {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(screen.title)
+                                .font(.system(size: 36, weight: .bold))
+                                .foregroundColor(.white)
+                            if let subtitle = screen.subtitle, !subtitle.isEmpty {
+                                Text(subtitle)
+                                    .font(.system(size: 24))
+                                    .foregroundColor(.white.opacity(0.8))
+                            }
+                        }
+                        .padding(.horizontal, 30)
+                        .padding(.vertical, 20)
+                        .background(Color.black.opacity(0.6))
+                        .cornerRadius(16)
+                        .padding(.leading, 60)
+                        .padding(.bottom, 60)
+                        
+                        Spacer()
+                    }
+                }
+            }
         }
         .onAppear {
             setupPlayer()
@@ -100,8 +158,7 @@ struct LivestreamView: View {
     }
     
     private func setupPlayer() {
-        guard let url = URL(string: streamUrl) else {
-            hasError = true
+        guard let urlString = streamUrl, !urlString.isEmpty, let url = URL(string: urlString) else {
             return
         }
         
@@ -119,14 +176,6 @@ struct LivestreamView: View {
             player?.play()
         }
         
-        // Check for errors
-        playerItem.addObserver(
-            NSObject(),
-            forKeyPath: "status",
-            options: [.new],
-            context: nil
-        )
-        
         // Start playing
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             isLoading = false
@@ -135,5 +184,31 @@ struct LivestreamView: View {
 }
 
 #Preview {
-    LivestreamView(streamUrl: "https://example.com/stream.m3u8")
+    LivestreamView(
+        screen: Screen(
+            id: 1,
+            type: "LIVESTREAM",
+            title: "Cat Lounge Camera",
+            subtitle: "Watch our cats play!",
+            body: nil,
+            imagePath: nil,
+            imageDisplayMode: nil,
+            qrUrl: nil,
+            startAt: nil,
+            endAt: nil,
+            daysOfWeek: nil,
+            timeStart: nil,
+            timeEnd: nil,
+            priority: 1,
+            durationSeconds: 60,
+            sortOrder: 0,
+            isActive: true,
+            isProtected: false,
+            isAdopted: nil,
+            livestreamUrl: "https://example.com/stream.m3u8",
+            createdAt: "",
+            updatedAt: ""
+        ),
+        settings: nil
+    )
 }

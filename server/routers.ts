@@ -37,6 +37,7 @@ const screenTypes = [
   "ADOPTION_SHOWCASE",
   "ADOPTION_COUNTER",
   "THANK_YOU",
+  "LIVESTREAM",
 ] as const;
 
 // Input schemas
@@ -59,6 +60,7 @@ const screenInput = z.object({
   isActive: z.boolean().default(true),
   isProtected: z.boolean().default(false),
   isAdopted: z.boolean().default(false),
+  livestreamUrl: z.string().url().max(1024).nullable().optional().or(z.literal("")),
 });
 
 const timeSlotInput = z.object({
@@ -82,6 +84,7 @@ const settingsInput = z.object({
   snapAndPurrFrequency: z.number().min(1).max(20).optional(),
   totalAdoptionCount: z.number().min(0).optional(),
   logoUrl: z.string().max(1024).nullable().optional(),
+  livestreamUrl: z.string().max(1024).nullable().optional(),
   githubRepo: z.string().max(255).nullable().optional(),
   githubBranch: z.string().max(64).optional(),
   refreshIntervalSeconds: z.number().min(10).max(600).optional(),
@@ -203,9 +206,9 @@ export const appRouter = router({
       return getScreenViewCounts();
     }),
 
-    // Get random adoption screens for showcase
+    // Get random adoption screens for showcase (8 cats for 4x2 grid)
     getRandomAdoptions: publicProcedure
-      .input(z.object({ count: z.number().min(1).max(8).default(4) }))
+      .input(z.object({ count: z.number().min(1).max(12).default(8) }))
       .query(async ({ input }) => {
         const allScreens = await getActiveScreens();
         const adoptionScreens = allScreens.filter(s => s.type === 'ADOPTION' && s.imagePath);

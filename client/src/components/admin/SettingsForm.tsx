@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import type { Settings } from "@shared/types";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { Save, Github, Upload, X, Image as ImageIcon } from "lucide-react";
+import { Save, Github, Upload, X, Image as ImageIcon, Video } from "lucide-react";
 
 const settingsSchema = z.object({
   locationName: z.string().min(1).max(255),
@@ -20,6 +20,7 @@ const settingsSchema = z.object({
   totalAdoptionCount: z.number().min(0),
   refreshIntervalSeconds: z.number().min(10).max(600),
   logoUrl: z.string().max(1024).optional().nullable(),
+  livestreamUrl: z.string().max(1024).optional().nullable(),
   githubRepo: z.string().max(255).optional().nullable(),
   githubBranch: z.string().max(64).optional(),
 });
@@ -77,6 +78,7 @@ export function SettingsForm({ settings, onSuccess }: SettingsFormProps) {
       totalAdoptionCount: settings?.totalAdoptionCount || 0,
       refreshIntervalSeconds: settings?.refreshIntervalSeconds || 60,
       logoUrl: settings?.logoUrl || null,
+      livestreamUrl: settings?.livestreamUrl || null,
       githubRepo: settings?.githubRepo || "",
       githubBranch: settings?.githubBranch || "main",
     },
@@ -132,11 +134,14 @@ export function SettingsForm({ settings, onSuccess }: SettingsFormProps) {
   };
   
   const onSubmit = (data: SettingsFormData) => {
-    updateMutation.mutate({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const payload: any = {
       ...data,
       githubRepo: data.githubRepo || null,
       logoUrl: data.logoUrl || null,
-    });
+      livestreamUrl: data.livestreamUrl || null,
+    };
+    updateMutation.mutate(payload);
   };
   
   return (
@@ -214,6 +219,41 @@ export function SettingsForm({ settings, onSuccess }: SettingsFormProps) {
             Your logo will appear in the bottom-left corner of all TV screens.
             Use a logo with transparent background for best results.
           </p>
+        </CardContent>
+      </Card>
+      
+      {/* Livestream Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Video className="w-5 h-5 text-red-600" />
+            Live Stream
+          </CardTitle>
+          <CardDescription>
+            Display a live camera feed from your cat lounge on TV screens
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="livestreamUrl">HLS Stream URL</Label>
+            <Input
+              id="livestreamUrl"
+              {...register("livestreamUrl")}
+              placeholder="https://example.com/stream.m3u8"
+            />
+            <p className="text-xs text-muted-foreground">
+              Enter the HLS (.m3u8) URL from your streaming service (YouTube Live, Twitch, or IP camera)
+            </p>
+          </div>
+          
+          <div className="p-3 bg-muted rounded-lg text-sm">
+            <p className="font-medium mb-1">Supported Formats</p>
+            <ul className="text-muted-foreground list-disc list-inside space-y-1">
+              <li>HLS streams (.m3u8) - recommended</li>
+              <li>YouTube Live - use the HLS URL from your stream</li>
+              <li>IP cameras with RTSP-to-HLS conversion</li>
+            </ul>
+          </div>
         </CardContent>
       </Card>
       

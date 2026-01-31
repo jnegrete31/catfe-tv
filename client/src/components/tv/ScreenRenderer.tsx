@@ -363,7 +363,7 @@ function AdoptionScreen({ screen, settings }: ScreenRendererProps) {
   );
 }
 
-// ADOPTION_SHOWCASE - Grid of 4 random adoptable cats
+// ADOPTION_SHOWCASE - Grid of 8 random adoptable cats
 function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRendererProps) {
   const cats = adoptionCats || [];
   const { data: adoptionCountData } = trpc.screens.getAdoptionCount.useQuery();
@@ -371,33 +371,34 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRender
   
   return (
     <ScreenLayout bgColor="#ffedd5" logoUrl={settings?.logoUrl}>
-      <div className="w-full h-full flex flex-col p-8">
-        <div className="text-center mb-6">
-          <div className="inline-block px-6 py-3 rounded-full bg-orange-500 text-white text-xl mb-2">
+      <div className="w-full h-full flex flex-col p-6">
+        {/* Header - more compact */}
+        <div className="text-center mb-4">
+          <div className="inline-block px-5 py-2 rounded-full bg-orange-500 text-white text-lg mb-1">
             Meet Our Adoptable Cats
           </div>
-          <h1 className="tv-text-medium text-orange-900">
+          <h1 className="text-3xl font-bold text-orange-900">
             {screen.title || "Find Your Purrfect Match"}
           </h1>
           {/* Adoption success counter */}
           {adoptedCount > 0 && (
-            <div className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 text-green-800">
-              <span className="text-2xl">🎉</span>
-              <span className="text-lg font-semibold">
+            <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 text-green-800">
+              <span className="text-xl">🎉</span>
+              <span className="text-base font-semibold">
                 {adoptedCount} {adoptedCount === 1 ? 'cat' : 'cats'} adopted and counting!
               </span>
             </div>
           )}
         </div>
         
-        {/* 2x2 Grid of cats - using square aspect ratio */}
-        <div className="flex-1 grid grid-cols-2 gap-6 max-w-4xl mx-auto w-full">
-          {cats.slice(0, 4).map((cat, index) => (
+        {/* 4x2 Grid of cats - 8 cats total */}
+        <div className="flex-1 grid grid-cols-4 grid-rows-2 gap-4 max-w-6xl mx-auto w-full">
+          {cats.slice(0, 8).map((cat, index) => (
             <div 
               key={cat.id || index}
-              className="relative bg-white rounded-2xl overflow-hidden shadow-lg flex flex-col"
+              className="relative bg-white rounded-xl overflow-hidden shadow-lg flex flex-col"
             >
-              {/* Square image container using aspect-square */}
+              {/* Square image container */}
               <div className="relative aspect-square">
                 {cat.imagePath ? (
                   <>
@@ -408,42 +409,42 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRender
                     />
                     {/* Adopted badge overlay */}
                     {(cat as any).isAdopted && (
-                      <div className="absolute top-3 right-3 px-3 py-1 rounded-full bg-green-500 text-white text-sm font-bold shadow-lg animate-pulse">
+                      <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-green-500 text-white text-xs font-bold shadow-lg animate-pulse">
                         🎉 Adopted!
                       </div>
                     )}
                   </>
                 ) : (
                   <div className="absolute inset-0 bg-orange-100 flex items-center justify-center">
-                    <span className="text-6xl">🐱</span>
+                    <span className="text-4xl">🐱</span>
                     {/* Adopted badge overlay for no-image cats */}
                     {(cat as any).isAdopted && (
-                      <div className="absolute top-3 right-3 px-3 py-1 rounded-full bg-green-500 text-white text-sm font-bold shadow-lg animate-pulse">
+                      <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-green-500 text-white text-xs font-bold shadow-lg animate-pulse">
                         🎉 Adopted!
                       </div>
                     )}
                   </div>
                 )}
               </div>
-              <div className="p-4 bg-white">
-                <h3 className="text-2xl font-bold text-orange-900 truncate">{cat.title}</h3>
+              <div className="p-2 bg-white">
+                <h3 className="text-lg font-bold text-orange-900 truncate">{cat.title}</h3>
                 {cat.subtitle && (
-                  <p className="text-lg text-orange-700 truncate">{cat.subtitle}</p>
+                  <p className="text-sm text-orange-700 truncate">{cat.subtitle}</p>
                 )}
               </div>
             </div>
           ))}
           
-          {/* Fill empty slots with placeholders */}
-          {cats.length < 4 && Array.from({ length: 4 - cats.length }).map((_, i) => (
+          {/* Fill empty slots with placeholders if less than 8 cats */}
+          {cats.length < 8 && Array.from({ length: 8 - cats.length }).map((_, i) => (
             <div 
               key={`empty-${i}`}
-              className="bg-orange-100 rounded-2xl flex flex-col overflow-hidden shadow-lg"
+              className="bg-orange-100 rounded-xl flex flex-col overflow-hidden shadow-lg"
             >
               <div className="aspect-square flex items-center justify-center">
                 <div className="text-center text-orange-400">
-                  <span className="text-6xl block mb-2">🐱</span>
-                  <span className="text-xl">Coming Soon</span>
+                  <span className="text-4xl block mb-1">🐱</span>
+                  <span className="text-sm">Coming Soon</span>
                 </div>
               </div>
             </div>
@@ -451,10 +452,10 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRender
         </div>
         
         {screen.qrUrl && (
-          <div className="text-center mt-6">
-            <p className="text-lg text-orange-700 mb-2">Scan to see all adoptable cats</p>
+          <div className="text-center mt-4">
+            <p className="text-base text-orange-700 mb-1">Scan to see all adoptable cats</p>
             <div className="inline-block">
-              <QRCode url={screen.qrUrl} size={120} />
+              <QRCode url={screen.qrUrl} size={100} />
             </div>
           </div>
         )}
@@ -559,6 +560,63 @@ function ThankYouScreen({ screen, settings }: ScreenRendererProps) {
   );
 }
 
+// LIVESTREAM - Live video stream from camera
+function LivestreamScreen({ screen, settings }: ScreenRendererProps) {
+  const livestreamUrl = (screen as any).livestreamUrl;
+  
+  if (!livestreamUrl) {
+    return (
+      <ScreenLayout bgColor="#1f2937" logoUrl={settings?.logoUrl}>
+        <div className="text-center">
+          <div className="text-6xl mb-6">📹</div>
+          <h1 className="tv-text-large mb-4 text-white">Livestream</h1>
+          <p className="tv-text-medium text-gray-400">No stream URL configured</p>
+        </div>
+      </ScreenLayout>
+    );
+  }
+  
+  return (
+    <div className="tv-screen relative bg-black">
+      {/* Video player */}
+      <video
+        className="w-full h-full object-cover"
+        autoPlay
+        muted
+        playsInline
+        loop
+        src={livestreamUrl}
+      >
+        <source src={livestreamUrl} type="application/x-mpegURL" />
+        Your browser does not support HLS video.
+      </video>
+      
+      {/* Live indicator */}
+      <div className="absolute top-8 left-8 flex items-center gap-3 px-4 py-2 bg-red-600 rounded-lg shadow-lg">
+        <div className="w-3 h-3 bg-white rounded-full animate-pulse" />
+        <span className="text-white font-bold text-xl">LIVE</span>
+      </div>
+      
+      {/* Logo overlay */}
+      <div className="absolute bottom-36 left-8">
+        <CatfeLogo logoUrl={settings?.logoUrl} />
+      </div>
+      
+      {/* Title overlay if provided */}
+      {screen.title && (
+        <div className="absolute bottom-8 left-8 right-8">
+          <div className="bg-black/60 backdrop-blur-sm rounded-xl px-6 py-4">
+            <h2 className="text-white text-3xl font-bold">{screen.title}</h2>
+            {screen.subtitle && (
+              <p className="text-gray-300 text-xl mt-1">{screen.subtitle}</p>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Main renderer that selects the appropriate component
 export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendererProps) {
   const renderers: Record<string, React.FC<ScreenRendererProps>> = {
@@ -571,6 +629,7 @@ export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendere
     ADOPTION_SHOWCASE: AdoptionShowcaseScreen,
     ADOPTION_COUNTER: AdoptionCounterScreen,
     THANK_YOU: ThankYouScreen,
+    LIVESTREAM: LivestreamScreen,
   };
   
   const Renderer = renderers[screen.type] || EventScreen;

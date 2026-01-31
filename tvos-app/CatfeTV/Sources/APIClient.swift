@@ -36,6 +36,7 @@ struct Screen: Codable, Identifiable, Hashable {
     let isActive: Bool
     let isProtected: Bool
     let isAdopted: Bool?
+    let livestreamUrl: String?
     let createdAt: String
     let updatedAt: String
     
@@ -237,7 +238,7 @@ func fetchRecentlyAdopted(limit: Int = 5) async {
         }
     }
     
-func fetchRandomAdoptions(count: Int = 4) async {
+func fetchRandomAdoptions(count: Int = 8) async {
         // tRPC with superjson requires the input wrapped in a "json" key
         let inputJson = "{\"json\":{\"count\":\(count)}}"
         guard let encodedInput = inputJson.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),

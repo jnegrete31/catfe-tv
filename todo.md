@@ -228,3 +228,15 @@
 ## Bug Fix - Disable Recently Adopted Banner
 - [x] Disable Recently Adopted banner on web TV display (wonky behavior)
 - [x] Disable Recently Adopted banner on tvOS app
+
+## Feature - LIVESTREAM Screen Type
+- [ ] Add LIVESTREAM to screen type enum in database schema
+- [ ] Add livestreamUrl field to screens table
+- [ ] Update screen form to show livestream URL input for LIVESTREAM type
+- [ ] Add LIVESTREAM screen renderer for web TV display
+- [ ] Update tvOS app to handle LIVESTREAM screen type
+
+## Feature - Expand Adoption Showcase Grid to 8 Cats
+- [x] Update web Adoption Showcase screen to show 8 cat profiles (4x2 grid)
+- [x] Update tvOS Adoption Showcase to show 8 cat profiles (4x2 grid)
+- [x] Adjust layout and sizing for 8-cat grid

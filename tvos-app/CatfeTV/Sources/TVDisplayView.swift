@@ -19,6 +19,10 @@ struct TVDisplayView: View {
                     AdoptionCounterView(screen: screen, settings: settings)
                         .id("counter-\(screen.id)")
                         .transition(.opacity)
+                } else if screen.type == "LIVESTREAM" {
+                    LivestreamView(screen: screen, settings: settings)
+                        .id("livestream-\(screen.id)")
+                        .transition(.opacity)
                 } else {
                     ScreenContentView(screen: screen, settings: settings)
                         .id(screen.id)
@@ -421,7 +425,7 @@ struct QRCodeView: View {
 }
 
 
-// MARK: - Adoption Showcase View (4-cat grid)
+// MARK: - Adoption Showcase View (8-cat grid - 4x2)
 struct AdoptionShowcaseView: View {
     let screen: Screen
     let settings: Settings?
@@ -437,75 +441,188 @@ struct AdoptionShowcaseView: View {
             Color(hex: "#ffedd5") // orange-100
                 .ignoresSafeArea()
             
-            VStack(spacing: 24) {
-                // Header
-                VStack(spacing: 8) {
+            VStack(spacing: 16) {
+                // Header - more compact
+                VStack(spacing: 6) {
                     Text("Meet Our Adoptable Cats")
-                        .font(.custom(bodyFont, size: 28))
+                        .font(.custom(bodyFont, size: 22))
                         .fontWeight(.semibold)
                         .foregroundColor(.white)
-                        .padding(.horizontal, 24)
-                        .padding(.vertical, 12)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 8)
                         .background(Color(hex: "#f97316")) // orange-500
                         .cornerRadius(50)
                     
                     Text(screen.title.isEmpty ? "Find Your Purrfect Match" : screen.title)
-                        .font(.custom(displayFont, size: 48))
+                        .font(.custom(displayFont, size: 36))
                         .fontWeight(.bold)
                         .foregroundColor(Color(hex: "#7c2d12")) // orange-900
                     
                     // Adoption success counter
                     if adoptionCount > 0 {
-                        HStack(spacing: 8) {
+                        HStack(spacing: 6) {
                             Text("🎉")
-                                .font(.system(size: 24))
+                                .font(.system(size: 18))
                             Text("\(adoptionCount) \(adoptionCount == 1 ? "cat" : "cats") adopted and counting!")
-                                .font(.custom(bodyFont, size: 20))
+                                .font(.custom(bodyFont, size: 16))
                                 .fontWeight(.semibold)
                                 .foregroundColor(Color(hex: "#166534")) // green-800
                         }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
                         .background(Color(hex: "#dcfce7")) // green-100
                         .cornerRadius(50)
-                        .padding(.top, 8)
                     }
                 }
-                .padding(.top, 40)
+                .padding(.top, 20)
                 
-                // 2x2 Grid of cats
-                HStack(spacing: 24) {
-                    ForEach(0..<2, id: \.self) { col in
-                        VStack(spacing: 24) {
-                            ForEach(0..<2, id: \.self) { row in
-                                let index = col * 2 + row
-                                if index < cats.count {
-                                    CatCard(cat: cats[index])
-                                } else {
-                                    EmptyCatCard()
-                                }
+                // 4x2 Grid of cats (8 cats total)
+                VStack(spacing: 12) {
+                    // Row 1 - 4 cats
+                    HStack(spacing: 12) {
+                        ForEach(0..<4, id: \.self) { index in
+                            if index < cats.count {
+                                SmallCatCard(cat: cats[index])
+                            } else {
+                                SmallEmptyCatCard()
+                            }
+                        }
+                    }
+                    // Row 2 - 4 cats
+                    HStack(spacing: 12) {
+                        ForEach(4..<8, id: \.self) { index in
+                            if index < cats.count {
+                                SmallCatCard(cat: cats[index])
+                            } else {
+                                SmallEmptyCatCard()
                             }
                         }
                     }
                 }
-                .padding(.horizontal, 60)
+                .padding(.horizontal, 40)
                 
                 // QR Code (if available)
                 if let qrUrl = screen.qrUrl, !qrUrl.isEmpty {
-                    HStack(spacing: 16) {
+                    HStack(spacing: 12) {
                         Text("Scan to see all adoptable cats")
-                            .font(.custom(bodyFont, size: 20))
+                            .font(.custom(bodyFont, size: 16))
                             .foregroundColor(Color(hex: "#c2410c")) // orange-700
                         
                         QRCodeView(url: qrUrl)
-                            .frame(width: 100, height: 100)
+                            .frame(width: 80, height: 80)
                     }
-                    .padding(.bottom, 30)
+                    .padding(.bottom, 16)
                 }
                 
                 Spacer()
             }
         }
+    }
+}
+
+// Smaller cat card for 8-cat grid
+struct SmallCatCard: View {
+    let cat: Screen
+    private let cardSize: CGFloat = 200 // Smaller square card size for 4x2 grid
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Cat image with Adopted badge overlay - SQUARE aspect ratio
+            ZStack(alignment: .topTrailing) {
+                if let imagePath = cat.imagePath, !imagePath.isEmpty {
+                    AsyncImage(url: URL(string: imagePath)) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: cardSize, height: cardSize)
+                                .clipped()
+                        case .failure:
+                            smallCatPlaceholder
+                        case .empty:
+                            ProgressView()
+                                .frame(width: cardSize, height: cardSize)
+                        @unknown default:
+                            smallCatPlaceholder
+                        }
+                    }
+                } else {
+                    smallCatPlaceholder
+                }
+                
+                // Adopted badge overlay
+                if cat.isAdopted == true {
+                    Text("🎉 Adopted!")
+                        .font(.custom("Helvetica Neue", size: 10))
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color(hex: "#22c55e")) // green-500
+                        .cornerRadius(12)
+                        .shadow(color: .black.opacity(0.2), radius: 2, x: 0, y: 1)
+                        .padding(8)
+                }
+            }
+            .frame(width: cardSize, height: cardSize)
+            
+            // Cat name and info
+            VStack(spacing: 2) {
+                Text(cat.title)
+                    .font(.custom("Helvetica Neue", size: 16))
+                    .fontWeight(.bold)
+                    .foregroundColor(Color(hex: "#7c2d12")) // orange-900
+                    .lineLimit(1)
+                
+                if let subtitle = cat.subtitle, !subtitle.isEmpty {
+                    Text(subtitle)
+                        .font(.custom("Helvetica Neue", size: 12))
+                        .foregroundColor(Color(hex: "#c2410c")) // orange-700
+                        .lineLimit(1)
+                }
+            }
+            .padding(.vertical, 8)
+            .padding(.horizontal, 8)
+            .frame(width: cardSize)
+            .background(Color.white)
+        }
+        .frame(width: cardSize)
+        .background(Color.white)
+        .cornerRadius(12)
+        .shadow(color: .black.opacity(0.15), radius: 6, x: 0, y: 3)
+    }
+    
+    private var smallCatPlaceholder: some View {
+        ZStack {
+            Color(hex: "#fed7aa") // orange-200
+            Text("🐱")
+                .font(.system(size: 50))
+        }
+        .frame(width: cardSize, height: cardSize)
+    }
+}
+
+struct SmallEmptyCatCard: View {
+    private let cardSize: CGFloat = 200
+    
+    var body: some View {
+        VStack {
+            ZStack {
+                Color(hex: "#fed7aa") // orange-200
+                VStack(spacing: 4) {
+                    Text("🐱")
+                        .font(.system(size: 40))
+                    Text("Coming Soon")
+                        .font(.custom("Helvetica Neue", size: 12))
+                        .foregroundColor(Color(hex: "#ea580c")) // orange-600
+                }
+            }
+        }
+        .frame(width: cardSize, height: cardSize + 50)
+        .background(Color(hex: "#fed7aa"))
+        .cornerRadius(12)
+        .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
     }
 }
 
