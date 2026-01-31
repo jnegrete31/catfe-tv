@@ -3,8 +3,6 @@ import UIKit
 
 @main
 struct CatfeTVApp: App {
-    @StateObject private var apiClient = APIClient()
-    
     init() {
         // Disable idle timer to prevent Apple TV from going to screensaver/wallpaper
         UIApplication.shared.isIdleTimerDisabled = true
@@ -12,9 +10,9 @@ struct CatfeTVApp: App {
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environmentObject(apiClient)
+            WebViewScreen()
                 .preferredColorScheme(.dark)
+                .ignoresSafeArea()
                 .onAppear {
                     // Ensure idle timer stays disabled when app appears
                     UIApplication.shared.isIdleTimerDisabled = true

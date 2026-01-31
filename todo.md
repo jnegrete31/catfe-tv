@@ -228,3 +228,9 @@
 ## Bug Fix - Disable Recently Adopted Banner
 - [x] Disable Recently Adopted banner on web TV display (wonky behavior)
 - [x] Disable Recently Adopted banner on tvOS app
+
+## Feature - Convert tvOS App to WebView
+- [x] Replace native Swift UI with WebView loading TV display URL
+- [x] Remove unused Swift files (APIClient, ScreenRenderer, etc.)
+- [x] Update Xcode project references
+- [ ] Test WebView loads correctly (user to test on Apple TV)

@@ -8,25 +8,15 @@
 
 /* Begin PBXBuildFile section */
 		1A0000001 /* CatfeTVApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000011 /* CatfeTVApp.swift */; };
-		1A0000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000012 /* ContentView.swift */; };
-		1A0000003 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000013 /* APIClient.swift */; };
-		1A0000004 /* TVDisplayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000014 /* TVDisplayView.swift */; };
-		1A0000005 /* WeatherClockOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000015 /* WeatherClockOverlay.swift */; };
+		1A0000002 /* WebViewScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000012 /* WebViewScreen.swift */; };
 		1A0000006 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1A0000016 /* Assets.xcassets */; };
-		1A0000030 /* RecentlyAdoptedBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000031 /* RecentlyAdoptedBanner.swift */; };
-		1A0000040 /* CatfeLogo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000041 /* CatfeLogo.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		1A0000010 /* CatfeTV.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CatfeTV.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A0000011 /* CatfeTVApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatfeTVApp.swift; sourceTree = "<group>"; };
-		1A0000012 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		1A0000013 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
-		1A0000014 /* TVDisplayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TVDisplayView.swift; sourceTree = "<group>"; };
-		1A0000015 /* WeatherClockOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherClockOverlay.swift; sourceTree = "<group>"; };
+		1A0000012 /* WebViewScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebViewScreen.swift; sourceTree = "<group>"; };
 		1A0000016 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		1A0000031 /* RecentlyAdoptedBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentlyAdoptedBanner.swift; sourceTree = "<group>"; };
-		1A0000041 /* CatfeLogo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatfeLogo.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -69,14 +59,9 @@
 			isa = PBXGroup;
 			children = (
 				1A0000011 /* CatfeTVApp.swift */,
-				1A0000012 /* ContentView.swift */,
-				1A0000013 /* APIClient.swift */,
-				1A0000014 /* TVDisplayView.swift */,
-				1A0000015 /* WeatherClockOverlay.swift */,
-1A0000031 /* RecentlyAdoptedBanner.swift */,
-					1A0000041 /* CatfeLogo.swift */,
-				);
-				path = Sources;
+				1A0000012 /* WebViewScreen.swift */,
+			);
+			path = Sources;
 			sourceTree = "<group>";
 		};
 		1A0000022 /* Resources */ = {
@@ -157,15 +142,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				1A0000001 /* CatfeTVApp.swift in Sources */,
-				1A0000002 /* ContentView.swift in Sources */,
-				1A0000003 /* APIClient.swift in Sources */,
-				1A0000004 /* TVDisplayView.swift in Sources */,
-				1A0000005 /* WeatherClockOverlay.swift in Sources */,
-1A0000030 /* RecentlyAdoptedBanner.swift in Sources */,
-					1A0000040 /* CatfeLogo.swift in Sources */,
-				);
-				runOnlyForDeploymentPostprocessing = 0;
-			};
+				1A0000002 /* WebViewScreen.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
