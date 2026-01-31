@@ -16,6 +16,7 @@
 		1A0000030 /* RecentlyAdoptedBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000031 /* RecentlyAdoptedBanner.swift */; };
 		1A0000040 /* CatfeLogo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000041 /* CatfeLogo.swift */; };
 		1A0000050 /* ScreenOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000051 /* ScreenOverlay.swift */; };
+		1A0000060 /* LivestreamView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A0000061 /* LivestreamView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -29,6 +30,7 @@
 		1A0000031 /* RecentlyAdoptedBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentlyAdoptedBanner.swift; sourceTree = "<group>"; };
 		1A0000041 /* CatfeLogo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatfeLogo.swift; sourceTree = "<group>"; };
 		1A0000051 /* ScreenOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenOverlay.swift; sourceTree = "<group>"; };
+		1A0000061 /* LivestreamView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LivestreamView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -78,6 +80,7 @@
 1A0000031 /* RecentlyAdoptedBanner.swift */,
 					1A0000041 /* CatfeLogo.swift */,
 					1A0000051 /* ScreenOverlay.swift */,
+					1A0000061 /* LivestreamView.swift */,
 				);
 				path = Sources;
 			sourceTree = "<group>";
@@ -167,6 +170,7 @@
 1A0000030 /* RecentlyAdoptedBanner.swift in Sources */,
 					1A0000040 /* CatfeLogo.swift in Sources */,
 					1A0000050 /* ScreenOverlay.swift in Sources */,
+					1A0000060 /* LivestreamView.swift in Sources */,
 				);
 				runOnlyForDeploymentPostprocessing = 0;
 			};
