@@ -765,23 +765,3 @@ struct AdoptionCounterView: View {
     }
 }
 
-// MARK: - Catfé Logo Component
-struct CatfeLogo: View {
-    var body: some View {
-        HStack(spacing: 12) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(hex: "#d97706")) // amber-600
-                    .frame(width: 50, height: 50)
-                    .shadow(color: .black.opacity(0.3), radius: 5, x: 0, y: 2)
-                Text("🐱")
-                    .font(.system(size: 28))
-            }
-            Text("Catfé")
-                .font(.custom("Georgia", size: 28))
-                .fontWeight(.bold)
-                .foregroundColor(.white)
-                .shadow(color: .black.opacity(0.5), radius: 3, x: 0, y: 2)
-        }
-    }
-}

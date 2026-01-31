@@ -219,3 +219,8 @@
 - [x] Add logo upload UI to admin settings page
 - [x] Update TV display to show custom logo from settings
 - [x] Update tvOS app to fetch and display custom logo
+
+## Feature - AirPlay Icon on Browser TV View
+- [x] Add AirPlay icon button to TV display overlay
+- [x] Implement AirPlay instructions modal without disrupting slideshow
+- [x] Position icon appropriately (non-intrusive)
