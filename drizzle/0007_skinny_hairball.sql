@@ -1,0 +1,1 @@
+ALTER TABLE `settings` ADD `livestreamUrl` varchar(1024);

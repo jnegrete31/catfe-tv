@@ -50,6 +50,27 @@
       "when": 1769836553610,
       "tag": "0006_wonderful_joystick",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1769842966835,
+      "tag": "0007_skinny_hairball",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1769843105427,
+      "tag": "0008_thin_harry_osborn",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1769843751194,
+      "tag": "0009_tidy_iron_monger",
+      "breakpoints": true
     }
   ]
 }
