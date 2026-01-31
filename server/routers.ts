@@ -81,6 +81,7 @@ const settingsInput = z.object({
   }).nullable().optional(),
   snapAndPurrFrequency: z.number().min(1).max(20).optional(),
   totalAdoptionCount: z.number().min(0).optional(),
+  logoUrl: z.string().max(1024).nullable().optional(),
   githubRepo: z.string().max(255).nullable().optional(),
   githubBranch: z.string().max(64).optional(),
   refreshIntervalSeconds: z.number().min(10).max(600).optional(),

@@ -2,6 +2,7 @@ import SwiftUI
 
 /// A celebratory banner that displays recently adopted cats
 /// Creates a positive atmosphere by celebrating successful adoptions
+/// Now with improved visibility and larger sizing for TV displays
 struct RecentlyAdoptedBanner: View {
     let adoptedCats: [Screen]
     
@@ -10,26 +11,28 @@ struct RecentlyAdoptedBanner: View {
     
     var body: some View {
         HStack(spacing: 0) {
-            // Static label
-            HStack(spacing: 12) {
+            // Static label - larger and more prominent
+            HStack(spacing: 16) {
                 Text("🎉")
-                    .font(.system(size: 28))
+                    .font(.system(size: 40))
+                    .modifier(BounceEffect())
                 Text("Recently Adopted!")
-                    .font(.custom("Helvetica Neue", size: 24))
+                    .font(.custom("Helvetica Neue", size: 32))
                     .fontWeight(.bold)
+                    .tracking(0.5)
             }
-            .padding(.horizontal, 24)
-            .padding(.vertical, 16)
+            .padding(.horizontal, 32)
+            .padding(.vertical, 20)
             .background(Color(hex: "#16a34a")) // green-600
             
-            // Divider
+            // Divider - thicker
             Rectangle()
-                .fill(Color.white.opacity(0.3))
-                .frame(width: 1)
+                .fill(Color.white.opacity(0.4))
+                .frame(width: 2)
             
             // Scrolling cats container
             GeometryReader { geometry in
-                HStack(spacing: 24) {
+                HStack(spacing: 32) {
                     ForEach(adoptedCats, id: \.id) { cat in
                         AdoptedCatItem(cat: cat)
                     }
@@ -48,7 +51,7 @@ struct RecentlyAdoptedBanner: View {
             .frame(maxWidth: .infinity)
             .clipped()
         }
-        .frame(height: 70)
+        .frame(height: 100) // Larger height for better TV visibility
         .background(
             LinearGradient(
                 colors: [
@@ -60,16 +63,24 @@ struct RecentlyAdoptedBanner: View {
                 endPoint: .trailing
             )
         )
+        .overlay(
+            // Top border for visual separation
+            Rectangle()
+                .fill(Color(hex: "#86efac")) // green-300
+                .frame(height: 4),
+            alignment: .top
+        )
+        .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: -5)
     }
     
     private func startScrollAnimation() {
         // Calculate total width of content
-        let itemWidth: CGFloat = 200 // Approximate width per cat item
+        let itemWidth: CGFloat = 250 // Larger width per cat item
         let totalWidth = CGFloat(adoptedCats.count) * itemWidth
         
-        // Start animation
+        // Start animation - slower for better readability
         withAnimation(
-            .linear(duration: Double(adoptedCats.count) * 4)
+            .linear(duration: Double(adoptedCats.count) * 5)
             .repeatForever(autoreverses: false)
         ) {
             scrollOffset = -totalWidth
@@ -77,12 +88,30 @@ struct RecentlyAdoptedBanner: View {
     }
 }
 
+// Bounce animation effect
+struct BounceEffect: ViewModifier {
+    @State private var isAnimating = false
+    
+    func body(content: Content) -> some View {
+        content
+            .offset(y: isAnimating ? -5 : 5)
+            .animation(
+                .easeInOut(duration: 0.8)
+                .repeatForever(autoreverses: true),
+                value: isAnimating
+            )
+            .onAppear {
+                isAnimating = true
+            }
+    }
+}
+
 struct AdoptedCatItem: View {
     let cat: Screen
     
     var body: some View {
-        HStack(spacing: 12) {
-            // Cat thumbnail
+        HStack(spacing: 16) {
+            // Cat thumbnail - larger for TV visibility
             if let imagePath = cat.imagePath, !imagePath.isEmpty {
                 AsyncImage(url: URL(string: imagePath)) { phase in
                     switch phase {
@@ -90,12 +119,13 @@ struct AdoptedCatItem: View {
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fill)
-                            .frame(width: 44, height: 44)
+                            .frame(width: 60, height: 60)
                             .clipShape(Circle())
                             .overlay(
                                 Circle()
-                                    .stroke(Color.white.opacity(0.5), lineWidth: 2)
+                                    .stroke(Color.white, lineWidth: 3)
                             )
+                            .shadow(color: .black.opacity(0.3), radius: 5, x: 0, y: 2)
                     case .failure, .empty:
                         catPlaceholder
                     @unknown default:
@@ -106,15 +136,17 @@ struct AdoptedCatItem: View {
                 catPlaceholder
             }
             
-            // Cat name
+            // Cat name - larger text
             Text(cat.title.replacingOccurrences(of: "Meet ", with: ""))
-                .font(.custom("Helvetica Neue", size: 20))
-                .fontWeight(.semibold)
+                .font(.custom("Helvetica Neue", size: 28))
+                .fontWeight(.bold)
                 .foregroundColor(.white)
+                .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
             
-            // Heart
+            // Heart - larger and animated
             Text("❤️")
-                .font(.system(size: 18))
+                .font(.system(size: 28))
+                .modifier(PulseEffect())
         }
     }
     
@@ -122,10 +154,32 @@ struct AdoptedCatItem: View {
         ZStack {
             Circle()
                 .fill(Color(hex: "#4ade80")) // green-400
-                .frame(width: 44, height: 44)
+                .frame(width: 60, height: 60)
+                .overlay(
+                    Circle()
+                        .stroke(Color.white, lineWidth: 3)
+                )
             Text("🐱")
-                .font(.system(size: 24))
+                .font(.system(size: 32))
         }
+    }
+}
+
+// Pulse animation effect for hearts
+struct PulseEffect: ViewModifier {
+    @State private var isAnimating = false
+    
+    func body(content: Content) -> some View {
+        content
+            .scaleEffect(isAnimating ? 1.1 : 0.9)
+            .animation(
+                .easeInOut(duration: 0.6)
+                .repeatForever(autoreverses: true),
+                value: isAnimating
+            )
+            .onAppear {
+                isAnimating = true
+            }
     }
 }
 

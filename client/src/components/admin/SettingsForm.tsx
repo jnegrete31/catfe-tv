@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import type { Settings } from "@shared/types";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { Save, Github } from "lucide-react";
+import { Save, Github, Upload, X, Image as ImageIcon } from "lucide-react";
 
 const settingsSchema = z.object({
   locationName: z.string().min(1).max(255),
@@ -18,6 +19,7 @@ const settingsSchema = z.object({
   snapAndPurrFrequency: z.number().min(1).max(20),
   totalAdoptionCount: z.number().min(0),
   refreshIntervalSeconds: z.number().min(10).max(600),
+  logoUrl: z.string().max(1024).optional().nullable(),
   githubRepo: z.string().max(255).optional().nullable(),
   githubBranch: z.string().max(64).optional(),
 });
@@ -31,6 +33,9 @@ interface SettingsFormProps {
 
 export function SettingsForm({ settings, onSuccess }: SettingsFormProps) {
   const utils = trpc.useUtils();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [logoPreview, setLogoPreview] = useState<string | null>(settings?.logoUrl || null);
   
   const updateMutation = trpc.settings.update.useMutation({
     onSuccess: () => {
@@ -40,6 +45,19 @@ export function SettingsForm({ settings, onSuccess }: SettingsFormProps) {
     },
     onError: (error) => {
       toast.error(error.message);
+    },
+  });
+  
+  const uploadMutation = trpc.github.uploadImage.useMutation({
+    onSuccess: (data) => {
+      setLogoPreview(data.rawUrl);
+      setValue("logoUrl", data.rawUrl, { shouldDirty: true });
+      toast.success("Logo uploaded successfully");
+      setIsUploading(false);
+    },
+    onError: (error) => {
+      toast.error(`Upload failed: ${error.message}`);
+      setIsUploading(false);
     },
   });
   
@@ -58,6 +76,7 @@ export function SettingsForm({ settings, onSuccess }: SettingsFormProps) {
       snapAndPurrFrequency: settings?.snapAndPurrFrequency || 5,
       totalAdoptionCount: settings?.totalAdoptionCount || 0,
       refreshIntervalSeconds: settings?.refreshIntervalSeconds || 60,
+      logoUrl: settings?.logoUrl || null,
       githubRepo: settings?.githubRepo || "",
       githubBranch: settings?.githubBranch || "main",
     },
@@ -65,15 +84,139 @@ export function SettingsForm({ settings, onSuccess }: SettingsFormProps) {
   
   const watchedFallbackMode = watch("fallbackMode");
   
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif'];
+    if (!validTypes.includes(file.type) && !file.name.match(/\.(heic|heif)$/i)) {
+      toast.error("Please select a valid image file (JPG, PNG, GIF, WebP, HEIC)");
+      return;
+    }
+    
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be less than 5MB");
+      return;
+    }
+    
+    setIsUploading(true);
+    
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const base64 = event.target?.result as string;
+      const base64Content = base64.split(',')[1]; // Remove data URL prefix
+      
+      // Generate unique filename
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'png';
+      const filename = `logo-${Date.now()}.${ext}`;
+      
+      // Upload to GitHub
+      uploadMutation.mutate({
+        filename,
+        content: base64Content,
+        message: "Upload Catfé TV logo",
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+  
+  const handleRemoveLogo = () => {
+    setLogoPreview(null);
+    setValue("logoUrl", null, { shouldDirty: true });
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+  
   const onSubmit = (data: SettingsFormData) => {
     updateMutation.mutate({
       ...data,
       githubRepo: data.githubRepo || null,
+      logoUrl: data.logoUrl || null,
     });
   };
   
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      {/* Logo Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ImageIcon className="w-5 h-5 text-amber-600" />
+            TV Logo
+          </CardTitle>
+          <CardDescription>
+            Upload your custom logo to display on all TV screens
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Logo Preview */}
+          {logoPreview ? (
+            <div className="relative inline-block">
+              <div className="w-48 h-24 bg-gray-900 rounded-lg flex items-center justify-center p-4 border-2 border-dashed border-gray-300">
+                <img 
+                  src={logoPreview} 
+                  alt="Logo preview" 
+                  className="max-w-full max-h-full object-contain"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handleRemoveLogo}
+                className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+              <p className="text-xs text-muted-foreground mt-2">
+                Preview on dark background (as it appears on TV)
+              </p>
+            </div>
+          ) : (
+            <div 
+              className="w-full h-32 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-colors"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload className="w-8 h-8 text-muted-foreground mb-2" />
+              <p className="text-sm text-muted-foreground">
+                Click to upload logo
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                PNG with transparent background recommended
+              </p>
+            </div>
+          )}
+          
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/gif,image/webp,.heic,.heif"
+            onChange={handleLogoUpload}
+            className="hidden"
+          />
+          
+          {logoPreview && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              {isUploading ? "Uploading..." : "Change Logo"}
+            </Button>
+          )}
+          
+          <p className="text-xs text-muted-foreground">
+            Your logo will appear in the bottom-left corner of all TV screens.
+            Use a logo with transparent background for best results.
+          </p>
+        </CardContent>
+      </Card>
+      
       {/* General Settings */}
       <Card>
         <CardHeader>

@@ -3,11 +3,77 @@ import type { Screen, Settings } from "@shared/types";
 import { SCREEN_TYPE_CONFIG } from "@shared/types";
 import { QRCodeSVG } from "qrcode.react";
 import { trpc } from "@/lib/trpc";
+import { useState, useEffect } from "react";
+
+// Animated counter hook for counting up effect
+function useCountUp(target: number, duration: number = 2000) {
+  const [count, setCount] = useState(0);
+  
+  useEffect(() => {
+    if (target === 0) return;
+    
+    const startTime = Date.now();
+    const startValue = 0;
+    
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Easing function for smooth deceleration
+      const easeOut = 1 - Math.pow(1 - progress, 3);
+      const currentValue = Math.floor(startValue + (target - startValue) * easeOut);
+      
+      setCount(currentValue);
+      
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+    
+    // Small delay before starting animation
+    const timer = setTimeout(() => {
+      requestAnimationFrame(animate);
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, [target, duration]);
+  
+  return count;
+}
 
 interface ScreenRendererProps {
   screen: Screen;
   settings: Settings | null;
   adoptionCats?: Screen[]; // For ADOPTION_SHOWCASE
+}
+
+// Logo component for branding - visible on both light and dark backgrounds
+// Supports custom logo URL from settings, falls back to default Catfé branding
+function CatfeLogo({ logoUrl, className = "" }: { logoUrl?: string | null; className?: string }) {
+  // If custom logo is provided, show it
+  if (logoUrl) {
+    return (
+      <div className={`px-4 py-3 rounded-2xl bg-black/30 backdrop-blur-sm shadow-lg ${className}`}>
+        <img 
+          src={logoUrl} 
+          alt="Logo" 
+          className="h-12 w-auto object-contain drop-shadow-lg"
+        />
+      </div>
+    );
+  }
+  
+  // Default Catfé logo
+  return (
+    <div className={`flex items-center gap-3 px-4 py-2 rounded-2xl bg-black/30 backdrop-blur-sm shadow-lg ${className}`}>
+      <div className="w-12 h-12 rounded-xl bg-amber-600 flex items-center justify-center shadow-md">
+        <span className="text-white text-2xl">🐱</span>
+      </div>
+      <span className="text-2xl font-bold text-white drop-shadow-lg" style={{ fontFamily: 'Georgia, serif' }}>
+        Catfé
+      </span>
+    </div>
+  );
 }
 
 // Base layout for all screen types
@@ -16,11 +82,15 @@ function ScreenLayout({
   bgColor,
   imagePath,
   imageDisplayMode = "cover",
+  showLogo = true,
+  logoUrl,
 }: { 
   children: React.ReactNode;
   bgColor?: string;
   imagePath?: string | null;
   imageDisplayMode?: "cover" | "contain" | null;
+  showLogo?: boolean;
+  logoUrl?: string | null;
 }) {
   const isContain = imageDisplayMode === "contain";
   
@@ -56,6 +126,13 @@ function ScreenLayout({
         </>
       )}
       
+      {/* Logo in bottom-left corner - positioned above the Recently Adopted banner */}
+      {showLogo && (
+        <div className="absolute z-20" style={{ bottom: '144px', left: '24px' }}>
+          <CatfeLogo logoUrl={logoUrl} />
+        </div>
+      )}
+      
       {/* Content - always show text overlay for cover mode, hide for contain mode */}
       {(!isContain) && (
         <div className="relative z-10 w-full h-full flex items-center justify-center p-8 md:p-16">
@@ -88,7 +165,7 @@ function SnapAndPurrScreen({ screen, settings }: ScreenRendererProps) {
   const bodyColorClass = hasImage ? "text-white/80 drop-shadow" : "text-pink-700";
   
   return (
-    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#fce7f3">
+    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#fce7f3" logoUrl={settings?.logoUrl}>
       <div className="text-center max-w-4xl">
         <h1 className={`tv-text-large mb-6 ${textColorClass}`}>
           {screen.title || "Snap & Purr!"}
@@ -121,7 +198,7 @@ function EventScreen({ screen, settings }: ScreenRendererProps) {
   const bodyColorClass = hasImage ? "text-white/80 drop-shadow" : "text-purple-700";
   
   return (
-    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#ede9fe">
+    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#ede9fe" logoUrl={settings?.logoUrl}>
       <div className="flex flex-col md:flex-row items-center justify-between w-full max-w-6xl gap-8">
         <div className="flex-1">
           <div className="inline-block px-4 py-2 rounded-full bg-purple-500 text-white text-lg mb-4">
@@ -154,7 +231,7 @@ function EventScreen({ screen, settings }: ScreenRendererProps) {
 // TODAY_AT_CATFE - Daily specials/activities
 function TodayAtCatfeScreen({ screen, settings }: ScreenRendererProps) {
   return (
-    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#fef3c7">
+    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#fef3c7" logoUrl={settings?.logoUrl}>
       <div className="text-center max-w-5xl">
         <div className="inline-block px-6 py-3 rounded-full bg-amber-500 text-white text-xl mb-6">
           Today at {settings?.locationName || "Catfé"}
@@ -185,7 +262,7 @@ function TodayAtCatfeScreen({ screen, settings }: ScreenRendererProps) {
 // MEMBERSHIP - Membership promotion
 function MembershipScreen({ screen, settings }: ScreenRendererProps) {
   return (
-    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#d1fae5">
+    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#d1fae5" logoUrl={settings?.logoUrl}>
       <div className="flex flex-col md:flex-row items-center justify-between w-full max-w-6xl gap-8">
         <div className="flex-1">
           <div className="inline-block px-4 py-2 rounded-full bg-emerald-500 text-white text-lg mb-4">
@@ -218,7 +295,7 @@ function MembershipScreen({ screen, settings }: ScreenRendererProps) {
 // REMINDER - General reminders
 function ReminderScreen({ screen, settings }: ScreenRendererProps) {
   return (
-    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#dbeafe">
+    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#dbeafe" logoUrl={settings?.logoUrl}>
       <div className="text-center max-w-4xl">
         <div className="inline-block px-4 py-2 rounded-full bg-blue-500 text-white text-lg mb-6">
           Reminder
@@ -250,7 +327,7 @@ function AdoptionScreen({ screen, settings }: ScreenRendererProps) {
   const bodyColorClass = hasImage ? "text-white/80 drop-shadow" : "text-red-700";
   
   return (
-    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#fee2e2">
+    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#fee2e2" logoUrl={settings?.logoUrl}>
       <div className="flex flex-col md:flex-row items-center justify-between w-full max-w-6xl gap-8">
         <div className="flex-1">
           {isAdopted ? (
@@ -293,7 +370,7 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRender
   const adoptedCount = adoptionCountData?.count || 0;
   
   return (
-    <ScreenLayout bgColor="#ffedd5">
+    <ScreenLayout bgColor="#ffedd5" logoUrl={settings?.logoUrl}>
       <div className="w-full h-full flex flex-col p-8">
         <div className="text-center mb-6">
           <div className="inline-block px-6 py-3 rounded-full bg-orange-500 text-white text-xl mb-2">
@@ -390,9 +467,10 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRender
 function AdoptionCounterScreen({ screen, settings }: ScreenRendererProps) {
   const { data: settingsData } = trpc.settings.get.useQuery();
   const totalCount = settingsData?.totalAdoptionCount || 0;
+  const animatedCount = useCountUp(totalCount, 2500); // 2.5 second count-up animation
   
   return (
-    <ScreenLayout bgColor="#dcfce7">
+    <ScreenLayout bgColor="#dcfce7" logoUrl={settings?.logoUrl}>
       <div className="text-center max-w-5xl">
         {/* Confetti-style decorations */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -410,28 +488,48 @@ function AdoptionCounterScreen({ screen, settings }: ScreenRendererProps) {
             🏠 Forever Homes Found!
           </div>
           
-          {/* Big counter number */}
+          {/* Big counter number with count-up animation */}
           <div className="my-8">
-            <span className="text-[12rem] font-black text-green-700 leading-none drop-shadow-lg">
-              {totalCount}
-            </span>
+            <motion.span 
+              className="text-[12rem] font-black text-green-700 leading-none drop-shadow-lg inline-block"
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+            >
+              {animatedCount}
+            </motion.span>
           </div>
           
-          <h1 className="text-5xl font-bold text-green-800 mb-4">
+          <motion.h1 
+            className="text-5xl font-bold text-green-800 mb-4"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 2.5 }}
+          >
             {screen.title || "Cats Adopted"}
-          </h1>
+          </motion.h1>
           
           {screen.subtitle && (
-            <p className="text-3xl text-green-700 mb-6">
+            <motion.p 
+              className="text-3xl text-green-700 mb-6"
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.5, delay: 2.7 }}
+            >
               {screen.subtitle}
-            </p>
+            </motion.p>
           )}
           
-          <div className="mt-8 inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white/80 text-green-800 text-xl font-medium shadow-md">
+          <motion.div 
+            className="mt-8 inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white/80 text-green-800 text-xl font-medium shadow-md"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 2.9 }}
+          >
             <span>💚</span>
             <span>Thank you for making a difference!</span>
             <span>💚</span>
-          </div>
+          </motion.div>
         </div>
       </div>
     </ScreenLayout>
@@ -441,7 +539,7 @@ function AdoptionCounterScreen({ screen, settings }: ScreenRendererProps) {
 // THANK_YOU - Appreciation messages
 function ThankYouScreen({ screen, settings }: ScreenRendererProps) {
   return (
-    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#e0e7ff">
+    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#e0e7ff" logoUrl={settings?.logoUrl}>
       <div className="text-center max-w-4xl">
         <h1 className="tv-text-large mb-6 text-indigo-900">
           {screen.title || "Thank You!"}

@@ -94,6 +94,16 @@ struct ScreenContentView: View {
             
             // Content overlay
             contentOverlay
+            
+            // Logo in bottom-left corner
+            VStack {
+                Spacer()
+                HStack {
+                    CatfeLogo(logoUrl: settings?.logoUrl)
+                        .padding(40)
+                    Spacer()
+                }
+            }
         }
     }
     
@@ -608,7 +618,7 @@ struct EmptyCatCard: View {
     }
 }
 
-// MARK: - Adoption Counter View (Full-screen celebration)
+// MARK: - Adoption Counter View (Full-screen celebration with counting animation)
 struct AdoptionCounterView: View {
     let screen: Screen
     let settings: Settings?
@@ -619,6 +629,10 @@ struct AdoptionCounterView: View {
     private var totalCount: Int {
         settings?.totalAdoptionCount ?? 0
     }
+    
+    @State private var bounceAnimation = false
+    @State private var displayedCount: Int = 0
+    @State private var showContent = false
     
     var body: some View {
         ZStack {
@@ -667,23 +681,32 @@ struct AdoptionCounterView: View {
                     .cornerRadius(50)
                     .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
                 
-                // Big counter number
-                Text("\(totalCount)")
+                // Big counter number with count-up animation
+                Text("\(displayedCount)")
                     .font(.system(size: 300, weight: .black, design: .rounded))
                     .foregroundColor(Color(hex: "#15803d")) // green-700
                     .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+                    .scaleEffect(showContent ? 1.0 : 0.5)
+                    .opacity(showContent ? 1.0 : 0.0)
+                    .animation(.spring(response: 0.5, dampingFraction: 0.7), value: showContent)
                 
                 // Title
                 Text(screen.title.isEmpty ? "Cats Adopted" : screen.title)
                     .font(.custom(displayFont, size: 64))
                     .fontWeight(.bold)
                     .foregroundColor(Color(hex: "#166534")) // green-800
+                    .opacity(showContent ? 1.0 : 0.0)
+                    .offset(y: showContent ? 0 : 20)
+                    .animation(.easeOut(duration: 0.5).delay(2.5), value: showContent)
                 
                 // Subtitle (if any)
                 if let subtitle = screen.subtitle, !subtitle.isEmpty {
                     Text(subtitle)
                         .font(.custom(bodyFont, size: 36))
                         .foregroundColor(Color(hex: "#15803d")) // green-700
+                        .opacity(showContent ? 1.0 : 0.0)
+                        .offset(y: showContent ? 0 : 20)
+                        .animation(.easeOut(duration: 0.5).delay(2.7), value: showContent)
                 }
                 
                 // Thank you message
@@ -703,12 +726,62 @@ struct AdoptionCounterView: View {
                 .cornerRadius(50)
                 .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
                 .padding(.top, 20)
+                .opacity(showContent ? 1.0 : 0.0)
+                .offset(y: showContent ? 0 : 20)
+                .animation(.easeOut(duration: 0.5).delay(2.9), value: showContent)
+            }
+            
+            // Logo in bottom-left corner
+            VStack {
+                Spacer()
+                HStack {
+                    CatfeLogo(logoUrl: settings?.logoUrl)
+                        .padding(40)
+                    Spacer()
+                }
             }
         }
         .onAppear {
             bounceAnimation = true
+            showContent = true
+            startCountingAnimation()
         }
     }
     
-    @State private var bounceAnimation = false
+    private func startCountingAnimation() {
+        // Count up animation over 2.5 seconds
+        let duration: Double = 2.5
+        let steps = 60 // Number of animation steps
+        let stepDuration = duration / Double(steps)
+        
+        for i in 0...steps {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5 + (stepDuration * Double(i))) {
+                let progress = Double(i) / Double(steps)
+                // Ease-out cubic for smooth deceleration
+                let easeOut = 1 - pow(1 - progress, 3)
+                displayedCount = Int(Double(totalCount) * easeOut)
+            }
+        }
+    }
+}
+
+// MARK: - Catfé Logo Component
+struct CatfeLogo: View {
+    var body: some View {
+        HStack(spacing: 12) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color(hex: "#d97706")) // amber-600
+                    .frame(width: 50, height: 50)
+                    .shadow(color: .black.opacity(0.3), radius: 5, x: 0, y: 2)
+                Text("🐱")
+                    .font(.system(size: 28))
+            }
+            Text("Catfé")
+                .font(.custom("Georgia", size: 28))
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+                .shadow(color: .black.opacity(0.5), radius: 3, x: 0, y: 2)
+        }
+    }
 }

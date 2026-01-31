@@ -204,3 +204,18 @@
 
 ## Bug Fix - tvOS Time/Weather Display
 - [x] Fix time and weather overlay getting cut off or disappearing on tvOS
+
+## Feature - Adoption Counter Animation & Logo Display
+- [x] Add counting animation to adoption counter (count up from 0)
+- [x] Add logo display to TV screen layouts
+- [x] Fix Recently Adopted banner size and visibility (responsive to screen size)
+- [x] Update tvOS app with counting animation
+- [x] Update tvOS app with logo display
+- [x] Update tvOS app with improved Recently Adopted banner
+
+## Feature - Custom Logo Upload
+- [x] Add logoUrl field to settings database schema
+- [x] Update backend API to handle logo URL in settings
+- [x] Add logo upload UI to admin settings page
+- [x] Update TV display to show custom logo from settings
+- [x] Update tvOS app to fetch and display custom logo

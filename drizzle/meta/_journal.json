@@ -43,6 +43,13 @@
       "when": 1769832688952,
       "tag": "0005_massive_klaw",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1769836553610,
+      "tag": "0006_wonderful_joystick",
+      "breakpoints": true
     }
   ]
 }

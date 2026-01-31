@@ -56,6 +56,7 @@ struct Settings: Codable {
     let brandColors: BrandColors?
     let snapAndPurrFrequency: Int?
     let totalAdoptionCount: Int?
+    let logoUrl: String?
     let githubRepo: String?
     let githubBranch: String?
     let refreshIntervalSeconds: Int?

@@ -87,6 +87,7 @@ export const settings = mysqlTable("settings", {
   }>(),
   snapAndPurrFrequency: int("snapAndPurrFrequency").notNull().default(5), // Show SNAP_AND_PURR every N screens
   totalAdoptionCount: int("totalAdoptionCount").notNull().default(0), // Manual total adoption count for display
+  logoUrl: varchar("logoUrl", { length: 1024 }), // Custom logo image URL for TV display
   githubRepo: varchar("githubRepo", { length: 255 }), // e.g., "username/repo"
   githubBranch: varchar("githubBranch", { length: 64 }).default("main"),
   refreshIntervalSeconds: int("refreshIntervalSeconds").notNull().default(60),
