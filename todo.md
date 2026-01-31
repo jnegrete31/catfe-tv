@@ -186,3 +186,6 @@
 
 ## Bug Fix - Mobile Image Upload
 - [x] Fix: Mobile image upload opens camera instead of photo library
+
+## Bug Fix - tvOS Adoption Showcase
+- [x] Fix: tvOS Adoption Showcase showing "Coming Soon" placeholders instead of actual cat photos (API input format)

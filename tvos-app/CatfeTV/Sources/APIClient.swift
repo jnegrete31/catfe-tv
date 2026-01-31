@@ -198,8 +198,11 @@ class APIClient: ObservableObject {
         await fetchRecentlyAdopted()
     }
     
-    func fetchRecentlyAdopted(limit: Int = 5) async {
-        guard let url = URL(string: "\(APIConfig.baseURL)\(APIConfig.recentlyAdoptedEndpoint)?input=\("{\"limit\":\(limit)}".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")") else {
+func fetchRecentlyAdopted(limit: Int = 5) async {
+        // tRPC with superjson requires the input wrapped in a "json" key
+        let inputJson = "{\"json\":{\"limit\":\(limit)}}"
+        guard let encodedInput = inputJson.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+              let url = URL(string: "\(APIConfig.baseURL)\(APIConfig.recentlyAdoptedEndpoint)?input=\(encodedInput)") else {
             return
         }
         
@@ -225,8 +228,11 @@ class APIClient: ObservableObject {
         }
     }
     
-    func fetchRandomAdoptions(count: Int = 4) async {
-        guard let url = URL(string: "\(APIConfig.baseURL)\(APIConfig.randomAdoptionsEndpoint)?input=\("{\"count\":\(count)}".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")") else {
+func fetchRandomAdoptions(count: Int = 4) async {
+        // tRPC with superjson requires the input wrapped in a "json" key
+        let inputJson = "{\"json\":{\"count\":\(count)}}"
+        guard let encodedInput = inputJson.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+              let url = URL(string: "\(APIConfig.baseURL)\(APIConfig.randomAdoptionsEndpoint)?input=\(encodedInput)") else {
             return
         }
         
