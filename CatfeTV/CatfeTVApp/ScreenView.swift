@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ScreenView: View {
     let screen: Screen
+    var adoptionCats: [Screen] = [] // For adoption showcase grid
     
     var body: some View {
         Group {
@@ -25,6 +26,8 @@ struct ScreenView: View {
                 RemindersScreenView(screen: screen)
             case .adoption:
                 AdoptionScreenView(screen: screen)
+            case .adoptionShowcase:
+                AdoptionShowcaseScreenView(screen: screen, adoptionCats: adoptionCats)
             case .thankYou:
                 ThankYouScreenView(screen: screen)
             }

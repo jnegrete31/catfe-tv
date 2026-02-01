@@ -26,7 +26,10 @@ struct ContentView: View {
                 
                 // Current Screen
                 if let currentScreen = screenRotator.currentScreen {
-                    ScreenView(screen: currentScreen)
+                    // Get adoption cats for showcase screen
+                    let adoptionCats = screenRotator.screens.filter { $0.type == .adoption }
+                    
+                    ScreenView(screen: currentScreen, adoptionCats: adoptionCats)
                         .id(currentScreen.id)
                         .transition(.opacity.animation(.easeInOut(duration: apiClient.settings.transitionDuration)))
                 } else {

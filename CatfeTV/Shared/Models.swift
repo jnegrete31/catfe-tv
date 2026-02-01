@@ -17,6 +17,7 @@ enum ScreenType: String, Codable, CaseIterable, Identifiable {
     case membership = "membership"
     case reminders = "reminders"
     case adoption = "adoption"
+    case adoptionShowcase = "adoption_showcase"
     case thankYou = "thank_you"
     
     var id: String { rawValue }
@@ -29,6 +30,7 @@ enum ScreenType: String, Codable, CaseIterable, Identifiable {
         case .membership: return "Membership"
         case .reminders: return "Reminders"
         case .adoption: return "Adoption"
+        case .adoptionShowcase: return "Adoptable Cats"
         case .thankYou: return "Thank You"
         }
     }
@@ -41,6 +43,7 @@ enum ScreenType: String, Codable, CaseIterable, Identifiable {
         case .membership: return "person.crop.circle.badge.checkmark"
         case .reminders: return "bell.fill"
         case .adoption: return "heart.fill"
+        case .adoptionShowcase: return "square.grid.2x2.fill"
         case .thankYou: return "hands.clap.fill"
         }
     }

@@ -209,6 +209,7 @@ extension ScreenType {
         case .membership: return Color(hex: "E8F5E9") // Light Green
         case .reminders: return Color(hex: "FFF3E0") // Light Orange
         case .adoption: return Color(hex: "FCE4EC") // Light Pink
+        case .adoptionShowcase: return Color(hex: "FFEDD5") // Light Orange/Peach
         case .thankYou: return Color(hex: "F3E5F5") // Light Purple
         }
     }
@@ -221,6 +222,7 @@ extension ScreenType {
         case .membership: return .catfeSage
         case .reminders: return Color(hex: "F57C00")
         case .adoption: return Color(hex: "E91E63")
+        case .adoptionShowcase: return Color(hex: "EA580C") // Orange
         case .thankYou: return Color(hex: "7B1FA2")
         }
     }
