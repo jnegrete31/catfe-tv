@@ -293,3 +293,17 @@
 - [x] Check TVDisplay integration and API calls
 - [x] Fix reminder display to show 5-minute warning (now shows ALL sessions within 5 min)
 - [x] Test with a short guest session (verified working with live countdown)
+
+## Feature - tvOS Guest Session Reminder (Apple TV)
+- [x] Add GuestSession model to tvOS APIClient.swift (already existed)
+- [x] Add fetchGuestSessions API method (already existed)
+- [x] Create GuestReminderOverlay.swift SwiftUI view
+- [x] Integrate overlay into ContentView with 5-second polling
+- [x] Create updated tvOS zip file
+
+## Feature - Scheduled Time-Based Reminders
+- [x] Add automatic reminder at :55 for Full Purr (60 min) sessions
+- [x] Add automatic reminder at :25 for Mini Meow (30 min) sessions  
+- [x] Show scheduled reminders on web TV display (purple cards)
+- [x] Show scheduled reminders on tvOS Apple TV app (purple cards)
+- [x] Keep existing individual guest session reminders working alongside (orange/red cards)
