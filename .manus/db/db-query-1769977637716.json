@@ -1,0 +1,80 @@
+{
+  "query": "SELECT * FROM guestSessions LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2KjT5kGWaGHMws6.75433b4e530a --database aMDMXCoQ2ycSYTjhkKKJzm --execute SELECT * FROM guestSessions LIMIT 5;",
+  "rows": [
+    {
+      "id": "1",
+      "guestName": "Test Guest",
+      "guestCount": "1",
+      "sessionDuration": "30",
+      "sessionStatus": "completed",
+      "checkInAt": "2026-01-31 21:23:16",
+      "expiresAt": "2026-01-31 21:53:16",
+      "checkedOutAt": "2026-01-31 23:13:58",
+      "notes": "NULL",
+      "reminderShown": "0",
+      "createdAt": "2026-01-31 21:23:16",
+      "updatedAt": "2026-01-31 23:13:58"
+    },
+    {
+      "id": "2",
+      "guestName": "Javie",
+      "guestCount": "6",
+      "sessionDuration": "15",
+      "sessionStatus": "extended",
+      "checkInAt": "2026-01-31 23:14:11",
+      "expiresAt": "2026-01-31 23:44:11",
+      "checkedOutAt": "NULL",
+      "notes": "NULL",
+      "reminderShown": "0",
+      "createdAt": "2026-01-31 23:14:11",
+      "updatedAt": "2026-01-31 23:32:08"
+    },
+    {
+      "id": "3",
+      "guestName": "javie",
+      "guestCount": "1",
+      "sessionDuration": "15",
+      "sessionStatus": "completed",
+      "checkInAt": "2026-01-31 23:32:27",
+      "expiresAt": "2026-01-31 23:47:27",
+      "checkedOutAt": "2026-01-31 23:48:47",
+      "notes": "NULL",
+      "reminderShown": "1",
+      "createdAt": "2026-01-31 23:32:27",
+      "updatedAt": "2026-01-31 23:48:47"
+    },
+    {
+      "id": "4",
+      "guestName": "Javie",
+      "guestCount": "1",
+      "sessionDuration": "15",
+      "sessionStatus": "completed",
+      "checkInAt": "2026-01-31 23:48:55",
+      "expiresAt": "2026-02-01 00:03:55",
+      "checkedOutAt": "2026-02-01 00:12:37",
+      "notes": "NULL",
+      "reminderShown": "1",
+      "createdAt": "2026-01-31 23:48:54",
+      "updatedAt": "2026-02-01 00:12:36"
+    },
+    {
+      "id": "5",
+      "guestName": "Javie",
+      "guestCount": "1",
+      "sessionDuration": "15",
+      "sessionStatus": "completed",
+      "checkInAt": "2026-02-01 00:12:43",
+      "expiresAt": "2026-02-01 00:27:43",
+      "checkedOutAt": "2026-02-01 20:23:36",
+      "notes": "NULL",
+      "reminderShown": "1",
+      "createdAt": "2026-02-01 00:12:42",
+      "updatedAt": "2026-02-01 20:23:36"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tguestName\tguestCount\tsessionDuration\tsessionStatus\tcheckInAt\texpiresAt\tcheckedOutAt\tnotes\treminderShown\tcreatedAt\tupdatedAt\n1\tTest Guest\t1\t30\tcompleted\t2026-01-31 21:23:16\t2026-01-31 21:53:16\t2026-01-31 23:13:58\tNULL\t0\t2026-01-31 21:23:16\t2026-01-31 23:13:58\n2\tJavie\t6\t15\textended\t2026-01-31 23:14:11\t2026-01-31 23:44:11\tNULL\tNULL\t0\t2026-01-31 23:14:11\t2026-01-31 23:32:08\n3\tjavie\t1\t15\tcompleted\t2026-01-31 23:32:27\t2026-01-31 23:47:27\t2026-01-31 23:48:47\tNULL\t1\t2026-01-31 23:32:27\t2026-01-31 23:48:47\n4\tJavie\t1\t15\tcompleted\t2026-01-31 23:48:55\t2026-02-01 00:03:55\t2026-02-01 00:12:37\tNULL\t1\t2026-01-31 23:48:54\t2026-02-01 00:12:36\n5\tJavie\t1\t15\tcompleted\t2026-02-01 00:12:43\t2026-02-01 00:27:43\t2026-02-01 20:23:36\tNULL\t1\t2026-02-01 00:12:42\t2026-02-01 20:23:36\n",
+  "stderr": "",
+  "execution_time_ms": 54
+}

@@ -287,3 +287,9 @@
 - [x] Add image preview showing how it will appear on TV
 - [x] Add live TV preview panel when editing screens
 - [x] Preview should update in real-time as user makes changes
+
+## Bug Fix - Guest Timer Reminder Not Showing (Priority Fix)
+- [x] Analyze GuestReminderOverlay component logic
+- [x] Check TVDisplay integration and API calls
+- [x] Fix reminder display to show 5-minute warning (now shows ALL sessions within 5 min)
+- [x] Test with a short guest session (verified working with live countdown)

@@ -388,12 +388,16 @@ export async function getSessionsNeedingReminder() {
   const now = new Date();
   const fiveMinutesFromNow = new Date(now.getTime() + 5 * 60 * 1000);
   
-  // Get active sessions that expire within 5 minutes and haven't shown reminder
+  // Get ALL active sessions that expire within 5 minutes
+  // Show reminder regardless of reminderShown flag so it's always visible on TV
+  // Also include "extended" status sessions
   return db.select().from(guestSessions)
     .where(
       and(
-        eq(guestSessions.status, "active"),
-        eq(guestSessions.reminderShown, false),
+        or(
+          eq(guestSessions.status, "active"),
+          eq(guestSessions.status, "extended")
+        ),
         lte(guestSessions.expiresAt, fiveMinutesFromNow),
         gte(guestSessions.expiresAt, now)
       )

@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { trpc } from "@/lib/trpc";
-import { Clock, Bell } from "lucide-react";
+import { Clock, Bell, Users, AlertTriangle } from "lucide-react";
 
 type GuestSession = {
   id: number;
@@ -15,106 +15,136 @@ type GuestSession = {
 };
 
 export function GuestReminderOverlay() {
-  const [visibleReminders, setVisibleReminders] = useState<GuestSession[]>([]);
-  const [dismissedIds, setDismissedIds] = useState<Set<number>>(new Set());
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const markedIds = useRef<Set<number>>(new Set());
   
-  // Query for sessions needing reminder
+  // Query for sessions needing reminder - poll every 5 seconds for responsiveness
   const { data: sessionsNeedingReminder } = trpc.guestSessions.getNeedingReminder.useQuery(undefined, {
-    refetchInterval: 10000, // Check every 10 seconds
+    refetchInterval: 5000, // Check every 5 seconds
   });
   
-  // Mutation to mark reminder as shown
+  // Mutation to mark reminder as shown (for tracking purposes only)
   const markReminderMutation = trpc.guestSessions.markReminderShown.useMutation();
   
-  // Update visible reminders when data changes
+  // Update current time every second for accurate countdown
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+  
+  // Mark reminders as shown in database (for analytics/tracking)
   useEffect(() => {
     if (sessionsNeedingReminder) {
-      const newReminders = (sessionsNeedingReminder as GuestSession[]).filter(
-        session => !dismissedIds.has(session.id)
-      );
-      setVisibleReminders(newReminders);
-      
-      // Mark reminders as shown in the database
-      newReminders.forEach(session => {
-        if (!session.reminderShown) {
+      sessionsNeedingReminder.forEach((session: GuestSession) => {
+        if (!session.reminderShown && !markedIds.current.has(session.id)) {
+          markedIds.current.add(session.id);
           markReminderMutation.mutate({ id: session.id });
         }
       });
     }
-  }, [sessionsNeedingReminder, dismissedIds]);
+  }, [sessionsNeedingReminder]);
   
-  // Auto-dismiss reminders after 30 seconds
-  useEffect(() => {
-    if (visibleReminders.length === 0) return;
-    
-    const timeout = setTimeout(() => {
-      setDismissedIds(prev => {
-        const newSet = new Set(prev);
-        visibleReminders.forEach(r => newSet.add(r.id));
-        return newSet;
-      });
-    }, 30000);
-    
-    return () => clearTimeout(timeout);
-  }, [visibleReminders]);
-  
-  // Clear dismissed IDs periodically to allow re-showing if still in range
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setDismissedIds(new Set());
-    }, 60000); // Clear every minute
-    
-    return () => clearInterval(interval);
-  }, []);
-  
-  if (visibleReminders.length === 0) {
+  // No sessions to remind - don't render anything
+  if (!sessionsNeedingReminder || sessionsNeedingReminder.length === 0) {
     return null;
   }
   
+  // Cast to proper type
+  const sessions = sessionsNeedingReminder as GuestSession[];
+  
   return (
-    <div className="fixed top-4 right-4 z-50 flex flex-col gap-3 max-w-md">
-      {visibleReminders.map((session) => {
+    <div className="fixed top-24 right-6 z-50 flex flex-col gap-4" style={{ maxWidth: '420px' }}>
+      {sessions.map((session) => {
         const expiresAt = new Date(session.expiresAt);
-        const now = new Date();
-        const minutesLeft = Math.max(0, Math.ceil((expiresAt.getTime() - now.getTime()) / 60000));
+        const msLeft = Math.max(0, expiresAt.getTime() - currentTime.getTime());
+        const minutesLeft = Math.floor(msLeft / 60000);
+        const secondsLeft = Math.floor((msLeft % 60000) / 1000);
+        const isUrgent = minutesLeft < 2;
+        const isExpired = msLeft <= 0;
         
         return (
           <div
             key={session.id}
-            className="animate-in slide-in-from-right duration-500 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl shadow-2xl overflow-hidden"
+            className={`
+              animate-in slide-in-from-right duration-500 
+              rounded-2xl shadow-2xl overflow-hidden
+              ${isUrgent 
+                ? 'bg-gradient-to-r from-red-500 to-red-600 animate-pulse' 
+                : 'bg-gradient-to-r from-amber-500 to-orange-500'
+              }
+            `}
+            style={{
+              boxShadow: isUrgent 
+                ? '0 0 30px rgba(239, 68, 68, 0.5)' 
+                : '0 0 20px rgba(245, 158, 11, 0.4)'
+            }}
           >
-            <div className="p-4 text-white">
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                  <Bell className="w-6 h-6 animate-pulse" />
+            <div className="p-5 text-white">
+              <div className="flex items-start gap-4">
+                {/* Icon */}
+                <div className={`
+                  flex-shrink-0 w-16 h-16 rounded-full flex items-center justify-center
+                  ${isUrgent ? 'bg-white/30' : 'bg-white/20'}
+                `}>
+                  {isUrgent ? (
+                    <AlertTriangle className="w-8 h-8 animate-bounce" />
+                  ) : (
+                    <Bell className="w-8 h-8 animate-pulse" />
+                  )}
                 </div>
+                
+                {/* Content */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4" />
-                    <span className="text-sm font-medium opacity-90">Time Reminder</span>
+                  {/* Header */}
+                  <div className="flex items-center gap-2 mb-1">
+                    <Clock className="w-5 h-5" />
+                    <span className="text-lg font-semibold opacity-90">
+                      {isUrgent ? '⚠️ Time Almost Up!' : '⏰ Time Reminder'}
+                    </span>
                   </div>
-                  <h3 className="text-xl font-bold mt-1 truncate">
+                  
+                  {/* Guest Name - Large */}
+                  <h3 className="text-2xl font-bold truncate">
                     {session.guestName}
                   </h3>
-                  <p className="text-white/90 mt-1">
-                    {minutesLeft <= 1 ? (
-                      <span className="font-bold">Less than 1 minute remaining!</span>
+                  
+                  {/* Time Remaining - Very Prominent */}
+                  <div className="mt-2">
+                    {isExpired ? (
+                      <span className="text-3xl font-bold">Session Ended!</span>
+                    ) : minutesLeft < 1 ? (
+                      <span className="text-3xl font-bold">
+                        {secondsLeft} seconds remaining!
+                      </span>
                     ) : (
-                      <span><span className="font-bold">{minutesLeft} minutes</span> remaining</span>
+                      <span className="text-2xl">
+                        <span className="font-bold text-3xl">{minutesLeft}:{secondsLeft.toString().padStart(2, '0')}</span>
+                        <span className="ml-2 opacity-90">remaining</span>
+                      </span>
                     )}
-                  </p>
-                  <p className="text-sm text-white/70 mt-1">
-                    {session.guestCount} {session.guestCount === 1 ? "guest" : "guests"} • {session.duration} min session
-                  </p>
+                  </div>
+                  
+                  {/* Session Info */}
+                  <div className="flex items-center gap-3 mt-2 text-white/80">
+                    <div className="flex items-center gap-1">
+                      <Users className="w-4 h-4" />
+                      <span>{session.guestCount} {session.guestCount === 1 ? "guest" : "guests"}</span>
+                    </div>
+                    <span>•</span>
+                    <span>{session.duration} min session</span>
+                  </div>
                 </div>
               </div>
             </div>
-            {/* Animated progress bar */}
-            <div className="h-1 bg-white/30">
+            
+            {/* Progress bar */}
+            <div className="h-2 bg-white/30">
               <div 
-                className="h-full bg-white transition-all duration-1000"
+                className={`h-full transition-all duration-1000 ${isUrgent ? 'bg-white' : 'bg-white/80'}`}
                 style={{ 
-                  width: `${Math.max(0, Math.min(100, (minutesLeft / 5) * 100))}%` 
+                  width: `${Math.max(0, Math.min(100, (msLeft / (5 * 60 * 1000)) * 100))}%` 
                 }}
               />
             </div>
