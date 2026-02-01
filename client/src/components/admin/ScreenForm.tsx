@@ -14,10 +14,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { SCREEN_TYPES, SCREEN_TYPE_CONFIG, DAYS_OF_WEEK, TEXT_LIMITS } from "@shared/types";
 import type { Screen } from "@shared/types";
 import { format } from "date-fns";
-import { CalendarIcon, AlertCircle, Image as ImageIcon, X } from "lucide-react";
+import { CalendarIcon, AlertCircle, Image as ImageIcon, X, Crop, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
+import { ImageCropper } from "./ImageCropper";
+import { FormScreenPreview } from "./ScreenPreview";
 
 // Time validation that allows empty string or valid HH:MM format
 const timeSchema = z.string().refine(
@@ -57,6 +59,9 @@ export function ScreenForm({ screen, onSuccess, onCancel }: ScreenFormProps) {
   const [imagePreview, setImagePreview] = useState<string | null>(screen?.imagePath || null);
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [showCropper, setShowCropper] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
   
   const utils = trpc.useUtils();
   
@@ -152,7 +157,7 @@ export function ScreenForm({ screen, onSuccess, onCancel }: ScreenFormProps) {
     }
   };
   
-  // Shared file processing logic
+  // Shared file processing logic - now shows cropper first
   const processFile = (file: File) => {
     // Validate file type - accept standard images and Apple HEIC/HEIF
     const isImage = file.type.startsWith("image/");
@@ -168,21 +173,47 @@ export function ScreenForm({ screen, onSuccess, onCancel }: ScreenFormProps) {
       return;
     }
     
-    setIsUploading(true);
-    
-    // Convert to base64
+    // Convert to data URL and show cropper
     const reader = new FileReader();
-    reader.onload = async () => {
-      const base64 = (reader.result as string).split(",")[1];
-      const filename = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
-      
-      uploadMutation.mutate({
-        filename,
-        content: base64,
-        message: `Upload image for screen: ${watchedTitle || "untitled"}`,
-      });
+    reader.onload = () => {
+      setImageToCrop(reader.result as string);
+      setShowCropper(true);
     };
     reader.readAsDataURL(file);
+  };
+  
+  // Handle cropped image - upload to GitHub
+  const handleCroppedImage = (croppedBase64: string) => {
+    setShowCropper(false);
+    setImageToCrop(null);
+    setIsUploading(true);
+    
+    // Extract base64 data (remove data:image/jpeg;base64, prefix)
+    const base64Data = croppedBase64.split(",")[1];
+    const filename = `${Date.now()}-cropped.jpg`;
+    
+    uploadMutation.mutate({
+      filename,
+      content: base64Data,
+      message: `Upload cropped image for screen: ${watchedTitle || "untitled"}`,
+    });
+  };
+  
+  // Skip cropping and upload original
+  const handleSkipCrop = () => {
+    if (!imageToCrop) return;
+    setShowCropper(false);
+    setIsUploading(true);
+    
+    const base64Data = imageToCrop.split(",")[1];
+    const filename = `${Date.now()}-original.jpg`;
+    
+    uploadMutation.mutate({
+      filename,
+      content: base64Data,
+      message: `Upload image for screen: ${watchedTitle || "untitled"}`,
+    });
+    setImageToCrop(null);
   };
   
   // Drag and drop handlers
@@ -624,6 +655,19 @@ export function ScreenForm({ screen, onSuccess, onCancel }: ScreenFormProps) {
           Cancel
         </Button>
         <Button
+          type="button"
+          variant="secondary"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setShowPreview(true);
+          }}
+          disabled={isLoading}
+        >
+          <Eye className="w-4 h-4 mr-2" />
+          Preview
+        </Button>
+        <Button
           type="submit"
           className="flex-1"
           disabled={isLoading}
@@ -631,6 +675,37 @@ export function ScreenForm({ screen, onSuccess, onCancel }: ScreenFormProps) {
           {isLoading ? "Saving..." : screen ? "Update Screen" : "Create Screen"}
         </Button>
       </div>
+      
+      {/* Image Cropper Dialog */}
+      {showCropper && imageToCrop && (
+        <ImageCropper
+          imageUrl={imageToCrop}
+          onCropComplete={handleCroppedImage}
+          onCancel={() => {
+            setShowCropper(false);
+            setImageToCrop(null);
+          }}
+          aspectRatio={16 / 9}
+        />
+      )}
+      
+      {/* Live Preview Panel */}
+      {showPreview && (
+        <FormScreenPreview
+          screen={{
+            id: screen?.id || 0,
+            type: watchedType,
+            title: watchedTitle || "Preview Title",
+            subtitle: watchedSubtitle || null,
+            body: watchedBody || null,
+            imagePath: imagePreview,
+            imageDisplayMode: watch("imageDisplayMode") || "cover",
+            qrUrl: watch("qrUrl") || null,
+            isAdopted: watch("isAdopted") || false,
+          }}
+          onClose={() => setShowPreview(false)}
+        />
+      )}
     </form>
   );
 }

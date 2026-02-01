@@ -258,3 +258,32 @@
 - [x] Fix: Adoption cat grid cards are too small and hard to see on TV display
 - [x] Make cat photos larger and more prominent (changed from 4x2 grid to 2x2 grid)
 - [x] Improve readability from a distance (larger text, bigger cards)
+
+## Bug Fix - Adoption Grid Still Small (Follow-up)
+- [ ] Verify adoption showcase grid changes are in the code
+- [ ] Ensure changes are deployed to published site
+- [ ] Test on actual TV display
+
+## Feature - tvOS Adoption Showcase Grid
+- [x] Add adoptionShowcase screen type to Models.swift
+- [x] Create AdoptionShowcaseScreenView.swift with 2x2 grid layout
+- [x] Update ScreenView.swift to route to new view
+- [x] Push changes to GitHub repository
+
+## Feature - tvOS Guest Session Reminder
+- [ ] Add GuestSession model to tvOS app
+- [ ] Add API client method to fetch active guest sessions
+- [ ] Create GuestReminderOverlay view showing 5-min warnings
+- [ ] Integrate overlay into ContentView
+- [ ] Create updated zip file
+
+## Bug Fix - Web App Guest Reminder Not Showing
+- [ ] Check GuestReminderOverlay component
+- [ ] Verify TVDisplay integration
+- [ ] Fix reminder display logic
+
+## Feature - Image Editing & Live Preview
+- [x] Add image cropping tool when uploading/editing screen images
+- [x] Add image preview showing how it will appear on TV
+- [x] Add live TV preview panel when editing screens
+- [x] Preview should update in real-time as user makes changes
