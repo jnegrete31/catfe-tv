@@ -588,3 +588,7 @@
 - [x] Remove navigation controls (back, pause, forward buttons) from tvOS
 - [x] Remove black gradient behind navigation controls (ControlsOverlay removed entirely)
 - [x] Fix poll overlay to stay in consistent position (fixed padding in ContentView)
+
+## Bug Fix - Restore Remote Navigation Without Visual Controls (Feb 2)
+- [x] Restore swipe left/right on remote to change slides
+- [x] Keep visual controls (buttons, gradient) hidden
