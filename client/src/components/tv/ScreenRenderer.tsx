@@ -731,24 +731,30 @@ function HappyTailsScreen({ screen, settings }: ScreenRendererProps) {
 // SNAP_PURR_GALLERY - Multi-photo collage showcasing customer photos
 function SnapPurrGalleryScreen({ screen, settings }: ScreenRendererProps) {
   const { data: photos } = trpc.photos.getApproved.useQuery({ type: "snap_purr" });
-  const [pageIndex, setPageIndex] = useState(0);
+  const [displayedPhotos, setDisplayedPhotos] = useState<typeof photos>([]);
   
-  // Show 6 photos per page in a collage layout
-  const photosPerPage = 6;
-  const totalPages = photos ? Math.ceil(photos.length / photosPerPage) : 0;
+  // Show 3 photos at a time with shuffle
+  const photosToShow = 3;
   
-  // Auto-rotate through pages every 10 seconds
+  // Shuffle photos every 8 seconds
   useEffect(() => {
-    if (!photos || totalPages <= 1) return;
+    if (!photos || photos.length === 0) return;
     
-    const interval = setInterval(() => {
-      setPageIndex((prev) => (prev + 1) % totalPages);
-    }, 10000);
+    // Initial shuffle
+    const shufflePhotos = () => {
+      const shuffled = [...photos].sort(() => Math.random() - 0.5);
+      setDisplayedPhotos(shuffled.slice(0, photosToShow));
+    };
     
-    return () => clearInterval(interval);
-  }, [photos, totalPages]);
+    shufflePhotos();
+    
+    if (photos.length > photosToShow) {
+      const interval = setInterval(shufflePhotos, 8000);
+      return () => clearInterval(interval);
+    }
+  }, [photos]);
   
-  const currentPhotos = photos?.slice(pageIndex * photosPerPage, (pageIndex + 1) * photosPerPage) || [];
+  const currentPhotos = displayedPhotos || [];
   
   if (!photos || photos.length === 0) {
     return (
@@ -780,32 +786,20 @@ function SnapPurrGalleryScreen({ screen, settings }: ScreenRendererProps) {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-amber-600 text-lg font-medium">{photos.length} photos</span>
-          {totalPages > 1 && (
-            <div className="flex gap-1.5">
-              {Array.from({ length: totalPages }).map((_, idx) => (
-                <div
-                  key={idx}
-                  className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                    idx === pageIndex ? "bg-amber-500 scale-125" : "bg-amber-300"
-                  }`}
-                />
-              ))}
-            </div>
-          )}
+          <span className="text-amber-600 text-lg font-medium">{photos?.length || 0} photos</span>
         </div>
       </div>
       
-      {/* Photo Collage Grid */}
-      <div className="absolute inset-0 pt-24 pb-6 px-8 z-10">
+      {/* Photo Collage Grid - 3 photos in a row */}
+      <div className="absolute inset-0 pt-24 pb-28 px-8 z-10">
         <AnimatePresence mode="wait">
           <motion.div
-            key={pageIndex}
+            key={currentPhotos.map(p => p.id).join('-')}
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.98 }}
-            transition={{ duration: 0.4 }}
-            className="h-full grid grid-cols-3 grid-rows-2 gap-4"
+            transition={{ duration: 0.5 }}
+            className="h-full grid grid-cols-3 gap-6"
           >
             {currentPhotos.map((photo, idx) => (
               <motion.div
@@ -852,11 +846,11 @@ function SnapPurrGalleryScreen({ screen, settings }: ScreenRendererProps) {
             ))}
             
             {/* Fill empty slots with placeholder */}
-            {currentPhotos.length < photosPerPage && Array.from({ length: photosPerPage - currentPhotos.length }).map((_, idx) => (
-              <div key={`empty-${idx}`} className="relative h-full bg-amber-100/50 rounded-2xl border-2 border-dashed border-amber-200 flex items-center justify-center">
+            {currentPhotos.length < photosToShow && Array.from({ length: photosToShow - currentPhotos.length }).map((_, idx) => (
+              <div key={`empty-${idx}`} className="relative h-full bg-amber-100/50 rounded-3xl border-3 border-dashed border-amber-200 flex items-center justify-center">
                 <div className="text-center text-amber-400">
-                  <span className="text-5xl">📷</span>
-                  <p className="text-lg mt-2">Your photo here!</p>
+                  <span className="text-6xl">📷</span>
+                  <p className="text-xl mt-3 font-medium">Your photo here!</p>
                 </div>
               </div>
             ))}

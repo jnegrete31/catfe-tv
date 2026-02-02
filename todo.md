@@ -563,3 +563,14 @@
 - [x] Fixed Poll model to match actual API response (pollType, catCount, options instead of optionA/optionB)
 - [x] Updated PollQRView to work with new Poll model structure
 - [x] Poll QR screen now shows question and QR code for voting on phone
+
+## Bug Fix - Snap & Purr Gallery Layout (Feb 2)
+- [x] Changed gallery from 6 photos to 3 photos at a time
+- [x] Added shuffle effect when transitioning between photo sets (every 8 seconds)
+- [x] Updated both web and tvOS apps with matching design
+
+## Bug Fix - Poll QR Code Still Not Appearing on tvOS (Feb 2)
+- [x] Created PollOverlayWidget as an overlay (like weather widget)
+- [x] Poll QR now appears automatically in top-left corner when there's an active poll
+- [x] No need to create a POLL_QR screen - it's an overlay on all screens
+- [x] Added PollOverlayWidget.swift to tvOS project
