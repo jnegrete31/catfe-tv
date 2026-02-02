@@ -451,3 +451,8 @@
 - [x] Integrate selector into Snap & Purr upload page
 - [x] Update TV display to render blur background for portrait photos
 - [x] Update TV display to render gradient background for portrait photos
+
+## Feature - Landscape Photo Detection
+- [x] Detect photo orientation when file is selected
+- [x] Only show BackgroundStyleSelector for portrait photos
+- [x] Update both Happy Tails and Snap & Purr upload pages

@@ -20,6 +20,7 @@ export default function UploadSnapPurr() {
   const [selectedFrame, setSelectedFrame] = useState("none");
   const [compositeBase64, setCompositeBase64] = useState<string | null>(null);
   const [backgroundStyle, setBackgroundStyle] = useState<"blur" | "gradient">("blur");
+  const [isPortrait, setIsPortrait] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -45,12 +46,19 @@ export default function UploadSnapPurr() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Create preview
+    // Create preview and detect orientation
     const reader = new FileReader();
     reader.onload = (event) => {
       const result = event.target?.result as string;
       setPhotoPreview(result);
       setPhotoBase64(result);
+      
+      // Detect orientation
+      const img = new Image();
+      img.onload = () => {
+        setIsPortrait(img.height > img.width);
+      };
+      img.src = result;
     };
     reader.readAsDataURL(file);
   };
@@ -87,6 +95,7 @@ export default function UploadSnapPurr() {
     setSelectedFrame("none");
     setCompositeBase64(null);
     setBackgroundStyle("blur");
+    setIsPortrait(false);
     setIsAnonymous(false);
   };
 
@@ -189,12 +198,14 @@ export default function UploadSnapPurr() {
                       onCompositeReady={handleCompositeReady}
                     />
                     
-                    {/* Background Style for Portrait Photos */}
-                    <BackgroundStyleSelector
-                      imageUrl={compositeBase64 || photoPreview || ""}
-                      value={backgroundStyle}
-                      onChange={setBackgroundStyle}
-                    />
+                    {/* Background Style for Portrait Photos - only shown for portrait orientation */}
+                    {isPortrait && (
+                      <BackgroundStyleSelector
+                        imageUrl={compositeBase64 || photoPreview || ""}
+                        value={backgroundStyle}
+                        onChange={setBackgroundStyle}
+                      />
+                    )}
                     
                     <Button
                       type="button"
