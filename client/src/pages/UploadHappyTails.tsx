@@ -27,6 +27,18 @@ export default function UploadHappyTails() {
     },
   });
 
+  // Fetch suggested captions from database
+  const { data: suggestedCaptions = [] } = trpc.captions.getByType.useQuery(
+    { type: "happy_tails" },
+    { staleTime: 5 * 60 * 1000 } // Cache for 5 minutes
+  );
+
+  // Fallback captions if none in database
+  const defaultCaptions = ["Living the dream! 🏠", "Forever home found ❤️", "Best decision ever!", "Happy & loved 🐱", "From Catfé with love"];
+  const captions = suggestedCaptions.length > 0 
+    ? suggestedCaptions.map((c: { text: string }) => c.text) 
+    : defaultCaptions;
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -245,7 +257,7 @@ export default function UploadHappyTails() {
                   maxLength={500}
                 />
                 <div className="flex flex-wrap gap-2 mt-2">
-                  {["Living the dream! 🏠", "Forever home found ❤️", "Best decision ever!", "Happy & loved 🐱", "From Catfé with love"].map((suggestion) => (
+                  {captions.map((suggestion: string) => (
                     <button
                       key={suggestion}
                       type="button"

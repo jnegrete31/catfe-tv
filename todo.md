@@ -419,3 +419,10 @@
 - [x] Integrate frame selector into Happy Tails upload page
 - [x] Integrate frame selector into Snap & Purr upload page
 - [x] Composite selected frame onto photo before submission
+
+## Feature - Admin Caption Management
+- [x] Add suggestedCaptions table to database schema
+- [x] Create CRUD API endpoints for captions
+- [x] Build admin UI for managing captions (add/edit/delete)
+- [x] Update upload pages to fetch captions from database
+- [x] Seed default captions on first run (via admin button)

@@ -222,3 +222,24 @@ export const photoSubmissions = mysqlTable("photoSubmissions", {
 
 export type PhotoSubmission = typeof photoSubmissions.$inferSelect;
 export type InsertPhotoSubmission = typeof photoSubmissions.$inferInsert;
+
+/**
+ * Caption type for suggested captions
+ */
+export const captionTypeEnum = mysqlEnum("captionType", ["happy_tails", "snap_purr"]);
+
+/**
+ * Suggested captions table - admin-managed caption suggestions for photo uploads
+ */
+export const suggestedCaptions = mysqlTable("suggestedCaptions", {
+  id: int("id").autoincrement().primaryKey(),
+  type: captionTypeEnum.notNull(), // happy_tails or snap_purr
+  text: varchar("text", { length: 100 }).notNull(),
+  sortOrder: int("sortOrder").notNull().default(0),
+  isActive: boolean("isActive").notNull().default(true),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type SuggestedCaption = typeof suggestedCaptions.$inferSelect;
+export type InsertSuggestedCaption = typeof suggestedCaptions.$inferInsert;

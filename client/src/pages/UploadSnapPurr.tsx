@@ -26,6 +26,18 @@ export default function UploadSnapPurr() {
     },
   });
 
+  // Fetch suggested captions from database
+  const { data: suggestedCaptions = [] } = trpc.captions.getByType.useQuery(
+    { type: "snap_purr" },
+    { staleTime: 5 * 60 * 1000 } // Cache for 5 minutes
+  );
+
+  // Fallback captions if none in database
+  const defaultCaptions = ["Best day ever! 🐱", "Made a new friend!", "Purrfect moment ✨", "Cat cuddles 💕", "Living my best life"];
+  const captions = suggestedCaptions.length > 0 
+    ? suggestedCaptions.map((c: { text: string }) => c.text) 
+    : defaultCaptions;
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -230,7 +242,7 @@ export default function UploadSnapPurr() {
                   maxLength={500}
                 />
                 <div className="flex flex-wrap gap-2 mt-2">
-                  {["Best day ever! 🐱", "Made a new friend!", "Purrfect moment ✨", "Cat cuddles 💕", "Living my best life"].map((suggestion) => (
+                  {captions.map((suggestion: string) => (
                     <button
                       key={suggestion}
                       type="button"

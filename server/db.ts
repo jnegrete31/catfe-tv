@@ -8,7 +8,8 @@ import {
   screenTimeSlots, InsertScreenTimeSlot,
   screenViews, InsertScreenView,
   guestSessions, InsertGuestSession, GuestSession,
-  photoSubmissions, InsertPhotoSubmission, PhotoSubmission
+  photoSubmissions, InsertPhotoSubmission, PhotoSubmission,
+  suggestedCaptions, InsertSuggestedCaption, SuggestedCaption
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -799,4 +800,128 @@ export async function getUpcomingArrivals(minutesAhead: number = 15) {
     ...session,
     minutesUntilArrival: Math.ceil((new Date(session.checkInAt).getTime() - now.getTime()) / (60 * 1000)),
   }));
+}
+
+
+// ============ SUGGESTED CAPTIONS ============
+
+export async function getSuggestedCaptions(type?: "happy_tails" | "snap_purr") {
+  const db = await getDb();
+  if (!db) return [];
+  
+  if (type) {
+    return db.select().from(suggestedCaptions)
+      .where(and(eq(suggestedCaptions.type, type), eq(suggestedCaptions.isActive, true)))
+      .orderBy(asc(suggestedCaptions.sortOrder));
+  }
+  
+  return db.select().from(suggestedCaptions)
+    .orderBy(asc(suggestedCaptions.type), asc(suggestedCaptions.sortOrder));
+}
+
+export async function getAllSuggestedCaptions() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db.select().from(suggestedCaptions)
+    .orderBy(asc(suggestedCaptions.type), asc(suggestedCaptions.sortOrder));
+}
+
+export async function createSuggestedCaption(data: InsertSuggestedCaption) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Get the max sortOrder for this type
+  const existing = await db.select().from(suggestedCaptions)
+    .where(eq(suggestedCaptions.type, data.type))
+    .orderBy(desc(suggestedCaptions.sortOrder))
+    .limit(1);
+  
+  const maxOrder = existing[0]?.sortOrder ?? -1;
+  
+  const result = await db.insert(suggestedCaptions).values({
+    ...data,
+    sortOrder: maxOrder + 1,
+  });
+  
+  return { id: result[0].insertId };
+}
+
+export async function updateSuggestedCaption(id: number, data: Partial<InsertSuggestedCaption>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(suggestedCaptions).set(data).where(eq(suggestedCaptions.id, id));
+  return { success: true };
+}
+
+export async function deleteSuggestedCaption(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.delete(suggestedCaptions).where(eq(suggestedCaptions.id, id));
+  return { success: true };
+}
+
+export async function reorderSuggestedCaptions(type: "happy_tails" | "snap_purr", orderedIds: number[]) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Update sortOrder for each caption
+  for (let i = 0; i < orderedIds.length; i++) {
+    await db.update(suggestedCaptions)
+      .set({ sortOrder: i })
+      .where(eq(suggestedCaptions.id, orderedIds[i]));
+  }
+  
+  return { success: true };
+}
+
+export async function seedDefaultCaptions() {
+  const db = await getDb();
+  if (!db) return;
+  
+  // Check if any captions exist
+  const existing = await db.select().from(suggestedCaptions).limit(1);
+  if (existing.length > 0) return; // Already seeded
+  
+  // Default captions for Snap & Purr
+  const snapPurrCaptions = [
+    "Best day ever! 🐱",
+    "Made a new friend!",
+    "Purrfect moment ✨",
+    "Cat cuddles 💕",
+    "Living my best life",
+  ];
+  
+  // Default captions for Happy Tails
+  const happyTailsCaptions = [
+    "Living the dream! 🏠",
+    "Forever home found ❤️",
+    "Best decision ever!",
+    "Happy & loved 🐱",
+    "From Catfé with love",
+  ];
+  
+  // Insert Snap & Purr captions
+  for (let i = 0; i < snapPurrCaptions.length; i++) {
+    await db.insert(suggestedCaptions).values({
+      type: "snap_purr",
+      text: snapPurrCaptions[i],
+      sortOrder: i,
+      isActive: true,
+    });
+  }
+  
+  // Insert Happy Tails captions
+  for (let i = 0; i < happyTailsCaptions.length; i++) {
+    await db.insert(suggestedCaptions).values({
+      type: "happy_tails",
+      text: happyTailsCaptions[i],
+      sortOrder: i,
+      isActive: true,
+    });
+  }
+  
+  console.log("[Database] Seeded default suggested captions");
 }

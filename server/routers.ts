@@ -50,6 +50,13 @@ import {
   createGuestSessionFromWixBooking,
   getWixSyncedSessionsToday,
   getUpcomingArrivals,
+  getSuggestedCaptions,
+  getAllSuggestedCaptions,
+  createSuggestedCaption,
+  updateSuggestedCaption,
+  deleteSuggestedCaption,
+  reorderSuggestedCaptions,
+  seedDefaultCaptions,
 } from "./db";
 import {
   testWixConnection,
@@ -813,6 +820,70 @@ export const appRouter = router({
     triggerSync: protectedProcedure.mutation(async () => {
       const result = await syncWixBookings();
       return result;
+    }),
+  }),
+
+  // ============ SUGGESTED CAPTIONS ============
+  captions: router({
+    // Public: Get active captions by type (for upload pages)
+    getByType: publicProcedure
+      .input(z.object({ type: z.enum(["happy_tails", "snap_purr"]) }))
+      .query(async ({ input }) => {
+        return getSuggestedCaptions(input.type);
+      }),
+
+    // Admin: Get all captions
+    getAll: adminProcedure.query(async () => {
+      return getAllSuggestedCaptions();
+    }),
+
+    // Admin: Create caption
+    create: adminProcedure
+      .input(z.object({
+        type: z.enum(["happy_tails", "snap_purr"]),
+        text: z.string().min(1).max(100),
+      }))
+      .mutation(async ({ input }) => {
+        return createSuggestedCaption({
+          type: input.type,
+          text: input.text,
+          isActive: true,
+        });
+      }),
+
+    // Admin: Update caption
+    update: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        text: z.string().min(1).max(100).optional(),
+        isActive: z.boolean().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input;
+        return updateSuggestedCaption(id, data);
+      }),
+
+    // Admin: Delete caption
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        return deleteSuggestedCaption(input.id);
+      }),
+
+    // Admin: Reorder captions
+    reorder: adminProcedure
+      .input(z.object({
+        type: z.enum(["happy_tails", "snap_purr"]),
+        orderedIds: z.array(z.number()),
+      }))
+      .mutation(async ({ input }) => {
+        return reorderSuggestedCaptions(input.type, input.orderedIds);
+      }),
+
+    // Admin: Seed default captions
+    seedDefaults: adminProcedure.mutation(async () => {
+      await seedDefaultCaptions();
+      return { success: true };
     }),
   }),
 });
