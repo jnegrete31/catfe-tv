@@ -223,3 +223,26 @@
     }
   }
 }
+
+/* TV Safe Area - Account for TV overscan (typically 5% on each edge) */
+.tv-safe-area {
+  padding: 3rem; /* 48px safe margin for TV overscan */
+}
+
+/* TV Widget sizing - larger for visibility on TV screens */
+@media (min-width: 1280px) {
+  .tv-widget {
+    transform: scale(1.5);
+    transform-origin: top left;
+  }
+  
+  .tv-widget-right {
+    transform: scale(1.5);
+    transform-origin: top right;
+  }
+  
+  .tv-widget-bottom-left {
+    transform: scale(1.5);
+    transform-origin: bottom left;
+  }
+}

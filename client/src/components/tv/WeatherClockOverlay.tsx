@@ -11,27 +11,27 @@ interface WeatherData {
 // Using Open-Meteo WMO weather codes
 function getWeatherInfo(code: number): { icon: React.ReactNode; description: string } {
   // Clear
-  if (code === 0) return { icon: <Sun className="w-6 h-6" />, description: "Clear" };
+  if (code === 0) return { icon: <Sun className="w-8 h-8" />, description: "Clear" };
   // Mainly clear, partly cloudy
-  if (code >= 1 && code <= 2) return { icon: <Sun className="w-6 h-6" />, description: "Partly Cloudy" };
+  if (code >= 1 && code <= 2) return { icon: <Sun className="w-8 h-8" />, description: "Partly Cloudy" };
   // Overcast
-  if (code === 3) return { icon: <Cloud className="w-6 h-6" />, description: "Cloudy" };
+  if (code === 3) return { icon: <Cloud className="w-8 h-8" />, description: "Cloudy" };
   // Fog
-  if (code >= 45 && code <= 48) return { icon: <CloudFog className="w-6 h-6" />, description: "Foggy" };
+  if (code >= 45 && code <= 48) return { icon: <CloudFog className="w-8 h-8" />, description: "Foggy" };
   // Drizzle
-  if (code >= 51 && code <= 57) return { icon: <CloudRain className="w-6 h-6" />, description: "Drizzle" };
+  if (code >= 51 && code <= 57) return { icon: <CloudRain className="w-8 h-8" />, description: "Drizzle" };
   // Rain
-  if (code >= 61 && code <= 67) return { icon: <CloudRain className="w-6 h-6" />, description: "Rain" };
+  if (code >= 61 && code <= 67) return { icon: <CloudRain className="w-8 h-8" />, description: "Rain" };
   // Snow
-  if (code >= 71 && code <= 77) return { icon: <CloudSnow className="w-6 h-6" />, description: "Snow" };
+  if (code >= 71 && code <= 77) return { icon: <CloudSnow className="w-8 h-8" />, description: "Snow" };
   // Rain showers
-  if (code >= 80 && code <= 82) return { icon: <CloudRain className="w-6 h-6" />, description: "Showers" };
+  if (code >= 80 && code <= 82) return { icon: <CloudRain className="w-8 h-8" />, description: "Showers" };
   // Snow showers
-  if (code >= 85 && code <= 86) return { icon: <CloudSnow className="w-6 h-6" />, description: "Snow Showers" };
+  if (code >= 85 && code <= 86) return { icon: <CloudSnow className="w-8 h-8" />, description: "Snow Showers" };
   // Thunderstorm
-  if (code >= 95 && code <= 99) return { icon: <CloudLightning className="w-6 h-6" />, description: "Thunderstorm" };
+  if (code >= 95 && code <= 99) return { icon: <CloudLightning className="w-8 h-8" />, description: "Thunderstorm" };
   
-  return { icon: <Cloud className="w-6 h-6" />, description: "Unknown" };
+  return { icon: <Cloud className="w-8 h-8" />, description: "Unknown" };
 }
 
 export function WeatherClockOverlay() {
@@ -103,18 +103,18 @@ export function WeatherClockOverlay() {
   const weatherInfo = weather ? getWeatherInfo(weather.weatherCode) : null;
   
   return (
-    <div className="absolute top-4 right-4 z-50 flex items-center gap-4">
+    <div className="absolute top-12 right-12 z-50 flex items-center gap-6">
       {/* Weather Widget */}
       {weather && weatherInfo && (
-        <div className="flex items-center gap-2 bg-black/40 backdrop-blur-sm rounded-lg px-4 py-2 text-white">
+        <div className="flex items-center gap-3 bg-black/50 backdrop-blur-sm rounded-2xl px-6 py-4 text-white">
           <div className="text-white/90">
             {weatherInfo.icon}
           </div>
           <div className="flex flex-col">
-            <span className="text-xl font-semibold leading-tight">
+            <span className="text-3xl font-semibold leading-tight">
               {weather.temperature}°F
             </span>
-            <span className="text-xs text-white/70">
+            <span className="text-sm text-white/70">
               {weatherInfo.description}
             </span>
           </div>
@@ -122,11 +122,11 @@ export function WeatherClockOverlay() {
       )}
       
       {/* Clock Widget */}
-      <div className="bg-black/40 backdrop-blur-sm rounded-lg px-4 py-2 text-white">
-        <div className="text-2xl font-semibold leading-tight">
+      <div className="bg-black/50 backdrop-blur-sm rounded-2xl px-6 py-4 text-white">
+        <div className="text-3xl font-semibold leading-tight">
           {formatTime(time)}
         </div>
-        <div className="text-xs text-white/70">
+        <div className="text-sm text-white/70">
           {formatDate(time)}
         </div>
       </div>

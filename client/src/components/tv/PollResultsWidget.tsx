@@ -9,9 +9,11 @@ type PollOption = {
 };
 
 /**
- * PollResultsWidget - A small overlay in the top-right corner showing poll results
- * Shows during results time (x:25-x:29 and x:55-x:59)
+ * PollResultsWidget - A small overlay in the top-left corner showing poll results
+ * Shows during results time (x:12-x:14, x:27-x:29, x:42-x:44, x:57-x:59)
  * Displays: poll question, results with percentages, winner highlight
+ * 
+ * Sized larger for TV visibility with safe area margins for overscan
  */
 export function PollResultsWidget() {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -61,50 +63,50 @@ export function PollResultsWidget() {
   const hasWinner = totalVotes > 0 && winner;
 
   return (
-    <div className="absolute top-4 left-4 z-40 animate-in fade-in slide-in-from-left duration-500">
-      <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-4 shadow-2xl max-w-xs">
+    <div className="absolute top-12 left-12 z-40 animate-in fade-in slide-in-from-left duration-500">
+      <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-3xl p-6 shadow-2xl" style={{ minWidth: '360px' }}>
         {/* Header */}
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-2xl">📊</span>
-          <span className="text-white font-bold text-lg">Poll Results!</span>
+        <div className="flex items-center gap-3 mb-4">
+          <span className="text-4xl">📊</span>
+          <span className="text-white font-bold text-2xl">Poll Results!</span>
         </div>
         
         {/* Question */}
-        <p className="text-white/90 text-sm font-medium mb-3 line-clamp-2">
+        <p className="text-white/90 text-lg font-medium mb-4 line-clamp-2">
           {poll.question}
         </p>
         
         {/* Results */}
-        <div className="space-y-2">
+        <div className="space-y-3">
           {sortedOptions.slice(0, 4).map((opt, idx) => {
             const isWinner = idx === 0 && hasWinner;
             return (
               <div 
                 key={opt.id} 
-                className={`flex items-center gap-2 ${isWinner ? 'bg-white/20 rounded-lg p-1' : ''}`}
+                className={`flex items-center gap-3 ${isWinner ? 'bg-white/20 rounded-xl p-2' : ''}`}
               >
                 {/* Cat image */}
                 {opt.imageUrl ? (
                   <img 
                     src={opt.imageUrl} 
                     alt={opt.text}
-                    className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                    className="w-12 h-12 rounded-full object-cover flex-shrink-0"
                   />
                 ) : (
-                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-sm">
+                  <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-xl">
                     🐱
                   </div>
                 )}
                 
                 {/* Name and bar */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between text-xs text-white mb-0.5">
+                  <div className="flex items-center justify-between text-base text-white mb-1">
                     <span className="truncate font-medium">
                       {isWinner && "🏆 "}{opt.text.replace("Meet ", "")}
                     </span>
-                    <span className="font-bold ml-1">{opt.percentage}%</span>
+                    <span className="font-bold ml-2 text-lg">{opt.percentage}%</span>
                   </div>
-                  <div className="h-1.5 bg-white/20 rounded-full overflow-hidden">
+                  <div className="h-3 bg-white/20 rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all duration-1000 ${
                         isWinner ? 'bg-yellow-300' : 'bg-white/60'
@@ -119,7 +121,7 @@ export function PollResultsWidget() {
         </div>
         
         {/* Total votes */}
-        <p className="text-white/60 text-xs mt-3 text-center">
+        <p className="text-white/60 text-base mt-4 text-center">
           {totalVotes} total votes
         </p>
       </div>

@@ -599,3 +599,8 @@
 - [x] Everything looks exactly like the web app (same screens, QR codes, layouts)
 - [x] No more maintaining separate native Swift screens
 - [x] Any changes in admin appear instantly on TV
+
+## Bug Fix - tvOS WebView App Errors (Feb 2)
+- [ ] Fix WebKit import error - tvOS doesn't support WebKit the same way as iOS
+- [ ] Fix asset catalog errors (AccentColor, App Icon)
+- [ ] Use TVUIKit or alternative approach for web content on tvOS

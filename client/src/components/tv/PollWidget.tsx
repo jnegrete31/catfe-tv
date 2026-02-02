@@ -4,8 +4,10 @@ import { QRCodeSVG } from "qrcode.react";
 
 /**
  * PollWidget - A small overlay in the top-left corner showing the current poll
- * Shows during voting time (x:00-x:25 and x:30-x:55)
+ * Shows during voting time (x:00-x:12, x:15-x:27, x:30-x:42, x:45-x:57)
  * Displays: poll question, QR code to vote, countdown to results
+ * 
+ * Sized larger for TV visibility with safe area margins for overscan
  */
 export function PollWidget() {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -51,33 +53,33 @@ export function PollWidget() {
   const voteUrl = `${baseUrl}/vote/${poll.id}`;
 
   return (
-    <div className="absolute top-4 left-4 z-40 animate-in fade-in slide-in-from-left duration-500">
-      <div className="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-2xl p-4 shadow-2xl max-w-xs">
+    <div className="absolute top-12 left-12 z-40 animate-in fade-in slide-in-from-left duration-500">
+      <div className="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-3xl p-6 shadow-2xl" style={{ minWidth: '320px' }}>
         {/* Header */}
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-2xl">🗳️</span>
-          <span className="text-white font-bold text-lg">Cat Poll</span>
+        <div className="flex items-center gap-3 mb-4">
+          <span className="text-4xl">🗳️</span>
+          <span className="text-white font-bold text-2xl">Cat Poll</span>
         </div>
         
         {/* Question */}
-        <p className="text-white/90 text-sm font-medium mb-3 line-clamp-2">
+        <p className="text-white/90 text-lg font-medium mb-4 line-clamp-2">
           {poll.question}
         </p>
         
         {/* QR Code */}
-        <div className="flex items-center gap-3">
-          <div className="bg-white p-2 rounded-lg">
+        <div className="flex items-center gap-4">
+          <div className="bg-white p-3 rounded-xl">
             <QRCodeSVG
               value={voteUrl}
-              size={64}
+              size={100}
               level="M"
               includeMargin={false}
             />
           </div>
           <div className="flex-1">
-            <p className="text-white/80 text-xs mb-1">Scan to vote!</p>
-            <div className="bg-white/20 rounded-lg px-2 py-1">
-              <p className="text-white text-xs font-medium">
+            <p className="text-white/80 text-base mb-2">Scan to vote!</p>
+            <div className="bg-white/20 rounded-xl px-4 py-2">
+              <p className="text-white text-base font-medium">
                 ⏱️ Results in {minutesUntilResults} min
               </p>
             </div>
@@ -85,7 +87,7 @@ export function PollWidget() {
         </div>
         
         {/* Vote count hint */}
-        <p className="text-white/60 text-xs mt-2 text-center">
+        <p className="text-white/60 text-sm mt-3 text-center">
           {poll.totalVotes} votes so far
         </p>
       </div>

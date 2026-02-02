@@ -182,27 +182,27 @@ export function GuestReminderOverlay() {
   }
   
   return (
-    <div className="fixed bottom-6 left-6 z-50 flex flex-col gap-3" style={{ maxWidth: '280px' }}>
+    <div className="fixed bottom-12 left-12 z-50 flex flex-col gap-4" style={{ maxWidth: '360px' }}>
       {/* Mute/Unmute Button */}
       <button
         onClick={toggleMute}
-        className="self-start flex items-center gap-2 px-3 py-2 rounded-full bg-black/50 backdrop-blur-sm text-white text-sm hover:bg-black/70 transition-colors"
+        className="self-start flex items-center gap-3 px-5 py-3 rounded-full bg-black/60 backdrop-blur-sm text-white text-base hover:bg-black/80 transition-colors"
         title={isMuted ? "Unmute chime" : "Mute chime"}
       >
         {isMuted ? (
           <>
-            <VolumeX className="w-4 h-4" />
+            <VolumeX className="w-6 h-6" />
             <span>Chime Off</span>
           </>
         ) : (
           <>
-            <Volume2 className="w-4 h-4" />
+            <Volume2 className="w-6 h-6" />
             <span>Chime On</span>
           </>
         )}
       </button>
       
-      {/* Scheduled Time-Based Reminders - Compact */}
+      {/* Scheduled Time-Based Reminders */}
       {activeScheduledReminders.map((reminder) => {
         const targetMinute = reminder.minute;
         const currentMinute = currentTime.getMinutes();
@@ -216,18 +216,18 @@ export function GuestReminderOverlay() {
         return (
           <div
             key={`${reminder.id}-${currentTime.getHours()}`}
-            className="animate-in slide-in-from-left duration-500 rounded-xl shadow-lg overflow-hidden bg-gradient-to-r from-purple-500 to-indigo-600"
+            className="animate-in slide-in-from-left duration-500 rounded-2xl shadow-lg overflow-hidden bg-gradient-to-r from-purple-500 to-indigo-600"
           >
-            <div className="px-4 py-3 text-white">
-              <div className="flex items-center gap-3">
-                <Timer className="w-5 h-5 flex-shrink-0" />
+            <div className="px-6 py-4 text-white">
+              <div className="flex items-center gap-4">
+                <Timer className="w-7 h-7 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-sm">{reminder.sessionType}</div>
-                  <div className="text-xs opacity-90">Ending soon • {minutesLeft}:{secondsLeft.toString().padStart(2, '0')}</div>
+                  <div className="font-semibold text-lg">{reminder.sessionType}</div>
+                  <div className="text-base opacity-90">Ending soon • {minutesLeft}:{secondsLeft.toString().padStart(2, '0')}</div>
                 </div>
               </div>
             </div>
-            <div className="h-1 bg-white/30">
+            <div className="h-2 bg-white/30">
               <div 
                 className="h-full transition-all duration-1000 bg-white/80"
                 style={{ 
@@ -239,7 +239,7 @@ export function GuestReminderOverlay() {
         );
       })}
       
-      {/* Individual Guest Session Reminders - Compact */}
+      {/* Individual Guest Session Reminders */}
       {sessions.map((session) => {
         const expiresAt = new Date(session.expiresAt);
         const msLeft = Math.max(0, expiresAt.getTime() - currentTime.getTime());
@@ -253,23 +253,23 @@ export function GuestReminderOverlay() {
             key={session.id}
             className={`
               animate-in slide-in-from-left duration-500 
-              rounded-xl shadow-lg overflow-hidden
+              rounded-2xl shadow-lg overflow-hidden
               ${isUrgent 
                 ? 'bg-gradient-to-r from-red-500 to-red-600' 
                 : 'bg-gradient-to-r from-amber-500 to-orange-500'
               }
             `}
           >
-            <div className="px-4 py-3 text-white">
-              <div className="flex items-center gap-3">
+            <div className="px-6 py-4 text-white">
+              <div className="flex items-center gap-4">
                 {isUrgent ? (
-                  <AlertTriangle className="w-5 h-5 flex-shrink-0 animate-pulse" />
+                  <AlertTriangle className="w-7 h-7 flex-shrink-0 animate-pulse" />
                 ) : (
-                  <Bell className="w-5 h-5 flex-shrink-0" />
+                  <Bell className="w-7 h-7 flex-shrink-0" />
                 )}
                 <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-sm truncate">{session.guestName}</div>
-                  <div className="text-xs opacity-90">
+                  <div className="font-semibold text-lg truncate">{session.guestName}</div>
+                  <div className="text-base opacity-90">
                     {isExpired ? (
                       "Session ended!"
                     ) : (
@@ -279,7 +279,7 @@ export function GuestReminderOverlay() {
                 </div>
               </div>
             </div>
-            <div className="h-1 bg-white/30">
+            <div className="h-2 bg-white/30">
               <div 
                 className={`h-full transition-all duration-1000 ${isUrgent ? 'bg-white' : 'bg-white/80'}`}
                 style={{ 
