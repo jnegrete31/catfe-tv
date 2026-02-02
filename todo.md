@@ -583,3 +583,8 @@
 - [x] Poll QR appears automatically in top-left corner when there's an active poll
 - [x] Poll data refreshes every 30 seconds
 - [x] Added PollOverlayWidget to Xcode project build files
+
+## Bug Fix - tvOS Navigation Controls and Poll Overlay Position (Feb 2)
+- [x] Remove navigation controls (back, pause, forward buttons) from tvOS
+- [x] Remove black gradient behind navigation controls (ControlsOverlay removed entirely)
+- [x] Fix poll overlay to stay in consistent position (fixed padding in ContentView)
