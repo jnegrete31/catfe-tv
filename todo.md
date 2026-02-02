@@ -394,3 +394,8 @@
 - [x] Add sync status tracking and last sync timestamp to settings
 - [x] Update admin UI to show auto-sync status and toggle
 - [x] Log sync results for debugging
+
+## Fix - Wix OAuth2 Authentication
+- [x] Update Wix API client to use OAuth2 anonymous token flow
+- [x] Replace WIX_API_KEY with WIX_CLIENT_ID
+- [x] Add token caching to avoid requesting new token on every API call

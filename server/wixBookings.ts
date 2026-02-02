@@ -45,6 +45,54 @@ export interface WixServicesResponse {
   services: WixService[];
 }
 
+// Token cache
+let cachedToken: string | null = null;
+let tokenExpiresAt: number = 0;
+
+/**
+ * Get OAuth2 access token using anonymous grant
+ */
+async function getWixAccessToken(): Promise<string> {
+  // Check if we have a valid cached token (with 5 minute buffer)
+  const now = Date.now();
+  if (cachedToken && tokenExpiresAt > now + 5 * 60 * 1000) {
+    return cachedToken;
+  }
+
+  if (!ENV.wixClientId) {
+    throw new Error("Wix Client ID not configured");
+  }
+
+  console.log("[WixBookings] Requesting new OAuth2 access token...");
+
+  const response = await fetch("https://www.wixapis.com/oauth2/token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      clientId: ENV.wixClientId,
+      grantType: "anonymous",
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Wix OAuth error: ${response.status} - ${errorText}`);
+  }
+
+  const data = await response.json() as { access_token: string; expires_in?: number };
+  
+  cachedToken = data.access_token;
+  // Default to 1 hour expiry if not specified
+  const expiresIn = data.expires_in || 3600;
+  tokenExpiresAt = now + expiresIn * 1000;
+
+  console.log("[WixBookings] Got new access token, expires in", expiresIn, "seconds");
+
+  return cachedToken;
+}
+
 /**
  * Fetch bookings from Wix Bookings API
  */
@@ -55,9 +103,7 @@ export async function fetchWixBookings(options: {
 }): Promise<WixBooking[]> {
   const { startDate, endDate, status = "CONFIRMED" } = options;
 
-  if (!ENV.wixApiKey || !ENV.wixSiteId) {
-    throw new Error("Wix API credentials not configured");
-  }
+  const token = await getWixAccessToken();
 
   const filter: Record<string, unknown> = {
     status,
@@ -76,8 +122,7 @@ export async function fetchWixBookings(options: {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: ENV.wixApiKey,
-        "wix-site-id": ENV.wixSiteId,
+        Authorization: token,
       },
       body: JSON.stringify({
         query: {
@@ -102,18 +147,15 @@ export async function fetchWixBookings(options: {
  * Fetch services from Wix to map service IDs to names
  */
 export async function fetchWixServices(): Promise<WixService[]> {
-  if (!ENV.wixApiKey || !ENV.wixSiteId) {
-    throw new Error("Wix API credentials not configured");
-  }
+  const token = await getWixAccessToken();
 
   const response = await fetch(
-    "https://www.wixapis.com/bookings/v1/services/query",
+    "https://www.wixapis.com/bookings/v2/services/query",
     {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: ENV.wixApiKey,
-        "wix-site-id": ENV.wixSiteId,
+        Authorization: token,
       },
       body: JSON.stringify({
         query: {
@@ -141,10 +183,10 @@ export async function testWixConnection(): Promise<{
   servicesCount?: number;
 }> {
   try {
-    if (!ENV.wixApiKey || !ENV.wixSiteId) {
+    if (!ENV.wixClientId) {
       return {
         success: false,
-        message: "Wix API credentials not configured",
+        message: "Wix Client ID not configured",
       };
     }
 

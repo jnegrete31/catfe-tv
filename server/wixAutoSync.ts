@@ -40,12 +40,12 @@ export async function syncWixBookings(): Promise<{
 
   try {
     // Check if Wix is configured
-    if (!ENV.wixApiKey || !ENV.wixSiteId) {
+    if (!ENV.wixClientId) {
       return {
         success: false,
         synced: 0,
         skipped: 0,
-        errors: ["Wix API credentials not configured"],
+        errors: ["Wix Client ID not configured"],
       };
     }
 
@@ -143,8 +143,8 @@ export function startAutoSync(): void {
   }
 
   // Check if Wix is configured
-  if (!ENV.wixApiKey || !ENV.wixSiteId) {
-    console.log("[WixAutoSync] Wix API credentials not configured, skipping auto-sync");
+  if (!ENV.wixClientId) {
+    console.log("[WixAutoSync] Wix Client ID not configured, skipping auto-sync");
     return;
   }
 
