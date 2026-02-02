@@ -1,4 +1,4 @@
-import { eq, and, gte, lte, or, isNull, asc, desc, sql } from "drizzle-orm";
+import { eq, and, gte, lte, gt, or, isNull, asc, desc, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { 
   InsertUser, users, 
@@ -765,4 +765,38 @@ export async function getWixSyncedSessionsToday() {
       )
     )
     .orderBy(asc(guestSessions.checkInAt));
+}
+
+
+// ============ WELCOME SCREEN - UPCOMING ARRIVALS ============
+
+export async function getUpcomingArrivals(minutesAhead: number = 15) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const now = new Date();
+  const futureTime = new Date(now.getTime() + minutesAhead * 60 * 1000);
+  
+  // Get sessions that:
+  // 1. Have a check-in time in the future (haven't started yet)
+  // 2. Check-in time is within the specified minutes ahead
+  // 3. Are not yet completed
+  const sessions = await db.select().from(guestSessions)
+    .where(
+      and(
+        gt(guestSessions.checkInAt, now),
+        lte(guestSessions.checkInAt, futureTime),
+        or(
+          eq(guestSessions.status, "active"),
+          eq(guestSessions.status, "extended")
+        )
+      )
+    )
+    .orderBy(asc(guestSessions.checkInAt));
+  
+  // Calculate minutes until arrival for each session
+  return sessions.map(session => ({
+    ...session,
+    minutesUntilArrival: Math.ceil((new Date(session.checkInAt).getTime() - now.getTime()) / (60 * 1000)),
+  }));
 }

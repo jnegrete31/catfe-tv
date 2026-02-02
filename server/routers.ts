@@ -49,6 +49,7 @@ import {
   getGuestSessionByWixBookingId,
   createGuestSessionFromWixBooking,
   getWixSyncedSessionsToday,
+  getUpcomingArrivals,
 } from "./db";
 import {
   testWixConnection,
@@ -479,6 +480,15 @@ export const appRouter = router({
       }).optional())
       .query(async ({ input }) => {
         return getSessionAnalytics(input?.startDate, input?.endDate);
+      }),
+
+    // Get upcoming arrivals (for welcome screen)
+    getUpcomingArrivals: publicProcedure
+      .input(z.object({
+        minutesAhead: z.number().min(5).max(60).default(15),
+      }))
+      .query(async ({ input }) => {
+        return getUpcomingArrivals(input.minutesAhead);
       }),
   }),
 

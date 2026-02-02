@@ -3,6 +3,7 @@ import { usePlaylist } from "@/hooks/usePlaylist";
 import { ScreenRenderer, FallbackScreen } from "@/components/tv/ScreenRenderer";
 import { WeatherClockOverlay } from "@/components/tv/WeatherClockOverlay";
 import { GuestReminderOverlay } from "@/components/tv/GuestReminderOverlay";
+import { WelcomeOverlay } from "@/components/tv/WelcomeOverlay";
 import { RecentlyAdoptedBanner } from "@/components/tv/RecentlyAdoptedBanner";
 import { Wifi, WifiOff, RefreshCw, ChevronLeft, ChevronRight, Play, Pause, Airplay } from "lucide-react";
 import { trpc } from "@/lib/trpc";
@@ -269,6 +270,9 @@ export default function TVDisplay() {
       
       {/* Guest Session Reminder Overlay */}
       <GuestReminderOverlay />
+      
+      {/* Welcome Overlay for upcoming arrivals */}
+      <WelcomeOverlay />
       
       {/* Recently Adopted Banner - DISABLED (wonky behavior on tvOS)
       {recentlyAdopted && recentlyAdopted.length > 0 && (

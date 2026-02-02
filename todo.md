@@ -399,3 +399,10 @@
 - [x] Update Wix API client to use OAuth2 anonymous token flow
 - [x] Replace WIX_API_KEY with WIX_CLIENT_ID
 - [x] Add token caching to avoid requesting new token on every API call
+
+## Feature - Personalized Welcome Screen
+- [x] Create welcome screen component for TV display
+- [x] Add API endpoint to fetch upcoming Wix bookings (within 15 minutes)
+- [x] Display guest name with welcoming message
+- [x] Integrate into TV display rotation
+- [ ] Add settings to configure welcome time window
