@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Heart, Upload, Camera, CheckCircle, Cat, Tv, Plus } from "lucide-react";
 import { Link } from "wouter";
+import PhotoFrameSelector from "@/components/PhotoFrameSelector";
 
 export default function UploadHappyTails() {
   const [name, setName] = useState("");
@@ -15,6 +16,8 @@ export default function UploadHappyTails() {
   const [caption, setCaption] = useState("");
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoBase64, setPhotoBase64] = useState<string | null>(null);
+  const [selectedFrame, setSelectedFrame] = useState("none");
+  const [compositeBase64, setCompositeBase64] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -38,15 +41,23 @@ export default function UploadHappyTails() {
     reader.readAsDataURL(file);
   };
 
+  const handleCompositeReady = useCallback((composite: string) => {
+    setCompositeBase64(composite);
+  }, []);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!photoBase64 || !name || !catName) return;
+    if (!name || !catName) return;
+    
+    // Use composite image if available, otherwise use original
+    const imageToSubmit = compositeBase64 || photoBase64;
+    if (!imageToSubmit) return;
 
     submitMutation.mutate({
       type: "happy_tails",
       submitterName: name,
       submitterEmail: email || undefined,
-      photoBase64,
+      photoBase64: imageToSubmit,
       caption: caption || undefined,
       catName,
     });
@@ -60,6 +71,8 @@ export default function UploadHappyTails() {
     setCaption("");
     setPhotoPreview(null);
     setPhotoBase64(null);
+    setSelectedFrame("none");
+    setCompositeBase64(null);
   };
 
   if (submitted) {
@@ -136,27 +149,11 @@ export default function UploadHappyTails() {
               {/* Photo Upload */}
               <div className="space-y-2">
                 <Label>Photo of Your Cat *</Label>
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className={`
-                    border-2 border-dashed rounded-xl p-6 text-center cursor-pointer
-                    transition-colors
-                    ${photoPreview 
-                      ? "border-amber-400 bg-amber-50" 
-                      : "border-gray-300 hover:border-amber-400 hover:bg-amber-50"
-                    }
-                  `}
-                >
-                  {photoPreview ? (
-                    <div className="space-y-3">
-                      <img
-                        src={photoPreview}
-                        alt="Preview"
-                        className="max-h-48 mx-auto rounded-lg object-cover"
-                      />
-                      <p className="text-sm text-amber-600">Tap to change photo</p>
-                    </div>
-                  ) : (
+                {!photoPreview ? (
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    className="border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors border-gray-300 hover:border-amber-400 hover:bg-amber-50"
+                  >
                     <div className="space-y-3">
                       <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
                         <Camera className="w-6 h-6 text-gray-400" />
@@ -166,8 +163,28 @@ export default function UploadHappyTails() {
                         <p className="text-sm text-gray-500">JPG, PNG up to 10MB</p>
                       </div>
                     </div>
-                  )}
-                </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Frame Selector with Preview */}
+                    <PhotoFrameSelector
+                      photoPreview={photoPreview}
+                      selectedFrame={selectedFrame}
+                      onFrameSelect={setSelectedFrame}
+                      onCompositeReady={handleCompositeReady}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-full"
+                    >
+                      <Camera className="w-4 h-4 mr-2" />
+                      Change Photo
+                    </Button>
+                  </div>
+                )}
                 <input
                   ref={fileInputRef}
                   type="file"

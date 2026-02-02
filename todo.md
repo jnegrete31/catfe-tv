@@ -412,3 +412,10 @@
 - [x] Add "Upload Another Photo" button on success page
 - [x] Create mobile-friendly live slideshow view page
 - [x] Show approved photos from the same gallery type (Happy Tails or Snap & Purr)
+
+## Feature - Cat-Themed Photo Frames
+- [x] Create cat-themed frame overlay images (paw prints, cat ears, whiskers, etc.)
+- [x] Build photo frame selector component with preview
+- [x] Integrate frame selector into Happy Tails upload page
+- [x] Integrate frame selector into Snap & Purr upload page
+- [x] Composite selected frame onto photo before submission
