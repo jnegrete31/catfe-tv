@@ -1221,12 +1221,12 @@ export async function createTemplatePoll(data: { question: string; catCount?: nu
 /**
  * Get the next poll to show (shuffled, least recently shown)
  */
-// Get the current 30-minute session identifier (changes at x:00 and x:30)
+// Get the current 15-minute session identifier (changes at x:00, x:15, x:30, x:45)
 function getCurrentSessionId(): string {
   const now = new Date();
   const hour = now.getHours();
-  const halfHour = now.getMinutes() < 30 ? 0 : 30;
-  return `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${hour}-${halfHour}`;
+  const quarter = Math.floor(now.getMinutes() / 15) * 15; // 0, 15, 30, or 45
+  return `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${hour}-${quarter}`;
 }
 
 // Cache for the current session's poll and cats

@@ -495,3 +495,12 @@
 - [x] Fix poll to stay consistent throughout entire 30-minute session (not change with each slide)
 - [x] Fix mobile voting page to always show 4 cat options with photos
 - [x] Ensure QR code links to the correct poll with all options visible
+
+## Feature - Poll UI Redesign
+- [x] Hide vote count/results on mobile voting page (guests wait for TV reveal)
+- [x] Create poll widget overlay for top-left corner of TV display
+- [x] Show current poll question, QR code, and countdown to results
+- [x] Create results widget overlay for top-right corner during results time (x:10-x:14, x:25-x:29, x:40-x:44, x:55-x:59)
+- [x] Remove full-screen poll slide from rotation (poll is now always visible as widget)
+- [x] Test new poll overlay system
+- [x] Change poll timing from 30-minute to 15-minute intervals (4 polls per hour)

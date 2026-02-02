@@ -33,26 +33,27 @@ function isScreenEligible(screen: Screen): boolean {
   return true;
 }
 
-// Check if it's poll time (x:00-x:25 or x:30-x:55)
+// Check if it's poll time (15-minute intervals: x:00-x:10, x:15-x:25, x:30-x:40, x:45-x:55)
 function isPollTime(): boolean {
   const minutes = new Date().getMinutes();
-  // Poll shows from x:00 to x:25 and x:30 to x:55
-  return (minutes >= 0 && minutes < 25) || (minutes >= 30 && minutes < 55);
+  const minuteInQuarter = minutes % 15;
+  return minuteInQuarter < 10;
 }
 
-// Check if it's results time (x:25-x:30 or x:55-x:00)
+// Check if it's results time (15-minute intervals: x:10-x:14, x:25-x:29, x:40-x:44, x:55-x:59)
 function isResultsTime(): boolean {
   const minutes = new Date().getMinutes();
-  return (minutes >= 25 && minutes < 30) || (minutes >= 55);
+  const minuteInQuarter = minutes % 15;
+  return minuteInQuarter >= 10 && minuteInQuarter < 15;
 }
 
-// Build weighted playlist with SNAP_AND_PURR frequency and optional poll injection
-function buildPlaylist(screens: Screen[], snapFrequency: number, pollFrequency: number = 3): Screen[] {
+// Build weighted playlist with SNAP_AND_PURR frequency (poll is now shown as corner widget)
+function buildPlaylist(screens: Screen[], snapFrequency: number): Screen[] {
   const eligible = screens.filter(isScreenEligible);
   if (eligible.length === 0) return [];
   
   const snapScreens = eligible.filter(s => s.type === "SNAP_AND_PURR");
-  const otherScreens = eligible.filter(s => s.type !== "SNAP_AND_PURR" && s.type !== "POLL");
+  const otherScreens = eligible.filter(s => s.type !== "SNAP_AND_PURR");
   
   // Weight screens by priority (higher priority = more appearances)
   const weightedOthers: Screen[] = [];
@@ -96,50 +97,6 @@ function buildPlaylist(screens: Screen[], snapFrequency: number, pollFrequency: 
     }
   } else {
     result = deduped.length > 0 ? deduped : snapScreens;
-  }
-  
-  // Inject POLL slides during poll time (every pollFrequency screens)
-  if (isPollTime() && pollFrequency > 0) {
-    const pollScreen: Screen = {
-      id: -1, // Virtual poll screen
-      type: "POLL",
-      title: "Cat Poll",
-      subtitle: null,
-      body: null,
-      imagePath: null,
-      imageDisplayMode: "cover",
-      qrUrl: null,
-      timeStart: null,
-      timeEnd: null,
-      daysOfWeek: null,
-      startAt: null,
-      endAt: null,
-      priority: 1,
-      isActive: true,
-      durationSeconds: 15, // Show poll for 15 seconds
-      sortOrder: 0,
-      isProtected: false,
-      isAdopted: false,
-      livestreamUrl: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    
-    const withPolls: Screen[] = [];
-    for (let i = 0; i < result.length; i++) {
-      withPolls.push(result[i]);
-      // Insert poll every pollFrequency screens
-      if ((i + 1) % pollFrequency === 0) {
-        withPolls.push(pollScreen);
-      }
-    }
-    
-    // Ensure at least one poll if we have screens
-    if (withPolls.length > 0 && !withPolls.some(s => s.type === "POLL")) {
-      withPolls.push(pollScreen);
-    }
-    
-    return withPolls;
   }
   
   return result;
@@ -237,8 +194,8 @@ export function usePlaylist() {
       const screens = screensQuery.data;
       cacheData(screens, settings);
       
-      // Poll frequency: show poll every 3 screens during poll time
-      const newPlaylist = buildPlaylist(screens, settings?.snapAndPurrFrequency || 5, 3);
+      // Build playlist (poll is now shown as corner widget, not in rotation)
+      const newPlaylist = buildPlaylist(screens, settings?.snapAndPurrFrequency || 5);
       setPlaylist(newPlaylist);
       
       setState(prev => ({
@@ -253,7 +210,7 @@ export function usePlaylist() {
       // Try to use cached data
       const cached = loadCachedData();
       if (cached) {
-        const newPlaylist = buildPlaylist(cached.screens, cached.settings?.snapAndPurrFrequency || 5, 3);
+        const newPlaylist = buildPlaylist(cached.screens, cached.settings?.snapAndPurrFrequency || 5);
         setPlaylist(newPlaylist);
         if (cached.settings) setSettings(cached.settings);
         

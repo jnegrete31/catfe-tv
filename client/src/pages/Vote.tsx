@@ -3,7 +3,7 @@ import { useParams } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Cat, CheckCircle2, Vote as VoteIcon } from "lucide-react";
+import { Cat, CheckCircle2, Vote as VoteIcon, Tv } from "lucide-react";
 
 type PollOption = {
   id: string;
@@ -87,36 +87,13 @@ export default function Vote() {
           <CardContent className="pt-6 text-center">
             <div className="text-5xl mb-4">📊</div>
             <h1 className="text-2xl font-bold mb-2">Poll Ended</h1>
-            <p className="text-muted-foreground mb-6">
+            <p className="text-muted-foreground mb-4">
               This poll is no longer accepting votes.
             </p>
-            {poll.parsedOptions && (
-              <div className="space-y-3 text-left">
-                <p className="font-semibold">{poll.question}</p>
-                {poll.parsedOptions.map((opt) => {
-                  const percentage = poll.totalVotes > 0 
-                    ? Math.round((opt.voteCount || 0) / poll.totalVotes * 100) 
-                    : 0;
-                  return (
-                    <div key={opt.id} className="space-y-1">
-                      <div className="flex justify-between text-sm">
-                        <span>{opt.text}</span>
-                        <span>{percentage}%</span>
-                      </div>
-                      <div className="h-2 bg-muted rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-primary"
-                          style={{ width: `${percentage}%` }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-                <p className="text-sm text-muted-foreground text-center mt-4">
-                  {poll.totalVotes} total votes
-                </p>
-              </div>
-            )}
+            <div className="flex items-center justify-center gap-2 text-muted-foreground">
+              <Tv className="w-5 h-5" />
+              <span>Watch the TV for results!</span>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -151,44 +128,15 @@ export default function Vote() {
             <CheckCircle2 className="w-16 h-16 mx-auto mb-4 text-green-500" />
             <h1 className="text-2xl font-bold mb-2">Thanks for Voting!</h1>
             <p className="text-muted-foreground mb-6">
-              Your vote has been recorded. Watch the TV to see the results!
+              Your vote has been recorded.
             </p>
-            <div className="bg-muted rounded-lg p-4">
-              <p className="font-semibold mb-4">{poll.question}</p>
-              <div className="space-y-3">
-                {poll.parsedOptions?.map((opt) => {
-                  const percentage = poll.totalVotes > 0 
-                    ? Math.round((opt.voteCount || 0) / poll.totalVotes * 100) 
-                    : 0;
-                  return (
-                    <div key={opt.id} className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        {opt.imageUrl && (
-                          <img 
-                            src={opt.imageUrl} 
-                            alt={opt.text}
-                            className="w-8 h-8 rounded-full object-cover"
-                          />
-                        )}
-                        <div className="flex-1">
-                          <div className="flex justify-between text-sm">
-                            <span>{opt.text}</span>
-                            <span>{percentage}%</span>
-                          </div>
-                          <div className="h-2 bg-background rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-primary"
-                              style={{ width: `${percentage}%` }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+            <div className="bg-gradient-to-br from-purple-100 to-indigo-100 rounded-xl p-6">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <Tv className="w-8 h-8 text-purple-600" />
+                <span className="text-lg font-semibold text-purple-900">Watch the TV!</span>
               </div>
-              <p className="text-sm text-muted-foreground mt-4">
-                {poll.totalVotes} total votes
+              <p className="text-purple-700">
+                Results will be revealed on the big screen soon. Keep an eye out! 👀
               </p>
             </div>
           </CardContent>
@@ -279,9 +227,10 @@ export default function Vote() {
           {voteMutation.isPending ? "Submitting..." : "Submit Vote"}
         </Button>
 
-        {/* Vote count */}
-        <p className="text-center text-white/60 mt-4 text-sm">
-          {poll.totalVotes} votes so far
+        {/* Hint to watch TV */}
+        <p className="text-center text-white/60 mt-4 text-sm flex items-center justify-center gap-2">
+          <Tv className="w-4 h-4" />
+          Results revealed on TV!
         </p>
       </div>
     </div>
