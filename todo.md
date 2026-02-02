@@ -353,3 +353,15 @@
 - [x] Create TV display renderers showing large QR codes with instructions
 - [x] Update tvOS app with QR code screen views
 - [x] QR codes link to /upload/happy-tails and /upload/snap-purr
+
+## Bug Fix - tvOS QR View Xcode Errors
+- [ ] Fix APIClient.shared reference (doesn't exist)
+- [ ] Fix LogoView reference (doesn't exist)
+- [ ] Fix Date to String type conversion errors
+- [ ] Remove extra livestreamUrl argument
+
+## Feature - QR Codes on Gallery Screens
+- [x] Add QR code to Happy Tails gallery slideshow (web)
+- [x] Add QR code to Snap & Purr gallery slideshow (web)
+- [x] Add QR code to Happy Tails gallery slideshow (tvOS)
+- [x] Add QR code to Snap & Purr gallery slideshow (tvOS)

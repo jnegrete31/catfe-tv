@@ -668,16 +668,32 @@ function HappyTailsScreen({ screen, settings }: ScreenRendererProps) {
         <CatfeLogo logoUrl={settings?.logoUrl} />
       </div>
       
-      {/* Progress dots */}
-      <div className="absolute bottom-8 right-8 flex gap-2">
-        {photos.map((_, idx) => (
-          <div
-            key={idx}
-            className={`w-3 h-3 rounded-full transition-colors ${
-              idx === currentIndex ? "bg-amber-600" : "bg-amber-300"
-            }`}
+      {/* QR Code for uploads - bottom right */}
+      <div className="absolute bottom-8 right-8 flex items-end gap-6">
+        {/* Progress dots */}
+        <div className="flex gap-2 mb-2">
+          {photos.map((_, idx) => (
+            <div
+              key={idx}
+              className={`w-3 h-3 rounded-full transition-colors ${
+                idx === currentIndex ? "bg-amber-600" : "bg-amber-300"
+              }`}
+            />
+          ))}
+        </div>
+        
+        {/* QR Code */}
+        <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-4 shadow-xl">
+          <div className="text-center mb-2">
+            <p className="text-sm font-semibold text-amber-800">Share yours!</p>
+          </div>
+          <QRCodeSVG 
+            value={typeof window !== 'undefined' ? `${window.location.origin}/upload/happy-tails` : '/upload/happy-tails'}
+            size={100}
+            level="M"
           />
-        ))}
+          <p className="text-xs text-amber-600 text-center mt-2">Scan to upload</p>
+        </div>
       </div>
     </div>
   );
@@ -773,16 +789,32 @@ function SnapPurrGalleryScreen({ screen, settings }: ScreenRendererProps) {
         <CatfeLogo logoUrl={settings?.logoUrl} />
       </div>
       
-      {/* Progress dots */}
-      <div className="absolute bottom-8 right-8 flex gap-2">
-        {photos.map((_, idx) => (
-          <div
-            key={idx}
-            className={`w-3 h-3 rounded-full transition-colors ${
-              idx === currentIndex ? "bg-yellow-600" : "bg-yellow-300"
-            }`}
+      {/* QR Code for uploads - bottom right */}
+      <div className="absolute bottom-8 right-8 flex items-end gap-6">
+        {/* Progress dots */}
+        <div className="flex gap-2 mb-2">
+          {photos.map((_, idx) => (
+            <div
+              key={idx}
+              className={`w-3 h-3 rounded-full transition-colors ${
+                idx === currentIndex ? "bg-yellow-600" : "bg-yellow-300"
+              }`}
+            />
+          ))}
+        </div>
+        
+        {/* QR Code */}
+        <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-4 shadow-xl">
+          <div className="text-center mb-2">
+            <p className="text-sm font-semibold text-yellow-800">Share yours!</p>
+          </div>
+          <QRCodeSVG 
+            value={typeof window !== 'undefined' ? `${window.location.origin}/upload/snap-purr` : '/upload/snap-purr'}
+            size={100}
+            level="M"
           />
-        ))}
+          <p className="text-xs text-yellow-600 text-center mt-2">Scan to upload</p>
+        </div>
       </div>
     </div>
   );
