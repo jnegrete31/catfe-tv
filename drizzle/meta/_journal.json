@@ -134,6 +134,13 @@
       "when": 1769999842714,
       "tag": "0018_supreme_sway",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "5",
+      "when": 1770000216849,
+      "tag": "0019_fast_may_parker",
+      "breakpoints": true
     }
   ]
 }

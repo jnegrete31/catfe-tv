@@ -1,14 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, RefreshCw, CheckCircle2, XCircle, Calendar, Users, Clock, AlertCircle } from "lucide-react";
-// Toast notifications handled via alerts for simplicity
+import { Switch } from "@/components/ui/switch";
+import { Loader2, RefreshCw, CheckCircle2, XCircle, Calendar, Users, Clock, AlertCircle, Zap, Timer } from "lucide-react";
 
 export function WixSync() {
-
   const [isSyncing, setIsSyncing] = useState(false);
+  const [countdown, setCountdown] = useState<string | null>(null);
 
   // Test Wix connection
   const { data: connectionStatus, isLoading: isTestingConnection, refetch: retestConnection } = 
@@ -29,12 +29,30 @@ export function WixSync() {
       enabled: connectionStatus?.success === true,
     });
 
-  // Sync mutation
-  const syncMutation = trpc.wix.syncTodaysBookings.useMutation({
+  // Get auto-sync status
+  const { data: autoSyncStatus, refetch: refetchAutoSyncStatus } = 
+    trpc.wix.getAutoSyncStatus.useQuery(undefined, {
+      enabled: connectionStatus?.success === true,
+      refetchInterval: 30000, // Refresh every 30 seconds
+    });
+
+  // Toggle auto-sync mutation
+  const toggleAutoSyncMutation = trpc.wix.toggleAutoSync.useMutation({
+    onSuccess: () => {
+      refetchAutoSyncStatus();
+    },
+    onError: (error) => {
+      alert(`Failed to toggle auto-sync: ${error.message}`);
+    },
+  });
+
+  // Trigger manual sync mutation
+  const triggerSyncMutation = trpc.wix.triggerSync.useMutation({
     onSuccess: (result) => {
       alert(`Sync Complete: Synced ${result.synced} bookings, skipped ${result.skipped} already synced.`);
       refetchSynced();
       refetchBookings();
+      refetchAutoSyncStatus();
     },
     onError: (error) => {
       alert(`Sync Failed: ${error.message}`);
@@ -46,11 +64,48 @@ export function WixSync() {
 
   const handleSync = () => {
     setIsSyncing(true);
-    syncMutation.mutate();
+    triggerSyncMutation.mutate();
   };
+
+  const handleToggleAutoSync = (enabled: boolean) => {
+    toggleAutoSyncMutation.mutate({ enabled });
+  };
+
+  // Update countdown timer
+  useEffect(() => {
+    if (!autoSyncStatus?.enabled || !autoSyncStatus?.nextSyncIn) {
+      setCountdown(null);
+      return;
+    }
+
+    const updateCountdown = () => {
+      if (autoSyncStatus.nextSyncIn) {
+        const minutes = Math.floor(autoSyncStatus.nextSyncIn / 60000);
+        const seconds = Math.floor((autoSyncStatus.nextSyncIn % 60000) / 1000);
+        setCountdown(`${minutes}m ${seconds}s`);
+      }
+    };
+
+    updateCountdown();
+    const interval = setInterval(() => {
+      refetchAutoSyncStatus();
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [autoSyncStatus?.nextSyncIn, autoSyncStatus?.enabled, refetchAutoSyncStatus]);
 
   const formatTime = (dateString: string) => {
     return new Date(dateString).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  };
+
+  const formatLastSync = (date: Date | string | null) => {
+    if (!date) return "Never";
+    const d = new Date(date);
+    return d.toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
@@ -102,18 +157,77 @@ export function WixSync() {
             </Button>
           </div>
 
-          {/* Sync Button */}
+          {/* Auto-Sync Status */}
+          {connectionStatus?.success && (
+            <div className="p-4 border rounded-lg space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`h-10 w-10 rounded-full flex items-center justify-center ${autoSyncStatus?.enabled ? 'bg-green-100 dark:bg-green-900' : 'bg-muted'}`}>
+                    <Zap className={`h-5 w-5 ${autoSyncStatus?.enabled ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`} />
+                  </div>
+                  <div>
+                    <p className="font-medium">Auto-Sync</p>
+                    <p className="text-sm text-muted-foreground">
+                      Automatically sync bookings every 15 minutes
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  checked={autoSyncStatus?.enabled ?? false}
+                  onCheckedChange={handleToggleAutoSync}
+                  disabled={toggleAutoSyncMutation.isPending}
+                />
+              </div>
+
+              {autoSyncStatus?.enabled && (
+                <div className="grid grid-cols-2 gap-4 pt-2 border-t">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">Last sync:</span>
+                    <span className="font-medium">{formatLastSync(autoSyncStatus.lastSyncTime)}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Timer className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">Next sync:</span>
+                    <span className="font-medium">{countdown || "Soon"}</span>
+                  </div>
+                </div>
+              )}
+
+              {autoSyncStatus?.lastSyncResult && (
+                <div className="flex items-center gap-4 pt-2 border-t text-sm">
+                  <span className="text-muted-foreground">Last result:</span>
+                  <Badge variant={autoSyncStatus.lastSyncResult.success ? "secondary" : "destructive"}>
+                    {autoSyncStatus.lastSyncResult.success ? (
+                      <>
+                        <CheckCircle2 className="h-3 w-3 mr-1" />
+                        {autoSyncStatus.lastSyncResult.synced} synced, {autoSyncStatus.lastSyncResult.skipped} skipped
+                      </>
+                    ) : (
+                      <>
+                        <XCircle className="h-3 w-3 mr-1" />
+                        Failed
+                      </>
+                    )}
+                  </Badge>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Manual Sync Button */}
           {connectionStatus?.success && (
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium">Sync Today's Bookings</p>
+                <p className="font-medium">Manual Sync</p>
                 <p className="text-sm text-muted-foreground">
-                  Import confirmed bookings as guest sessions
+                  Sync now without waiting for auto-sync
                 </p>
               </div>
               <Button 
                 onClick={handleSync}
                 disabled={isSyncing || !connectionStatus?.success}
+                variant="outline"
               >
                 {isSyncing ? (
                   <>

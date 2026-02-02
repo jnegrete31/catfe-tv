@@ -56,6 +56,11 @@ import {
   mapBookingToSessionType,
   type WixBooking,
 } from "./wixBookings";
+import {
+  getAutoSyncStatus,
+  toggleAutoSync,
+  syncWixBookings,
+} from "./wixAutoSync";
 import { storagePut } from "./storage";
 import { notifyOwner } from "./_core/notification";
 
@@ -779,6 +784,25 @@ export const appRouter = router({
     // Get synced sessions from today
     getSyncedSessions: protectedProcedure.query(async () => {
       return getWixSyncedSessionsToday();
+    }),
+
+    // Get auto-sync status
+    getAutoSyncStatus: protectedProcedure.query(async () => {
+      return getAutoSyncStatus();
+    }),
+
+    // Toggle auto-sync on/off
+    toggleAutoSync: protectedProcedure
+      .input(z.object({ enabled: z.boolean() }))
+      .mutation(async ({ input }) => {
+        toggleAutoSync(input.enabled);
+        return { success: true, enabled: input.enabled };
+      }),
+
+    // Trigger manual sync (uses the same function as auto-sync)
+    triggerSync: protectedProcedure.mutation(async () => {
+      const result = await syncWixBookings();
+      return result;
     }),
   }),
 });

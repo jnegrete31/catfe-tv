@@ -190,6 +190,26 @@ export async function upsertSettings(data: Partial<InsertSettings>) {
   }
 }
 
+export async function updateWixSyncTime(syncTime: Date) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const existing = await getSettings();
+  if (existing) {
+    await db.update(settings).set({ wixLastSyncAt: syncTime }).where(eq(settings.id, existing.id));
+  }
+}
+
+export async function updateWixAutoSyncEnabled(enabled: boolean) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const existing = await getSettings();
+  if (existing) {
+    await db.update(settings).set({ wixAutoSyncEnabled: enabled }).where(eq(settings.id, existing.id));
+  }
+}
+
 // ============ TIME SLOT QUERIES ============
 
 export async function getAllTimeSlots() {

@@ -98,6 +98,8 @@ export const settings = mysqlTable("settings", {
   githubRepo: varchar("githubRepo", { length: 255 }), // e.g., "username/repo"
   githubBranch: varchar("githubBranch", { length: 64 }).default("main"),
   refreshIntervalSeconds: int("refreshIntervalSeconds").notNull().default(60),
+  wixAutoSyncEnabled: boolean("wixAutoSyncEnabled").notNull().default(true), // Auto-sync Wix bookings
+  wixLastSyncAt: timestamp("wixLastSyncAt"), // Last Wix sync timestamp
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 

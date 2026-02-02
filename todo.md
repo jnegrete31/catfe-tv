@@ -388,3 +388,9 @@
 - [x] Add admin UI for Wix sync settings
 - [x] Create manual sync button in admin dashboard
 - [x] Map Wix booking fields to guest session fields
+
+## Feature - Auto Wix Booking Sync
+- [x] Create background sync job with 15-minute interval
+- [x] Add sync status tracking and last sync timestamp to settings
+- [x] Update admin UI to show auto-sync status and toggle
+- [x] Log sync results for debugging
