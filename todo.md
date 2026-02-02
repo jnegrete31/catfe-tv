@@ -550,3 +550,16 @@
 - [x] Create PollQRView.swift for displaying poll QR code on TV
 - [x] Update TVDisplayView to handle POLL_QR screen type
 - [x] Package updated Xcode project
+
+## Feature - Snap & Purr Gallery Redesign
+- [x] Redesigned web gallery to show 6 photos in 3x2 collage layout with pagination
+- [x] Added animated transitions between pages (10 second intervals)
+- [x] Updated tvOS SnapPurrGalleryView with matching 3x2 collage design
+- [x] Added photo count and page indicators
+- [x] Shows featured badge on featured photos
+- [x] Empty slots show "Your photo here!" placeholder
+
+## Bug Fix - Poll QR Code Not Showing on tvOS
+- [x] Fixed Poll model to match actual API response (pollType, catCount, options instead of optionA/optionB)
+- [x] Updated PollQRView to work with new Poll model structure
+- [x] Poll QR screen now shows question and QR code for voting on phone

@@ -728,23 +728,27 @@ function HappyTailsScreen({ screen, settings }: ScreenRendererProps) {
   );
 }
 
-// SNAP_PURR_GALLERY - Slideshow of customer photos from their visits
+// SNAP_PURR_GALLERY - Multi-photo collage showcasing customer photos
 function SnapPurrGalleryScreen({ screen, settings }: ScreenRendererProps) {
   const { data: photos } = trpc.photos.getApproved.useQuery({ type: "snap_purr" });
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [pageIndex, setPageIndex] = useState(0);
   
-  // Auto-rotate through photos every 6 seconds
+  // Show 6 photos per page in a collage layout
+  const photosPerPage = 6;
+  const totalPages = photos ? Math.ceil(photos.length / photosPerPage) : 0;
+  
+  // Auto-rotate through pages every 10 seconds
   useEffect(() => {
-    if (!photos || photos.length <= 1) return;
+    if (!photos || totalPages <= 1) return;
     
     const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % photos.length);
-    }, 6000);
+      setPageIndex((prev) => (prev + 1) % totalPages);
+    }, 10000);
     
     return () => clearInterval(interval);
-  }, [photos]);
+  }, [photos, totalPages]);
   
-  const currentPhoto = photos?.[currentIndex];
+  const currentPhotos = photos?.slice(pageIndex * photosPerPage, (pageIndex + 1) * photosPerPage) || [];
   
   if (!photos || photos.length === 0) {
     return (
@@ -759,121 +763,124 @@ function SnapPurrGalleryScreen({ screen, settings }: ScreenRendererProps) {
   }
   
   return (
-    <div className="tv-screen relative bg-gradient-to-br from-yellow-100 via-amber-50 to-yellow-100">
+    <div className="tv-screen relative bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50">
+      {/* Decorative background elements */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-yellow-200/20 rounded-full -translate-y-1/2 translate-x-1/2" />
+      <div className="absolute bottom-0 left-0 w-80 h-80 bg-amber-200/20 rounded-full translate-y-1/2 -translate-x-1/2" />
+      
       {/* Header */}
-      <div className="absolute top-8 left-8 right-8 flex items-center justify-between">
+      <div className="absolute top-6 left-8 right-8 flex items-center justify-between z-20">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 bg-yellow-500 rounded-full flex items-center justify-center shadow-lg">
-            <span className="text-4xl">📸</span>
+          <div className="w-14 h-14 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-2xl flex items-center justify-center shadow-lg">
+            <span className="text-3xl">📸</span>
           </div>
           <div>
-            <h1 className="text-5xl font-bold text-yellow-900" style={{ fontFamily: 'Georgia, serif' }}>Snap & Purr</h1>
-            <p className="text-2xl text-yellow-700">Photos from our amazing visitors</p>
+            <h1 className="text-4xl font-bold text-amber-900" style={{ fontFamily: 'Georgia, serif' }}>Snap & Purr</h1>
+            <p className="text-lg text-amber-700">Moments captured by our visitors</p>
           </div>
         </div>
-        <div className="text-yellow-600 text-xl">
-          {currentIndex + 1} / {photos.length}
+        <div className="flex items-center gap-3">
+          <span className="text-amber-600 text-lg font-medium">{photos.length} photos</span>
+          {totalPages > 1 && (
+            <div className="flex gap-1.5">
+              {Array.from({ length: totalPages }).map((_, idx) => (
+                <div
+                  key={idx}
+                  className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                    idx === pageIndex ? "bg-amber-500 scale-125" : "bg-amber-300"
+                  }`}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
       
-      {/* Main photo area */}
-      <div className="absolute inset-0 flex items-center justify-center pt-32 pb-24 px-16">
+      {/* Photo Collage Grid */}
+      <div className="absolute inset-0 pt-24 pb-6 px-8 z-10">
         <AnimatePresence mode="wait">
           <motion.div
-            key={currentPhoto?.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.5 }}
-            className="text-center"
+            key={pageIndex}
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={{ duration: 0.4 }}
+            className="h-full grid grid-cols-3 grid-rows-2 gap-4"
           >
-            {/* Photo frame with background style for portrait photos */}
-            <div className="relative inline-block">
-              <div className="absolute -inset-6 bg-white rounded-3xl shadow-2xl transform -rotate-2" />
-              <div className="absolute -inset-6 bg-white rounded-3xl shadow-xl transform rotate-1" />
-              <div className="relative w-[600px] h-[450px] rounded-2xl overflow-hidden">
-                {/* Background for portrait photos */}
-                {currentPhoto?.backgroundStyle === "gradient" ? (
-                  <div 
-                    className="absolute inset-0"
-                    style={{
-                      background: `linear-gradient(135deg, rgba(250, 204, 21, 0.4) 0%, rgba(245, 158, 11, 0.4) 100%)`,
-                    }}
-                  />
-                ) : (
-                  <div 
-                    className="absolute inset-0"
-                    style={{
-                      backgroundImage: `url(${currentPhoto?.photoUrl})`,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
-                      filter: "blur(25px)",
-                      transform: "scale(1.2)",
-                    }}
-                  />
-                )}
-                {/* Actual photo centered */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <img
-                    src={currentPhoto?.photoUrl}
-                    alt="Visitor photo"
-                    className="max-w-full max-h-full object-contain"
-                  />
+            {currentPhotos.map((photo, idx) => (
+              <motion.div
+                key={photo.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.1, duration: 0.3 }}
+                className="relative group"
+              >
+                {/* Photo card */}
+                <div className="relative h-full bg-white rounded-2xl shadow-lg overflow-hidden transform transition-transform hover:scale-[1.02]">
+                  {/* Photo */}
+                  <div className="absolute inset-0">
+                    <img
+                      src={photo.photoUrl}
+                      alt={photo.caption || "Visitor photo"}
+                      className="w-full h-full object-cover"
+                    />
+                    {/* Gradient overlay for text readability */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                  </div>
+                  
+                  {/* Featured badge */}
+                  {photo.isFeatured && (
+                    <div className="absolute top-3 right-3 bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full shadow-md flex items-center gap-1.5 text-sm font-bold">
+                      <span>⭐</span>
+                      <span>Featured</span>
+                    </div>
+                  )}
+                  
+                  {/* Caption and name overlay */}
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    {photo.caption && (
+                      <p className="text-white text-lg font-medium line-clamp-2 mb-1 drop-shadow-lg">
+                        "{photo.caption}"
+                      </p>
+                    )}
+                    <p className="text-white/90 text-sm drop-shadow-md">
+                      — {photo.submitterName}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+            
+            {/* Fill empty slots with placeholder */}
+            {currentPhotos.length < photosPerPage && Array.from({ length: photosPerPage - currentPhotos.length }).map((_, idx) => (
+              <div key={`empty-${idx}`} className="relative h-full bg-amber-100/50 rounded-2xl border-2 border-dashed border-amber-200 flex items-center justify-center">
+                <div className="text-center text-amber-400">
+                  <span className="text-5xl">📷</span>
+                  <p className="text-lg mt-2">Your photo here!</p>
                 </div>
               </div>
-              {currentPhoto?.isFeatured && (
-                <div className="absolute -top-4 -right-4 bg-yellow-400 text-yellow-900 px-4 py-2 rounded-full shadow-lg flex items-center gap-2 z-10">
-                  <span className="text-2xl">⭐</span>
-                  <span className="font-bold text-lg">Featured</span>
-                </div>
-              )}
-            </div>
-            
-            {/* Caption */}
-            <div className="mt-8">
-              {currentPhoto?.caption && (
-                <p className="text-3xl text-yellow-800 mb-4 italic">
-                  "{currentPhoto.caption}"
-                </p>
-              )}
-              <p className="text-2xl text-yellow-600">
-                — {currentPhoto?.submitterName}
-              </p>
-            </div>
+            ))}
           </motion.div>
         </AnimatePresence>
       </div>
       
-      {/* Logo */}
-      <div className="absolute bottom-8 left-8">
+      {/* Logo - bottom left */}
+      <div className="absolute bottom-6 left-8 z-20">
         <CatfeLogo logoUrl={settings?.logoUrl} />
       </div>
       
-      {/* QR Code for uploads - bottom right */}
-      <div className="absolute bottom-8 right-8 flex items-end gap-6">
-        {/* Progress dots */}
-        <div className="flex gap-2 mb-2">
-          {photos.map((_, idx) => (
-            <div
-              key={idx}
-              className={`w-3 h-3 rounded-full transition-colors ${
-                idx === currentIndex ? "bg-yellow-600" : "bg-yellow-300"
-              }`}
-            />
-          ))}
-        </div>
-        
-        {/* QR Code */}
-        <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-4 shadow-xl">
-          <div className="text-center mb-2">
-            <p className="text-sm font-semibold text-yellow-800">Share yours!</p>
+      {/* QR Code - bottom right */}
+      <div className="absolute bottom-6 right-8 z-20">
+        <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-4 shadow-xl flex items-center gap-4">
+          <div>
+            <p className="text-sm font-bold text-amber-800 mb-1">Share your moment!</p>
+            <p className="text-xs text-amber-600">Scan to upload your photo</p>
           </div>
           <QRCodeSVG 
             value={typeof window !== 'undefined' ? `${window.location.origin}/upload/snap-purr` : '/upload/snap-purr'}
-            size={100}
+            size={80}
             level="M"
           />
-          <p className="text-xs text-yellow-600 text-center mt-2">Scan to upload</p>
         </div>
       </div>
     </div>
