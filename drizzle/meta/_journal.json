@@ -169,6 +169,13 @@
       "when": 1770014409661,
       "tag": "0023_wise_bloodaxe",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "5",
+      "when": 1770016464115,
+      "tag": "0024_simple_xorn",
+      "breakpoints": true
     }
   ]
 }

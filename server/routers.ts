@@ -70,6 +70,10 @@ import {
   submitPollVote,
   hasVoted,
   resetPollVotes,
+  seedDefaultPollQuestions,
+  getPollForTV,
+  createTemplatePoll,
+  getAdoptableCats,
   type PollOption,
 } from "./db";
 import {
@@ -1018,6 +1022,31 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         return resetPollVotes(input.id);
       }),
+
+    // Admin: Seed default poll questions
+    seedDefaults: adminProcedure.mutation(async () => {
+      return seedDefaultPollQuestions();
+    }),
+
+    // Admin: Create template poll
+    createTemplate: adminProcedure
+      .input(z.object({
+        question: z.string().min(1).max(255),
+        catCount: z.number().min(2).max(4).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        return createTemplatePoll(input);
+      }),
+
+    // Admin: Get adoptable cats for poll options
+    getAdoptableCats: adminProcedure.query(async () => {
+      return getAdoptableCats();
+    }),
+
+    // Public: Get poll for TV display (with dynamic cats)
+    getForTV: publicProcedure.query(async () => {
+      return getPollForTV();
+    }),
   }),
 });
 

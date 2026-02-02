@@ -11,15 +11,6 @@ type PollOption = {
   percentage?: number;
 };
 
-type Poll = {
-  id: number;
-  question: string;
-  options: string;
-  status: string;
-  totalVotes: number;
-  parsedOptions?: PollOption[];
-};
-
 interface PollScreenProps {
   showResults?: boolean;
   countdownSeconds?: number;
@@ -28,9 +19,19 @@ interface PollScreenProps {
 export function PollScreen({ showResults = false, countdownSeconds }: PollScreenProps) {
   const [countdown, setCountdown] = useState(countdownSeconds || 0);
   
-  const { data: poll, refetch } = trpc.polls.getCurrent.useQuery(undefined, {
-    refetchInterval: showResults ? 5000 : 10000, // Refresh more often during results
+  // Use getForTV for dynamic cat selection
+  const { data: tvPoll, refetch } = trpc.polls.getForTV.useQuery(undefined, {
+    refetchInterval: showResults ? 5000 : 30000, // Refresh less often, cats change per 30-min session
   });
+
+  // Also get results if showing results
+  const { data: pollResults } = trpc.polls.getWithResults.useQuery(
+    { id: tvPoll?.id || 0 },
+    { 
+      enabled: showResults && !!tvPoll?.id,
+      refetchInterval: 5000,
+    }
+  );
 
   // Countdown timer
   useEffect(() => {
@@ -49,7 +50,7 @@ export function PollScreen({ showResults = false, countdownSeconds }: PollScreen
     }
   }, [countdownSeconds]);
 
-  if (!poll) {
+  if (!tvPoll) {
     return (
       <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900">
         <div className="text-center text-white">
@@ -61,23 +62,8 @@ export function PollScreen({ showResults = false, countdownSeconds }: PollScreen
     );
   }
 
-  // Handle potentially double-encoded options
-  let options: PollOption[] = [];
-  try {
-    let parsed = poll.options;
-    if (typeof parsed === 'string') {
-      parsed = JSON.parse(parsed);
-      // Handle double-encoded JSON
-      while (typeof parsed === 'string') {
-        parsed = JSON.parse(parsed);
-      }
-    }
-    options = parsed as PollOption[];
-  } catch (e) {
-    console.error('Failed to parse poll options:', e);
-    options = [];
-  }
-  const voteUrl = `${window.location.origin}/vote/${poll.id}`;
+  const options = tvPoll.options || [];
+  const voteUrl = `${window.location.origin}/vote/${tvPoll.id}`;
 
   // Format countdown
   const formatCountdown = (seconds: number) => {
@@ -85,6 +71,15 @@ export function PollScreen({ showResults = false, countdownSeconds }: PollScreen
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
+
+  // Get vote counts from results
+  const getVoteCount = (optionId: string) => {
+    if (!pollResults?.parsedOptions) return 0;
+    const opt = pollResults.parsedOptions.find(o => o.id === optionId);
+    return opt?.voteCount || 0;
+  };
+
+  const totalVotes = pollResults?.totalVotes || tvPoll.totalVotes || 0;
 
   if (showResults) {
     // Results view
@@ -105,31 +100,43 @@ export function PollScreen({ showResults = false, countdownSeconds }: PollScreen
 
         {/* Question */}
         <h1 className="text-5xl font-bold text-white text-center mb-12" style={{ fontFamily: "var(--font-display)" }}>
-          {poll.question}
+          {tvPoll.question}
         </h1>
 
-        {/* Results */}
-        <div className="flex-1 flex flex-col justify-center gap-6 max-w-4xl mx-auto w-full">
+        {/* Results with cat images */}
+        <div className="flex-1 flex flex-col justify-center gap-6 max-w-5xl mx-auto w-full">
           {options.map((opt, idx) => {
-            const percentage = poll.totalVotes > 0 
-              ? Math.round((opt.voteCount || 0) / poll.totalVotes * 100) 
+            const voteCount = getVoteCount(opt.id);
+            const percentage = totalVotes > 0 
+              ? Math.round(voteCount / totalVotes * 100) 
               : 0;
-            const isWinner = poll.totalVotes > 0 && 
-              (opt.voteCount || 0) === Math.max(...options.map(o => o.voteCount || 0));
+            const isWinner = totalVotes > 0 && 
+              voteCount === Math.max(...options.map(o => getVoteCount(o.id)));
             
             return (
               <div key={opt.id} className="relative">
-                <div className="flex items-center gap-4 mb-2">
-                  <span className="text-4xl">
-                    {idx === 0 ? "🐱" : idx === 1 ? "😺" : idx === 2 ? "😸" : "🐈"}
-                  </span>
-                  <span className="text-2xl text-white font-semibold flex-1">{opt.text}</span>
-                  <span className="text-3xl font-bold text-white">
+                <div className="flex items-center gap-6 mb-2">
+                  {/* Cat image */}
+                  {opt.imageUrl ? (
+                    <div className="w-24 h-24 rounded-2xl overflow-hidden bg-white/20 flex-shrink-0">
+                      <img 
+                        src={opt.imageUrl} 
+                        alt={opt.text}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-24 h-24 rounded-2xl bg-white/20 flex items-center justify-center text-4xl flex-shrink-0">
+                      {idx === 0 ? "🐱" : idx === 1 ? "😺" : idx === 2 ? "😸" : "🐈"}
+                    </div>
+                  )}
+                  <span className="text-3xl text-white font-semibold flex-1">{opt.text}</span>
+                  <span className="text-4xl font-bold text-white">
                     {percentage}%
-                    {isWinner && poll.totalVotes > 0 && " 🏆"}
+                    {isWinner && totalVotes > 0 && " 🏆"}
                   </span>
                 </div>
-                <div className="h-12 bg-white/20 rounded-full overflow-hidden">
+                <div className="h-10 bg-white/20 rounded-full overflow-hidden ml-30">
                   <div
                     className={`h-full rounded-full transition-all duration-1000 ${
                       isWinner ? "bg-gradient-to-r from-amber-400 to-orange-500" : "bg-white/40"
@@ -138,7 +145,7 @@ export function PollScreen({ showResults = false, countdownSeconds }: PollScreen
                   />
                 </div>
                 <div className="text-right text-white/60 text-sm mt-1">
-                  {opt.voteCount || 0} votes
+                  {voteCount} votes
                 </div>
               </div>
             );
@@ -147,13 +154,13 @@ export function PollScreen({ showResults = false, countdownSeconds }: PollScreen
 
         {/* Total votes */}
         <div className="text-center mt-8 text-white/80 text-xl">
-          Total votes: {poll.totalVotes}
+          Total votes: {totalVotes}
         </div>
       </div>
     );
   }
 
-  // Voting view
+  // Voting view with cat images
   return (
     <div className="w-full h-full bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 p-12 flex">
       {/* Left side - Question and options */}
@@ -168,19 +175,30 @@ export function PollScreen({ showResults = false, countdownSeconds }: PollScreen
 
         {/* Question */}
         <h1 className="text-5xl font-bold text-white mb-12" style={{ fontFamily: "var(--font-display)" }}>
-          {poll.question}
+          {tvPoll.question}
         </h1>
 
-        {/* Options preview */}
+        {/* Options with cat images */}
         <div className="space-y-4">
           {options.map((opt, idx) => (
             <div
               key={opt.id}
               className="flex items-center gap-4 bg-white/10 rounded-2xl p-4 backdrop-blur"
             >
-              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-2xl">
-                {idx === 0 ? "🐱" : idx === 1 ? "😺" : idx === 2 ? "😸" : "🐈"}
-              </div>
+              {/* Cat image */}
+              {opt.imageUrl ? (
+                <div className="w-20 h-20 rounded-xl overflow-hidden bg-white/20 flex-shrink-0">
+                  <img 
+                    src={opt.imageUrl} 
+                    alt={opt.text}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="w-20 h-20 rounded-xl bg-white/20 flex items-center justify-center text-3xl flex-shrink-0">
+                  {idx === 0 ? "🐱" : idx === 1 ? "😺" : idx === 2 ? "😸" : "🐈"}
+                </div>
+              )}
               <span className="text-2xl text-white font-medium">{opt.text}</span>
             </div>
           ))}
@@ -188,7 +206,7 @@ export function PollScreen({ showResults = false, countdownSeconds }: PollScreen
 
         {/* Vote count */}
         <div className="mt-8 text-white/60 text-lg">
-          {poll.totalVotes} votes so far
+          {totalVotes} votes so far
         </div>
       </div>
 
@@ -217,7 +235,7 @@ export function PollOverlay() {
   const [showResults, setShowResults] = useState(false);
   const [countdown, setCountdown] = useState(0);
 
-  const { data: poll } = trpc.polls.getCurrent.useQuery(undefined, {
+  const { data: poll } = trpc.polls.getForTV.useQuery(undefined, {
     enabled: showPoll || showResults,
   });
 

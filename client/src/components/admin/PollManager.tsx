@@ -75,6 +75,13 @@ export function PollManager() {
     onSuccess: () => refetch(),
   });
 
+  const seedPollsMutation = trpc.polls.seedDefaults.useMutation({
+    onSuccess: (result) => {
+      refetch();
+      alert(result.message);
+    },
+  });
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "active":
@@ -95,13 +102,21 @@ export function PollManager() {
             Create fun polls about adoptable cats for guests to vote on
           </p>
         </div>
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Create Poll
-            </Button>
-          </DialogTrigger>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => seedPollsMutation.mutate()}
+            disabled={seedPollsMutation.isPending}
+          >
+            {seedPollsMutation.isPending ? "Seeding..." : "Seed Default Polls"}
+          </Button>
+          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="w-4 h-4 mr-2" />
+                Create Poll
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader>
               <DialogTitle>Create New Poll</DialogTitle>
@@ -112,6 +127,7 @@ export function PollManager() {
             />
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Poll List */}

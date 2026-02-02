@@ -10,6 +10,8 @@ type PollOption = {
   text: string;
   catId?: number;
   imageUrl?: string;
+  voteCount?: number;
+  percentage?: number;
 };
 
 // Generate a simple fingerprint for vote tracking
@@ -160,15 +162,26 @@ export default function Vote() {
                     : 0;
                   return (
                     <div key={opt.id} className="space-y-1">
-                      <div className="flex justify-between text-sm">
-                        <span>{opt.text}</span>
-                        <span>{percentage}%</span>
-                      </div>
-                      <div className="h-2 bg-background rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-primary"
-                          style={{ width: `${percentage}%` }}
-                        />
+                      <div className="flex items-center gap-2">
+                        {opt.imageUrl && (
+                          <img 
+                            src={opt.imageUrl} 
+                            alt={opt.text}
+                            className="w-8 h-8 rounded-full object-cover"
+                          />
+                        )}
+                        <div className="flex-1">
+                          <div className="flex justify-between text-sm">
+                            <span>{opt.text}</span>
+                            <span>{percentage}%</span>
+                          </div>
+                          <div className="h-2 bg-background rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-primary"
+                              style={{ width: `${percentage}%` }}
+                            />
+                          </div>
+                        </div>
                       </div>
                     </div>
                   );
@@ -217,7 +230,7 @@ export default function Vote() {
           </CardContent>
         </Card>
 
-        {/* Options */}
+        {/* Options with cat images */}
         <div className="space-y-3 mb-6">
           {options.map((opt, idx) => (
             <button
@@ -229,11 +242,22 @@ export default function Vote() {
                   : "border-white/20 bg-white/5 hover:bg-white/10"
               }`}
             >
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl ${
-                selectedOption === opt.id ? "bg-primary/20" : "bg-white/10"
-              }`}>
-                {idx === 0 ? "🐱" : idx === 1 ? "😺" : idx === 2 ? "😸" : "🐈"}
-              </div>
+              {/* Cat image or emoji */}
+              {opt.imageUrl ? (
+                <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0">
+                  <img 
+                    src={opt.imageUrl} 
+                    alt={opt.text}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl ${
+                  selectedOption === opt.id ? "bg-primary/20" : "bg-white/10"
+                }`}>
+                  {idx === 0 ? "🐱" : idx === 1 ? "😺" : idx === 2 ? "😸" : "🐈"}
+                </div>
+              )}
               <span className={`text-lg font-medium ${
                 selectedOption === opt.id ? "text-primary" : "text-white"
               }`}>

@@ -1146,3 +1146,219 @@ export async function resetPollVotes(pollId: number) {
   
   return { success: true };
 }
+
+
+// ============ Template Poll Functions ============
+
+/**
+ * Get adoptable cats from active ADOPTION screens
+ */
+export async function getAdoptableCats() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const adoptionScreens = await db.select()
+    .from(screens)
+    .where(and(
+      eq(screens.type, "ADOPTION"),
+      eq(screens.isActive, true),
+      eq(screens.isAdopted, false)
+    ));
+  
+  return adoptionScreens.map(screen => ({
+    id: screen.id,
+    name: screen.title,
+    imageUrl: screen.imagePath,
+    subtitle: screen.subtitle,
+  }));
+}
+
+/**
+ * Create a template poll (question only, cats selected dynamically)
+ */
+export async function createTemplatePoll(data: { question: string; catCount?: number }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Get max sortOrder
+  const existing = await db.select().from(polls).orderBy(desc(polls.sortOrder)).limit(1);
+  const maxOrder = existing[0]?.sortOrder ?? -1;
+  
+  const result = await db.insert(polls).values({
+    question: data.question,
+    pollType: "template",
+    options: "[]", // Empty for template polls
+    catCount: data.catCount ?? 2,
+    isRecurring: true,
+    sortOrder: maxOrder + 1,
+    status: "active",
+  });
+  
+  return { id: result[0].insertId };
+}
+
+/**
+ * Get the next poll to show (shuffled, least recently shown)
+ */
+export async function getNextPollForDisplay(): Promise<{
+  poll: Poll;
+  cats: Array<{ id: number; name: string; imageUrl: string | null }>;
+} | null> {
+  const db = await getDb();
+  if (!db) return null;
+  
+  // Get all active template polls, ordered by last shown (null = never shown = priority)
+  const templatePolls = await db.select()
+    .from(polls)
+    .where(and(
+      eq(polls.status, "active"),
+      eq(polls.pollType, "template")
+    ))
+    .orderBy(asc(polls.lastShownAt));
+  
+  if (templatePolls.length === 0) {
+    // Fall back to custom polls if no template polls
+    const customPolls = await db.select()
+      .from(polls)
+      .where(and(
+        eq(polls.status, "active"),
+        eq(polls.pollType, "custom")
+      ))
+      .orderBy(asc(polls.lastShownAt))
+      .limit(1);
+    
+    if (customPolls.length === 0) return null;
+    
+    const poll = customPolls[0];
+    // Parse options for custom poll
+    let options: PollOption[] = [];
+    try {
+      let parsed = poll.options;
+      if (typeof parsed === 'string') {
+        parsed = JSON.parse(parsed);
+        while (typeof parsed === 'string') {
+          parsed = JSON.parse(parsed);
+        }
+      }
+      options = parsed as PollOption[];
+    } catch (e) {
+      options = [];
+    }
+    
+    // Update last shown
+    await db.update(polls).set({ lastShownAt: new Date() }).where(eq(polls.id, poll.id));
+    
+    return {
+      poll,
+      cats: options.map(opt => ({
+        id: parseInt(opt.id) || 0,
+        name: opt.text,
+        imageUrl: opt.imageUrl || null,
+      })),
+    };
+  }
+  
+  // Get the least recently shown template poll
+  const poll = templatePolls[0];
+  
+  // Get available adoptable cats
+  const allCats = await getAdoptableCats();
+  
+  if (allCats.length < 2) {
+    // Not enough cats, skip template polls
+    return null;
+  }
+  
+  // Randomly select cats for this poll
+  const shuffledCats = [...allCats].sort(() => Math.random() - 0.5);
+  const selectedCats = shuffledCats.slice(0, Math.min(poll.catCount ?? 2, allCats.length));
+  
+  // Update last shown time
+  await db.update(polls).set({ lastShownAt: new Date() }).where(eq(polls.id, poll.id));
+  
+  return {
+    poll,
+    cats: selectedCats.map(cat => ({
+      id: cat.id,
+      name: cat.name,
+      imageUrl: cat.imageUrl,
+    })),
+  };
+}
+
+/**
+ * Seed the default poll questions
+ */
+export async function seedDefaultPollQuestions() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const defaultQuestions = [
+    { question: "Who has the fluffiest tail?", catCount: 2 },
+    { question: "Who would win in a nap contest?", catCount: 2 },
+    { question: "Who gives the best head boops?", catCount: 2 },
+    { question: "Who has the cutest toe beans?", catCount: 2 },
+    { question: "Who would be the best cuddle buddy?", catCount: 2 },
+    { question: "Who has the most adorable meow?", catCount: 2 },
+    { question: "Who looks most ready for adoption?", catCount: 3 },
+    { question: "Who has the prettiest eyes?", catCount: 2 },
+    { question: "Who would make the best lap cat?", catCount: 2 },
+    { question: "Who has the most boopable nose?", catCount: 2 },
+    { question: "Who looks like they're plotting world domination?", catCount: 2 },
+    { question: "Who would be the best office cat?", catCount: 2 },
+    { question: "Who has the most majestic whiskers?", catCount: 2 },
+    { question: "Who looks the most mischievous?", catCount: 3 },
+    { question: "Who would you want to wake up to every morning?", catCount: 2 },
+  ];
+  
+  // Check if we already have template polls
+  const existingTemplates = await db.select()
+    .from(polls)
+    .where(eq(polls.pollType, "template"));
+  
+  if (existingTemplates.length > 0) {
+    return { seeded: 0, message: "Template polls already exist" };
+  }
+  
+  // Insert all default questions
+  for (let i = 0; i < defaultQuestions.length; i++) {
+    const q = defaultQuestions[i];
+    await db.insert(polls).values({
+      question: q.question,
+      pollType: "template",
+      options: "[]",
+      catCount: q.catCount,
+      isRecurring: true,
+      sortOrder: i,
+      status: "active",
+    });
+  }
+  
+  return { seeded: defaultQuestions.length, message: `Seeded ${defaultQuestions.length} poll questions` };
+}
+
+/**
+ * Get poll with dynamically selected cats for display
+ */
+export async function getPollForTV(): Promise<{
+  id: number;
+  question: string;
+  options: Array<{ id: string; text: string; imageUrl?: string }>;
+  totalVotes: number;
+} | null> {
+  const nextPoll = await getNextPollForDisplay();
+  if (!nextPoll) return null;
+  
+  const { poll, cats } = nextPoll;
+  
+  return {
+    id: poll.id,
+    question: poll.question,
+    options: cats.map(cat => ({
+      id: `cat-${cat.id}`,
+      text: cat.name,
+      imageUrl: cat.imageUrl || undefined,
+    })),
+    totalVotes: poll.totalVotes,
+  };
+}

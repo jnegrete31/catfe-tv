@@ -474,4 +474,12 @@
 - [x] Display results at x:25 and x:55 with countdown
 - [x] Allow guests to vote via QR code on their phones
 - [x] Fix double-encoded JSON options parsing in frontend and backend
-- [ ] Feature adoptable cats from adoption slides in polls
+- [x] Feature adoptable cats from adoption slides in polls
+
+## Feature - Pre-made Poll Questions with Dynamic Cat Selection
+- [x] Create 12-15 fun poll question templates (e.g., "Who has the fluffiest tail?")
+- [x] Update poll schema to support dynamic cat selection from adoption slides
+- [x] Build API to randomly select 2-4 cats from active adoption screens for each poll
+- [x] Implement poll shuffling so each 30-minute session gets a different question
+- [x] Seed database with pre-made poll questions
+- [x] Test poll rotation with real adoption cats

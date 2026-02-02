@@ -252,19 +252,30 @@ export type InsertSuggestedCaption = typeof suggestedCaptions.$inferInsert;
 export const pollStatusEnum = mysqlEnum("pollStatus", ["draft", "active", "ended"]);
 
 /**
+ * Poll type - template polls use dynamic cat selection, custom polls have fixed options
+ */
+export const pollTypeEnum = mysqlEnum("pollType", ["template", "custom"]);
+
+/**
  * Polls table - fun polls about adoptable cats
  */
 export const polls = mysqlTable("polls", {
   id: int("id").autoincrement().primaryKey(),
   question: varchar("question", { length: 255 }).notNull(), // e.g., "Who has the fluffiest tail?"
+  pollType: pollTypeEnum.notNull().default("custom"), // template = dynamic cats, custom = fixed options
   status: pollStatusEnum.notNull().default("draft"),
   // Options stored as JSON array of { id, text, catId?, imageUrl? }
+  // For template polls, this is empty and cats are selected dynamically
   options: text("options").notNull(), // JSON string
+  // How many cats to show (for template polls)
+  catCount: int("catCount").notNull().default(2), // 2-4 cats per poll
   // Scheduling
   isRecurring: boolean("isRecurring").notNull().default(false), // If true, shows in rotation
   sortOrder: int("sortOrder").notNull().default(0),
   // Stats
   totalVotes: int("totalVotes").notNull().default(0),
+  // Track last shown time for shuffling
+  lastShownAt: timestamp("lastShownAt"),
   // Timestamps
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
