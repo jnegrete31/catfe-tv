@@ -151,6 +151,7 @@ export default function PhotoFrameSelector({
           {PHOTO_FRAMES.map((frame) => (
             <button
               key={frame.id}
+              type="button"
               onClick={() => onFrameSelect(frame.id)}
               className={`
                 relative aspect-square rounded-lg border-2 overflow-hidden

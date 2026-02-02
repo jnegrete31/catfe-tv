@@ -426,3 +426,7 @@
 - [x] Build admin UI for managing captions (add/edit/delete)
 - [x] Update upload pages to fetch captions from database
 - [x] Seed default captions on first run (via admin button)
+
+## Bug Fix - Frame Selection and Name Label
+- [x] Fix frame selection resetting name field (added type="button" to prevent form submission)
+- [x] Change "Your Name" label to "First Name" for privacy

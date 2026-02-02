@@ -203,14 +203,14 @@ export default function UploadSnapPurr() {
                 />
               </div>
 
-              {/* Your Name */}
+              {/* First Name */}
               <div className="space-y-2">
-                <Label htmlFor="name">Your Name *</Label>
+                <Label htmlFor="name">First Name *</Label>
                 <Input
                   id="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Your name"
+                  placeholder="First name only"
                   required
                 />
               </div>
