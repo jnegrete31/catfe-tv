@@ -456,3 +456,16 @@
 - [x] Detect photo orientation when file is selected
 - [x] Only show BackgroundStyleSelector for portrait photos
 - [x] Update both Happy Tails and Snap & Purr upload pages
+
+## Feature - Photo Cropping Tool
+- [x] Install react-image-crop library
+- [x] Create PhotoCropper component with zoom/crop controls
+- [x] Integrate into Happy Tails upload page
+- [x] Integrate into Snap & Purr upload page
+
+## Future Idea - Cat Adoption Polls
+- [ ] Create poll system for fun cat questions (e.g., "Who has the fluffiest tail?")
+- [ ] Show poll at start of every 30 mins (x:00 and x:30)
+- [ ] Display results at x:25 and x:55 with countdown
+- [ ] Allow guests to vote via QR code on their phones
+- [ ] Feature adoptable cats from adoption slides in polls

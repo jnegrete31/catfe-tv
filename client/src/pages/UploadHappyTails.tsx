@@ -5,10 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Heart, Upload, Camera, CheckCircle, Cat, Tv, Plus } from "lucide-react";
+import { Heart, Upload, Camera, CheckCircle, Cat, Tv, Plus, Crop as CropIcon } from "lucide-react";
 import { Link } from "wouter";
 import PhotoFrameSelector from "@/components/PhotoFrameSelector";
 import BackgroundStyleSelector from "@/components/BackgroundStyleSelector";
+import PhotoCropper from "@/components/PhotoCropper";
 
 export default function UploadHappyTails() {
   const [name, setName] = useState("");
@@ -22,6 +23,8 @@ export default function UploadHappyTails() {
   const [compositeBase64, setCompositeBase64] = useState<string | null>(null);
   const [backgroundStyle, setBackgroundStyle] = useState<"blur" | "gradient">("blur");
   const [isPortrait, setIsPortrait] = useState(false);
+  const [isCropping, setIsCropping] = useState(false);
+  const [originalPhoto, setOriginalPhoto] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -47,21 +50,43 @@ export default function UploadHappyTails() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Create preview and detect orientation
+    // Create preview and enable cropping mode
     const reader = new FileReader();
     reader.onload = (event) => {
       const result = event.target?.result as string;
-      setPhotoPreview(result);
-      setPhotoBase64(result);
+      setOriginalPhoto(result);
+      setIsCropping(true);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleCropComplete = (croppedImage: string) => {
+    setPhotoPreview(croppedImage);
+    setPhotoBase64(croppedImage);
+    setIsCropping(false);
+    
+    // Detect orientation of cropped image
+    const img = new Image();
+    img.onload = () => {
+      setIsPortrait(img.height > img.width);
+    };
+    img.src = croppedImage;
+  };
+
+  const handleCropCancel = () => {
+    // Use original without cropping
+    if (originalPhoto) {
+      setPhotoPreview(originalPhoto);
+      setPhotoBase64(originalPhoto);
       
       // Detect orientation
       const img = new Image();
       img.onload = () => {
         setIsPortrait(img.height > img.width);
       };
-      img.src = result;
-    };
-    reader.readAsDataURL(file);
+      img.src = originalPhoto;
+    }
+    setIsCropping(false);
   };
 
   const handleCompositeReady = useCallback((composite: string) => {
@@ -99,6 +124,8 @@ export default function UploadHappyTails() {
     setCompositeBase64(null);
     setBackgroundStyle("blur");
     setIsPortrait(false);
+    setIsCropping(false);
+    setOriginalPhoto(null);
     setIsAnonymous(false);
   };
 
@@ -176,7 +203,13 @@ export default function UploadHappyTails() {
               {/* Photo Upload */}
               <div className="space-y-2">
                 <Label>Photo of Your Cat *</Label>
-                {!photoPreview ? (
+                {isCropping && originalPhoto ? (
+                  <PhotoCropper
+                    imageUrl={originalPhoto}
+                    onCropComplete={handleCropComplete}
+                    onCancel={handleCropCancel}
+                  />
+                ) : !photoPreview ? (
                   <div
                     onClick={() => fileInputRef.current?.click()}
                     className="border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors border-gray-300 hover:border-amber-400 hover:bg-amber-50"
@@ -210,16 +243,35 @@ export default function UploadHappyTails() {
                       />
                     )}
                     
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="w-full"
-                    >
-                      <Camera className="w-4 h-4 mr-2" />
-                      Change Photo
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          if (originalPhoto) {
+                            setIsCropping(true);
+                          } else if (photoPreview) {
+                            setOriginalPhoto(photoPreview);
+                            setIsCropping(true);
+                          }
+                        }}
+                        className="flex-1"
+                      >
+                        <CropIcon className="w-4 h-4 mr-2" />
+                        Edit Crop
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex-1"
+                      >
+                        <Camera className="w-4 h-4 mr-2" />
+                        Change Photo
+                      </Button>
+                    </div>
                   </div>
                 )}
                 <input
