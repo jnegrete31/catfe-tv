@@ -1,4 +1,4 @@
-import { eq, and, gte, lte, or, isNull, asc, desc } from "drizzle-orm";
+import { eq, and, gte, lte, or, isNull, asc, desc, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { 
   InsertUser, users, 
@@ -689,4 +689,60 @@ export async function getSessionAnalytics(startDate?: Date, endDate?: Date): Pro
     peakHours,
     averageSessionLength: Math.round(averageSessionLength),
   };
+}
+
+
+// ============ WIX BOOKINGS SYNC ============
+
+export async function getGuestSessionByWixBookingId(wixBookingId: string) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.select().from(guestSessions)
+    .where(eq(guestSessions.wixBookingId, wixBookingId))
+    .limit(1);
+  return result[0] || null;
+}
+
+export async function createGuestSessionFromWixBooking(data: {
+  wixBookingId: string;
+  guestName: string;
+  guestCount: number;
+  duration: "15" | "30" | "60";
+  checkInAt: Date;
+  expiresAt: Date;
+  status: "active" | "completed" | "extended";
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(guestSessions).values({
+    wixBookingId: data.wixBookingId,
+    guestName: data.guestName,
+    guestCount: data.guestCount,
+    duration: data.duration,
+    checkInAt: data.checkInAt,
+    expiresAt: data.expiresAt,
+    status: data.status,
+    reminderShown: false,
+  });
+  
+  return { id: result[0].insertId };
+}
+
+export async function getWixSyncedSessionsToday() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  return db.select().from(guestSessions)
+    .where(
+      and(
+        gte(guestSessions.checkInAt, today),
+        sql`${guestSessions.wixBookingId} IS NOT NULL`
+      )
+    )
+    .orderBy(asc(guestSessions.checkInAt));
 }

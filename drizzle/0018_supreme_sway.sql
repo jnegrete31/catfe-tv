@@ -1,0 +1,1 @@
+ALTER TABLE `guestSessions` ADD `wixBookingId` varchar(64);

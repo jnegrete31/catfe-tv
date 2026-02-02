@@ -12,6 +12,7 @@ import { PlaylistPreview } from "@/components/admin/ScreenPreview";
 import { GuestCheckIn } from "@/components/admin/GuestCheckIn";
 import PhotoModeration from "@/components/admin/PhotoModeration";
 import { SessionHistory } from "@/components/admin/SessionHistory";
+import { WixSync } from "@/components/admin/WixSync";
 import { trpc } from "@/lib/trpc";
 import type { Screen } from "@shared/types";
 import { 
@@ -25,6 +26,7 @@ import {
   Users,
   Image,
   BarChart3,
+  CalendarDays,
 } from "lucide-react";
 import { IOSInstallPrompt } from "@/components/IOSInstallPrompt";
 
@@ -160,26 +162,30 @@ export default function Admin() {
       {/* Main Content */}
       <main className="container py-4 pb-24">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full grid grid-cols-5 mb-4">
-            <TabsTrigger value="screens" className="flex items-center gap-2">
+          <TabsList className="w-full grid grid-cols-6 mb-4">
+            <TabsTrigger value="screens" className="flex items-center gap-1 text-xs sm:text-sm">
               <LayoutGrid className="w-4 h-4" />
-              Screens
+              <span className="hidden sm:inline">Screens</span>
             </TabsTrigger>
-            <TabsTrigger value="guests" className="flex items-center gap-2">
+            <TabsTrigger value="guests" className="flex items-center gap-1 text-xs sm:text-sm">
               <Users className="w-4 h-4" />
-              Guests
+              <span className="hidden sm:inline">Guests</span>
             </TabsTrigger>
-            <TabsTrigger value="photos" className="flex items-center gap-2">
+            <TabsTrigger value="wix" className="flex items-center gap-1 text-xs sm:text-sm">
+              <CalendarDays className="w-4 h-4" />
+              <span className="hidden sm:inline">Wix</span>
+            </TabsTrigger>
+            <TabsTrigger value="photos" className="flex items-center gap-1 text-xs sm:text-sm">
               <Image className="w-4 h-4" />
-              Photos
+              <span className="hidden sm:inline">Photos</span>
             </TabsTrigger>
-            <TabsTrigger value="reports" className="flex items-center gap-2">
+            <TabsTrigger value="reports" className="flex items-center gap-1 text-xs sm:text-sm">
               <BarChart3 className="w-4 h-4" />
-              Reports
+              <span className="hidden sm:inline">Reports</span>
             </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-2">
+            <TabsTrigger value="settings" className="flex items-center gap-1 text-xs sm:text-sm">
               <Settings className="w-4 h-4" />
-              Settings
+              <span className="hidden sm:inline">Settings</span>
             </TabsTrigger>
           </TabsList>
           
@@ -218,6 +224,11 @@ export default function Admin() {
           {/* Guests Tab */}
           <TabsContent value="guests">
             <GuestCheckIn />
+          </TabsContent>
+          
+          {/* Wix Bookings Tab */}
+          <TabsContent value="wix">
+            <WixSync />
           </TabsContent>
           
           {/* Photos Tab */}

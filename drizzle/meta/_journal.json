@@ -127,6 +127,13 @@
       "when": 1769992743659,
       "tag": "0017_faithful_hiroim",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "5",
+      "when": 1769999842714,
+      "tag": "0018_supreme_sway",
+      "breakpoints": true
     }
   ]
 }

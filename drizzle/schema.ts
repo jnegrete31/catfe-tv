@@ -172,6 +172,7 @@ export const guestSessions = mysqlTable("guestSessions", {
   checkedOutAt: timestamp("checkedOutAt"),
   notes: text("notes"),
   reminderShown: boolean("reminderShown").notNull().default(false), // Track if 5-min reminder was shown
+  wixBookingId: varchar("wixBookingId", { length: 64 }), // Wix booking ID for synced sessions
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

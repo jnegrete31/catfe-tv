@@ -380,3 +380,11 @@
 - [x] Create database schema for tracking guest sessions (already exists)
 - [x] Build session history page with analytics
 - [x] Show popular time slots and visit statistics
+
+## Feature - Wix Bookings Integration
+- [x] Add Wix API key and Site ID secrets
+- [x] Create Wix API client for fetching bookings
+- [x] Build sync endpoint to import bookings as guest sessions
+- [x] Add admin UI for Wix sync settings
+- [x] Create manual sync button in admin dashboard
+- [x] Map Wix booking fields to guest session fields
