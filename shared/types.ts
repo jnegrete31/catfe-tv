@@ -23,6 +23,7 @@ export const SCREEN_TYPES = [
   "HAPPY_TAILS_QR",
   "SNAP_PURR_QR",
   "POLL",
+  "POLL_QR",
 ] as const;
 
 export type ScreenType = typeof SCREEN_TYPES[number];
@@ -44,6 +45,7 @@ export const SCREEN_TYPE_CONFIG: Record<ScreenType, { label: string; color: stri
   HAPPY_TAILS_QR: { label: "Happy Tails QR", color: "#c2410c", bgColor: "#ffedd5" },
   SNAP_PURR_QR: { label: "Snap & Purr QR", color: "#a16207", bgColor: "#fef9c3" },
   POLL: { label: "Cat Poll", color: "#7c3aed", bgColor: "#ede9fe" },
+  POLL_QR: { label: "Poll QR", color: "#8b5cf6", bgColor: "#f3e8ff" },
 };
 
 // Days of week

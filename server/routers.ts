@@ -108,6 +108,7 @@ const screenTypes = [
   "HAPPY_TAILS_QR",
   "SNAP_PURR_QR",
   "POLL",
+  "POLL_QR",
 ] as const;
 
 // Input schemas

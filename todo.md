@@ -541,3 +541,12 @@
 - [x] Remove PollResultsWidget from tvOS app
 - [x] Ensure web voting page shows results after guest votes (live updates every 5 seconds)
 - [x] Package updated Xcode project
+
+## tvOS App Updates - Feb 2, 2026
+- [x] Remove arrow controls overlay from tvOS app
+- [x] Remove transition animation when changing slides
+- [x] Add POLL_QR screen type to database schema
+- [x] Add Poll model and fetchCurrentPoll to APIClient.swift
+- [x] Create PollQRView.swift for displaying poll QR code on TV
+- [x] Update TVDisplayView to handle POLL_QR screen type
+- [x] Package updated Xcode project
