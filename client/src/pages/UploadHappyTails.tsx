@@ -14,6 +14,7 @@ export default function UploadHappyTails() {
   const [email, setEmail] = useState("");
   const [catName, setCatName] = useState("");
   const [caption, setCaption] = useState("");
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoBase64, setPhotoBase64] = useState<string | null>(null);
   const [selectedFrame, setSelectedFrame] = useState("none");
@@ -59,7 +60,7 @@ export default function UploadHappyTails() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !catName) return;
+    if ((!isAnonymous && !name) || !catName) return;
     
     // Use composite image if available, otherwise use original
     const imageToSubmit = compositeBase64 || photoBase64;
@@ -67,7 +68,7 @@ export default function UploadHappyTails() {
 
     submitMutation.mutate({
       type: "happy_tails",
-      submitterName: name,
+      submitterName: isAnonymous ? "A Catfé Guest" : name,
       submitterEmail: email || undefined,
       photoBase64: imageToSubmit,
       caption: caption || undefined,
@@ -85,6 +86,7 @@ export default function UploadHappyTails() {
     setPhotoBase64(null);
     setSelectedFrame("none");
     setCompositeBase64(null);
+    setIsAnonymous(false);
   };
 
   if (submitted) {
@@ -220,14 +222,34 @@ export default function UploadHappyTails() {
 
               {/* First Name */}
               <div className="space-y-2">
-                <Label htmlFor="name">First Name *</Label>
-                <Input
-                  id="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="First name only"
-                  required
-                />
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="name">First Name {!isAnonymous && "*"}</Label>
+                  <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={isAnonymous}
+                      onChange={(e) => {
+                        setIsAnonymous(e.target.checked);
+                        if (e.target.checked) setName("");
+                      }}
+                      className="w-4 h-4 rounded border-gray-300 text-amber-500 focus:ring-amber-500"
+                    />
+                    <span className="text-gray-600">Stay anonymous</span>
+                  </label>
+                </div>
+                {isAnonymous ? (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-700">
+                    Your photo will appear as "A Catfé Guest" on the TV
+                  </div>
+                ) : (
+                  <Input
+                    id="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="First name only"
+                    required={!isAnonymous}
+                  />
+                )}
               </div>
 
               {/* Email (optional) */}
@@ -277,7 +299,7 @@ export default function UploadHappyTails() {
               <Button
                 type="submit"
                 className="w-full bg-amber-500 hover:bg-amber-600"
-                disabled={!photoBase64 || !name || !catName || submitMutation.isPending}
+                disabled={!photoBase64 || (!isAnonymous && !name) || !catName || submitMutation.isPending}
               >
                 {submitMutation.isPending ? (
                   <>Uploading...</>

@@ -430,3 +430,9 @@
 ## Bug Fix - Frame Selection and Name Label
 - [x] Fix frame selection resetting name field (added type="button" to prevent form submission)
 - [x] Change "Your Name" label to "First Name" for privacy
+
+## Feature - Anonymous Photo Uploads
+- [x] Add "Upload Anonymously" checkbox to Snap & Purr page
+- [x] Add "Upload Anonymously" checkbox to Happy Tails page
+- [x] When anonymous, submit with name "A Catfé Guest"
+- [x] Make First Name field optional when anonymous is checked

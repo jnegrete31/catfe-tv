@@ -13,6 +13,7 @@ export default function UploadSnapPurr() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [caption, setCaption] = useState("");
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoBase64, setPhotoBase64] = useState<string | null>(null);
   const [selectedFrame, setSelectedFrame] = useState("none");
@@ -58,7 +59,7 @@ export default function UploadSnapPurr() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name) return;
+    if (!isAnonymous && !name) return;
     
     // Use composite image if available, otherwise use original
     const imageToSubmit = compositeBase64 || photoBase64;
@@ -66,7 +67,7 @@ export default function UploadSnapPurr() {
 
     submitMutation.mutate({
       type: "snap_purr",
-      submitterName: name,
+      submitterName: isAnonymous ? "A Catfé Guest" : name,
       submitterEmail: email || undefined,
       photoBase64: imageToSubmit,
       caption: caption || undefined,
@@ -82,6 +83,7 @@ export default function UploadSnapPurr() {
     setPhotoBase64(null);
     setSelectedFrame("none");
     setCompositeBase64(null);
+    setIsAnonymous(false);
   };
 
   if (submitted) {
@@ -205,14 +207,34 @@ export default function UploadSnapPurr() {
 
               {/* First Name */}
               <div className="space-y-2">
-                <Label htmlFor="name">First Name *</Label>
-                <Input
-                  id="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="First name only"
-                  required
-                />
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="name">First Name {!isAnonymous && "*"}</Label>
+                  <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={isAnonymous}
+                      onChange={(e) => {
+                        setIsAnonymous(e.target.checked);
+                        if (e.target.checked) setName("");
+                      }}
+                      className="w-4 h-4 rounded border-gray-300 text-yellow-500 focus:ring-yellow-500"
+                    />
+                    <span className="text-gray-600">Stay anonymous</span>
+                  </label>
+                </div>
+                {isAnonymous ? (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-700">
+                    Your photo will appear as "A Catfé Guest" on the TV
+                  </div>
+                ) : (
+                  <Input
+                    id="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="First name only"
+                    required={!isAnonymous}
+                  />
+                )}
               </div>
 
               {/* Email (optional) */}
@@ -262,7 +284,7 @@ export default function UploadSnapPurr() {
               <Button
                 type="submit"
                 className="w-full bg-yellow-500 hover:bg-yellow-600 text-gray-900"
-                disabled={!photoBase64 || !name || submitMutation.isPending}
+                disabled={!photoBase64 || (!isAnonymous && !name) || submitMutation.isPending}
               >
                 {submitMutation.isPending ? (
                   <>Uploading...</>
