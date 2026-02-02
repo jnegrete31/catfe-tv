@@ -535,3 +535,9 @@
 - [x] Fixed PollWidget to refresh poll data every 5 seconds during voting time
 - [x] Fixed PollResultsWidget to refresh when entering results time
 - [x] Pushed changes to GitHub repository (catfe-tv)
+
+## Feature - Simplify tvOS Poll to QR Code Only
+- [x] Update tvOS PollWidget to show only QR code (no vote counts or results)
+- [x] Remove PollResultsWidget from tvOS app
+- [x] Ensure web voting page shows results after guest votes (live updates every 5 seconds)
+- [x] Package updated Xcode project
