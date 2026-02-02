@@ -4,6 +4,7 @@ import { ScreenRenderer, FallbackScreen } from "@/components/tv/ScreenRenderer";
 import { WeatherClockOverlay } from "@/components/tv/WeatherClockOverlay";
 import { GuestReminderOverlay } from "@/components/tv/GuestReminderOverlay";
 import { WelcomeOverlay } from "@/components/tv/WelcomeOverlay";
+import { PollOverlay } from "@/components/tv/PollScreen";
 import { RecentlyAdoptedBanner } from "@/components/tv/RecentlyAdoptedBanner";
 import { Wifi, WifiOff, RefreshCw, ChevronLeft, ChevronRight, Play, Pause, Airplay } from "lucide-react";
 import { trpc } from "@/lib/trpc";
@@ -273,6 +274,9 @@ export default function TVDisplay() {
       
       {/* Welcome Overlay for upcoming arrivals */}
       <WelcomeOverlay />
+      
+      {/* Poll Overlay - shows at scheduled times */}
+      <PollOverlay />
       
       {/* Recently Adopted Banner - DISABLED (wonky behavior on tvOS)
       {recentlyAdopted && recentlyAdopted.length > 0 && (

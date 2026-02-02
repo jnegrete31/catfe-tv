@@ -1,0 +1,17 @@
+{
+  "query": "SELECT * FROM pollVotes WHERE pollId = 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2KjT5kGWaGHMws6.75433b4e530a --database aMDMXCoQ2ycSYTjhkKKJzm --execute SELECT * FROM pollVotes WHERE pollId = 5;",
+  "rows": [
+    {
+      "id": "4",
+      "pollId": "5",
+      "optionId": "opt1",
+      "voterFingerprint": "1770015678037-c1bunb8u4p",
+      "createdAt": "2026-02-02 07:04:46"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tpollId\toptionId\tvoterFingerprint\tcreatedAt\n4\t5\topt1\t1770015678037-c1bunb8u4p\t2026-02-02 07:04:46\n",
+  "stderr": "",
+  "execution_time_ms": 61
+}

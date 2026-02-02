@@ -1,0 +1,65 @@
+{
+  "query": "SELECT * FROM polls ORDER BY id DESC LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2KjT5kGWaGHMws6.75433b4e530a --database aMDMXCoQ2ycSYTjhkKKJzm --execute SELECT * FROM polls ORDER BY id DESC LIMIT 5;",
+  "rows": [
+    {
+      "id": "8",
+      "question": "Test Update Poll?",
+      "pollStatus": "draft",
+      "options": "\"[{\\\"id\\\":\\\"upd1\\\",\\\"text\\\":\\\"Update Option\\\"}]\"",
+      "isRecurring": "0",
+      "sortOrder": "7",
+      "totalVotes": "0",
+      "createdAt": "2026-02-02 06:49:23",
+      "updatedAt": "2026-02-02 06:49:23"
+    },
+    {
+      "id": "7",
+      "question": "Test Voting Poll?",
+      "pollStatus": "draft",
+      "options": "\"[{\\\"id\\\":\\\"vote-opt1\\\",\\\"text\\\":\\\"Vote Option 1\\\"},{\\\"id\\\":\\\"vote-opt2\\\",\\\"text\\\":\\\"Vote Option 2\\\"}]\"",
+      "isRecurring": "0",
+      "sortOrder": "6",
+      "totalVotes": "0",
+      "createdAt": "2026-02-02 06:49:23",
+      "updatedAt": "2026-02-02 06:49:23"
+    },
+    {
+      "id": "6",
+      "question": "Test Results Poll?",
+      "pollStatus": "draft",
+      "options": "\"[{\\\"id\\\":\\\"opt1\\\",\\\"text\\\":\\\"Option A\\\"},{\\\"id\\\":\\\"opt2\\\",\\\"text\\\":\\\"Option B\\\"}]\"",
+      "isRecurring": "0",
+      "sortOrder": "5",
+      "totalVotes": "0",
+      "createdAt": "2026-02-02 06:49:23",
+      "updatedAt": "2026-02-02 06:49:23"
+    },
+    {
+      "id": "5",
+      "question": "Test Poll Question?",
+      "pollStatus": "active",
+      "options": "\"[{\\\"id\\\":\\\"opt1\\\",\\\"text\\\":\\\"Option 1\\\"},{\\\"id\\\":\\\"opt2\\\",\\\"text\\\":\\\"Option 2\\\"}]\"",
+      "isRecurring": "0",
+      "sortOrder": "4",
+      "totalVotes": "0",
+      "createdAt": "2026-02-02 06:49:23",
+      "updatedAt": "2026-02-02 07:01:04"
+    },
+    {
+      "id": "4",
+      "question": "Test Update Poll?",
+      "pollStatus": "draft",
+      "options": "\"[{\\\"id\\\":\\\"upd1\\\",\\\"text\\\":\\\"Update Option\\\"}]\"",
+      "isRecurring": "0",
+      "sortOrder": "3",
+      "totalVotes": "0",
+      "createdAt": "2026-02-02 06:48:27",
+      "updatedAt": "2026-02-02 06:48:27"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tquestion\tpollStatus\toptions\tisRecurring\tsortOrder\ttotalVotes\tcreatedAt\tupdatedAt\n8\tTest Update Poll?\tdraft\t\"[{\\\"id\\\":\\\"upd1\\\",\\\"text\\\":\\\"Update Option\\\"}]\"\t0\t7\t0\t2026-02-02 06:49:23\t2026-02-02 06:49:23\n7\tTest Voting Poll?\tdraft\t\"[{\\\"id\\\":\\\"vote-opt1\\\",\\\"text\\\":\\\"Vote Option 1\\\"},{\\\"id\\\":\\\"vote-opt2\\\",\\\"text\\\":\\\"Vote Option 2\\\"}]\"\t0\t6\t0\t2026-02-02 06:49:23\t2026-02-02 06:49:23\n6\tTest Results Poll?\tdraft\t\"[{\\\"id\\\":\\\"opt1\\\",\\\"text\\\":\\\"Option A\\\"},{\\\"id\\\":\\\"opt2\\\",\\\"text\\\":\\\"Option B\\\"}]\"\t0\t5\t0\t2026-02-02 06:49:23\t2026-02-02 06:49:23\n5\tTest Poll Question?\tactive\t\"[{\\\"id\\\":\\\"opt1\\\",\\\"text\\\":\\\"Option 1\\\"},{\\\"id\\\":\\\"opt2\\\",\\\"text\\\":\\\"Option 2\\\"}]\"\t0\t4\t0\t2026-02-02 06:49:23\t2026-02-02 07:01:04\n4\tTest Update Poll?\tdraft\t\"[{\\\"id\\\":\\\"upd1\\\",\\\"text\\\":\\\"Update Option\\\"}]\"\t0\t3\t0\t2026-02-02 06:48:27\t2026-02-02 06:48:27\n",
+  "stderr": "",
+  "execution_time_ms": 67
+}

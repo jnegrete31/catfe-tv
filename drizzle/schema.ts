@@ -245,3 +245,45 @@ export const suggestedCaptions = mysqlTable("suggestedCaptions", {
 
 export type SuggestedCaption = typeof suggestedCaptions.$inferSelect;
 export type InsertSuggestedCaption = typeof suggestedCaptions.$inferInsert;
+
+/**
+ * Poll status enum
+ */
+export const pollStatusEnum = mysqlEnum("pollStatus", ["draft", "active", "ended"]);
+
+/**
+ * Polls table - fun polls about adoptable cats
+ */
+export const polls = mysqlTable("polls", {
+  id: int("id").autoincrement().primaryKey(),
+  question: varchar("question", { length: 255 }).notNull(), // e.g., "Who has the fluffiest tail?"
+  status: pollStatusEnum.notNull().default("draft"),
+  // Options stored as JSON array of { id, text, catId?, imageUrl? }
+  options: text("options").notNull(), // JSON string
+  // Scheduling
+  isRecurring: boolean("isRecurring").notNull().default(false), // If true, shows in rotation
+  sortOrder: int("sortOrder").notNull().default(0),
+  // Stats
+  totalVotes: int("totalVotes").notNull().default(0),
+  // Timestamps
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Poll = typeof polls.$inferSelect;
+export type InsertPoll = typeof polls.$inferInsert;
+
+/**
+ * Poll votes table - tracks individual votes
+ */
+export const pollVotes = mysqlTable("pollVotes", {
+  id: int("id").autoincrement().primaryKey(),
+  pollId: int("pollId").notNull(),
+  optionId: varchar("optionId", { length: 50 }).notNull(), // References option id in poll.options JSON
+  // Anonymous voting - track by session/device fingerprint to prevent duplicate votes
+  voterFingerprint: varchar("voterFingerprint", { length: 64 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type PollVote = typeof pollVotes.$inferSelect;
+export type InsertPollVote = typeof pollVotes.$inferInsert;

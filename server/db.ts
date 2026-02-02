@@ -9,7 +9,9 @@ import {
   screenViews, InsertScreenView,
   guestSessions, InsertGuestSession, GuestSession,
   photoSubmissions, InsertPhotoSubmission, PhotoSubmission,
-  suggestedCaptions, InsertSuggestedCaption, SuggestedCaption
+  suggestedCaptions, InsertSuggestedCaption, SuggestedCaption,
+  polls, InsertPoll, Poll,
+  pollVotes, InsertPollVote, PollVote
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -947,4 +949,200 @@ export async function seedDefaultCaptions() {
   }
   
   console.log("[Database] Seeded default suggested captions");
+}
+
+
+// ============ POLLS ============
+
+export type PollOption = {
+  id: string;
+  text: string;
+  catId?: number;
+  imageUrl?: string;
+};
+
+export type PollWithVotes = Poll & {
+  parsedOptions: (PollOption & { voteCount: number; percentage: number })[];
+};
+
+export async function getAllPolls() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db.select().from(polls).orderBy(desc(polls.createdAt));
+}
+
+export async function getActivePolls() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db.select().from(polls)
+    .where(eq(polls.status, "active"))
+    .orderBy(asc(polls.sortOrder));
+}
+
+export async function getCurrentPoll() {
+  const db = await getDb();
+  if (!db) return null;
+  
+  // Get the first active poll in rotation
+  const activePolls = await db.select().from(polls)
+    .where(eq(polls.status, "active"))
+    .orderBy(asc(polls.sortOrder))
+    .limit(1);
+  
+  return activePolls[0] || null;
+}
+
+export async function getPollById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.select().from(polls).where(eq(polls.id, id)).limit(1);
+  return result[0] || null;
+}
+
+export async function getPollWithResults(id: number): Promise<PollWithVotes | null> {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const poll = await getPollById(id);
+  if (!poll) return null;
+  
+  // Get vote counts for each option
+  const votes = await db.select().from(pollVotes).where(eq(pollVotes.pollId, id));
+  
+  // Handle potentially double-encoded options
+  let options: PollOption[] = [];
+  try {
+    let parsed = poll.options;
+    if (typeof parsed === 'string') {
+      parsed = JSON.parse(parsed);
+      while (typeof parsed === 'string') {
+        parsed = JSON.parse(parsed);
+      }
+    }
+    options = parsed as PollOption[];
+  } catch (e) {
+    console.error('Failed to parse poll options:', e);
+    options = [];
+  }
+  const voteCounts: Record<string, number> = {};
+  
+  votes.forEach(vote => {
+    voteCounts[vote.optionId] = (voteCounts[vote.optionId] || 0) + 1;
+  });
+  
+  const totalVotes = votes.length;
+  
+  const parsedOptions = options.map(opt => ({
+    ...opt,
+    voteCount: voteCounts[opt.id] || 0,
+    percentage: totalVotes > 0 ? Math.round(((voteCounts[opt.id] || 0) / totalVotes) * 100) : 0,
+  }));
+  
+  return {
+    ...poll,
+    totalVotes,
+    parsedOptions,
+  };
+}
+
+export async function createPoll(data: { question: string; options: PollOption[]; isRecurring?: boolean }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Get max sortOrder
+  const existing = await db.select().from(polls).orderBy(desc(polls.sortOrder)).limit(1);
+  const maxOrder = existing[0]?.sortOrder ?? -1;
+  
+  const result = await db.insert(polls).values({
+    question: data.question,
+    options: JSON.stringify(data.options),
+    isRecurring: data.isRecurring ?? false,
+    sortOrder: maxOrder + 1,
+    status: "draft",
+  });
+  
+  return { id: result[0].insertId };
+}
+
+export async function updatePoll(id: number, data: { question?: string; options?: PollOption[]; status?: "draft" | "active" | "ended"; isRecurring?: boolean }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const updateData: Partial<InsertPoll> = {};
+  if (data.question) updateData.question = data.question;
+  if (data.options) updateData.options = JSON.stringify(data.options);
+  if (data.status) updateData.status = data.status;
+  if (data.isRecurring !== undefined) updateData.isRecurring = data.isRecurring;
+  
+  await db.update(polls).set(updateData).where(eq(polls.id, id));
+  return { success: true };
+}
+
+export async function deletePoll(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Delete votes first
+  await db.delete(pollVotes).where(eq(pollVotes.pollId, id));
+  // Delete poll
+  await db.delete(polls).where(eq(polls.id, id));
+  return { success: true };
+}
+
+export async function submitPollVote(pollId: number, optionId: string, voterFingerprint: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Check if already voted
+  const existingVote = await db.select().from(pollVotes)
+    .where(and(
+      eq(pollVotes.pollId, pollId),
+      eq(pollVotes.voterFingerprint, voterFingerprint)
+    ))
+    .limit(1);
+  
+  if (existingVote.length > 0) {
+    return { success: false, error: "Already voted", alreadyVoted: true };
+  }
+  
+  // Submit vote
+  await db.insert(pollVotes).values({
+    pollId,
+    optionId,
+    voterFingerprint,
+  });
+  
+  // Update total votes count
+  await db.update(polls)
+    .set({ totalVotes: sql`${polls.totalVotes} + 1` })
+    .where(eq(polls.id, pollId));
+  
+  return { success: true };
+}
+
+export async function hasVoted(pollId: number, voterFingerprint: string): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  
+  const existingVote = await db.select().from(pollVotes)
+    .where(and(
+      eq(pollVotes.pollId, pollId),
+      eq(pollVotes.voterFingerprint, voterFingerprint)
+    ))
+    .limit(1);
+  
+  return existingVote.length > 0;
+}
+
+export async function resetPollVotes(pollId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.delete(pollVotes).where(eq(pollVotes.pollId, pollId));
+  await db.update(polls).set({ totalVotes: 0 }).where(eq(polls.id, pollId));
+  
+  return { success: true };
 }

@@ -162,6 +162,13 @@
       "when": 1770009985898,
       "tag": "0022_fresh_blonde_phantom",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "5",
+      "when": 1770014409661,
+      "tag": "0023_wise_bloodaxe",
+      "breakpoints": true
     }
   ]
 }

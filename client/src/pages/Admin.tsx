@@ -14,6 +14,7 @@ import PhotoModeration from "@/components/admin/PhotoModeration";
 import { SessionHistory } from "@/components/admin/SessionHistory";
 import { WixSync } from "@/components/admin/WixSync";
 import CaptionManager from "@/components/admin/CaptionManager";
+import { PollManager } from "@/components/admin/PollManager";
 import { trpc } from "@/lib/trpc";
 import type { Screen } from "@shared/types";
 import { 
@@ -29,6 +30,7 @@ import {
   BarChart3,
   CalendarDays,
   MessageSquare,
+  Vote,
 } from "lucide-react";
 import { IOSInstallPrompt } from "@/components/IOSInstallPrompt";
 
@@ -164,7 +166,7 @@ export default function Admin() {
       {/* Main Content */}
       <main className="container py-4 pb-24">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full grid grid-cols-7 mb-4">
+          <TabsList className="w-full grid grid-cols-8 mb-4">
             <TabsTrigger value="screens" className="flex items-center gap-1 text-xs sm:text-sm">
               <LayoutGrid className="w-4 h-4" />
               <span className="hidden sm:inline">Screens</span>
@@ -184,6 +186,10 @@ export default function Admin() {
             <TabsTrigger value="captions" className="flex items-center gap-1 text-xs sm:text-sm">
               <MessageSquare className="w-4 h-4" />
               <span className="hidden sm:inline">Captions</span>
+            </TabsTrigger>
+            <TabsTrigger value="polls" className="flex items-center gap-1 text-xs sm:text-sm">
+              <Vote className="w-4 h-4" />
+              <span className="hidden sm:inline">Polls</span>
             </TabsTrigger>
             <TabsTrigger value="reports" className="flex items-center gap-1 text-xs sm:text-sm">
               <BarChart3 className="w-4 h-4" />
@@ -252,6 +258,11 @@ export default function Admin() {
             <SessionHistory />
           </TabsContent>
           
+          {/* Polls Tab */}
+          <TabsContent value="polls">
+            <PollManager />
+          </TabsContent>
+
           {/* Settings Tab */}
           <TabsContent value="settings">
             {settingsQuery.isLoading ? (

@@ -1,0 +1,50 @@
+{
+  "query": "SELECT id, question, status FROM polls LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2KjT5kGWaGHMws6.75433b4e530a --database aMDMXCoQ2ycSYTjhkKKJzm --execute SELECT id, question, status FROM polls LIMIT 10;",
+  "rows": [
+    {
+      "id": "1",
+      "question": "Test Poll Question?",
+      "status": "draft"
+    },
+    {
+      "id": "2",
+      "question": "Test Results Poll?",
+      "status": "draft"
+    },
+    {
+      "id": "3",
+      "question": "Test Voting Poll?",
+      "status": "draft"
+    },
+    {
+      "id": "4",
+      "question": "Test Update Poll?",
+      "status": "draft"
+    },
+    {
+      "id": "5",
+      "question": "Test Poll Question?",
+      "status": "draft"
+    },
+    {
+      "id": "6",
+      "question": "Test Results Poll?",
+      "status": "draft"
+    },
+    {
+      "id": "7",
+      "question": "Test Voting Poll?",
+      "status": "draft"
+    },
+    {
+      "id": "8",
+      "question": "Test Update Poll?",
+      "status": "draft"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tquestion\tstatus\n1\tTest Poll Question?\tdraft\n2\tTest Results Poll?\tdraft\n3\tTest Voting Poll?\tdraft\n4\tTest Update Poll?\tdraft\n5\tTest Poll Question?\tdraft\n6\tTest Results Poll?\tdraft\n7\tTest Voting Poll?\tdraft\n8\tTest Update Poll?\tdraft\n",
+  "stderr": "",
+  "execution_time_ms": 59
+}

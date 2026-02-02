@@ -1,0 +1,16 @@
+{
+  "query": "SELECT id, question, status, options FROM polls WHERE id = 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2KjT5kGWaGHMws6.75433b4e530a --database aMDMXCoQ2ycSYTjhkKKJzm --execute SELECT id, question, status, options FROM polls WHERE id = 5;",
+  "rows": [
+    {
+      "id": "5",
+      "question": "Test Poll Question?",
+      "status": "active",
+      "options": "\"[{\\\"id\\\":\\\"opt1\\\",\\\"text\\\":\\\"Option 1\\\"},{\\\"id\\\":\\\"opt2\\\",\\\"text\\\":\\\"Option 2\\\"}]\""
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tquestion\tstatus\toptions\n5\tTest Poll Question?\tactive\t\"[{\\\"id\\\":\\\"opt1\\\",\\\"text\\\":\\\"Option 1\\\"},{\\\"id\\\":\\\"opt2\\\",\\\"text\\\":\\\"Option 2\\\"}]\"\n",
+  "stderr": "",
+  "execution_time_ms": 59
+}

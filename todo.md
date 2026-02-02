@@ -463,9 +463,15 @@
 - [x] Integrate into Happy Tails upload page
 - [x] Integrate into Snap & Purr upload page
 
-## Future Idea - Cat Adoption Polls
-- [ ] Create poll system for fun cat questions (e.g., "Who has the fluffiest tail?")
-- [ ] Show poll at start of every 30 mins (x:00 and x:30)
-- [ ] Display results at x:25 and x:55 with countdown
-- [ ] Allow guests to vote via QR code on their phones
+## Feature - Cat Adoption Polls
+- [x] Create database schema for polls and votes
+- [x] Build API endpoints for polls, voting, and results
+- [x] Create admin UI for managing polls (add/edit/delete questions)
+- [x] Build TV poll display screen with QR code for voting
+- [x] Create mobile voting page for guests
+- [x] Add poll results screen with countdown timer
+- [x] Show polls at x:00 and x:30, results at x:25-x:30 and x:55-x:00
+- [x] Display results at x:25 and x:55 with countdown
+- [x] Allow guests to vote via QR code on their phones
+- [x] Fix double-encoded JSON options parsing in frontend and backend
 - [ ] Feature adoptable cats from adoption slides in polls

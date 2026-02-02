@@ -10,6 +10,7 @@ import Admin from "./pages/Admin";
 import UploadHappyTails from "./pages/UploadHappyTails";
 import UploadSnapPurr from "./pages/UploadSnapPurr";
 import GuestSlideshow from "./pages/GuestSlideshow";
+import Vote from "./pages/Vote";
 
 function Router() {
   return (
@@ -20,6 +21,7 @@ function Router() {
       <Route path="/upload/happy-tails" component={UploadHappyTails} />
       <Route path="/upload/snap-purr" component={UploadSnapPurr} />
       <Route path="/slideshow/:type" component={GuestSlideshow} />
+      <Route path="/vote/:pollId" component={Vote} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

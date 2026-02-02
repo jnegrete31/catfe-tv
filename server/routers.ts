@@ -59,6 +59,18 @@ import {
   deleteSuggestedCaption,
   reorderSuggestedCaptions,
   seedDefaultCaptions,
+  getAllPolls,
+  getActivePolls,
+  getCurrentPoll,
+  getPollById,
+  getPollWithResults,
+  createPoll,
+  updatePoll,
+  deletePoll,
+  submitPollVote,
+  hasVoted,
+  resetPollVotes,
+  type PollOption,
 } from "./db";
 import {
   testWixConnection,
@@ -904,6 +916,108 @@ export const appRouter = router({
       await seedDefaultCaptions();
       return { success: true };
     }),
+  }),
+
+  // ============ POLLS ============
+  polls: router({
+    // Public: Get current active poll for TV display
+    getCurrent: publicProcedure.query(async () => {
+      return getCurrentPoll();
+    }),
+
+    // Public: Get poll with results
+    getWithResults: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        return getPollWithResults(input.id);
+      }),
+
+    // Public: Get active polls
+    getActive: publicProcedure.query(async () => {
+      return getActivePolls();
+    }),
+
+    // Public: Submit vote
+    vote: publicProcedure
+      .input(z.object({
+        pollId: z.number(),
+        optionId: z.string(),
+        fingerprint: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        return submitPollVote(input.pollId, input.optionId, input.fingerprint);
+      }),
+
+    // Public: Check if already voted
+    hasVoted: publicProcedure
+      .input(z.object({
+        pollId: z.number(),
+        fingerprint: z.string(),
+      }))
+      .query(async ({ input }) => {
+        return hasVoted(input.pollId, input.fingerprint);
+      }),
+
+    // Admin: Get all polls
+    getAll: adminProcedure.query(async () => {
+      return getAllPolls();
+    }),
+
+    // Admin: Get poll by ID
+    getById: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        return getPollWithResults(input.id);
+      }),
+
+    // Admin: Create poll
+    create: adminProcedure
+      .input(z.object({
+        question: z.string().min(1).max(255),
+        options: z.array(z.object({
+          id: z.string(),
+          text: z.string().min(1).max(100),
+          catId: z.number().optional(),
+          imageUrl: z.string().optional(),
+        })).min(2).max(6),
+        isRecurring: z.boolean().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        return createPoll(input);
+      }),
+
+    // Admin: Update poll
+    update: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        question: z.string().min(1).max(255).optional(),
+        options: z.array(z.object({
+          id: z.string(),
+          text: z.string().min(1).max(100),
+          catId: z.number().optional(),
+          imageUrl: z.string().optional(),
+        })).min(2).max(6).optional(),
+        status: z.enum(["draft", "active", "ended"]).optional(),
+        isRecurring: z.boolean().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input;
+        return updatePoll(id, data);
+      }),
+
+    // Admin: Delete poll
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        return deletePoll(input.id);
+      }),
+
+    // Admin: Reset poll votes
+    resetVotes: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        return resetPollVotes(input.id);
+      }),
   }),
 });
 
