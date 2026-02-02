@@ -11,6 +11,7 @@ struct PollResultsWidget: View {
     @StateObject private var pollService = PollService.shared
     @State private var currentTime = Date()
     @State private var showWidget = false
+    @State private var hasRefreshedForResults = false
     
     let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
@@ -123,7 +124,21 @@ struct PollResultsWidget: View {
         let minuteInQuarter = minutes % 15
         let isResultsTime = minuteInQuarter >= 12 && minuteInQuarter < 15
         
+        let wasShowingWidget = showWidget
         showWidget = isResultsTime && pollService.currentPoll != nil
+        
+        // Refresh poll data when entering results time to get final vote counts
+        if isResultsTime && !hasRefreshedForResults {
+            hasRefreshedForResults = true
+            Task {
+                await pollService.fetchCurrentPoll()
+            }
+        }
+        
+        // Reset the refresh flag when we exit results time
+        if !isResultsTime {
+            hasRefreshedForResults = false
+        }
     }
 }
 

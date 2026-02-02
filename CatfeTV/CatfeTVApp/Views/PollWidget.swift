@@ -12,8 +12,12 @@ struct PollWidget: View {
     @State private var currentTime = Date()
     @State private var showWidget = false
     @State private var minutesUntilResults = 0
+    @State private var lastPollRefresh = Date()
     
     let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+    
+    // Refresh poll data every 5 seconds for real-time vote updates
+    private let pollRefreshInterval: TimeInterval = 5
     
     var body: some View {
         Group {
@@ -92,9 +96,18 @@ struct PollWidget: View {
         .onReceive(timer) { _ in
             currentTime = Date()
             updateWidgetVisibility()
+            
+            // Periodically refresh poll data for real-time vote updates
+            if showWidget && Date().timeIntervalSince(lastPollRefresh) >= pollRefreshInterval {
+                lastPollRefresh = Date()
+                Task {
+                    await pollService.fetchCurrentPoll()
+                }
+            }
         }
         .task {
             await pollService.fetchCurrentPoll()
+            lastPollRefresh = Date()
         }
     }
     
@@ -105,7 +118,16 @@ struct PollWidget: View {
         let minuteInQuarter = minutes % 15
         let isVotingTime = minuteInQuarter < 12
         
+        let wasShowingWidget = showWidget
         showWidget = isVotingTime && pollService.currentPoll != nil
+        
+        // If we just entered voting time, refresh poll data immediately
+        if showWidget && !wasShowingWidget {
+            Task {
+                await pollService.fetchCurrentPoll()
+                lastPollRefresh = Date()
+            }
+        }
         
         // Calculate minutes until results (results show at :12, :27, :42, :57)
         if minuteInQuarter < 12 {
@@ -147,7 +169,7 @@ class PollService: ObservableObject {
     @Published var error: String?
     
     // Update this URL to your published Manus app URL
-    private let baseURL = "https://catfe-tv-app.manus.space"
+    private let baseURL = "https://catfetv-amdmxcoq.manus.space"
     
     var voteURL: String {
         if let poll = currentPoll {
@@ -157,7 +179,7 @@ class PollService: ObservableObject {
     }
     
     func fetchCurrentPoll() async {
-        isLoading = true
+        // Don't set isLoading to avoid UI flicker during background refreshes
         error = nil
         
         do {
@@ -166,14 +188,15 @@ class PollService: ObservableObject {
             
             if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
                 let pollResponse = try JSONDecoder().decode(PollResponse.self, from: data)
-                currentPoll = pollResponse.result.data.json
+                // Only update if we got valid data
+                if let newPoll = pollResponse.result.data.json {
+                    currentPoll = newPoll
+                }
             }
         } catch {
             self.error = error.localizedDescription
             print("Failed to fetch poll: \(error)")
         }
-        
-        isLoading = false
     }
 }
 
