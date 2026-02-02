@@ -20,6 +20,8 @@ export const SCREEN_TYPES = [
   "LIVESTREAM",
   "HAPPY_TAILS",
   "SNAP_PURR_GALLERY",
+  "HAPPY_TAILS_QR",
+  "SNAP_PURR_QR",
 ] as const;
 
 export type ScreenType = typeof SCREEN_TYPES[number];
@@ -38,6 +40,8 @@ export const SCREEN_TYPE_CONFIG: Record<ScreenType, { label: string; color: stri
   LIVESTREAM: { label: "Livestream", color: "#dc2626", bgColor: "#fef2f2" },
   HAPPY_TAILS: { label: "Happy Tails", color: "#ea580c", bgColor: "#fff7ed" },
   SNAP_PURR_GALLERY: { label: "Snap & Purr Gallery", color: "#ca8a04", bgColor: "#fefce8" },
+  HAPPY_TAILS_QR: { label: "Happy Tails QR", color: "#c2410c", bgColor: "#ffedd5" },
+  SNAP_PURR_QR: { label: "Snap & Purr QR", color: "#a16207", bgColor: "#fef9c3" },
 };
 
 // Days of week

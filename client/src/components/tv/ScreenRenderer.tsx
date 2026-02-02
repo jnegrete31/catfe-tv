@@ -788,6 +788,126 @@ function SnapPurrGalleryScreen({ screen, settings }: ScreenRendererProps) {
   );
 }
 
+// HAPPY_TAILS_QR - QR code screen for customers to upload photos of adopted cats
+function HappyTailsQRScreen({ screen, settings }: ScreenRendererProps) {
+  // Generate the upload URL based on the current domain
+  const uploadUrl = typeof window !== 'undefined' 
+    ? `${window.location.origin}/upload/happy-tails`
+    : '/upload/happy-tails';
+  
+  return (
+    <div className="tv-screen relative bg-gradient-to-br from-orange-100 via-amber-50 to-orange-100">
+      {/* Decorative elements */}
+      <div className="absolute top-0 left-0 w-64 h-64 bg-orange-200/30 rounded-full -translate-x-1/2 -translate-y-1/2" />
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-amber-200/30 rounded-full translate-x-1/3 translate-y-1/3" />
+      
+      <div className="relative z-10 w-full h-full flex flex-col items-center justify-center p-12">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-4 mb-6">
+            <span className="text-7xl">🏠</span>
+            <span className="text-7xl">❤️</span>
+            <span className="text-7xl">🐱</span>
+          </div>
+          <h1 className="text-6xl font-bold text-orange-900 mb-4" style={{ fontFamily: 'Georgia, serif' }}>
+            Happy Tails
+          </h1>
+          <p className="text-3xl text-orange-700">
+            Share photos of your adopted cat in their new home!
+          </p>
+        </div>
+        
+        {/* QR Code */}
+        <div className="bg-white p-8 rounded-3xl shadow-2xl mb-8">
+          <QRCode url={uploadUrl} size={280} />
+        </div>
+        
+        {/* Instructions */}
+        <div className="text-center">
+          <p className="text-2xl text-orange-800 mb-2">
+            📱 Scan with your phone to upload
+          </p>
+          <p className="text-xl text-orange-600">
+            Your photo will appear on our TV after approval!
+          </p>
+        </div>
+      </div>
+      
+      {/* Logo */}
+      <div className="absolute bottom-8 left-8">
+        <CatfeLogo logoUrl={settings?.logoUrl} />
+      </div>
+      
+      {/* Paw prints decoration */}
+      <div className="absolute bottom-8 right-8 flex gap-4 opacity-30">
+        <span className="text-6xl">🐾</span>
+        <span className="text-5xl">🐾</span>
+        <span className="text-4xl">🐾</span>
+      </div>
+    </div>
+  );
+}
+
+// SNAP_PURR_QR - QR code screen for customers to upload in-lounge photos
+function SnapPurrQRScreen({ screen, settings }: ScreenRendererProps) {
+  // Generate the upload URL based on the current domain
+  const uploadUrl = typeof window !== 'undefined' 
+    ? `${window.location.origin}/upload/snap-purr`
+    : '/upload/snap-purr';
+  
+  return (
+    <div className="tv-screen relative bg-gradient-to-br from-yellow-100 via-amber-50 to-yellow-100">
+      {/* Decorative elements */}
+      <div className="absolute top-0 right-0 w-72 h-72 bg-yellow-200/40 rounded-full translate-x-1/3 -translate-y-1/3" />
+      <div className="absolute bottom-0 left-0 w-80 h-80 bg-amber-200/40 rounded-full -translate-x-1/3 translate-y-1/3" />
+      
+      <div className="relative z-10 w-full h-full flex flex-col items-center justify-center p-12">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-4 mb-6">
+            <span className="text-7xl">📸</span>
+            <span className="text-7xl">😸</span>
+            <span className="text-7xl">✨</span>
+          </div>
+          <h1 className="text-6xl font-bold text-yellow-900 mb-4" style={{ fontFamily: 'Georgia, serif' }}>
+            Snap & Purr!
+          </h1>
+          <p className="text-3xl text-yellow-700">
+            Share your photos from today's visit!
+          </p>
+        </div>
+        
+        {/* QR Code */}
+        <div className="bg-white p-8 rounded-3xl shadow-2xl mb-8">
+          <QRCode url={uploadUrl} size={280} />
+        </div>
+        
+        {/* Instructions */}
+        <div className="text-center">
+          <p className="text-2xl text-yellow-800 mb-2">
+            📱 Scan with your phone to upload
+          </p>
+          <p className="text-xl text-yellow-600">
+            Your photo will appear on our TV after approval!
+          </p>
+        </div>
+      </div>
+      
+      {/* Logo */}
+      <div className="absolute bottom-8 left-8">
+        <CatfeLogo logoUrl={settings?.logoUrl} />
+      </div>
+      
+      {/* Camera decoration */}
+      <div className="absolute bottom-8 right-8 flex gap-4 opacity-30">
+        <span className="text-5xl">📷</span>
+        <span className="text-4xl">🐱</span>
+        <span className="text-5xl">💛</span>
+      </div>
+    </div>
+  );
+}
+
 // LIVESTREAM - Live video stream from camera
 function LivestreamScreen({ screen, settings }: ScreenRendererProps) {
   const livestreamUrl = (screen as any).livestreamUrl;
@@ -860,6 +980,8 @@ export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendere
     LIVESTREAM: LivestreamScreen,
     HAPPY_TAILS: HappyTailsScreen,
     SNAP_PURR_GALLERY: SnapPurrGalleryScreen,
+    HAPPY_TAILS_QR: HappyTailsQRScreen,
+    SNAP_PURR_QR: SnapPurrQRScreen,
   };
   
   const Renderer = renderers[screen.type] || EventScreen;

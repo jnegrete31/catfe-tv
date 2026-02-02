@@ -61,6 +61,8 @@ const screenTypes = [
   "LIVESTREAM",
   "HAPPY_TAILS",
   "SNAP_PURR_GALLERY",
+  "HAPPY_TAILS_QR",
+  "SNAP_PURR_QR",
 ] as const;
 
 // Input schemas

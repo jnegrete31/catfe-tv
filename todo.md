@@ -346,3 +346,10 @@
 ### tvOS App Updates
 - [x] Add Happy Tails slideshow view
 - [x] Add Snap & Purr photo slideshow view
+
+## Feature - QR Code Upload Screens
+- [x] Add HAPPY_TAILS_QR and SNAP_PURR_QR screen types to database schema
+- [x] Update routers with new screen types
+- [x] Create TV display renderers showing large QR codes with instructions
+- [x] Update tvOS app with QR code screen views
+- [x] QR codes link to /upload/happy-tails and /upload/snap-purr
