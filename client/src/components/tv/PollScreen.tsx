@@ -229,56 +229,73 @@ export function PollScreen({ showResults = false, countdownSeconds }: PollScreen
   );
 }
 
-// Poll Overlay - shows on top of other content at specific times
+// Poll Results Overlay - shows results at x:25-x:30 and x:55-x:00
+// Poll voting slides are now integrated into the regular slide rotation
 export function PollOverlay() {
-  const [showPoll, setShowPoll] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [countdown, setCountdown] = useState(0);
 
+  // Reset votes mutation - called when new poll session starts
+  const resetVotesMutation = trpc.polls.resetCurrentVotes.useMutation();
+
   const { data: poll } = trpc.polls.getForTV.useQuery(undefined, {
-    enabled: showPoll || showResults,
+    enabled: showResults,
+    refetchInterval: showResults ? 5000 : false, // Refresh results every 5 seconds when showing
   });
 
   useEffect(() => {
     const checkTime = () => {
       const now = new Date();
       const minutes = now.getMinutes();
-      
-      // Show poll at x:00-x:05 and x:30-x:35
-      const isPollTime = (minutes >= 0 && minutes < 5) || (minutes >= 30 && minutes < 35);
+      const seconds = now.getSeconds();
       
       // Show results at x:25-x:30 and x:55-x:00
       const isResultsTime = (minutes >= 25 && minutes < 30) || (minutes >= 55);
       
+      // Reset votes at the start of each new poll session (x:00 and x:30)
+      // Only reset in the first 10 seconds to avoid multiple resets
+      const isResetTime = ((minutes === 0 || minutes === 30) && seconds < 10);
+      
+      if (isResetTime) {
+        // Reset votes for the new session
+        resetVotesMutation.mutate();
+      }
+      
       if (isResultsTime && !showResults) {
         setShowResults(true);
-        setShowPoll(false);
         // Calculate countdown to next poll
         const secsUntilNextPoll = minutes >= 55 
-          ? (60 - minutes) * 60 - now.getSeconds()
-          : (30 - minutes) * 60 - now.getSeconds();
+          ? (60 - minutes) * 60 - seconds
+          : (30 - minutes) * 60 - seconds;
         setCountdown(secsUntilNextPoll);
-      } else if (isPollTime && !showPoll) {
-        setShowPoll(true);
-        setShowResults(false);
-      } else if (!isPollTime && !isResultsTime) {
-        setShowPoll(false);
+      } else if (!isResultsTime && showResults) {
         setShowResults(false);
       }
     };
 
     checkTime();
-    const interval = setInterval(checkTime, 10000); // Check every 10 seconds
+    const interval = setInterval(checkTime, 1000); // Check every second for accurate countdown
     return () => clearInterval(interval);
-  }, [showPoll, showResults]);
+  }, [showResults, resetVotesMutation]);
 
-  if (!poll || (!showPoll && !showResults)) {
+  // Update countdown every second when showing results
+  useEffect(() => {
+    if (!showResults) return;
+    
+    const timer = setInterval(() => {
+      setCountdown(prev => Math.max(0, prev - 1));
+    }, 1000);
+    
+    return () => clearInterval(timer);
+  }, [showResults]);
+
+  if (!poll || !showResults) {
     return null;
   }
 
   return (
     <div className="fixed inset-0 z-50">
-      <PollScreen showResults={showResults} countdownSeconds={showResults ? countdown : undefined} />
+      <PollScreen showResults={true} countdownSeconds={countdown} />
     </div>
   );
 }

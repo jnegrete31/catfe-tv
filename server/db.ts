@@ -1362,3 +1362,25 @@ export async function getPollForTV(): Promise<{
     totalVotes: poll.totalVotes,
   };
 }
+
+
+/**
+ * Reset votes for the current active poll (called at start of each 30-min session)
+ */
+export async function resetCurrentPollVotes() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Get the current poll that would be shown on TV
+  const currentPoll = await getPollForTV();
+  if (!currentPoll) return { success: false, message: "No active poll" };
+  
+  // Reset votes for this poll
+  await db.delete(pollVotes).where(eq(pollVotes.pollId, currentPoll.id));
+  await db.update(polls).set({ totalVotes: 0 }).where(eq(polls.id, currentPoll.id));
+  
+  // Also rotate to the next poll by updating lastShownAt
+  await db.update(polls).set({ lastShownAt: new Date() }).where(eq(polls.id, currentPoll.id));
+  
+  return { success: true, pollId: currentPoll.id };
+}

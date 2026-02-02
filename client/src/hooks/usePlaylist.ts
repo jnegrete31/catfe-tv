@@ -33,13 +33,26 @@ function isScreenEligible(screen: Screen): boolean {
   return true;
 }
 
-// Build weighted playlist with SNAP_AND_PURR frequency
-function buildPlaylist(screens: Screen[], snapFrequency: number): Screen[] {
+// Check if it's poll time (x:00-x:25 or x:30-x:55)
+function isPollTime(): boolean {
+  const minutes = new Date().getMinutes();
+  // Poll shows from x:00 to x:25 and x:30 to x:55
+  return (minutes >= 0 && minutes < 25) || (minutes >= 30 && minutes < 55);
+}
+
+// Check if it's results time (x:25-x:30 or x:55-x:00)
+function isResultsTime(): boolean {
+  const minutes = new Date().getMinutes();
+  return (minutes >= 25 && minutes < 30) || (minutes >= 55);
+}
+
+// Build weighted playlist with SNAP_AND_PURR frequency and optional poll injection
+function buildPlaylist(screens: Screen[], snapFrequency: number, pollFrequency: number = 3): Screen[] {
   const eligible = screens.filter(isScreenEligible);
   if (eligible.length === 0) return [];
   
   const snapScreens = eligible.filter(s => s.type === "SNAP_AND_PURR");
-  const otherScreens = eligible.filter(s => s.type !== "SNAP_AND_PURR");
+  const otherScreens = eligible.filter(s => s.type !== "SNAP_AND_PURR" && s.type !== "POLL");
   
   // Weight screens by priority (higher priority = more appearances)
   const weightedOthers: Screen[] = [];
@@ -65,8 +78,8 @@ function buildPlaylist(screens: Screen[], snapFrequency: number): Screen[] {
   }
   
   // Insert SNAP_AND_PURR at regular intervals
+  let result: Screen[] = [];
   if (snapScreens.length > 0 && snapFrequency > 0) {
-    const result: Screen[] = [];
     let snapIndex = 0;
     
     for (let i = 0; i < deduped.length; i++) {
@@ -81,11 +94,55 @@ function buildPlaylist(screens: Screen[], snapFrequency: number): Screen[] {
     if (result.length > 0 && !result.some(s => s.type === "SNAP_AND_PURR")) {
       result.push(snapScreens[0]);
     }
-    
-    return result;
+  } else {
+    result = deduped.length > 0 ? deduped : snapScreens;
   }
   
-  return deduped.length > 0 ? deduped : snapScreens;
+  // Inject POLL slides during poll time (every pollFrequency screens)
+  if (isPollTime() && pollFrequency > 0) {
+    const pollScreen: Screen = {
+      id: -1, // Virtual poll screen
+      type: "POLL",
+      title: "Cat Poll",
+      subtitle: null,
+      body: null,
+      imagePath: null,
+      imageDisplayMode: "cover",
+      qrUrl: null,
+      timeStart: null,
+      timeEnd: null,
+      daysOfWeek: null,
+      startAt: null,
+      endAt: null,
+      priority: 1,
+      isActive: true,
+      durationSeconds: 15, // Show poll for 15 seconds
+      sortOrder: 0,
+      isProtected: false,
+      isAdopted: false,
+      livestreamUrl: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    
+    const withPolls: Screen[] = [];
+    for (let i = 0; i < result.length; i++) {
+      withPolls.push(result[i]);
+      // Insert poll every pollFrequency screens
+      if ((i + 1) % pollFrequency === 0) {
+        withPolls.push(pollScreen);
+      }
+    }
+    
+    // Ensure at least one poll if we have screens
+    if (withPolls.length > 0 && !withPolls.some(s => s.type === "POLL")) {
+      withPolls.push(pollScreen);
+    }
+    
+    return withPolls;
+  }
+  
+  return result;
 }
 
 // Local storage keys for offline caching
@@ -106,8 +163,22 @@ export function usePlaylist() {
   
   const [settings, setSettings] = useState<Settings | null>(null);
   const [playlist, setPlaylist] = useState<Screen[]>([]);
+  const [pollTimeWindow, setPollTimeWindow] = useState(isPollTime());
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Check poll time window every 30 seconds
+  useEffect(() => {
+    const checkPollTime = () => {
+      const newPollTime = isPollTime();
+      if (newPollTime !== pollTimeWindow) {
+        setPollTimeWindow(newPollTime);
+      }
+    };
+    
+    const interval = setInterval(checkPollTime, 30000);
+    return () => clearInterval(interval);
+  }, [pollTimeWindow]);
   
   // Fetch screens from API
   const screensQuery = trpc.screens.getActive.useQuery(undefined, {
@@ -160,13 +231,14 @@ export function usePlaylist() {
     }
   }, [settingsQuery.data]);
   
-  // Update screens and build playlist
+  // Update screens and build playlist (also rebuild when poll time window changes)
   useEffect(() => {
     if (screensQuery.data) {
       const screens = screensQuery.data;
       cacheData(screens, settings);
       
-      const newPlaylist = buildPlaylist(screens, settings?.snapAndPurrFrequency || 5);
+      // Poll frequency: show poll every 3 screens during poll time
+      const newPlaylist = buildPlaylist(screens, settings?.snapAndPurrFrequency || 5, 3);
       setPlaylist(newPlaylist);
       
       setState(prev => ({
@@ -181,7 +253,7 @@ export function usePlaylist() {
       // Try to use cached data
       const cached = loadCachedData();
       if (cached) {
-        const newPlaylist = buildPlaylist(cached.screens, cached.settings?.snapAndPurrFrequency || 5);
+        const newPlaylist = buildPlaylist(cached.screens, cached.settings?.snapAndPurrFrequency || 5, 3);
         setPlaylist(newPlaylist);
         if (cached.settings) setSettings(cached.settings);
         
@@ -201,7 +273,7 @@ export function usePlaylist() {
         }));
       }
     }
-  }, [screensQuery.data, screensQuery.error, settings, cacheData, loadCachedData]);
+  }, [screensQuery.data, screensQuery.error, settings, cacheData, loadCachedData, pollTimeWindow]);
   
   // Current screen
   const currentScreen = playlist[state.currentIndex] || null;
@@ -232,11 +304,13 @@ export function usePlaylist() {
       const duration = (currentScreen.durationSeconds || settings?.defaultDurationSeconds || 10) * 1000;
       
       timerRef.current = setTimeout(() => {
-        // Log view before advancing
-        logViewMutation.mutate({ 
-          screenId: currentScreen.id,
-          sessionId: sessionStorage.getItem("tv-session-id") || undefined,
-        });
+        // Log view before advancing (skip for virtual poll screen)
+        if (currentScreen.id > 0) {
+          logViewMutation.mutate({ 
+            screenId: currentScreen.id,
+            sessionId: sessionStorage.getItem("tv-session-id") || undefined,
+          });
+        }
         nextScreen();
       }, duration);
     }
@@ -261,6 +335,9 @@ export function usePlaylist() {
     settingsQuery.refetch();
   }, [screensQuery, settingsQuery]);
   
+  // Export isResultsTime for the TV display to show results overlay
+  const showResultsOverlay = isResultsTime();
+  
   return {
     currentScreen,
     playlist,
@@ -273,5 +350,6 @@ export function usePlaylist() {
     nextScreen,
     prevScreen,
     refresh,
+    showResultsOverlay,
   };
 }

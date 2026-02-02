@@ -70,6 +70,7 @@ import {
   submitPollVote,
   hasVoted,
   resetPollVotes,
+  resetCurrentPollVotes,
   seedDefaultPollQuestions,
   getPollForTV,
   createTemplatePoll,
@@ -106,6 +107,7 @@ const screenTypes = [
   "SNAP_PURR_GALLERY",
   "HAPPY_TAILS_QR",
   "SNAP_PURR_QR",
+  "POLL",
 ] as const;
 
 // Input schemas
@@ -1046,6 +1048,11 @@ export const appRouter = router({
     // Public: Get poll for TV display (with dynamic cats)
     getForTV: publicProcedure.query(async () => {
       return getPollForTV();
+    }),
+
+    // Public: Reset votes for current poll (called at start of each 30-min session)
+    resetCurrentVotes: publicProcedure.mutation(async () => {
+      return resetCurrentPollVotes();
     }),
   }),
 });

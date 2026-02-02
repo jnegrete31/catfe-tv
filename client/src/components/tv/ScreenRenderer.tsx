@@ -4,6 +4,7 @@ import { SCREEN_TYPE_CONFIG } from "@shared/types";
 import { QRCodeSVG } from "qrcode.react";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
+import { PollScreen } from "./PollScreen";
 
 // Animated counter hook for counting up effect
 function useCountUp(target: number, duration: number = 2000) {
@@ -1073,6 +1074,7 @@ export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendere
     SNAP_PURR_GALLERY: SnapPurrGalleryScreen,
     HAPPY_TAILS_QR: HappyTailsQRScreen,
     SNAP_PURR_QR: SnapPurrQRScreen,
+    POLL: () => <PollScreen />,
   };
   
   const Renderer = renderers[screen.type] || EventScreen;

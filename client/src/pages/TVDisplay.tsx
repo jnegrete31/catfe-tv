@@ -23,6 +23,7 @@ export default function TVDisplay() {
     nextScreen,
     prevScreen,
     refresh,
+    showResultsOverlay,
   } = usePlaylist();
   
   const [showControls, setShowControls] = useState(false);

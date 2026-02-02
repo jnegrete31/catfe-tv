@@ -288,7 +288,7 @@ export function ScreenForm({ screen, onSuccess, onCancel }: ScreenFormProps) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {SCREEN_TYPES.map((type) => (
+            {SCREEN_TYPES.filter(type => type !== "POLL").map((type) => (
               <SelectItem key={type} value={type}>
                 <div className="flex items-center gap-2">
                   <div 

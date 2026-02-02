@@ -483,3 +483,10 @@
 - [x] Implement poll shuffling so each 30-minute session gets a different question
 - [x] Seed database with pre-made poll questions
 - [x] Test poll rotation with real adoption cats
+
+## Feature - Poll Slide in TV Rotation
+- [x] Create poll slide component that shows current poll with QR code
+- [x] Add poll slide to TV display rotation (only during poll window x:00-x:25)
+- [x] Ensure only 1 poll shows per 30-minute session
+- [x] Test poll slide integration with other screens
+- [x] Auto-reset votes when new 30-minute poll session starts
