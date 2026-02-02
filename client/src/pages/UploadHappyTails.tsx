@@ -240,7 +240,7 @@ export default function UploadHappyTails() {
                   id="caption"
                   value={caption}
                   onChange={(e) => setCaption(e.target.value)}
-                  placeholder="Tell us about your cat's new life..."
+                  placeholder="Add a caption - it will appear on the TV too!"
                   rows={3}
                   maxLength={500}
                 />

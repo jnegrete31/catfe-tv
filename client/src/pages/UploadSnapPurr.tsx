@@ -225,7 +225,7 @@ export default function UploadSnapPurr() {
                   id="caption"
                   value={caption}
                   onChange={(e) => setCaption(e.target.value)}
-                  placeholder="What was your favorite part of your visit?"
+                  placeholder="Add a caption - it will appear on the TV too!"
                   rows={3}
                   maxLength={500}
                 />
