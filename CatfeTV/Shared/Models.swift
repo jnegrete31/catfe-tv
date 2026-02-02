@@ -237,6 +237,44 @@ struct WeatherData: Codable {
     }
 }
 
+// MARK: - Poll Models
+
+struct PollOption: Codable, Identifiable {
+    var id: String
+    var text: String
+    var imageUrl: String?
+    var votes: Int?
+    
+    enum CodingKeys: String, CodingKey {
+        case id, text
+        case imageUrl = "imageUrl"
+        case votes
+    }
+}
+
+struct Poll: Codable, Identifiable {
+    var id: Int
+    var question: String
+    var options: [PollOption]
+    var totalVotes: Int
+    
+    enum CodingKeys: String, CodingKey {
+        case id, question, options, totalVotes
+    }
+}
+
+struct PollResponse: Codable {
+    var result: PollResult
+    
+    struct PollResult: Codable {
+        var data: PollData
+        
+        struct PollData: Codable {
+            var json: Poll
+        }
+    }
+}
+
 // MARK: - API Response Models
 
 struct ScreensResponse: Codable {

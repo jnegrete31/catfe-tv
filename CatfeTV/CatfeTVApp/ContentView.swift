@@ -48,6 +48,28 @@ struct ContentView: View {
                     Spacer()
                 }
                 
+                // Poll Widget Overlay (top-left corner)
+                VStack {
+                    HStack {
+                        PollWidget()
+                            .padding(.top, 40)
+                            .padding(.leading, 60)
+                        Spacer()
+                    }
+                    Spacer()
+                }
+                
+                // Poll Results Widget Overlay (top-left corner, shows during results time)
+                VStack {
+                    HStack {
+                        PollResultsWidget()
+                            .padding(.top, 40)
+                            .padding(.leading, 60)
+                        Spacer()
+                    }
+                    Spacer()
+                }
+                
                 // Progress Indicator
                 VStack {
                     Spacer()
