@@ -490,3 +490,8 @@
 - [x] Ensure only 1 poll shows per 30-minute session
 - [x] Test poll slide integration with other screens
 - [x] Auto-reset votes when new 30-minute poll session starts
+
+## Bug Fixes - Poll System
+- [x] Fix poll to stay consistent throughout entire 30-minute session (not change with each slide)
+- [x] Fix mobile voting page to always show 4 cat options with photos
+- [x] Ensure QR code links to the correct poll with all options visible

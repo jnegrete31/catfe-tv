@@ -1012,21 +1012,42 @@ export async function getPollWithResults(id: number): Promise<PollWithVotes | nu
   // Get vote counts for each option
   const votes = await db.select().from(pollVotes).where(eq(pollVotes.pollId, id));
   
-  // Handle potentially double-encoded options
+  // For template polls, get the cached session cats
   let options: PollOption[] = [];
-  try {
-    let parsed = poll.options;
-    if (typeof parsed === 'string') {
-      parsed = JSON.parse(parsed);
-      while (typeof parsed === 'string') {
-        parsed = JSON.parse(parsed);
+  
+  if (poll.pollType === 'template') {
+    // Use the cached session cats if available
+    const currentSession = getCurrentSessionId();
+    if (cachedPollSession && cachedPollSession.sessionId === currentSession && cachedPollSession.pollId === id) {
+      options = cachedPollSession.cats.map(cat => ({
+        id: `cat-${cat.id}`,
+        text: cat.name,
+        imageUrl: cat.imageUrl || undefined,
+      }));
+    } else {
+      // If no cache, fetch fresh cats (this will also cache them)
+      const tvPoll = await getPollForTV();
+      if (tvPoll && tvPoll.id === id) {
+        options = tvPoll.options;
       }
     }
-    options = parsed as PollOption[];
-  } catch (e) {
-    console.error('Failed to parse poll options:', e);
-    options = [];
+  } else {
+    // Handle potentially double-encoded options for custom polls
+    try {
+      let parsed = poll.options;
+      if (typeof parsed === 'string') {
+        parsed = JSON.parse(parsed);
+        while (typeof parsed === 'string') {
+          parsed = JSON.parse(parsed);
+        }
+      }
+      options = parsed as PollOption[];
+    } catch (e) {
+      console.error('Failed to parse poll options:', e);
+      options = [];
+    }
   }
+  
   const voteCounts: Record<string, number> = {};
   
   votes.forEach(vote => {
@@ -1200,12 +1221,40 @@ export async function createTemplatePoll(data: { question: string; catCount?: nu
 /**
  * Get the next poll to show (shuffled, least recently shown)
  */
+// Get the current 30-minute session identifier (changes at x:00 and x:30)
+function getCurrentSessionId(): string {
+  const now = new Date();
+  const hour = now.getHours();
+  const halfHour = now.getMinutes() < 30 ? 0 : 30;
+  return `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${hour}-${halfHour}`;
+}
+
+// Cache for the current session's poll and cats
+let cachedPollSession: {
+  sessionId: string;
+  pollId: number;
+  cats: Array<{ id: number; name: string; imageUrl: string | null }>;
+} | null = null;
+
 export async function getNextPollForDisplay(): Promise<{
   poll: Poll;
   cats: Array<{ id: number; name: string; imageUrl: string | null }>;
 } | null> {
   const db = await getDb();
   if (!db) return null;
+  
+  const currentSession = getCurrentSessionId();
+  
+  // If we have a cached poll for this session, return it
+  if (cachedPollSession && cachedPollSession.sessionId === currentSession) {
+    const poll = await getPollById(cachedPollSession.pollId);
+    if (poll) {
+      return {
+        poll,
+        cats: cachedPollSession.cats,
+      };
+    }
+  }
   
   // Get all active template polls, ordered by last shown (null = never shown = priority)
   const templatePolls = await db.select()
@@ -1245,17 +1294,23 @@ export async function getNextPollForDisplay(): Promise<{
       options = [];
     }
     
+    const cats = options.map(opt => ({
+      id: parseInt(opt.id) || 0,
+      name: opt.text,
+      imageUrl: opt.imageUrl || null,
+    }));
+    
+    // Cache for this session
+    cachedPollSession = {
+      sessionId: currentSession,
+      pollId: poll.id,
+      cats,
+    };
+    
     // Update last shown
     await db.update(polls).set({ lastShownAt: new Date() }).where(eq(polls.id, poll.id));
     
-    return {
-      poll,
-      cats: options.map(opt => ({
-        id: parseInt(opt.id) || 0,
-        name: opt.text,
-        imageUrl: opt.imageUrl || null,
-      })),
-    };
+    return { poll, cats };
   }
   
   // Get the least recently shown template poll
@@ -1264,25 +1319,33 @@ export async function getNextPollForDisplay(): Promise<{
   // Get available adoptable cats
   const allCats = await getAdoptableCats();
   
-  if (allCats.length < 2) {
-    // Not enough cats, skip template polls
-    return null;
+  if (allCats.length < 4) {
+    // Not enough cats for 4 options, use what we have
+    console.warn(`[Poll] Only ${allCats.length} adoptable cats available, need 4 for best experience`);
   }
   
-  // Randomly select cats for this poll
+  // Always select 4 cats (or all available if less than 4)
+  const catCount = 4;
   const shuffledCats = [...allCats].sort(() => Math.random() - 0.5);
-  const selectedCats = shuffledCats.slice(0, Math.min(poll.catCount ?? 2, allCats.length));
+  const selectedCats = shuffledCats.slice(0, Math.min(catCount, allCats.length));
+  
+  // Cache for this session
+  cachedPollSession = {
+    sessionId: currentSession,
+    pollId: poll.id,
+    cats: selectedCats.map(cat => ({
+      id: cat.id,
+      name: cat.name,
+      imageUrl: cat.imageUrl,
+    })),
+  };
   
   // Update last shown time
   await db.update(polls).set({ lastShownAt: new Date() }).where(eq(polls.id, poll.id));
   
   return {
     poll,
-    cats: selectedCats.map(cat => ({
-      id: cat.id,
-      name: cat.name,
-      imageUrl: cat.imageUrl,
-    })),
+    cats: cachedPollSession.cats,
   };
 }
 
