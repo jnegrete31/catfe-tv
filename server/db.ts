@@ -543,6 +543,29 @@ export async function togglePhotoVisibility(id: number, showOnTv: boolean) {
   return { success: true };
 }
 
+export async function togglePhotoFeatured(id: number, isFeatured: boolean) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(photoSubmissions).set({ isFeatured }).where(eq(photoSubmissions.id, id));
+  return { success: true };
+}
+
+export async function getFeaturedPhotos() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db.select().from(photoSubmissions)
+    .where(
+      and(
+        eq(photoSubmissions.status, "approved"),
+        eq(photoSubmissions.showOnTv, true),
+        eq(photoSubmissions.isFeatured, true)
+      )
+    )
+    .orderBy(desc(photoSubmissions.createdAt));
+}
+
 export async function getPhotoSubmissionStats() {
   const db = await getDb();
   if (!db) return { pending: 0, approved: 0, rejected: 0, happyTails: 0, snapPurr: 0 };

@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { 
   Check, X, Trash2, Eye, EyeOff, Image, Heart, Camera, 
-  Clock, User, Mail, MessageSquare, Cat, Calendar
+  Clock, User, Mail, MessageSquare, Cat, Calendar, Star
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -25,6 +25,7 @@ type PhotoSubmission = {
   catName: string | null;
   adoptionDate: Date | null;
   showOnTv: boolean;
+  isFeatured: boolean;
   createdAt: Date;
   reviewedAt: Date | null;
   rejectionReason: string | null;
@@ -76,6 +77,13 @@ export default function PhotoModeration() {
     },
   });
 
+  const toggleFeaturedMutation = trpc.photos.toggleFeatured.useMutation({
+    onSuccess: () => {
+      toast.success("Featured status updated");
+      utils.photos.invalidate();
+    },
+  });
+
   const handleApprove = (photo: PhotoSubmission) => {
     approveMutation.mutate({ id: photo.id });
   };
@@ -92,6 +100,10 @@ export default function PhotoModeration() {
 
   const handleToggleVisibility = (photo: PhotoSubmission) => {
     toggleVisibilityMutation.mutate({ id: photo.id, showOnTv: !photo.showOnTv });
+  };
+
+  const handleToggleFeatured = (photo: PhotoSubmission) => {
+    toggleFeaturedMutation.mutate({ id: photo.id, isFeatured: !photo.isFeatured });
   };
 
   const formatDate = (date: Date | string | null) => {
@@ -138,7 +150,12 @@ export default function PhotoModeration() {
           )}
         </div>
         {photo.status === "approved" && (
-          <div className="absolute top-2 right-2">
+          <div className="absolute top-2 right-2 flex gap-1">
+            {photo.isFeatured && (
+              <Badge className="bg-yellow-500 text-yellow-900">
+                <Star className="w-3 h-3 mr-1 fill-current" /> Featured
+              </Badge>
+            )}
             <Badge variant={photo.showOnTv ? "default" : "outline"} className={photo.showOnTv ? "bg-blue-500" : ""}>
               {photo.showOnTv ? <Eye className="w-3 h-3 mr-1" /> : <EyeOff className="w-3 h-3 mr-1" />}
               {photo.showOnTv ? "On TV" : "Hidden"}
@@ -227,6 +244,15 @@ export default function PhotoModeration() {
                   ) : (
                     <><Eye className="w-4 h-4 mr-1" /> Show on TV</>
                   )}
+                </Button>
+                <Button
+                  size="sm"
+                  variant={photo.isFeatured ? "default" : "outline"}
+                  className={photo.isFeatured ? "bg-yellow-500 hover:bg-yellow-600 text-yellow-900" : ""}
+                  onClick={() => handleToggleFeatured(photo)}
+                >
+                  <Star className={`w-4 h-4 mr-1 ${photo.isFeatured ? "fill-current" : ""}`} />
+                  {photo.isFeatured ? "Featured" : "Feature"}
                 </Button>
                 <Button
                   size="sm"

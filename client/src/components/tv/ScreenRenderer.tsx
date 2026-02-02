@@ -637,6 +637,12 @@ function HappyTailsScreen({ screen, settings }: ScreenRendererProps) {
                   alt={currentPhoto?.catName || "Adopted cat"}
                   className="relative w-[500px] h-[500px] object-cover rounded-2xl"
                 />
+                {currentPhoto?.isFeatured && (
+                  <div className="absolute -top-2 -right-2 bg-yellow-400 text-yellow-900 px-4 py-2 rounded-full shadow-lg flex items-center gap-2 z-10">
+                    <span className="text-2xl">⭐</span>
+                    <span className="font-bold text-lg">Featured</span>
+                  </div>
+                )}
               </div>
             </div>
             
@@ -767,6 +773,12 @@ function SnapPurrGalleryScreen({ screen, settings }: ScreenRendererProps) {
                 alt="Visitor photo"
                 className="relative w-[600px] h-[450px] object-cover rounded-2xl"
               />
+              {currentPhoto?.isFeatured && (
+                <div className="absolute -top-4 -right-4 bg-yellow-400 text-yellow-900 px-4 py-2 rounded-full shadow-lg flex items-center gap-2 z-10">
+                  <span className="text-2xl">⭐</span>
+                  <span className="font-bold text-lg">Featured</span>
+                </div>
+              )}
             </div>
             
             {/* Caption */}

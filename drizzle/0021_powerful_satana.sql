@@ -1,0 +1,1 @@
+ALTER TABLE `photoSubmissions` ADD `isFeatured` boolean DEFAULT false NOT NULL;

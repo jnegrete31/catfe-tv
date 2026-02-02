@@ -436,3 +436,10 @@
 - [x] Add "Upload Anonymously" checkbox to Happy Tails page
 - [x] When anonymous, submit with name "A Catfé Guest"
 - [x] Make First Name field optional when anonymous is checked
+
+## Feature - Featured Photos
+- [x] Add isFeatured field to photos table in database
+- [x] Create API endpoint to toggle featured status
+- [x] Add featured toggle button in photo moderation UI
+- [x] Display featured badge on TV slideshow
+- [x] Show featured photos more prominently (star badge on photo)

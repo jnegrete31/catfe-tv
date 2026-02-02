@@ -43,6 +43,8 @@ import {
   rejectPhotoSubmission,
   deletePhotoSubmission,
   togglePhotoVisibility,
+  togglePhotoFeatured,
+  getFeaturedPhotos,
   getPhotoSubmissionStats,
   getSessionHistory,
   getSessionAnalytics,
@@ -607,6 +609,21 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         return togglePhotoVisibility(input.id, input.showOnTv);
       }),
+
+    // Admin: Toggle featured status
+    toggleFeatured: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        isFeatured: z.boolean(),
+      }))
+      .mutation(async ({ input }) => {
+        return togglePhotoFeatured(input.id, input.isFeatured);
+      }),
+
+    // Public: Get featured photos for TV display
+    getFeatured: publicProcedure.query(async () => {
+      return getFeaturedPhotos();
+    }),
   }),
 
   // ============ GITHUB INTEGRATION ============
