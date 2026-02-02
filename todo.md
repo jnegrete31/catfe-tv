@@ -592,3 +592,10 @@
 ## Bug Fix - Restore Remote Navigation Without Visual Controls (Feb 2)
 - [x] Restore swipe left/right on remote to change slides
 - [x] Keep visual controls (buttons, gradient) hidden
+
+## Feature - tvOS App Should Display Web App Directly (Feb 2)
+- [x] Created new simplified tvOS app using WKWebView
+- [x] App now loads https://catfetv-amdmxcoq.manus.space/tv directly
+- [x] Everything looks exactly like the web app (same screens, QR codes, layouts)
+- [x] No more maintaining separate native Swift screens
+- [x] Any changes in admin appear instantly on TV
