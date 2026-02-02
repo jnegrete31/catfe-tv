@@ -527,24 +527,70 @@ export const appRouter = router({
         type: z.enum(["happy_tails", "snap_purr"]),
         submitterName: z.string().min(1).max(255),
         submitterEmail: z.string().email().max(320).optional().or(z.literal("")),
-        photoBase64: z.string(), // Base64 encoded image
+        photoBase64: z.string().min(1000), // Base64 encoded image - must be at least 1KB
         caption: z.string().max(500).optional(),
         catName: z.string().max(255).optional(), // For happy_tails
         adoptionDate: z.date().optional(), // For happy_tails
         backgroundStyle: z.enum(["blur", "gradient"]).optional(), // For portrait photos
       }))
       .mutation(async ({ input }) => {
+        // Validate base64 data
+        const base64Data = input.photoBase64.replace(/^data:image\/\w+;base64,/, '');
+        
+        // Check if the base64 data is valid and not too small
+        if (base64Data.length < 1000) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Photo data is too small or corrupted. Please try uploading again.',
+          });
+        }
+        
+        // Check if base64 is too large (limit to ~10MB encoded, which is ~7.5MB actual)
+        const MAX_BASE64_SIZE = 10 * 1024 * 1024; // 10MB
+        if (base64Data.length > MAX_BASE64_SIZE) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Photo is too large. Please use a smaller image.',
+          });
+        }
+        
+        // Convert base64 to buffer
+        const buffer = Buffer.from(base64Data, 'base64');
+        
+        // Validate buffer size (should be at least 1KB for a valid image)
+        if (buffer.length < 1024) {
+          console.error('[Photo Submit] Buffer too small:', buffer.length, 'bytes');
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Photo data is corrupted. Please try uploading again.',
+          });
+        }
+        
+        console.log('[Photo Submit] Uploading photo:', {
+          type: input.type,
+          submitter: input.submitterName,
+          bufferSize: buffer.length,
+          base64Length: base64Data.length,
+        });
+        
         // Upload photo to S3
         const timestamp = Date.now();
         const randomSuffix = Math.random().toString(36).substring(2, 8);
         const filename = `${input.type}/${timestamp}-${randomSuffix}.jpg`;
         
-        // Convert base64 to buffer
-        const base64Data = input.photoBase64.replace(/^data:image\/\w+;base64,/, '');
-        const buffer = Buffer.from(base64Data, 'base64');
-        
-        // Upload to S3
-        const { url: photoUrl } = await storagePut(filename, buffer, 'image/jpeg');
+        // Upload to S3 with error handling
+        let photoUrl: string;
+        try {
+          const result = await storagePut(filename, buffer, 'image/jpeg');
+          photoUrl = result.url;
+          console.log('[Photo Submit] Upload successful:', photoUrl);
+        } catch (uploadError) {
+          console.error('[Photo Submit] S3 upload failed:', uploadError);
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Failed to upload photo. Please try again.',
+          });
+        }
         
         // Create submission record
         const result = await createPhotoSubmission({

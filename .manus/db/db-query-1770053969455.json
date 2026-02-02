@@ -1,0 +1,28 @@
+{
+  "query": "SELECT id, submitterName, photoUrl, createdAt FROM photoSubmissions WHERE photoUrl LIKE '%1770050792296%' OR photoUrl LIKE '%1770049242654%' OR photoUrl LIKE '%1770049088047%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2KjT5kGWaGHMws6.75433b4e530a --database aMDMXCoQ2ycSYTjhkKKJzm --execute SELECT id, submitterName, photoUrl, createdAt FROM photoSubmissions WHERE photoUrl LIKE '%1770050792296%' OR photoUrl LIKE '%1770049242654%' OR photoUrl LIKE '%1770049088047%';",
+  "rows": [
+    {
+      "id": "30001",
+      "submitterName": "A Catfé Guest",
+      "photoUrl": "https://d2xsxph8kpxj0f.cloudfront.net/310519663322973980/aMDMXCoQ2ycSYTjhkKKJzm/snap_purr/1770049088047-z2v8en.jpg",
+      "createdAt": "2026-02-02 16:18:08"
+    },
+    {
+      "id": "30002",
+      "submitterName": "A Catfé Guest",
+      "photoUrl": "https://d2xsxph8kpxj0f.cloudfront.net/310519663322973980/aMDMXCoQ2ycSYTjhkKKJzm/snap_purr/1770049242654-e8vcqy.jpg",
+      "createdAt": "2026-02-02 16:20:42"
+    },
+    {
+      "id": "30003",
+      "submitterName": "Railey",
+      "photoUrl": "https://d2xsxph8kpxj0f.cloudfront.net/310519663322973980/aMDMXCoQ2ycSYTjhkKKJzm/snap_purr/1770050792296-9eeaf1.jpg",
+      "createdAt": "2026-02-02 16:46:32"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tsubmitterName\tphotoUrl\tcreatedAt\n30001\tA Catfé Guest\thttps://d2xsxph8kpxj0f.cloudfront.net/310519663322973980/aMDMXCoQ2ycSYTjhkKKJzm/snap_purr/1770049088047-z2v8en.jpg\t2026-02-02 16:18:08\n30002\tA Catfé Guest\thttps://d2xsxph8kpxj0f.cloudfront.net/310519663322973980/aMDMXCoQ2ycSYTjhkKKJzm/snap_purr/1770049242654-e8vcqy.jpg\t2026-02-02 16:20:42\n30003\tRailey\thttps://d2xsxph8kpxj0f.cloudfront.net/310519663322973980/aMDMXCoQ2ycSYTjhkKKJzm/snap_purr/1770050792296-9eeaf1.jpg\t2026-02-02 16:46:32\n",
+  "stderr": "",
+  "execution_time_ms": 60
+}

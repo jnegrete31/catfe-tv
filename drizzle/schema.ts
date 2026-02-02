@@ -218,6 +218,7 @@ export const photoSubmissions = mysqlTable("photoSubmissions", {
   showOnTv: boolean("showOnTv").notNull().default(true), // Can hide approved photos from TV
   isFeatured: boolean("isFeatured").notNull().default(false), // Featured photos show more prominently
   backgroundStyle: mysqlEnum("backgroundStyle", ["blur", "gradient"]).default("blur"), // For portrait photos
+  borderStyle: mysqlEnum("borderStyle", ["rounded", "polaroid", "film", "none"]).default("rounded"), // Photo frame style
   // Timestamps
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

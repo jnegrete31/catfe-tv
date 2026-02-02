@@ -11,6 +11,9 @@ interface PhotoCropperProps {
   onCancel: () => void;
 }
 
+// Maximum output dimensions to prevent canvas size issues and large uploads
+const MAX_OUTPUT_SIZE = 2048;
+
 function centerAspectCrop(
   mediaWidth: number,
   mediaHeight: number,
@@ -68,24 +71,34 @@ export default function PhotoCropper({
       return;
     }
 
-    const pixelRatio = window.devicePixelRatio || 1;
+    // Calculate the raw crop dimensions
+    let cropWidth = completedCrop.width * scaleX;
+    let cropHeight = completedCrop.height * scaleY;
+    
+    // Calculate scale factor to fit within MAX_OUTPUT_SIZE
+    // Don't use devicePixelRatio to avoid creating oversized images
+    let outputScale = 1;
+    const maxDimension = Math.max(cropWidth, cropHeight);
+    if (maxDimension > MAX_OUTPUT_SIZE) {
+      outputScale = MAX_OUTPUT_SIZE / maxDimension;
+    }
+    
+    // Set canvas size with the constrained dimensions
+    canvas.width = Math.floor(cropWidth * outputScale);
+    canvas.height = Math.floor(cropHeight * outputScale);
 
-    canvas.width = Math.floor(completedCrop.width * scaleX * pixelRatio);
-    canvas.height = Math.floor(completedCrop.height * scaleY * pixelRatio);
-
-    ctx.scale(pixelRatio, pixelRatio);
     ctx.imageSmoothingQuality = "high";
 
     const cropX = completedCrop.x * scaleX;
     const cropY = completedCrop.y * scaleY;
-    const cropWidth = completedCrop.width * scaleX;
-    const cropHeight = completedCrop.height * scaleY;
 
     const centerX = image.naturalWidth / 2;
     const centerY = image.naturalHeight / 2;
 
     ctx.save();
 
+    // Scale the context to match our output size
+    ctx.scale(outputScale, outputScale);
     ctx.translate(-cropX, -cropY);
     ctx.translate(centerX, centerY);
     ctx.rotate((rotate * Math.PI) / 180);
@@ -95,8 +108,16 @@ export default function PhotoCropper({
 
     ctx.restore();
 
-    // Convert canvas to base64
-    const croppedImageUrl = canvas.toDataURL("image/jpeg", 0.92);
+    // Convert canvas to base64 with good quality compression
+    const croppedImageUrl = canvas.toDataURL("image/jpeg", 0.85);
+    
+    // Validate the output
+    if (croppedImageUrl.length < 1000) {
+      console.error("Cropped image appears to be invalid (too small)");
+      alert("There was an error processing your photo. Please try again.");
+      return;
+    }
+    
     onCropComplete(croppedImageUrl);
   }, [completedCrop, rotate, scale, onCropComplete]);
 

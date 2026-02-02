@@ -1,0 +1,1 @@
+ALTER TABLE `photoSubmissions` ADD `borderStyle` enum('rounded','polaroid','film','none') DEFAULT 'rounded';

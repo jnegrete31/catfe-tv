@@ -509,3 +509,29 @@
 - [x] Change voting time to 12 minutes (x:00-x:12, x:15-x:27, x:30-x:42, x:45-x:57)
 - [x] Change results time to 3 minutes (x:12-x:14, x:27-x:29, x:42-x:44, x:57-x:59)
 - [x] Move results widget to top-left corner (same position as poll widget)
+
+## Xcode/tvOS App Updates
+- [x] Add Poll models to Models.swift
+- [x] Create PollWidget view for tvOS
+- [x] Create PollResultsWidget view for tvOS
+- [x] Push changes to GitHub repository
+
+## Feature - Photo Border Styles
+- [ ] Add borderStyle column to photoSubmissions table
+- [ ] Update Snap & Purr gallery to use rounded corners as default
+- [ ] Support multiple border styles: rounded, polaroid, film, none
+
+## Bug Fix - Snap & Purr Gallery Images Not Showing
+- [x] Investigated why photos show "Visitor photo" placeholder with broken image
+- [x] Root cause: 3 recent photo uploads had corrupted data (only 3 bytes stored instead of actual image)
+- [x] Fixed PhotoCropper to limit output size to 2048x2048 max to prevent canvas size issues
+- [x] Added server-side validation for photo uploads (min 1KB, max 10MB)
+- [x] Added better error handling and logging for S3 uploads
+- [x] Removed 3 corrupted photo records from database
+
+## Bug Fix - tvOS Real-Time Voting Results
+- [x] Investigated tvOS poll refresh mechanism
+- [x] Root cause: PollService.fetchCurrentPoll() was only called once on view load, not refreshed
+- [x] Fixed PollWidget to refresh poll data every 5 seconds during voting time
+- [x] Fixed PollResultsWidget to refresh when entering results time
+- [x] Pushed changes to GitHub repository (catfe-tv)
