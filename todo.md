@@ -307,3 +307,42 @@
 - [x] Show scheduled reminders on web TV display (purple cards)
 - [x] Show scheduled reminders on tvOS Apple TV app (purple cards)
 - [x] Keep existing individual guest session reminders working alongside (orange/red cards)
+
+## Bug Fix - tvOS Guest Timer Not Showing
+- [x] Check APIClient guest session fetching (found field name mismatch)
+- [x] Fixed GuestSession model to match actual API response fields
+- [x] Updated GuestReminderCard to use correct date parsing
+
+## Bug Fix - tvOS Scheduled Reminders Not Showing
+- [x] Fix Mini Meow and Full Purr scheduled reminders (verified logic is correct - shows at :25-:29 and :55-:59)
+- [x] Remove ":25 reminder" / ":55 reminder" text from scheduled reminder cards
+
+## Bug Fix - tvOS Reminders Still Not Showing (Deep Debug)
+- [x] Review GuestReminderOverlay view hierarchy and positioning
+- [x] Fixed: Timer wasn't running when hasReminders was false (chicken-and-egg problem)
+- [x] Changed view to always render container so timer keeps running
+- [x] Added onAppear to force initial time update
+
+## Feature - Customer Photo Upload System
+
+### Happy Tails (Adopted Cats in New Homes)
+- [x] Create photoSubmissions database table
+- [x] Build mobile upload form page (/upload/happy-tails)
+- [x] Add moderation queue in admin panel
+- [x] Create Happy Tails TV slideshow screen
+- [x] Generate QR code for upload page
+
+### Snap & Purr (In-Lounge Photos)
+- [x] Build mobile upload form page (/upload/snap-purr)
+- [x] Add to moderation queue
+- [x] Create Snap & Purr photo slideshow screen
+- [x] Update existing Snap & Purr screen with QR code
+
+### Admin Features
+- [x] Photo moderation queue with approve/reject buttons
+- [x] Preview photos before approval
+- [x] Delete inappropriate submissions
+
+### tvOS App Updates
+- [x] Add Happy Tails slideshow view
+- [x] Add Snap & Purr photo slideshow view

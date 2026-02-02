@@ -7,7 +7,8 @@ import {
   timeSlots, InsertTimeSlot, TimeSlot,
   screenTimeSlots, InsertScreenTimeSlot,
   screenViews, InsertScreenView,
-  guestSessions, InsertGuestSession, GuestSession
+  guestSessions, InsertGuestSession, GuestSession,
+  photoSubmissions, InsertPhotoSubmission, PhotoSubmission
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -429,4 +430,109 @@ export async function getTodayGuestStats() {
   const completedSessions = sessions.filter(s => s.status === "completed").length;
   
   return { totalGuests, activeSessions, completedSessions };
+}
+
+// ============ PHOTO SUBMISSION QUERIES ============
+
+export async function getAllPhotoSubmissions() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db.select().from(photoSubmissions).orderBy(desc(photoSubmissions.createdAt));
+}
+
+export async function getPendingPhotoSubmissions() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db.select().from(photoSubmissions)
+    .where(eq(photoSubmissions.status, "pending"))
+    .orderBy(asc(photoSubmissions.createdAt));
+}
+
+export async function getApprovedPhotosByType(type: "happy_tails" | "snap_purr") {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db.select().from(photoSubmissions)
+    .where(
+      and(
+        eq(photoSubmissions.type, type),
+        eq(photoSubmissions.status, "approved"),
+        eq(photoSubmissions.showOnTv, true)
+      )
+    )
+    .orderBy(desc(photoSubmissions.createdAt));
+}
+
+export async function getPhotoSubmissionById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.select().from(photoSubmissions).where(eq(photoSubmissions.id, id)).limit(1);
+  return result[0] || null;
+}
+
+export async function createPhotoSubmission(data: InsertPhotoSubmission) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(photoSubmissions).values(data);
+  return { id: result[0].insertId };
+}
+
+export async function approvePhotoSubmission(id: number, reviewedBy: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(photoSubmissions).set({
+    status: "approved",
+    reviewedAt: new Date(),
+    reviewedBy,
+  }).where(eq(photoSubmissions.id, id));
+  return { success: true };
+}
+
+export async function rejectPhotoSubmission(id: number, reviewedBy: number, reason?: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(photoSubmissions).set({
+    status: "rejected",
+    reviewedAt: new Date(),
+    reviewedBy,
+    rejectionReason: reason || null,
+  }).where(eq(photoSubmissions.id, id));
+  return { success: true };
+}
+
+export async function deletePhotoSubmission(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.delete(photoSubmissions).where(eq(photoSubmissions.id, id));
+  return { success: true };
+}
+
+export async function togglePhotoVisibility(id: number, showOnTv: boolean) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(photoSubmissions).set({ showOnTv }).where(eq(photoSubmissions.id, id));
+  return { success: true };
+}
+
+export async function getPhotoSubmissionStats() {
+  const db = await getDb();
+  if (!db) return { pending: 0, approved: 0, rejected: 0, happyTails: 0, snapPurr: 0 };
+  
+  const all = await db.select().from(photoSubmissions);
+  
+  return {
+    pending: all.filter(p => p.status === "pending").length,
+    approved: all.filter(p => p.status === "approved").length,
+    rejected: all.filter(p => p.status === "rejected").length,
+    happyTails: all.filter(p => p.type === "happy_tails" && p.status === "approved").length,
+    snapPurr: all.filter(p => p.type === "snap_purr" && p.status === "approved").length,
+  };
 }

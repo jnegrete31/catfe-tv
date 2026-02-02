@@ -7,6 +7,8 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import TVDisplay from "./pages/TVDisplay";
 import Admin from "./pages/Admin";
+import UploadHappyTails from "./pages/UploadHappyTails";
+import UploadSnapPurr from "./pages/UploadSnapPurr";
 
 function Router() {
   return (
@@ -14,6 +16,8 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/tv" component={TVDisplay} />
       <Route path="/admin" component={Admin} />
+      <Route path="/upload/happy-tails" component={UploadHappyTails} />
+      <Route path="/upload/snap-purr" component={UploadSnapPurr} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

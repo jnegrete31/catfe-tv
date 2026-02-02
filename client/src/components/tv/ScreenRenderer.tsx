@@ -564,6 +564,230 @@ function ThankYouScreen({ screen, settings }: ScreenRendererProps) {
   );
 }
 
+// HAPPY_TAILS - Slideshow of adopted cats in their new homes
+function HappyTailsScreen({ screen, settings }: ScreenRendererProps) {
+  const { data: photos } = trpc.photos.getApproved.useQuery({ type: "happy_tails" });
+  const [currentIndex, setCurrentIndex] = useState(0);
+  
+  // Auto-rotate through photos every 8 seconds
+  useEffect(() => {
+    if (!photos || photos.length <= 1) return;
+    
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % photos.length);
+    }, 8000);
+    
+    return () => clearInterval(interval);
+  }, [photos]);
+  
+  const currentPhoto = photos?.[currentIndex];
+  
+  if (!photos || photos.length === 0) {
+    return (
+      <ScreenLayout bgColor="#fef3c7" logoUrl={settings?.logoUrl}>
+        <div className="text-center">
+          <div className="text-8xl mb-6">❤️</div>
+          <h1 className="tv-text-large mb-4 text-amber-900">Happy Tails</h1>
+          <p className="tv-text-medium text-amber-700">Coming soon - photos of our adopted cats!</p>
+        </div>
+      </ScreenLayout>
+    );
+  }
+  
+  return (
+    <div className="tv-screen relative bg-gradient-to-br from-amber-100 via-orange-50 to-amber-100">
+      {/* Background pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute inset-0" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23f59e0b" fill-opacity="0.4"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }} />
+      </div>
+      
+      {/* Header */}
+      <div className="absolute top-8 left-8 right-8 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center shadow-lg">
+            <span className="text-4xl">❤️</span>
+          </div>
+          <div>
+            <h1 className="text-5xl font-bold text-amber-900" style={{ fontFamily: 'Georgia, serif' }}>Happy Tails</h1>
+            <p className="text-2xl text-amber-700">Our adopted cats in their forever homes</p>
+          </div>
+        </div>
+        <div className="text-amber-600 text-xl">
+          {currentIndex + 1} / {photos.length}
+        </div>
+      </div>
+      
+      {/* Main photo area */}
+      <div className="absolute inset-0 flex items-center justify-center pt-32 pb-24 px-16">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentPhoto?.id}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.5 }}
+            className="flex gap-12 items-center max-w-6xl"
+          >
+            {/* Photo */}
+            <div className="flex-shrink-0">
+              <div className="relative">
+                <div className="absolute -inset-4 bg-white rounded-3xl shadow-2xl" />
+                <img
+                  src={currentPhoto?.photoUrl}
+                  alt={currentPhoto?.catName || "Adopted cat"}
+                  className="relative w-[500px] h-[500px] object-cover rounded-2xl"
+                />
+              </div>
+            </div>
+            
+            {/* Info */}
+            <div className="flex-1 space-y-6">
+              <div>
+                <p className="text-2xl text-amber-600 mb-2">Meet</p>
+                <h2 className="text-6xl font-bold text-amber-900" style={{ fontFamily: 'Georgia, serif' }}>
+                  {currentPhoto?.catName || "Our Friend"}
+                </h2>
+              </div>
+              
+              {currentPhoto?.caption && (
+                <p className="text-3xl text-amber-800 leading-relaxed italic">
+                  "{currentPhoto.caption}"
+                </p>
+              )}
+              
+              <p className="text-2xl text-amber-600">
+                — {currentPhoto?.submitterName}
+              </p>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+      
+      {/* Logo */}
+      <div className="absolute bottom-8 left-8">
+        <CatfeLogo logoUrl={settings?.logoUrl} />
+      </div>
+      
+      {/* Progress dots */}
+      <div className="absolute bottom-8 right-8 flex gap-2">
+        {photos.map((_, idx) => (
+          <div
+            key={idx}
+            className={`w-3 h-3 rounded-full transition-colors ${
+              idx === currentIndex ? "bg-amber-600" : "bg-amber-300"
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// SNAP_PURR_GALLERY - Slideshow of customer photos from their visits
+function SnapPurrGalleryScreen({ screen, settings }: ScreenRendererProps) {
+  const { data: photos } = trpc.photos.getApproved.useQuery({ type: "snap_purr" });
+  const [currentIndex, setCurrentIndex] = useState(0);
+  
+  // Auto-rotate through photos every 6 seconds
+  useEffect(() => {
+    if (!photos || photos.length <= 1) return;
+    
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % photos.length);
+    }, 6000);
+    
+    return () => clearInterval(interval);
+  }, [photos]);
+  
+  const currentPhoto = photos?.[currentIndex];
+  
+  if (!photos || photos.length === 0) {
+    return (
+      <ScreenLayout bgColor="#fef9c3" logoUrl={settings?.logoUrl}>
+        <div className="text-center">
+          <div className="text-8xl mb-6">📸</div>
+          <h1 className="tv-text-large mb-4 text-yellow-900">Snap & Purr Gallery</h1>
+          <p className="tv-text-medium text-yellow-700">Scan the QR code to share your photos!</p>
+        </div>
+      </ScreenLayout>
+    );
+  }
+  
+  return (
+    <div className="tv-screen relative bg-gradient-to-br from-yellow-100 via-amber-50 to-yellow-100">
+      {/* Header */}
+      <div className="absolute top-8 left-8 right-8 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="w-16 h-16 bg-yellow-500 rounded-full flex items-center justify-center shadow-lg">
+            <span className="text-4xl">📸</span>
+          </div>
+          <div>
+            <h1 className="text-5xl font-bold text-yellow-900" style={{ fontFamily: 'Georgia, serif' }}>Snap & Purr</h1>
+            <p className="text-2xl text-yellow-700">Photos from our amazing visitors</p>
+          </div>
+        </div>
+        <div className="text-yellow-600 text-xl">
+          {currentIndex + 1} / {photos.length}
+        </div>
+      </div>
+      
+      {/* Main photo area */}
+      <div className="absolute inset-0 flex items-center justify-center pt-32 pb-24 px-16">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentPhoto?.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.5 }}
+            className="text-center"
+          >
+            {/* Photo frame */}
+            <div className="relative inline-block">
+              <div className="absolute -inset-6 bg-white rounded-3xl shadow-2xl transform -rotate-2" />
+              <div className="absolute -inset-6 bg-white rounded-3xl shadow-xl transform rotate-1" />
+              <img
+                src={currentPhoto?.photoUrl}
+                alt="Visitor photo"
+                className="relative w-[600px] h-[450px] object-cover rounded-2xl"
+              />
+            </div>
+            
+            {/* Caption */}
+            <div className="mt-8">
+              {currentPhoto?.caption && (
+                <p className="text-3xl text-yellow-800 mb-4 italic">
+                  "{currentPhoto.caption}"
+                </p>
+              )}
+              <p className="text-2xl text-yellow-600">
+                — {currentPhoto?.submitterName}
+              </p>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+      
+      {/* Logo */}
+      <div className="absolute bottom-8 left-8">
+        <CatfeLogo logoUrl={settings?.logoUrl} />
+      </div>
+      
+      {/* Progress dots */}
+      <div className="absolute bottom-8 right-8 flex gap-2">
+        {photos.map((_, idx) => (
+          <div
+            key={idx}
+            className={`w-3 h-3 rounded-full transition-colors ${
+              idx === currentIndex ? "bg-yellow-600" : "bg-yellow-300"
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // LIVESTREAM - Live video stream from camera
 function LivestreamScreen({ screen, settings }: ScreenRendererProps) {
   const livestreamUrl = (screen as any).livestreamUrl;
@@ -634,6 +858,8 @@ export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendere
     ADOPTION_COUNTER: AdoptionCounterScreen,
     THANK_YOU: ThankYouScreen,
     LIVESTREAM: LivestreamScreen,
+    HAPPY_TAILS: HappyTailsScreen,
+    SNAP_PURR_GALLERY: SnapPurrGalleryScreen,
   };
   
   const Renderer = renderers[screen.type] || EventScreen;

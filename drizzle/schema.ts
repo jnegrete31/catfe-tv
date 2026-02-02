@@ -31,7 +31,9 @@ export const screenTypeEnum = mysqlEnum("screenType", [
   "ADOPTION_SHOWCASE",
   "ADOPTION_COUNTER",
   "THANK_YOU",
-  "LIVESTREAM"
+  "LIVESTREAM",
+  "HAPPY_TAILS",
+  "SNAP_PURR_GALLERY"
 ]);
 
 /**
@@ -174,3 +176,44 @@ export const guestSessions = mysqlTable("guestSessions", {
 
 export type GuestSession = typeof guestSessions.$inferSelect;
 export type InsertGuestSession = typeof guestSessions.$inferInsert;
+
+/**
+ * Photo submission types
+ */
+export const photoTypeEnum = mysqlEnum("photoType", ["happy_tails", "snap_purr"]);
+
+/**
+ * Photo submission status
+ */
+export const photoStatusEnum = mysqlEnum("photoStatus", ["pending", "approved", "rejected"]);
+
+/**
+ * Photo submissions table - customer-uploaded photos for TV display
+ */
+export const photoSubmissions = mysqlTable("photoSubmissions", {
+  id: int("id").autoincrement().primaryKey(),
+  type: photoTypeEnum.notNull(), // happy_tails or snap_purr
+  status: photoStatusEnum.notNull().default("pending"),
+  // Submitter info
+  submitterName: varchar("submitterName", { length: 255 }).notNull(),
+  submitterEmail: varchar("submitterEmail", { length: 320 }),
+  // Photo details
+  photoUrl: varchar("photoUrl", { length: 1024 }).notNull(), // S3 URL
+  caption: varchar("caption", { length: 500 }),
+  // For Happy Tails - adopted cat info
+  catName: varchar("catName", { length: 255 }),
+  adoptionDate: timestamp("adoptionDate"),
+  // Moderation
+  reviewedAt: timestamp("reviewedAt"),
+  reviewedBy: int("reviewedBy"), // User ID of admin who reviewed
+  rejectionReason: varchar("rejectionReason", { length: 500 }),
+  // Display settings
+  displayOrder: int("displayOrder").notNull().default(0),
+  showOnTv: boolean("showOnTv").notNull().default(true), // Can hide approved photos from TV
+  // Timestamps
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type PhotoSubmission = typeof photoSubmissions.$inferSelect;
+export type InsertPhotoSubmission = typeof photoSubmissions.$inferInsert;

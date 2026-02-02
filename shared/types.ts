@@ -18,6 +18,8 @@ export const SCREEN_TYPES = [
   "ADOPTION_COUNTER",
   "THANK_YOU",
   "LIVESTREAM",
+  "HAPPY_TAILS",
+  "SNAP_PURR_GALLERY",
 ] as const;
 
 export type ScreenType = typeof SCREEN_TYPES[number];
@@ -34,6 +36,8 @@ export const SCREEN_TYPE_CONFIG: Record<ScreenType, { label: string; color: stri
   ADOPTION_COUNTER: { label: "Adoption Counter", color: "#16a34a", bgColor: "#dcfce7" },
   THANK_YOU: { label: "Thank You", color: "#6366f1", bgColor: "#e0e7ff" },
   LIVESTREAM: { label: "Livestream", color: "#dc2626", bgColor: "#fef2f2" },
+  HAPPY_TAILS: { label: "Happy Tails", color: "#ea580c", bgColor: "#fff7ed" },
+  SNAP_PURR_GALLERY: { label: "Snap & Purr Gallery", color: "#ca8a04", bgColor: "#fefce8" },
 };
 
 // Days of week

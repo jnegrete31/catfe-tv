@@ -34,7 +34,18 @@ import {
   getSessionsNeedingReminder,
   markReminderShown,
   getTodayGuestStats,
+  getAllPhotoSubmissions,
+  getPendingPhotoSubmissions,
+  getApprovedPhotosByType,
+  getPhotoSubmissionById,
+  createPhotoSubmission,
+  approvePhotoSubmission,
+  rejectPhotoSubmission,
+  deletePhotoSubmission,
+  togglePhotoVisibility,
+  getPhotoSubmissionStats,
 } from "./db";
+import { storagePut } from "./storage";
 
 // Screen type enum values
 const screenTypes = [
@@ -48,6 +59,8 @@ const screenTypes = [
   "ADOPTION_COUNTER",
   "THANK_YOU",
   "LIVESTREAM",
+  "HAPPY_TAILS",
+  "SNAP_PURR_GALLERY",
 ] as const;
 
 // Input schemas
@@ -426,6 +439,103 @@ export const appRouter = router({
       }))
       .mutation(async ({ input }) => {
         return updateGuestSession(input.id, { notes: input.notes });
+      }),
+  }),
+
+  // ============ PHOTO SUBMISSIONS ============
+  photos: router({
+    // Public: Submit a photo (for customer upload via QR code)
+    submit: publicProcedure
+      .input(z.object({
+        type: z.enum(["happy_tails", "snap_purr"]),
+        submitterName: z.string().min(1).max(255),
+        submitterEmail: z.string().email().max(320).optional().or(z.literal("")),
+        photoBase64: z.string(), // Base64 encoded image
+        caption: z.string().max(500).optional(),
+        catName: z.string().max(255).optional(), // For happy_tails
+        adoptionDate: z.date().optional(), // For happy_tails
+      }))
+      .mutation(async ({ input }) => {
+        // Upload photo to S3
+        const timestamp = Date.now();
+        const randomSuffix = Math.random().toString(36).substring(2, 8);
+        const filename = `${input.type}/${timestamp}-${randomSuffix}.jpg`;
+        
+        // Convert base64 to buffer
+        const base64Data = input.photoBase64.replace(/^data:image\/\w+;base64,/, '');
+        const buffer = Buffer.from(base64Data, 'base64');
+        
+        // Upload to S3
+        const { url: photoUrl } = await storagePut(filename, buffer, 'image/jpeg');
+        
+        // Create submission record
+        const result = await createPhotoSubmission({
+          type: input.type,
+          submitterName: input.submitterName,
+          submitterEmail: input.submitterEmail || null,
+          photoUrl,
+          caption: input.caption || null,
+          catName: input.catName || null,
+          adoptionDate: input.adoptionDate || null,
+        });
+        
+        return { id: result.id, message: "Photo submitted for review!" };
+      }),
+
+    // Public: Get approved photos for TV display
+    getApproved: publicProcedure
+      .input(z.object({ type: z.enum(["happy_tails", "snap_purr"]) }))
+      .query(async ({ input }) => {
+        return getApprovedPhotosByType(input.type);
+      }),
+
+    // Admin: Get all submissions
+    getAll: adminProcedure.query(async () => {
+      return getAllPhotoSubmissions();
+    }),
+
+    // Admin: Get pending submissions
+    getPending: adminProcedure.query(async () => {
+      return getPendingPhotoSubmissions();
+    }),
+
+    // Admin: Get submission stats
+    getStats: adminProcedure.query(async () => {
+      return getPhotoSubmissionStats();
+    }),
+
+    // Admin: Approve submission
+    approve: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        return approvePhotoSubmission(input.id, ctx.user.id);
+      }),
+
+    // Admin: Reject submission
+    reject: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        reason: z.string().max(500).optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        return rejectPhotoSubmission(input.id, ctx.user.id, input.reason);
+      }),
+
+    // Admin: Delete submission
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        return deletePhotoSubmission(input.id);
+      }),
+
+    // Admin: Toggle TV visibility
+    toggleVisibility: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        showOnTv: z.boolean(),
+      }))
+      .mutation(async ({ input }) => {
+        return togglePhotoVisibility(input.id, input.showOnTv);
       }),
   }),
 
