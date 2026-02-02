@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Heart, Upload, Camera, CheckCircle, Cat } from "lucide-react";
+import { Heart, Upload, Camera, CheckCircle, Cat, Tv, Plus } from "lucide-react";
+import { Link } from "wouter";
 
 export default function UploadHappyTails() {
   const [name, setName] = useState("");
@@ -51,6 +52,16 @@ export default function UploadHappyTails() {
     });
   };
 
+  const handleUploadAnother = () => {
+    setSubmitted(false);
+    setName("");
+    setEmail("");
+    setCatName("");
+    setCaption("");
+    setPhotoPreview(null);
+    setPhotoBase64(null);
+  };
+
   if (submitted) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-50 flex items-center justify-center p-4">
@@ -63,9 +74,28 @@ export default function UploadHappyTails() {
             <p className="text-gray-600 mb-4">
               Your photo of <span className="font-semibold">{catName}</span> has been submitted for review.
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 mb-6">
               Once approved, it will appear on the Catfé TV display for everyone to see!
             </p>
+            
+            {/* Action Buttons */}
+            <div className="space-y-3">
+              <Link href="/slideshow/happy-tails">
+                <Button className="w-full bg-amber-500 hover:bg-amber-600">
+                  <Tv className="w-4 h-4 mr-2" />
+                  Watch Live Slideshow
+                </Button>
+              </Link>
+              <Button 
+                variant="outline" 
+                className="w-full border-amber-300 text-amber-700 hover:bg-amber-50"
+                onClick={handleUploadAnother}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Upload Another Photo
+              </Button>
+            </div>
+            
             <div className="mt-6 flex items-center justify-center gap-2 text-amber-600">
               <Heart className="w-5 h-5 fill-current" />
               <span className="font-medium">Happy Tails from Catfé!</span>

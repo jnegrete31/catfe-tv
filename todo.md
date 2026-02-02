@@ -406,3 +406,9 @@
 - [x] Display guest name with welcoming message
 - [x] Integrate into TV display rotation
 - [ ] Add settings to configure welcome time window
+
+## Feature - Enhanced Photo Upload Success Page
+- [x] Add "Watch Live Slideshow" button on success page
+- [x] Add "Upload Another Photo" button on success page
+- [x] Create mobile-friendly live slideshow view page
+- [x] Show approved photos from the same gallery type (Happy Tails or Snap & Purr)

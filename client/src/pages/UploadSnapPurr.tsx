@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Camera, Upload, CheckCircle, Sparkles } from "lucide-react";
+import { Camera, Upload, CheckCircle, Sparkles, Tv, Plus } from "lucide-react";
+import { Link } from "wouter";
 
 export default function UploadSnapPurr() {
   const [name, setName] = useState("");
@@ -49,6 +50,15 @@ export default function UploadSnapPurr() {
     });
   };
 
+  const handleUploadAnother = () => {
+    setSubmitted(false);
+    setName("");
+    setEmail("");
+    setCaption("");
+    setPhotoPreview(null);
+    setPhotoBase64(null);
+  };
+
   if (submitted) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-yellow-50 to-amber-50 flex items-center justify-center p-4">
@@ -61,9 +71,28 @@ export default function UploadSnapPurr() {
             <p className="text-gray-600 mb-4">
               Your photo has been submitted for review.
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 mb-6">
               Once approved, it will appear on the Catfé TV display for everyone to enjoy!
             </p>
+            
+            {/* Action Buttons */}
+            <div className="space-y-3">
+              <Link href="/slideshow/snap-purr">
+                <Button className="w-full bg-yellow-500 hover:bg-yellow-600 text-gray-900">
+                  <Tv className="w-4 h-4 mr-2" />
+                  Watch Live Slideshow
+                </Button>
+              </Link>
+              <Button 
+                variant="outline" 
+                className="w-full border-yellow-300 text-yellow-700 hover:bg-yellow-50"
+                onClick={handleUploadAnother}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Upload Another Photo
+              </Button>
+            </div>
+            
             <div className="mt-6 flex items-center justify-center gap-2 text-yellow-600">
               <Sparkles className="w-5 h-5" />
               <span className="font-medium">Thanks for visiting Catfé!</span>
