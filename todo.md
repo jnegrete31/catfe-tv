@@ -604,3 +604,12 @@
 - [ ] Fix WebKit import error - tvOS doesn't support WebKit the same way as iOS
 - [ ] Fix asset catalog errors (AccentColor, App Icon)
 - [ ] Use TVUIKit or alternative approach for web content on tvOS
+
+
+## Feature - Photo Captions for Snap & Purr
+- [x] Add caption field to photos database table
+- [x] Update upload API to accept and store captions
+- [x] Add caption input field to upload page UI
+- [x] Display captions on TV gallery view
+- [x] Increase caption text size for TV visibility
+- [x] Test caption feature end-to-end

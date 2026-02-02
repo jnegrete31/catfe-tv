@@ -831,13 +831,13 @@ function SnapPurrGalleryScreen({ screen, settings }: ScreenRendererProps) {
                   )}
                   
                   {/* Caption and name overlay */}
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                  <div className="absolute bottom-0 left-0 right-0 p-6">
                     {photo.caption && (
-                      <p className="text-white text-lg font-medium line-clamp-2 mb-1 drop-shadow-lg">
+                      <p className="text-white text-2xl font-medium line-clamp-2 mb-2 drop-shadow-lg">
                         "{photo.caption}"
                       </p>
                     )}
-                    <p className="text-white/90 text-sm drop-shadow-md">
+                    <p className="text-white/90 text-lg drop-shadow-md">
                       — {photo.submitterName}
                     </p>
                   </div>
