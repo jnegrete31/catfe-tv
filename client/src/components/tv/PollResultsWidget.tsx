@@ -33,9 +33,9 @@ export function PollResultsWidget() {
   useEffect(() => {
     const minutes = currentTime.getMinutes();
     
-    // Show widget during results time: x:10-x:14, x:25-x:29, x:40-x:44, x:55-x:59
+    // Show widget during results time: x:12-x:14, x:27-x:29, x:42-x:44, x:57-x:59 (3 min results)
     const minuteInQuarter = minutes % 15;
-    const isResultsTime = minuteInQuarter >= 10 && minuteInQuarter < 15;
+    const isResultsTime = minuteInQuarter >= 12 && minuteInQuarter < 15;
     
     setShowWidget(isResultsTime && !!poll);
   }, [currentTime, poll]);
@@ -61,7 +61,7 @@ export function PollResultsWidget() {
   const hasWinner = totalVotes > 0 && winner;
 
   return (
-    <div className="absolute top-4 right-4 z-40 animate-in fade-in slide-in-from-right duration-500">
+    <div className="absolute top-4 left-4 z-40 animate-in fade-in slide-in-from-left duration-500">
       <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-4 shadow-2xl max-w-xs">
         {/* Header */}
         <div className="flex items-center gap-2 mb-3">

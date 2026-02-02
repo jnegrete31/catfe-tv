@@ -33,18 +33,18 @@ function isScreenEligible(screen: Screen): boolean {
   return true;
 }
 
-// Check if it's poll time (15-minute intervals: x:00-x:10, x:15-x:25, x:30-x:40, x:45-x:55)
+// Check if it's poll time (15-minute intervals: x:00-x:12, x:15-x:27, x:30-x:42, x:45-x:57)
 function isPollTime(): boolean {
   const minutes = new Date().getMinutes();
   const minuteInQuarter = minutes % 15;
-  return minuteInQuarter < 10;
+  return minuteInQuarter < 12;
 }
 
-// Check if it's results time (15-minute intervals: x:10-x:14, x:25-x:29, x:40-x:44, x:55-x:59)
+// Check if it's results time (15-minute intervals: x:12-x:14, x:27-x:29, x:42-x:44, x:57-x:59)
 function isResultsTime(): boolean {
   const minutes = new Date().getMinutes();
   const minuteInQuarter = minutes % 15;
-  return minuteInQuarter >= 10 && minuteInQuarter < 15;
+  return minuteInQuarter >= 12 && minuteInQuarter < 15;
 }
 
 // Build weighted playlist with SNAP_AND_PURR frequency (poll is now shown as corner widget)

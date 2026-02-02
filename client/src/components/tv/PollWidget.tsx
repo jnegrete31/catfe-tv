@@ -28,16 +28,16 @@ export function PollWidget() {
   useEffect(() => {
     const minutes = currentTime.getMinutes();
     
-    // Show widget during voting time: x:00-x:10, x:15-x:25, x:30-x:40, x:45-x:55
-    // Hide during results time: x:10-x:14, x:25-x:29, x:40-x:44, x:55-x:59
+    // Show widget during voting time: x:00-x:12, x:15-x:27, x:30-x:42, x:45-x:57 (12 min voting)
+    // Hide during results time: x:12-x:14, x:27-x:29, x:42-x:44, x:57-x:59 (3 min results)
     const minuteInQuarter = minutes % 15;
-    const isVotingTime = minuteInQuarter < 10;
+    const isVotingTime = minuteInQuarter < 12;
     
     setShowWidget(isVotingTime && !!poll);
     
-    // Calculate minutes until results (results show at :10, :25, :40, :55)
-    if (minuteInQuarter < 10) {
-      setMinutesUntilResults(10 - minuteInQuarter);
+    // Calculate minutes until results (results show at :12, :27, :42, :57)
+    if (minuteInQuarter < 12) {
+      setMinutesUntilResults(12 - minuteInQuarter);
     } else {
       setMinutesUntilResults(0); // Results showing
     }

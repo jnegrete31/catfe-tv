@@ -504,3 +504,8 @@
 - [x] Remove full-screen poll slide from rotation (poll is now always visible as widget)
 - [x] Test new poll overlay system
 - [x] Change poll timing from 30-minute to 15-minute intervals (4 polls per hour)
+
+## Poll Timing Adjustment
+- [x] Change voting time to 12 minutes (x:00-x:12, x:15-x:27, x:30-x:42, x:45-x:57)
+- [x] Change results time to 3 minutes (x:12-x:14, x:27-x:29, x:42-x:44, x:57-x:59)
+- [x] Move results widget to top-left corner (same position as poll widget)
