@@ -11,6 +11,7 @@ import { SettingsForm } from "@/components/admin/SettingsForm";
 import { PlaylistPreview } from "@/components/admin/ScreenPreview";
 import { GuestCheckIn } from "@/components/admin/GuestCheckIn";
 import PhotoModeration from "@/components/admin/PhotoModeration";
+import { SessionHistory } from "@/components/admin/SessionHistory";
 import { trpc } from "@/lib/trpc";
 import type { Screen } from "@shared/types";
 import { 
@@ -23,6 +24,7 @@ import {
   ExternalLink,
   Users,
   Image,
+  BarChart3,
 } from "lucide-react";
 import { IOSInstallPrompt } from "@/components/IOSInstallPrompt";
 
@@ -158,7 +160,7 @@ export default function Admin() {
       {/* Main Content */}
       <main className="container py-4 pb-24">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full grid grid-cols-4 mb-4">
+          <TabsList className="w-full grid grid-cols-5 mb-4">
             <TabsTrigger value="screens" className="flex items-center gap-2">
               <LayoutGrid className="w-4 h-4" />
               Screens
@@ -170,6 +172,10 @@ export default function Admin() {
             <TabsTrigger value="photos" className="flex items-center gap-2">
               <Image className="w-4 h-4" />
               Photos
+            </TabsTrigger>
+            <TabsTrigger value="reports" className="flex items-center gap-2">
+              <BarChart3 className="w-4 h-4" />
+              Reports
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="w-4 h-4" />
@@ -217,6 +223,11 @@ export default function Admin() {
           {/* Photos Tab */}
           <TabsContent value="photos">
             <PhotoModeration />
+          </TabsContent>
+          
+          {/* Reports Tab */}
+          <TabsContent value="reports">
+            <SessionHistory />
           </TabsContent>
           
           {/* Settings Tab */}

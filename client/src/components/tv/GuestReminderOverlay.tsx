@@ -1,6 +1,6 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
-import { Clock, Bell, Users, AlertTriangle, Timer } from "lucide-react";
+import { Clock, Bell, Users, AlertTriangle, Timer, Volume2, VolumeX } from "lucide-react";
 
 type GuestSession = {
   id: number;
@@ -65,10 +65,60 @@ function getActiveScheduledReminders(currentTime: Date): ScheduledReminder[] {
   );
 }
 
+// Custom hook for audio chime
+function useAudioChime() {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isMuted, setIsMuted] = useState(() => {
+    // Check localStorage for mute preference
+    const saved = localStorage.getItem('catfe-chime-muted');
+    return saved === 'true';
+  });
+  const playedRemindersRef = useRef<Set<string>>(new Set());
+  
+  // Initialize audio element
+  useEffect(() => {
+    audioRef.current = new Audio('/chime.mp3');
+    audioRef.current.volume = 0.7;
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+  
+  // Save mute preference
+  useEffect(() => {
+    localStorage.setItem('catfe-chime-muted', String(isMuted));
+  }, [isMuted]);
+  
+  const playChime = useCallback((reminderId: string) => {
+    // Only play if not muted and hasn't played for this reminder yet
+    if (!isMuted && audioRef.current && !playedRemindersRef.current.has(reminderId)) {
+      playedRemindersRef.current.add(reminderId);
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(() => {
+        // Ignore autoplay errors - user interaction required
+      });
+    }
+  }, [isMuted]);
+  
+  const resetPlayedReminders = useCallback(() => {
+    playedRemindersRef.current.clear();
+  }, []);
+  
+  const toggleMute = useCallback(() => {
+    setIsMuted(prev => !prev);
+  }, []);
+  
+  return { playChime, resetPlayedReminders, isMuted, toggleMute };
+}
+
 export function GuestReminderOverlay() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const markedIds = useRef<Set<number>>(new Set());
   const [dismissedScheduled, setDismissedScheduled] = useState<Set<string>>(new Set());
+  const { playChime, resetPlayedReminders, isMuted, toggleMute } = useAudioChime();
   
   // Query for sessions needing reminder - poll every 5 seconds for responsiveness
   const { data: sessionsNeedingReminder } = trpc.guestSessions.getNeedingReminder.useQuery(undefined, {
@@ -88,14 +138,14 @@ export function GuestReminderOverlay() {
   
   // Reset dismissed scheduled reminders when the hour changes
   useEffect(() => {
-    const currentHour = currentTime.getHours();
     const currentMinute = currentTime.getMinutes();
     
     // Reset at the start of each new reminder window
     if (currentMinute === 25 || currentMinute === 55) {
       setDismissedScheduled(new Set());
+      resetPlayedReminders();
     }
-  }, [currentTime.getMinutes()]);
+  }, [currentTime.getMinutes(), resetPlayedReminders]);
   
   // Mark reminders as shown in database (for analytics/tracking)
   useEffect(() => {
@@ -104,14 +154,24 @@ export function GuestReminderOverlay() {
         if (!session.reminderShown && !markedIds.current.has(session.id)) {
           markedIds.current.add(session.id);
           markReminderMutation.mutate({ id: session.id });
+          // Play chime for new individual guest reminders
+          playChime(`guest-${session.id}`);
         }
       });
     }
-  }, [sessionsNeedingReminder]);
+  }, [sessionsNeedingReminder, playChime]);
   
   // Get active scheduled reminders
   const activeScheduledReminders = getActiveScheduledReminders(currentTime)
     .filter(r => !dismissedScheduled.has(`${r.id}-${currentTime.getHours()}`));
+  
+  // Play chime for scheduled reminders when they first appear
+  useEffect(() => {
+    activeScheduledReminders.forEach(reminder => {
+      const reminderId = `scheduled-${reminder.id}-${currentTime.getHours()}`;
+      playChime(reminderId);
+    });
+  }, [activeScheduledReminders.length, currentTime.getHours(), playChime]);
   
   // Cast to proper type
   const sessions = (sessionsNeedingReminder || []) as GuestSession[];
@@ -122,8 +182,27 @@ export function GuestReminderOverlay() {
   }
   
   return (
-    <div className="fixed top-24 right-6 z-50 flex flex-col gap-4" style={{ maxWidth: '420px' }}>
-      {/* Scheduled Time-Based Reminders */}
+    <div className="fixed bottom-6 left-6 z-50 flex flex-col gap-3" style={{ maxWidth: '280px' }}>
+      {/* Mute/Unmute Button */}
+      <button
+        onClick={toggleMute}
+        className="self-start flex items-center gap-2 px-3 py-2 rounded-full bg-black/50 backdrop-blur-sm text-white text-sm hover:bg-black/70 transition-colors"
+        title={isMuted ? "Unmute chime" : "Mute chime"}
+      >
+        {isMuted ? (
+          <>
+            <VolumeX className="w-4 h-4" />
+            <span>Chime Off</span>
+          </>
+        ) : (
+          <>
+            <Volume2 className="w-4 h-4" />
+            <span>Chime On</span>
+          </>
+        )}
+      </button>
+      
+      {/* Scheduled Time-Based Reminders - Compact */}
       {activeScheduledReminders.map((reminder) => {
         const targetMinute = reminder.minute;
         const currentMinute = currentTime.getMinutes();
@@ -137,50 +216,18 @@ export function GuestReminderOverlay() {
         return (
           <div
             key={`${reminder.id}-${currentTime.getHours()}`}
-            className="animate-in slide-in-from-right duration-500 rounded-2xl shadow-2xl overflow-hidden bg-gradient-to-r from-purple-500 to-indigo-600"
-            style={{
-              boxShadow: '0 0 25px rgba(139, 92, 246, 0.5)'
-            }}
+            className="animate-in slide-in-from-left duration-500 rounded-xl shadow-lg overflow-hidden bg-gradient-to-r from-purple-500 to-indigo-600"
           >
-            <div className="p-5 text-white">
-              <div className="flex items-start gap-4">
-                {/* Icon */}
-                <div className="flex-shrink-0 w-16 h-16 rounded-full flex items-center justify-center bg-white/20">
-                  <Timer className="w-8 h-8" />
-                </div>
-                
-                {/* Content */}
+            <div className="px-4 py-3 text-white">
+              <div className="flex items-center gap-3">
+                <Timer className="w-5 h-5 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
-                  {/* Header */}
-                  <div className="flex items-center gap-2 mb-1">
-                    <Clock className="w-5 h-5" />
-                    <span className="text-lg font-semibold opacity-90">
-                      🔔 Scheduled Reminder
-                    </span>
-                  </div>
-                  
-                  {/* Session Type - Large */}
-                  <h3 className="text-2xl font-bold">
-                    {reminder.sessionType}
-                  </h3>
-                  
-                  {/* Message */}
-                  <p className="text-xl mt-1 opacity-95">
-                    {reminder.message}
-                  </p>
-                  
-                  {/* Time Info */}
-                  <div className="flex items-center gap-3 mt-2 text-white/80">
-                    <span>{reminder.sessionDuration} sessions</span>
-                    <span>•</span>
-                    <span>:{targetMinute.toString().padStart(2, '0')} reminder</span>
-                  </div>
+                  <div className="font-semibold text-sm">{reminder.sessionType}</div>
+                  <div className="text-xs opacity-90">Ending soon • {minutesLeft}:{secondsLeft.toString().padStart(2, '0')}</div>
                 </div>
               </div>
             </div>
-            
-            {/* Progress bar - shows time remaining in reminder window */}
-            <div className="h-2 bg-white/30">
+            <div className="h-1 bg-white/30">
               <div 
                 className="h-full transition-all duration-1000 bg-white/80"
                 style={{ 
@@ -192,7 +239,7 @@ export function GuestReminderOverlay() {
         );
       })}
       
-      {/* Individual Guest Session Reminders */}
+      {/* Individual Guest Session Reminders - Compact */}
       {sessions.map((session) => {
         const expiresAt = new Date(session.expiresAt);
         const msLeft = Math.max(0, expiresAt.getTime() - currentTime.getTime());
@@ -205,79 +252,34 @@ export function GuestReminderOverlay() {
           <div
             key={session.id}
             className={`
-              animate-in slide-in-from-right duration-500 
-              rounded-2xl shadow-2xl overflow-hidden
+              animate-in slide-in-from-left duration-500 
+              rounded-xl shadow-lg overflow-hidden
               ${isUrgent 
-                ? 'bg-gradient-to-r from-red-500 to-red-600 animate-pulse' 
+                ? 'bg-gradient-to-r from-red-500 to-red-600' 
                 : 'bg-gradient-to-r from-amber-500 to-orange-500'
               }
             `}
-            style={{
-              boxShadow: isUrgent 
-                ? '0 0 30px rgba(239, 68, 68, 0.5)' 
-                : '0 0 20px rgba(245, 158, 11, 0.4)'
-            }}
           >
-            <div className="p-5 text-white">
-              <div className="flex items-start gap-4">
-                {/* Icon */}
-                <div className={`
-                  flex-shrink-0 w-16 h-16 rounded-full flex items-center justify-center
-                  ${isUrgent ? 'bg-white/30' : 'bg-white/20'}
-                `}>
-                  {isUrgent ? (
-                    <AlertTriangle className="w-8 h-8 animate-bounce" />
-                  ) : (
-                    <Bell className="w-8 h-8 animate-pulse" />
-                  )}
-                </div>
-                
-                {/* Content */}
+            <div className="px-4 py-3 text-white">
+              <div className="flex items-center gap-3">
+                {isUrgent ? (
+                  <AlertTriangle className="w-5 h-5 flex-shrink-0 animate-pulse" />
+                ) : (
+                  <Bell className="w-5 h-5 flex-shrink-0" />
+                )}
                 <div className="flex-1 min-w-0">
-                  {/* Header */}
-                  <div className="flex items-center gap-2 mb-1">
-                    <Clock className="w-5 h-5" />
-                    <span className="text-lg font-semibold opacity-90">
-                      {isUrgent ? '⚠️ Time Almost Up!' : '⏰ Time Reminder'}
-                    </span>
-                  </div>
-                  
-                  {/* Guest Name - Large */}
-                  <h3 className="text-2xl font-bold truncate">
-                    {session.guestName}
-                  </h3>
-                  
-                  {/* Time Remaining - Very Prominent */}
-                  <div className="mt-2">
+                  <div className="font-semibold text-sm truncate">{session.guestName}</div>
+                  <div className="text-xs opacity-90">
                     {isExpired ? (
-                      <span className="text-3xl font-bold">Session Ended!</span>
-                    ) : minutesLeft < 1 ? (
-                      <span className="text-3xl font-bold">
-                        {secondsLeft} seconds remaining!
-                      </span>
+                      "Session ended!"
                     ) : (
-                      <span className="text-2xl">
-                        <span className="font-bold text-3xl">{minutesLeft}:{secondsLeft.toString().padStart(2, '0')}</span>
-                        <span className="ml-2 opacity-90">remaining</span>
-                      </span>
+                      <>{minutesLeft}:{secondsLeft.toString().padStart(2, '0')} left • {session.guestCount} guest{session.guestCount !== 1 ? 's' : ''}</>
                     )}
-                  </div>
-                  
-                  {/* Session Info */}
-                  <div className="flex items-center gap-3 mt-2 text-white/80">
-                    <div className="flex items-center gap-1">
-                      <Users className="w-4 h-4" />
-                      <span>{session.guestCount} {session.guestCount === 1 ? "guest" : "guests"}</span>
-                    </div>
-                    <span>•</span>
-                    <span>{session.duration} min session</span>
                   </div>
                 </div>
               </div>
             </div>
-            
-            {/* Progress bar */}
-            <div className="h-2 bg-white/30">
+            <div className="h-1 bg-white/30">
               <div 
                 className={`h-full transition-all duration-1000 ${isUrgent ? 'bg-white' : 'bg-white/80'}`}
                 style={{ 

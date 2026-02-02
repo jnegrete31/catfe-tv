@@ -44,8 +44,11 @@ import {
   deletePhotoSubmission,
   togglePhotoVisibility,
   getPhotoSubmissionStats,
+  getSessionHistory,
+  getSessionAnalytics,
 } from "./db";
 import { storagePut } from "./storage";
+import { notifyOwner } from "./_core/notification";
 
 // Screen type enum values
 const screenTypes = [
@@ -442,6 +445,27 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         return updateGuestSession(input.id, { notes: input.notes });
       }),
+
+    // Get session history with filters
+    getHistory: adminProcedure
+      .input(z.object({
+        startDate: z.date().optional(),
+        endDate: z.date().optional(),
+        status: z.enum(["active", "completed", "extended"]).optional(),
+      }).optional())
+      .query(async ({ input }) => {
+        return getSessionHistory(input || {});
+      }),
+
+    // Get session analytics
+    getAnalytics: adminProcedure
+      .input(z.object({
+        startDate: z.date().optional(),
+        endDate: z.date().optional(),
+      }).optional())
+      .query(async ({ input }) => {
+        return getSessionAnalytics(input?.startDate, input?.endDate);
+      }),
   }),
 
   // ============ PHOTO SUBMISSIONS ============
@@ -479,6 +503,19 @@ export const appRouter = router({
           caption: input.caption || null,
           catName: input.catName || null,
           adoptionDate: input.adoptionDate || null,
+        });
+        
+        // Send notification to owner about new photo submission
+        const photoType = input.type === 'happy_tails' ? 'Happy Tails' : 'Snap & Purr';
+        const catInfo = input.catName ? ` featuring ${input.catName}` : '';
+        const captionInfo = input.caption ? `\n\nCaption: "${input.caption}"` : '';
+        
+        notifyOwner({
+          title: `📸 New ${photoType} Photo Submission`,
+          content: `A new photo has been submitted by ${input.submitterName}${catInfo}.${captionInfo}\n\nPlease review and approve/reject in the Photo Moderation dashboard.\n\nPhoto URL: ${photoUrl}`,
+        }).catch(err => {
+          // Log but don't fail the submission if notification fails
+          console.warn('[Photo Submit] Failed to send notification:', err);
         });
         
         return { id: result.id, message: "Photo submitted for review!" };

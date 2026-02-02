@@ -365,3 +365,18 @@
 - [x] Add QR code to Snap & Purr gallery slideshow (web)
 - [x] Add QR code to Happy Tails gallery slideshow (tvOS)
 - [x] Add QR code to Snap & Purr gallery slideshow (tvOS)
+
+## Feature - Audio Chime for Guest Reminders
+- [x] Add audio file for chime sound
+- [x] Implement audio playback when guest reminder appears
+- [x] Add settings option to enable/disable audio chime (mute button on overlay)
+
+## Feature - Email Notifications for Photo Submissions
+- [x] Create email notification when new photo is submitted
+- [x] Send email to admin/owner with photo details
+- [x] Include link to moderation dashboard
+
+## Feature - Session History Report
+- [x] Create database schema for tracking guest sessions (already exists)
+- [x] Build session history page with analytics
+- [x] Show popular time slots and visit statistics

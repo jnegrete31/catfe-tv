@@ -536,3 +536,157 @@ export async function getPhotoSubmissionStats() {
     snapPurr: all.filter(p => p.type === "snap_purr" && p.status === "approved").length,
   };
 }
+
+
+// ============ SESSION HISTORY & ANALYTICS ============
+
+export type SessionHistoryFilters = {
+  startDate?: Date;
+  endDate?: Date;
+  status?: "active" | "completed" | "extended";
+};
+
+export async function getSessionHistory(filters: SessionHistoryFilters = {}) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  let query = db.select().from(guestSessions);
+  const conditions = [];
+  
+  if (filters.startDate) {
+    conditions.push(gte(guestSessions.checkInAt, filters.startDate));
+  }
+  if (filters.endDate) {
+    conditions.push(lte(guestSessions.checkInAt, filters.endDate));
+  }
+  if (filters.status) {
+    conditions.push(eq(guestSessions.status, filters.status));
+  }
+  
+  if (conditions.length > 0) {
+    query = query.where(and(...conditions)) as typeof query;
+  }
+  
+  return query.orderBy(desc(guestSessions.checkInAt));
+}
+
+export type SessionAnalytics = {
+  totalSessions: number;
+  totalGuests: number;
+  averageGroupSize: number;
+  sessionsByDuration: { duration: string; count: number }[];
+  sessionsByDayOfWeek: { day: number; count: number; guests: number }[];
+  sessionsByHour: { hour: number; count: number; guests: number }[];
+  peakHours: { hour: number; count: number }[];
+  averageSessionLength: number; // in minutes
+};
+
+export async function getSessionAnalytics(startDate?: Date, endDate?: Date): Promise<SessionAnalytics> {
+  const db = await getDb();
+  if (!db) {
+    return {
+      totalSessions: 0,
+      totalGuests: 0,
+      averageGroupSize: 0,
+      sessionsByDuration: [],
+      sessionsByDayOfWeek: [],
+      sessionsByHour: [],
+      peakHours: [],
+      averageSessionLength: 0,
+    };
+  }
+  
+  let query = db.select().from(guestSessions);
+  const conditions = [];
+  
+  if (startDate) {
+    conditions.push(gte(guestSessions.checkInAt, startDate));
+  }
+  if (endDate) {
+    conditions.push(lte(guestSessions.checkInAt, endDate));
+  }
+  
+  if (conditions.length > 0) {
+    query = query.where(and(...conditions)) as typeof query;
+  }
+  
+  const sessions = await query;
+  
+  if (sessions.length === 0) {
+    return {
+      totalSessions: 0,
+      totalGuests: 0,
+      averageGroupSize: 0,
+      sessionsByDuration: [],
+      sessionsByDayOfWeek: [],
+      sessionsByHour: [],
+      peakHours: [],
+      averageSessionLength: 0,
+    };
+  }
+  
+  // Calculate basic stats
+  const totalSessions = sessions.length;
+  const totalGuests = sessions.reduce((sum, s) => sum + s.guestCount, 0);
+  const averageGroupSize = totalGuests / totalSessions;
+  
+  // Sessions by duration
+  const durationCounts: Record<string, number> = {};
+  sessions.forEach(s => {
+    durationCounts[s.duration] = (durationCounts[s.duration] || 0) + 1;
+  });
+  const sessionsByDuration = Object.entries(durationCounts).map(([duration, count]) => ({
+    duration,
+    count,
+  }));
+  
+  // Sessions by day of week (0 = Sunday)
+  const dayStats: Record<number, { count: number; guests: number }> = {};
+  sessions.forEach(s => {
+    const day = new Date(s.checkInAt).getDay();
+    if (!dayStats[day]) dayStats[day] = { count: 0, guests: 0 };
+    dayStats[day].count++;
+    dayStats[day].guests += s.guestCount;
+  });
+  const sessionsByDayOfWeek = Object.entries(dayStats).map(([day, stats]) => ({
+    day: parseInt(day),
+    count: stats.count,
+    guests: stats.guests,
+  }));
+  
+  // Sessions by hour
+  const hourStats: Record<number, { count: number; guests: number }> = {};
+  sessions.forEach(s => {
+    const hour = new Date(s.checkInAt).getHours();
+    if (!hourStats[hour]) hourStats[hour] = { count: 0, guests: 0 };
+    hourStats[hour].count++;
+    hourStats[hour].guests += s.guestCount;
+  });
+  const sessionsByHour = Object.entries(hourStats).map(([hour, stats]) => ({
+    hour: parseInt(hour),
+    count: stats.count,
+    guests: stats.guests,
+  }));
+  
+  // Peak hours (top 3)
+  const peakHours = [...sessionsByHour]
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 3)
+    .map(h => ({ hour: h.hour, count: h.count }));
+  
+  // Average session length (based on duration field)
+  const durationMinutes: Record<string, number> = { "15": 15, "30": 30, "60": 60 };
+  const totalMinutes = sessions.reduce((sum, s) => sum + (durationMinutes[s.duration] || 30), 0);
+  const averageSessionLength = totalMinutes / totalSessions;
+  
+  return {
+    totalSessions,
+    totalGuests,
+    averageGroupSize: Math.round(averageGroupSize * 10) / 10,
+    sessionsByDuration,
+    sessionsByDayOfWeek,
+    sessionsByHour,
+    peakHours,
+    averageSessionLength: Math.round(averageSessionLength),
+  };
+}
