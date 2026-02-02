@@ -574,3 +574,12 @@
 - [x] Poll QR now appears automatically in top-left corner when there's an active poll
 - [x] No need to create a POLL_QR screen - it's an overlay on all screens
 - [x] Added PollOverlayWidget.swift to tvOS project
+
+## tvOS Final Fixes - Feb 2 (Fresh Start from Working Version)
+- [x] Started fresh from working tvOS version (CatfeTV-tvOS-gallery-qr.zip)
+- [x] Updated SnapPurrGalleryView to show 3 photos at a time with shuffle every 8 seconds
+- [x] Added Poll model to APIClient with fetchCurrentPoll() method
+- [x] Created PollOverlayWidget.swift as overlay (like weather widget)
+- [x] Poll QR appears automatically in top-left corner when there's an active poll
+- [x] Poll data refreshes every 30 seconds
+- [x] Added PollOverlayWidget to Xcode project build files
