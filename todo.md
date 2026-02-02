@@ -443,3 +443,11 @@
 - [x] Add featured toggle button in photo moderation UI
 - [x] Display featured badge on TV slideshow
 - [x] Show featured photos more prominently (star badge on photo)
+
+## Feature - Portrait Photo Background Styles
+- [x] Add backgroundStyle field to photoSubmissions table (blur/gradient)
+- [x] Create background style selector component with preview
+- [x] Integrate selector into Happy Tails upload page
+- [x] Integrate selector into Snap & Purr upload page
+- [x] Update TV display to render blur background for portrait photos
+- [x] Update TV display to render gradient background for portrait photos

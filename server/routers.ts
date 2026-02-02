@@ -513,6 +513,7 @@ export const appRouter = router({
         caption: z.string().max(500).optional(),
         catName: z.string().max(255).optional(), // For happy_tails
         adoptionDate: z.date().optional(), // For happy_tails
+        backgroundStyle: z.enum(["blur", "gradient"]).optional(), // For portrait photos
       }))
       .mutation(async ({ input }) => {
         // Upload photo to S3
@@ -536,6 +537,7 @@ export const appRouter = router({
           caption: input.caption || null,
           catName: input.catName || null,
           adoptionDate: input.adoptionDate || null,
+          backgroundStyle: input.backgroundStyle || "blur",
         });
         
         // Send notification to owner about new photo submission

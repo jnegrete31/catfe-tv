@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Camera, Upload, CheckCircle, Sparkles, Tv, Plus } from "lucide-react";
 import { Link } from "wouter";
 import PhotoFrameSelector from "@/components/PhotoFrameSelector";
+import BackgroundStyleSelector from "@/components/BackgroundStyleSelector";
 
 export default function UploadSnapPurr() {
   const [name, setName] = useState("");
@@ -18,6 +19,7 @@ export default function UploadSnapPurr() {
   const [photoBase64, setPhotoBase64] = useState<string | null>(null);
   const [selectedFrame, setSelectedFrame] = useState("none");
   const [compositeBase64, setCompositeBase64] = useState<string | null>(null);
+  const [backgroundStyle, setBackgroundStyle] = useState<"blur" | "gradient">("blur");
   const [submitted, setSubmitted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -71,6 +73,7 @@ export default function UploadSnapPurr() {
       submitterEmail: email || undefined,
       photoBase64: imageToSubmit,
       caption: caption || undefined,
+      backgroundStyle,
     });
   };
 
@@ -83,6 +86,7 @@ export default function UploadSnapPurr() {
     setPhotoBase64(null);
     setSelectedFrame("none");
     setCompositeBase64(null);
+    setBackgroundStyle("blur");
     setIsAnonymous(false);
   };
 
@@ -184,6 +188,14 @@ export default function UploadSnapPurr() {
                       onFrameSelect={setSelectedFrame}
                       onCompositeReady={handleCompositeReady}
                     />
+                    
+                    {/* Background Style for Portrait Photos */}
+                    <BackgroundStyleSelector
+                      imageUrl={compositeBase64 || photoPreview || ""}
+                      value={backgroundStyle}
+                      onChange={setBackgroundStyle}
+                    />
+                    
                     <Button
                       type="button"
                       variant="outline"

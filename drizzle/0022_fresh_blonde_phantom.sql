@@ -1,0 +1,1 @@
+ALTER TABLE `photoSubmissions` ADD `backgroundStyle` enum('blur','gradient') DEFAULT 'blur';

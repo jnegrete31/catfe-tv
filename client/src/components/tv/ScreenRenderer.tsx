@@ -628,15 +628,37 @@ function HappyTailsScreen({ screen, settings }: ScreenRendererProps) {
             transition={{ duration: 0.5 }}
             className="flex gap-12 items-center max-w-6xl"
           >
-            {/* Photo */}
+            {/* Photo with background style for portrait photos */}
             <div className="flex-shrink-0">
-              <div className="relative">
-                <div className="absolute -inset-4 bg-white rounded-3xl shadow-2xl" />
-                <img
-                  src={currentPhoto?.photoUrl}
-                  alt={currentPhoto?.catName || "Adopted cat"}
-                  className="relative w-[500px] h-[500px] object-cover rounded-2xl"
-                />
+              <div className="relative w-[500px] h-[500px] rounded-2xl overflow-hidden shadow-2xl">
+                {/* Background for portrait photos */}
+                {currentPhoto?.backgroundStyle === "gradient" ? (
+                  <div 
+                    className="absolute inset-0"
+                    style={{
+                      background: `linear-gradient(135deg, rgba(245, 158, 11, 0.3) 0%, rgba(217, 119, 6, 0.3) 100%)`,
+                    }}
+                  />
+                ) : (
+                  <div 
+                    className="absolute inset-0"
+                    style={{
+                      backgroundImage: `url(${currentPhoto?.photoUrl})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                      filter: "blur(25px)",
+                      transform: "scale(1.2)",
+                    }}
+                  />
+                )}
+                {/* Actual photo centered */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <img
+                    src={currentPhoto?.photoUrl}
+                    alt={currentPhoto?.catName || "Adopted cat"}
+                    className="max-w-full max-h-full object-contain"
+                  />
+                </div>
                 {currentPhoto?.isFeatured && (
                   <div className="absolute -top-2 -right-2 bg-yellow-400 text-yellow-900 px-4 py-2 rounded-full shadow-lg flex items-center gap-2 z-10">
                     <span className="text-2xl">⭐</span>
@@ -764,15 +786,40 @@ function SnapPurrGalleryScreen({ screen, settings }: ScreenRendererProps) {
             transition={{ duration: 0.5 }}
             className="text-center"
           >
-            {/* Photo frame */}
+            {/* Photo frame with background style for portrait photos */}
             <div className="relative inline-block">
               <div className="absolute -inset-6 bg-white rounded-3xl shadow-2xl transform -rotate-2" />
               <div className="absolute -inset-6 bg-white rounded-3xl shadow-xl transform rotate-1" />
-              <img
-                src={currentPhoto?.photoUrl}
-                alt="Visitor photo"
-                className="relative w-[600px] h-[450px] object-cover rounded-2xl"
-              />
+              <div className="relative w-[600px] h-[450px] rounded-2xl overflow-hidden">
+                {/* Background for portrait photos */}
+                {currentPhoto?.backgroundStyle === "gradient" ? (
+                  <div 
+                    className="absolute inset-0"
+                    style={{
+                      background: `linear-gradient(135deg, rgba(250, 204, 21, 0.4) 0%, rgba(245, 158, 11, 0.4) 100%)`,
+                    }}
+                  />
+                ) : (
+                  <div 
+                    className="absolute inset-0"
+                    style={{
+                      backgroundImage: `url(${currentPhoto?.photoUrl})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                      filter: "blur(25px)",
+                      transform: "scale(1.2)",
+                    }}
+                  />
+                )}
+                {/* Actual photo centered */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <img
+                    src={currentPhoto?.photoUrl}
+                    alt="Visitor photo"
+                    className="max-w-full max-h-full object-contain"
+                  />
+                </div>
+              </div>
               {currentPhoto?.isFeatured && (
                 <div className="absolute -top-4 -right-4 bg-yellow-400 text-yellow-900 px-4 py-2 rounded-full shadow-lg flex items-center gap-2 z-10">
                   <span className="text-2xl">⭐</span>
