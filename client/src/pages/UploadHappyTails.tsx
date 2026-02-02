@@ -244,6 +244,18 @@ export default function UploadHappyTails() {
                   rows={3}
                   maxLength={500}
                 />
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {["Living the dream! 🏠", "Forever home found ❤️", "Best decision ever!", "Happy & loved 🐱", "From Catfé with love"].map((suggestion) => (
+                    <button
+                      key={suggestion}
+                      type="button"
+                      onClick={() => setCaption(suggestion)}
+                      className="text-xs px-3 py-1.5 rounded-full bg-amber-100 text-amber-700 hover:bg-amber-200 transition-colors"
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
                 <p className="text-xs text-gray-500 text-right">
                   {caption.length}/500 characters
                 </p>

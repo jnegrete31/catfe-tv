@@ -229,6 +229,18 @@ export default function UploadSnapPurr() {
                   rows={3}
                   maxLength={500}
                 />
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {["Best day ever! 🐱", "Made a new friend!", "Purrfect moment ✨", "Cat cuddles 💕", "Living my best life"].map((suggestion) => (
+                    <button
+                      key={suggestion}
+                      type="button"
+                      onClick={() => setCaption(suggestion)}
+                      className="text-xs px-3 py-1.5 rounded-full bg-yellow-100 text-yellow-700 hover:bg-yellow-200 transition-colors"
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
                 <p className="text-xs text-gray-500 text-right">
                   {caption.length}/500 characters
                 </p>
