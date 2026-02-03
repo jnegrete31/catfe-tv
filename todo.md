@@ -675,3 +675,9 @@
 ## Feature - UI Improvements
 - [x] Remove AirPlay references from codebase
 - [x] Make Active toggle work directly on screen cards (no edit form needed) - already implemented, added toast feedback
+
+## Bug Fix - Admin Screens Not Updating Instantly
+- [x] Fixed ScreenList useState to useEffect for syncing items with screens prop
+- [x] Set staleTime: 0 on screens query in Admin.tsx for fresh data
+- [x] Set staleTime: 0 on playlists and screens queries in PlaylistManager
+- [x] Cache invalidation already in place, now data refreshes immediately

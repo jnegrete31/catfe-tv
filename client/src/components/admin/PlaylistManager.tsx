@@ -17,11 +17,15 @@ export function PlaylistManager() {
   const [selectedPlaylistId, setSelectedPlaylistId] = useState<number | null>(null);
 
   const utils = trpc.useUtils();
-  const { data: playlists, isLoading } = trpc.playlists.getAll.useQuery();
-  const { data: allScreens } = trpc.screens.getAll.useQuery();
+  const { data: playlists, isLoading } = trpc.playlists.getAll.useQuery(undefined, {
+    staleTime: 0,
+  });
+  const { data: allScreens } = trpc.screens.getAll.useQuery(undefined, {
+    staleTime: 0,
+  });
   const { data: playlistScreens } = trpc.playlists.getScreens.useQuery(
     { playlistId: selectedPlaylistId! },
-    { enabled: !!selectedPlaylistId }
+    { enabled: !!selectedPlaylistId, staleTime: 0 }
   );
 
   const createMutation = trpc.playlists.create.useMutation({

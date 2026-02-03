@@ -45,6 +45,8 @@ export default function Admin() {
   // Fetch data
   const screensQuery = trpc.screens.getAll.useQuery(undefined, {
     enabled: isAuthenticated,
+    refetchOnMount: true,
+    staleTime: 0, // Always consider data stale to ensure fresh data
   });
   
   const settingsQuery = trpc.settings.get.useQuery(undefined, {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   DndContext,
   closestCenter,
@@ -220,9 +220,9 @@ export function ScreenList({ screens, onEdit }: ScreenListProps) {
   });
   
   // Update items when screens prop changes
-  useState(() => {
+  useEffect(() => {
     setItems(screens);
-  });
+  }, [screens]);
   
   const sensors = useSensors(
     useSensor(PointerSensor, {
