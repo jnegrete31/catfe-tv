@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import type { Settings } from "@shared/types";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { Save, Github, Upload, X, Image as ImageIcon, Video } from "lucide-react";
+import { Save, Github, Upload, X, Image as ImageIcon, Video, FileText } from "lucide-react";
 
 const settingsSchema = z.object({
   locationName: z.string().min(1).max(255),
@@ -21,6 +21,7 @@ const settingsSchema = z.object({
   refreshIntervalSeconds: z.number().min(10).max(600),
   logoUrl: z.string().max(1024).optional().nullable(),
   livestreamUrl: z.string().max(1024).optional().nullable(),
+  waiverUrl: z.string().max(1024).optional().nullable(),
   githubRepo: z.string().max(255).optional().nullable(),
   githubBranch: z.string().max(64).optional(),
 });
@@ -79,6 +80,7 @@ export function SettingsForm({ settings, onSuccess }: SettingsFormProps) {
       refreshIntervalSeconds: settings?.refreshIntervalSeconds || 60,
       logoUrl: settings?.logoUrl || null,
       livestreamUrl: settings?.livestreamUrl || null,
+      waiverUrl: settings?.waiverUrl || null,
       githubRepo: settings?.githubRepo || "",
       githubBranch: settings?.githubBranch || "main",
     },
@@ -140,6 +142,7 @@ export function SettingsForm({ settings, onSuccess }: SettingsFormProps) {
       githubRepo: data.githubRepo || null,
       logoUrl: data.logoUrl || null,
       livestreamUrl: data.livestreamUrl || null,
+      waiverUrl: data.waiverUrl || null,
     };
     updateMutation.mutate(payload);
   };
@@ -253,6 +256,40 @@ export function SettingsForm({ settings, onSuccess }: SettingsFormProps) {
               <li>YouTube Live - use the HLS URL from your stream</li>
               <li>IP cameras with RTSP-to-HLS conversion</li>
             </ul>
+          </div>
+        </CardContent>
+      </Card>
+      
+      {/* Waiver QR Code Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="w-5 h-5 text-blue-600" />
+            Guest Waiver
+          </CardTitle>
+          <CardDescription>
+            Display a QR code on the TV for guests to sign the waiver
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="waiverUrl">Waiver Form URL</Label>
+            <Input
+              id="waiverUrl"
+              {...register("waiverUrl")}
+              placeholder="https://yoursite.com/waiver"
+            />
+            <p className="text-xs text-muted-foreground">
+              Enter the URL where guests can sign your waiver (e.g., DocuSign, JotForm, Google Form)
+            </p>
+          </div>
+          
+          <div className="p-3 bg-blue-50 rounded-lg text-sm">
+            <p className="font-medium mb-1 text-blue-800">How it works</p>
+            <p className="text-blue-700">
+              When a URL is set, a "Sign Waiver" QR code will appear on the TV display.
+              Guests can scan it with their phone to quickly access and sign the waiver.
+            </p>
           </div>
         </CardContent>
       </Card>

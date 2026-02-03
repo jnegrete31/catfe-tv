@@ -613,3 +613,11 @@
 - [x] Display captions on TV gallery view
 - [x] Increase caption text size for TV visibility
 - [x] Test caption feature end-to-end
+
+## Feature - Waiver QR Code Widget
+- [x] Add waiverUrl field to settings database schema
+- [x] Update settings API to handle waiver URL
+- [x] Add waiver URL input to admin settings page
+- [x] Create WaiverWidget component for TV display
+- [x] Position widget in bottom-right corner of TV screen
+- [x] Test waiver QR code feature

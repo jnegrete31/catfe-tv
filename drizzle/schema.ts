@@ -102,6 +102,7 @@ export const settings = mysqlTable("settings", {
   refreshIntervalSeconds: int("refreshIntervalSeconds").notNull().default(60),
   wixAutoSyncEnabled: boolean("wixAutoSyncEnabled").notNull().default(true), // Auto-sync Wix bookings
   wixLastSyncAt: timestamp("wixLastSyncAt"), // Last Wix sync timestamp
+  waiverUrl: varchar("waiverUrl", { length: 1024 }), // URL for guest waiver form (displayed as QR on TV)
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 

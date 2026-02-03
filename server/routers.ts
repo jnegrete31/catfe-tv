@@ -159,6 +159,7 @@ const settingsInput = z.object({
   githubRepo: z.string().max(255).nullable().optional(),
   githubBranch: z.string().max(64).optional(),
   refreshIntervalSeconds: z.number().min(10).max(600).optional(),
+  waiverUrl: z.string().max(1024).nullable().optional(),
 });
 
 // Admin-only procedure

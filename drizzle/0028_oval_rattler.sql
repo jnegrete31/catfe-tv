@@ -1,0 +1,1 @@
+ALTER TABLE `settings` ADD `waiverUrl` varchar(1024);

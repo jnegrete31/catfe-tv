@@ -6,6 +6,7 @@ import { GuestReminderOverlay } from "@/components/tv/GuestReminderOverlay";
 import { WelcomeOverlay } from "@/components/tv/WelcomeOverlay";
 import { PollWidget } from "@/components/tv/PollWidget";
 import { PollResultsWidget } from "@/components/tv/PollResultsWidget";
+import { WaiverWidget } from "@/components/tv/WaiverWidget";
 import { RecentlyAdoptedBanner } from "@/components/tv/RecentlyAdoptedBanner";
 import { Wifi, WifiOff, RefreshCw, ChevronLeft, ChevronRight, Play, Pause, Airplay } from "lucide-react";
 import { trpc } from "@/lib/trpc";
@@ -282,6 +283,9 @@ export default function TVDisplay() {
       
       {/* Poll Results Widget - top-right corner during results time */}
       <PollResultsWidget />
+      
+      {/* Waiver QR Code Widget - bottom-right corner when configured */}
+      <WaiverWidget />
       
       {/* Recently Adopted Banner - DISABLED (wonky behavior on tvOS)
       {recentlyAdopted && recentlyAdopted.length > 0 && (
