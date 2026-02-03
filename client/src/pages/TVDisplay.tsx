@@ -7,6 +7,7 @@ import { WelcomeOverlay } from "@/components/tv/WelcomeOverlay";
 import { PollWidget } from "@/components/tv/PollWidget";
 // PollResultsWidget removed - results shown on guests' devices only
 import { WaiverWidget } from "@/components/tv/WaiverWidget";
+import { LogoWidget } from "@/components/tv/LogoWidget";
 import { RecentlyAdoptedBanner } from "@/components/tv/RecentlyAdoptedBanner";
 import { Wifi, WifiOff, RefreshCw, ChevronLeft, ChevronRight, Play, Pause, Airplay } from "lucide-react";
 import { trpc } from "@/lib/trpc";
@@ -326,6 +327,9 @@ export default function TVDisplay() {
       <PollWidget />
       
       {/* Poll results are shown on guests' devices only, not on TV */}
+      
+      {/* Logo Widget - bottom-left corner */}
+      <LogoWidget />
       
       {/* Waiver QR Code Widget - bottom-right corner when configured */}
       <WaiverWidget />

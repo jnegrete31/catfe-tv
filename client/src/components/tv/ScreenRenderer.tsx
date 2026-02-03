@@ -844,23 +844,22 @@ function SnapPurrGalleryScreen({ screen, settings }: ScreenRendererProps) {
         </AnimatePresence>
       </div>
       
-      {/* Logo - bottom left */}
-      <div className="absolute bottom-6 left-8 z-20">
-        <CatfeLogo logoUrl={settings?.logoUrl} />
-      </div>
+      {/* Logo handled by LogoWidget overlay */}
       
-      {/* QR Code - bottom right */}
-      <div className="absolute bottom-6 right-8 z-20">
-        <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-4 shadow-xl flex items-center gap-4">
+      {/* QR Code - bottom right - larger and more prominent */}
+      <div className="absolute bottom-12 right-12 z-20">
+        <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-6 shadow-2xl flex items-center gap-5">
           <div>
-            <p className="text-sm font-bold text-amber-800 mb-1">Share your moment!</p>
-            <p className="text-xs text-amber-600">Scan to upload your photo</p>
+            <p className="text-xl font-bold text-amber-800 mb-1">Share your moment!</p>
+            <p className="text-base text-amber-600">Scan to upload your photo</p>
           </div>
-          <QRCodeSVG 
-            value={typeof window !== 'undefined' ? `${window.location.origin}/upload/snap-purr` : '/upload/snap-purr'}
-            size={80}
-            level="M"
-          />
+          <div className="bg-white p-2 rounded-xl">
+            <QRCodeSVG 
+              value={typeof window !== 'undefined' ? `${window.location.origin}/upload/snap-purr` : '/upload/snap-purr'}
+              size={100}
+              level="M"
+            />
+          </div>
         </div>
       </div>
     </div>

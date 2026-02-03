@@ -651,3 +651,11 @@
 - [x] Update PollWidget to only show QR code for voting (no results on TV)
 - [x] Results will be shown on guests' devices after voting ends
 - [x] Remove poll results display from TV overlay
+
+## Feature - Logo Widget Overlay
+- [x] Create LogoWidget as an overlay component (bottom-left corner)
+- [x] Remove logo from individual screen layouts
+- [x] Add LogoWidget to TVDisplay
+
+## Bug Fix - Snap & Purr Gallery QR Code
+- [x] Made QR code larger and more prominent on Snap & Purr Gallery slide
