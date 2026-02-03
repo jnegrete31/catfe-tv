@@ -10,7 +10,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import type { Settings } from "@shared/types";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { Save, Github, Upload, X, Image as ImageIcon, Video, FileText } from "lucide-react";
+import { Save, Github, Upload, X, Image as ImageIcon, Video, FileText, Wifi, ClipboardList, Plus, Trash2 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 
 const settingsSchema = z.object({
   locationName: z.string().min(1).max(255),
@@ -22,11 +23,70 @@ const settingsSchema = z.object({
   logoUrl: z.string().max(1024).optional().nullable(),
   livestreamUrl: z.string().max(1024).optional().nullable(),
   waiverUrl: z.string().max(1024).optional().nullable(),
+  wifiName: z.string().max(255).optional().nullable(),
+  wifiPassword: z.string().max(255).optional().nullable(),
+  houseRules: z.array(z.string()).optional().nullable(),
   githubRepo: z.string().max(255).optional().nullable(),
   githubBranch: z.string().max(64).optional(),
 });
 
 type SettingsFormData = z.infer<typeof settingsSchema>;
+
+// House Rules Editor Component
+function HouseRulesEditor({ value, onChange }: { value: string[]; onChange: (rules: string[]) => void }) {
+  const addRule = () => {
+    onChange([...value, ""]);
+  };
+  
+  const removeRule = (index: number) => {
+    onChange(value.filter((_, i) => i !== index));
+  };
+  
+  const updateRule = (index: number, newValue: string) => {
+    const updated = [...value];
+    updated[index] = newValue;
+    onChange(updated);
+  };
+  
+  return (
+    <div className="space-y-3">
+      {value.length === 0 ? (
+        <p className="text-sm text-muted-foreground italic">No house rules added yet</p>
+      ) : (
+        value.map((rule, index) => (
+          <div key={index} className="flex items-center gap-2">
+            <span className="text-sm font-medium text-muted-foreground w-6">{index + 1}.</span>
+            <Input
+              value={rule}
+              onChange={(e) => updateRule(index, e.target.value)}
+              placeholder="Enter a house rule..."
+              className="flex-1"
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => removeRule(index)}
+              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
+        ))
+      )}
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={addRule}
+        className="mt-2"
+      >
+        <Plus className="w-4 h-4 mr-2" />
+        Add Rule
+      </Button>
+    </div>
+  );
+}
 
 interface SettingsFormProps {
   settings: Settings | null;
@@ -81,6 +141,9 @@ export function SettingsForm({ settings, onSuccess }: SettingsFormProps) {
       logoUrl: settings?.logoUrl || null,
       livestreamUrl: settings?.livestreamUrl || null,
       waiverUrl: settings?.waiverUrl || null,
+      wifiName: settings?.wifiName || null,
+      wifiPassword: settings?.wifiPassword || null,
+      houseRules: settings?.houseRules || [],
       githubRepo: settings?.githubRepo || "",
       githubBranch: settings?.githubBranch || "main",
     },
@@ -143,6 +206,9 @@ export function SettingsForm({ settings, onSuccess }: SettingsFormProps) {
       logoUrl: data.logoUrl || null,
       livestreamUrl: data.livestreamUrl || null,
       waiverUrl: data.waiverUrl || null,
+      wifiName: data.wifiName || null,
+      wifiPassword: data.wifiPassword || null,
+      houseRules: data.houseRules?.filter(r => r.trim()) || null,
     };
     updateMutation.mutate(payload);
   };
@@ -291,6 +357,64 @@ export function SettingsForm({ settings, onSuccess }: SettingsFormProps) {
               Guests can scan it with their phone to quickly access and sign the waiver.
             </p>
           </div>
+        </CardContent>
+      </Card>
+      
+      {/* WiFi Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Wifi className="w-5 h-5 text-cyan-600" />
+            Guest WiFi
+          </CardTitle>
+          <CardDescription>
+            Display WiFi credentials on the check-in screen for guests
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="wifiName">Network Name (SSID)</Label>
+              <Input
+                id="wifiName"
+                {...register("wifiName")}
+                placeholder="Catfé Guest"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="wifiPassword">Password</Label>
+              <Input
+                id="wifiPassword"
+                {...register("wifiPassword")}
+                placeholder="Enter WiFi password"
+              />
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            WiFi details will be displayed on the Guest Check-in screen
+          </p>
+        </CardContent>
+      </Card>
+      
+      {/* House Rules Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ClipboardList className="w-5 h-5 text-orange-600" />
+            House Rules
+          </CardTitle>
+          <CardDescription>
+            Set rules to display on the guest check-in screen
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <HouseRulesEditor
+            value={watch("houseRules") || []}
+            onChange={(rules) => setValue("houseRules", rules, { shouldDirty: true })}
+          />
+          <p className="text-xs text-muted-foreground">
+            These rules will be displayed on the Guest Check-in screen
+          </p>
         </CardContent>
       </Card>
       

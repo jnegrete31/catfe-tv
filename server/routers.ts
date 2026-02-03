@@ -109,6 +109,7 @@ const screenTypes = [
   "SNAP_PURR_QR",
   "POLL",
   "POLL_QR",
+  "CHECK_IN",
 ] as const;
 
 // Input schemas
@@ -160,6 +161,9 @@ const settingsInput = z.object({
   githubBranch: z.string().max(64).optional(),
   refreshIntervalSeconds: z.number().min(10).max(600).optional(),
   waiverUrl: z.string().max(1024).nullable().optional(),
+  wifiName: z.string().max(255).nullable().optional(),
+  wifiPassword: z.string().max(255).nullable().optional(),
+  houseRules: z.array(z.string()).nullable().optional(),
 });
 
 // Admin-only procedure

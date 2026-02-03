@@ -621,3 +621,16 @@
 - [x] Create WaiverWidget component for TV display
 - [x] Position widget in bottom-right corner of TV screen
 - [x] Test waiver QR code feature
+
+## Feature - Check-in Screen for New Guests
+- [x] Add wifiName and wifiPassword fields to settings schema
+- [x] Add houseRules field to settings schema (array of rules)
+- [x] Update settings API to handle WiFi and house rules
+- [x] Add WiFi and house rules inputs to admin settings page
+- [x] Add CHECK_IN to screen type enum in schema
+- [x] Create CheckInScreen component for TV display
+- [x] Display waiver QR, WiFi details, and house rules
+- [x] Test check-in screen feature
+
+## Bug Fix - Remove Count-up Animation
+- [x] Remove count-up animation from adoption counter screen

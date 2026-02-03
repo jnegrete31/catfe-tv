@@ -473,7 +473,6 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRender
 function AdoptionCounterScreen({ screen, settings }: ScreenRendererProps) {
   const { data: settingsData } = trpc.settings.get.useQuery();
   const totalCount = settingsData?.totalAdoptionCount || 0;
-  const animatedCount = useCountUp(totalCount, 2500); // 2.5 second count-up animation
   
   return (
     <ScreenLayout bgColor="#dcfce7" logoUrl={settings?.logoUrl}>
@@ -494,48 +493,28 @@ function AdoptionCounterScreen({ screen, settings }: ScreenRendererProps) {
             🏠 Forever Homes Found!
           </div>
           
-          {/* Big counter number with count-up animation */}
+          {/* Big counter number - no animation */}
           <div className="my-8">
-            <motion.span 
-              className="text-[12rem] font-black text-green-700 leading-none drop-shadow-lg inline-block"
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-            >
-              {animatedCount}
-            </motion.span>
+            <span className="text-[12rem] font-black text-green-700 leading-none drop-shadow-lg inline-block">
+              {totalCount}
+            </span>
           </div>
           
-          <motion.h1 
-            className="text-5xl font-bold text-green-800 mb-4"
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 2.5 }}
-          >
+          <h1 className="text-5xl font-bold text-green-800 mb-4">
             {screen.title || "Cats Adopted"}
-          </motion.h1>
+          </h1>
           
           {screen.subtitle && (
-            <motion.p 
-              className="text-3xl text-green-700 mb-6"
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.5, delay: 2.7 }}
-            >
+            <p className="text-3xl text-green-700 mb-6">
               {screen.subtitle}
-            </motion.p>
+            </p>
           )}
           
-          <motion.div 
-            className="mt-8 inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white/80 text-green-800 text-xl font-medium shadow-md"
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 2.9 }}
-          >
+          <div className="mt-8 inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white/80 text-green-800 text-xl font-medium shadow-md">
             <span>💚</span>
             <span>Thank you for making a difference!</span>
             <span>💚</span>
-          </motion.div>
+          </div>
         </div>
       </div>
     </ScreenLayout>
@@ -1058,6 +1037,116 @@ function LivestreamScreen({ screen, settings }: ScreenRendererProps) {
   );
 }
 
+// CHECK_IN - Guest check-in screen with waiver QR, WiFi, and house rules
+function CheckInScreen({ screen, settings }: ScreenRendererProps) {
+  const { data: settingsData } = trpc.settings.get.useQuery();
+  const waiverUrl = settingsData?.waiverUrl;
+  const wifiName = settingsData?.wifiName;
+  const wifiPassword = settingsData?.wifiPassword;
+  const houseRules = settingsData?.houseRules || [];
+  const locationName = settingsData?.locationName || "Catfé";
+  
+  return (
+    <ScreenLayout bgColor="#cffafe" logoUrl={settings?.logoUrl}>
+      <div className="w-full h-full p-12 flex flex-col">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-6xl font-bold text-cyan-800 mb-2">
+            Welcome to {locationName}!
+          </h1>
+          <p className="text-2xl text-cyan-700">
+            {screen.subtitle || "Please complete these steps before your visit"}
+          </p>
+        </div>
+        
+        {/* Main content - 3 columns */}
+        <div className="flex-1 grid grid-cols-3 gap-8">
+          {/* Column 1: Waiver */}
+          <div className="bg-white/90 rounded-3xl p-8 shadow-xl flex flex-col items-center">
+            <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mb-4">
+              <span className="text-4xl">📝</span>
+            </div>
+            <h2 className="text-3xl font-bold text-gray-800 mb-2">Sign Waiver</h2>
+            <p className="text-lg text-gray-600 text-center mb-6">
+              Scan to complete your liability waiver
+            </p>
+            {waiverUrl ? (
+              <div className="bg-white p-4 rounded-2xl shadow-md">
+                <QRCodeSVG value={waiverUrl} size={160} level="M" />
+              </div>
+            ) : (
+              <p className="text-gray-500 italic">Ask staff for waiver</p>
+            )}
+          </div>
+          
+          {/* Column 2: WiFi */}
+          <div className="bg-white/90 rounded-3xl p-8 shadow-xl flex flex-col items-center">
+            <div className="w-16 h-16 rounded-full bg-cyan-100 flex items-center justify-center mb-4">
+              <span className="text-4xl">📶</span>
+            </div>
+            <h2 className="text-3xl font-bold text-gray-800 mb-2">Free WiFi</h2>
+            <p className="text-lg text-gray-600 text-center mb-6">
+              Connect to our guest network
+            </p>
+            {wifiName ? (
+              <div className="text-center space-y-4">
+                <div className="bg-cyan-50 rounded-xl px-6 py-4">
+                  <p className="text-sm text-cyan-600 font-medium">Network Name</p>
+                  <p className="text-2xl font-bold text-cyan-800">{wifiName}</p>
+                </div>
+                {wifiPassword && (
+                  <div className="bg-cyan-50 rounded-xl px-6 py-4">
+                    <p className="text-sm text-cyan-600 font-medium">Password</p>
+                    <p className="text-2xl font-bold text-cyan-800 font-mono">{wifiPassword}</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-gray-500 italic">Ask staff for WiFi details</p>
+            )}
+          </div>
+          
+          {/* Column 3: House Rules */}
+          <div className="bg-white/90 rounded-3xl p-8 shadow-xl flex flex-col">
+            <div className="flex items-center justify-center mb-4">
+              <div className="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center">
+                <span className="text-4xl">📋</span>
+              </div>
+            </div>
+            <h2 className="text-3xl font-bold text-gray-800 mb-2 text-center">House Rules</h2>
+            <p className="text-lg text-gray-600 text-center mb-6">
+              Help keep our cats happy & safe
+            </p>
+            {houseRules.length > 0 ? (
+              <ul className="space-y-3 flex-1 overflow-auto">
+                {houseRules.map((rule, index) => (
+                  <li key={index} className="flex items-start gap-3">
+                    <span className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0 text-orange-700 font-bold">
+                      {index + 1}
+                    </span>
+                    <span className="text-lg text-gray-700 pt-1">{rule}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="flex-1 flex items-center justify-center">
+                <p className="text-gray-500 italic">Rules will be displayed here</p>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {/* Footer */}
+        <div className="text-center mt-8">
+          <p className="text-xl text-cyan-700">
+            🐱 Thank you for visiting! Enjoy your time with our furry friends! 🐱
+          </p>
+        </div>
+      </div>
+    </ScreenLayout>
+  );
+}
+
 // Main renderer that selects the appropriate component
 export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendererProps) {
   const renderers: Record<string, React.FC<ScreenRendererProps>> = {
@@ -1076,6 +1165,7 @@ export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendere
     HAPPY_TAILS_QR: HappyTailsQRScreen,
     SNAP_PURR_QR: SnapPurrQRScreen,
     POLL: () => <PollScreen />,
+    CHECK_IN: CheckInScreen,
   };
   
   const Renderer = renderers[screen.type] || EventScreen;

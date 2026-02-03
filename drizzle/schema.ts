@@ -37,7 +37,8 @@ export const screenTypeEnum = mysqlEnum("screenType", [
   "HAPPY_TAILS_QR",
   "SNAP_PURR_QR",
   "POLL",
-  "POLL_QR"
+  "POLL_QR",
+  "CHECK_IN"
 ]);
 
 /**
@@ -103,6 +104,9 @@ export const settings = mysqlTable("settings", {
   wixAutoSyncEnabled: boolean("wixAutoSyncEnabled").notNull().default(true), // Auto-sync Wix bookings
   wixLastSyncAt: timestamp("wixLastSyncAt"), // Last Wix sync timestamp
   waiverUrl: varchar("waiverUrl", { length: 1024 }), // URL for guest waiver form (displayed as QR on TV)
+  wifiName: varchar("wifiName", { length: 255 }), // WiFi network name for guests
+  wifiPassword: varchar("wifiPassword", { length: 255 }), // WiFi password for guests
+  houseRules: json("houseRules").$type<string[]>(), // Array of house rules for check-in screen
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
