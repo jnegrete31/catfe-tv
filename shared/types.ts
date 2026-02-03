@@ -77,3 +77,12 @@ export const DEFAULT_SETTINGS = {
   refreshIntervalSeconds: 60,
   githubBranch: "main",
 };
+
+// Screen type default durations (override the global default for specific types)
+export const SCREEN_TYPE_DURATIONS: Partial<Record<ScreenType, number>> = {
+  ADOPTION_COUNTER: 20,
+  CHECK_IN: 30,
+  SNAP_PURR_GALLERY: 60,
+  ADOPTION_SHOWCASE: 30,
+  LIVESTREAM: 60,
+};

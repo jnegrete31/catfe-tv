@@ -634,3 +634,10 @@
 
 ## Bug Fix - Remove Count-up Animation
 - [x] Remove count-up animation from adoption counter screen
+
+## Bug Fix - Playlist Stops After One Cycle
+- [x] Remove duplicate auto-advance timer in usePlaylist.ts (TVDisplay handles it with pause support)
+- [x] Fix auto-advance timer dependencies to properly restart on loop
+- [x] Stabilize playlist - only rebuild when screens actually change
+- [x] Increase duration for adoption counter and check-in screens (20s and 30s defaults)
+- [ ] Test on Mac app

@@ -11,6 +11,7 @@ import { RecentlyAdoptedBanner } from "@/components/tv/RecentlyAdoptedBanner";
 import { Wifi, WifiOff, RefreshCw, ChevronLeft, ChevronRight, Play, Pause, Airplay } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import type { Screen } from "@shared/types";
+import { SCREEN_TYPE_DURATIONS } from "@shared/types";
 
 export default function TVDisplay() {
   const {
@@ -170,6 +171,7 @@ export default function TVDisplay() {
   }, [showControls, focusedButton, nextScreen, prevScreen, refresh, showControlsTemporarily]);
   
   // Auto-advance when not paused
+  // Use currentIndex as primary dependency to ensure timer restarts when looping back to index 0
   useEffect(() => {
     if (isPaused || !currentScreen) {
       if (autoAdvanceTimeout.current) {
@@ -178,8 +180,16 @@ export default function TVDisplay() {
       return;
     }
     
-    const duration = (currentScreen.durationSeconds || settings?.defaultDurationSeconds || 10) * 1000;
+    // Use screen-specific duration, then screen type default, then global default
+    const typeDefaultDuration = SCREEN_TYPE_DURATIONS[currentScreen.type];
+    const duration = (currentScreen.durationSeconds || typeDefaultDuration || settings?.defaultDurationSeconds || 10) * 1000;
     
+    // Clear any existing timeout first
+    if (autoAdvanceTimeout.current) {
+      clearTimeout(autoAdvanceTimeout.current);
+    }
+    
+    // Set new timeout
     autoAdvanceTimeout.current = setTimeout(() => {
       nextScreen();
     }, duration);
@@ -187,9 +197,10 @@ export default function TVDisplay() {
     return () => {
       if (autoAdvanceTimeout.current) {
         clearTimeout(autoAdvanceTimeout.current);
+        autoAdvanceTimeout.current = null;
       }
     };
-  }, [isPaused, currentScreen, currentIndex, settings?.defaultDurationSeconds, nextScreen]);
+  }, [isPaused, currentIndex, currentScreen?.id, currentScreen?.durationSeconds, settings?.defaultDurationSeconds, nextScreen]);
   
   // Hide cursor when controls are hidden (for non-TV displays)
   useEffect(() => {

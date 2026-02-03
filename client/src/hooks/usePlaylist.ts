@@ -121,8 +121,8 @@ export function usePlaylist() {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [playlist, setPlaylist] = useState<Screen[]>([]);
   const [pollTimeWindow, setPollTimeWindow] = useState(isPollTime());
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
   const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const lastScreenIdsRef = useRef<string>(""); // Track screen IDs to avoid unnecessary rebuilds
   
   // Check poll time window every 30 seconds
   useEffect(() => {
@@ -194,18 +194,39 @@ export function usePlaylist() {
       const screens = screensQuery.data;
       cacheData(screens, settings);
       
-      // Build playlist (poll is now shown as corner widget, not in rotation)
-      const newPlaylist = buildPlaylist(screens, settings?.snapAndPurrFrequency || 5);
-      setPlaylist(newPlaylist);
+      // Check if screens actually changed (by comparing sorted IDs + active status)
+      const currentScreenIds = screens
+        .filter(s => s.isActive)
+        .map(s => `${s.id}:${s.priority}`)
+        .sort()
+        .join(',');
       
-      setState(prev => ({
-        ...prev,
-        screens,
-        isLoading: false,
-        error: null,
-        isOffline: false,
-        currentIndex: prev.currentIndex >= newPlaylist.length ? 0 : prev.currentIndex,
-      }));
+      const screensChanged = currentScreenIds !== lastScreenIdsRef.current;
+      
+      // Only rebuild playlist if screens actually changed or playlist is empty
+      if (screensChanged || playlist.length === 0) {
+        lastScreenIdsRef.current = currentScreenIds;
+        const newPlaylist = buildPlaylist(screens, settings?.snapAndPurrFrequency || 5);
+        setPlaylist(newPlaylist);
+        
+        setState(prev => ({
+          ...prev,
+          screens,
+          isLoading: false,
+          error: null,
+          isOffline: false,
+          currentIndex: prev.currentIndex >= newPlaylist.length ? 0 : prev.currentIndex,
+        }));
+      } else {
+        // Just update screens without rebuilding playlist
+        setState(prev => ({
+          ...prev,
+          screens,
+          isLoading: false,
+          error: null,
+          isOffline: false,
+        }));
+      }
     } else if (screensQuery.error) {
       // Try to use cached data
       const cached = loadCachedData();
@@ -251,33 +272,16 @@ export function usePlaylist() {
     });
   }, [playlist.length]);
   
-  // Auto-advance timer
+  // Note: Auto-advance timer is handled in TVDisplay.tsx to support pause functionality
+  // Log view when screen changes
   useEffect(() => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
+    if (currentScreen && currentScreen.id > 0) {
+      logViewMutation.mutate({ 
+        screenId: currentScreen.id,
+        sessionId: sessionStorage.getItem("tv-session-id") || undefined,
+      });
     }
-    
-    if (currentScreen && playlist.length > 0) {
-      const duration = (currentScreen.durationSeconds || settings?.defaultDurationSeconds || 10) * 1000;
-      
-      timerRef.current = setTimeout(() => {
-        // Log view before advancing (skip for virtual poll screen)
-        if (currentScreen.id > 0) {
-          logViewMutation.mutate({ 
-            screenId: currentScreen.id,
-            sessionId: sessionStorage.getItem("tv-session-id") || undefined,
-          });
-        }
-        nextScreen();
-      }, duration);
-    }
-    
-    return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-    };
-  }, [currentScreen, playlist.length, settings?.defaultDurationSeconds, nextScreen, logViewMutation]);
+  }, [currentScreen?.id, logViewMutation]);
   
   // Generate session ID on mount
   useEffect(() => {
