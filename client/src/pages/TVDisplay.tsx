@@ -5,7 +5,7 @@ import { WeatherClockOverlay } from "@/components/tv/WeatherClockOverlay";
 import { GuestReminderOverlay } from "@/components/tv/GuestReminderOverlay";
 import { WelcomeOverlay } from "@/components/tv/WelcomeOverlay";
 import { PollWidget } from "@/components/tv/PollWidget";
-import { PollResultsWidget } from "@/components/tv/PollResultsWidget";
+// PollResultsWidget removed - results shown on guests' devices only
 import { WaiverWidget } from "@/components/tv/WaiverWidget";
 import { RecentlyAdoptedBanner } from "@/components/tv/RecentlyAdoptedBanner";
 import { Wifi, WifiOff, RefreshCw, ChevronLeft, ChevronRight, Play, Pause, Airplay } from "lucide-react";
@@ -325,8 +325,7 @@ export default function TVDisplay() {
       {/* Poll Widget - top-left corner during voting time */}
       <PollWidget />
       
-      {/* Poll Results Widget - top-right corner during results time */}
-      <PollResultsWidget />
+      {/* Poll results are shown on guests' devices only, not on TV */}
       
       {/* Waiver QR Code Widget - bottom-right corner when configured */}
       <WaiverWidget />

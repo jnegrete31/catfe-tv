@@ -646,3 +646,8 @@
 - [x] Fix photos not displaying - now fetches all adoption cats upfront and caches
 - [x] Add 6-second shuffle animation for cat photos in grid with fade effect
 - [x] Test on TV display - photos now showing correctly with shuffle
+
+## Feature - Simplify Poll Widget
+- [x] Update PollWidget to only show QR code for voting (no results on TV)
+- [x] Results will be shown on guests' devices after voting ends
+- [x] Remove poll results display from TV overlay
