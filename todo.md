@@ -671,3 +671,7 @@
 - [x] Add playlist selector in admin to choose active playlist
 - [x] Update TV display to filter screens by active playlist
 - [x] Add default playlists: Lounge, Events, Volunteer Orientation (via seed button)
+
+## Feature - UI Improvements
+- [x] Remove AirPlay references from codebase
+- [x] Make Active toggle work directly on screen cards (no edit form needed) - already implemented, added toast feedback

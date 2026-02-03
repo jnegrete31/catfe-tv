@@ -195,9 +195,12 @@ export function ScreenList({ screens, onEdit }: ScreenListProps) {
   });
   
   const updateMutation = trpc.screens.update.useMutation({
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       utils.screens.getAll.invalidate();
       utils.screens.getActive.invalidate();
+      if (variables.data.isActive !== undefined) {
+        toast.success(variables.data.isActive ? "Screen activated" : "Screen deactivated");
+      }
     },
     onError: (error) => {
       toast.error(error.message);

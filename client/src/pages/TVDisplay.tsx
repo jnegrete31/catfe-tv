@@ -9,7 +9,7 @@ import { PollWidget } from "@/components/tv/PollWidget";
 import { WaiverWidget } from "@/components/tv/WaiverWidget";
 import { LogoWidget } from "@/components/tv/LogoWidget";
 import { RecentlyAdoptedBanner } from "@/components/tv/RecentlyAdoptedBanner";
-import { Wifi, WifiOff, RefreshCw, ChevronLeft, ChevronRight, Play, Pause, Airplay } from "lucide-react";
+import { Wifi, WifiOff, RefreshCw, ChevronLeft, ChevronRight, Play, Pause } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import type { Screen } from "@shared/types";
 import { SCREEN_TYPE_DURATIONS } from "@shared/types";
@@ -31,8 +31,8 @@ export default function TVDisplay() {
   } = usePlaylist();
   
   const [showControls, setShowControls] = useState(false);
-  const [focusedButton, setFocusedButton] = useState<number>(1); // 0=prev, 1=play/pause, 2=next, 3=refresh, 4=airplay
-  const [showAirPlayHint, setShowAirPlayHint] = useState(false);
+  const [focusedButton, setFocusedButton] = useState<number>(1); // 0=prev, 1=play/pause, 2=next, 3=refresh
+  
   const [isPaused, setIsPaused] = useState(false);
   const [adoptionCats, setAdoptionCats] = useState<Screen[]>([]);
   const [allAdoptionCats, setAllAdoptionCats] = useState<Screen[]>([]);
@@ -422,16 +422,6 @@ export default function TVDisplay() {
             >
               <RefreshCw className="w-8 h-8 text-white" />
             </button>
-            
-            <button
-              onClick={() => setShowAirPlayHint(true)}
-              className={getButtonClass(4)}
-              tabIndex={0}
-              aria-label="AirPlay"
-              title="AirPlay to Apple TV"
-            >
-              <Airplay className="w-8 h-8 text-white" />
-            </button>
           </div>
           
           {/* Progress dots */}
@@ -456,55 +446,7 @@ export default function TVDisplay() {
         </div>
       </div>
       
-      {/* AirPlay Instructions Modal */}
-      {showAirPlayHint && (
-        <div 
-          className="absolute inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
-          onClick={() => setShowAirPlayHint(false)}
-        >
-          <div 
-            className="bg-gray-900/95 rounded-2xl p-8 max-w-md mx-4 text-white shadow-2xl border border-white/10"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-3 bg-blue-500 rounded-xl">
-                <Airplay className="w-8 h-8" />
-              </div>
-              <h2 className="text-2xl font-bold">AirPlay to Apple TV</h2>
-            </div>
-            
-            <div className="space-y-4 text-gray-300">
-              <div className="flex items-start gap-3">
-                <span className="flex-shrink-0 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-sm font-bold">1</span>
-                <p>On your Mac or iOS device, open <strong className="text-white">Control Center</strong></p>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="flex-shrink-0 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-sm font-bold">2</span>
-                <p>Tap <strong className="text-white">Screen Mirroring</strong> or the AirPlay icon</p>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="flex-shrink-0 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-sm font-bold">3</span>
-                <p>Select your <strong className="text-white">Apple TV</strong> from the list</p>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="flex-shrink-0 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-sm font-bold">4</span>
-                <p>The slideshow will continue playing on your TV!</p>
-              </div>
-            </div>
-            
-            <p className="mt-6 text-sm text-gray-400">
-              Tip: For best results, use Safari on Mac or the native app on Apple TV.
-            </p>
-            
-            <button
-              onClick={() => setShowAirPlayHint(false)}
-              className="mt-6 w-full py-3 bg-blue-500 hover:bg-blue-600 rounded-xl font-semibold transition"
-            >
-              Got it!
-            </button>
-          </div>
-        </div>
-      )}
+
     </div>
   );
 }
