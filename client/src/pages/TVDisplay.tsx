@@ -34,13 +34,18 @@ export default function TVDisplay() {
   const [showAirPlayHint, setShowAirPlayHint] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [adoptionCats, setAdoptionCats] = useState<Screen[]>([]);
+  const [allAdoptionCats, setAllAdoptionCats] = useState<Screen[]>([]);
   const controlsTimeout = useRef<NodeJS.Timeout | null>(null);
   const autoAdvanceTimeout = useRef<NodeJS.Timeout | null>(null);
+  const shuffleTimerRef = useRef<NodeJS.Timeout | null>(null);
   
-  // Fetch random adoption cats for showcase screens (8 cats for 4x2 grid)
-  const { data: randomAdoptions, refetch: refetchAdoptions } = trpc.screens.getRandomAdoptions.useQuery(
-    { count: 8 },
-    { enabled: currentScreen?.type === "ADOPTION_SHOWCASE" }
+  // Fetch ALL adoption cats (always enabled, cached)
+  const { data: allAdoptions } = trpc.screens.getRandomAdoptions.useQuery(
+    { count: 12 },
+    { 
+      staleTime: 60000, // Cache for 1 minute
+      refetchInterval: 120000, // Refetch every 2 minutes
+    }
   );
   
   // Fetch recently adopted cats for celebration banner
@@ -52,18 +57,46 @@ export default function TVDisplay() {
     }
   );
   
-  // Update adoption cats when the query returns or when we show a showcase screen
+  // Store all adoption cats when fetched
   useEffect(() => {
-    if (currentScreen?.type === "ADOPTION_SHOWCASE") {
-      refetchAdoptions();
+    if (allAdoptions && allAdoptions.length > 0) {
+      setAllAdoptionCats(allAdoptions);
+      // Initialize display cats with first 4
+      if (adoptionCats.length === 0) {
+        setAdoptionCats(allAdoptions.slice(0, 4));
+      }
     }
-  }, [currentScreen?.id, currentScreen?.type, refetchAdoptions]);
+  }, [allAdoptions]);
   
+  // Shuffle adoption cats every 6 seconds when showing ADOPTION_SHOWCASE
   useEffect(() => {
-    if (randomAdoptions) {
-      setAdoptionCats(randomAdoptions);
+    if (currentScreen?.type !== "ADOPTION_SHOWCASE" || allAdoptionCats.length < 4) {
+      if (shuffleTimerRef.current) {
+        clearInterval(shuffleTimerRef.current);
+        shuffleTimerRef.current = null;
+      }
+      return;
     }
-  }, [randomAdoptions]);
+    
+    // Shuffle function - pick 4 random cats
+    const shuffleCats = () => {
+      const shuffled = [...allAdoptionCats].sort(() => Math.random() - 0.5);
+      setAdoptionCats(shuffled.slice(0, 4));
+    };
+    
+    // Initial shuffle
+    shuffleCats();
+    
+    // Set up 6-second interval
+    shuffleTimerRef.current = setInterval(shuffleCats, 6000);
+    
+    return () => {
+      if (shuffleTimerRef.current) {
+        clearInterval(shuffleTimerRef.current);
+        shuffleTimerRef.current = null;
+      }
+    };
+  }, [currentScreen?.type, allAdoptionCats]);
   
   // Show controls temporarily
   const showControlsTemporarily = useCallback(() => {

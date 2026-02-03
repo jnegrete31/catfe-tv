@@ -364,14 +364,14 @@ function AdoptionScreen({ screen, settings }: ScreenRendererProps) {
   );
 }
 
-// ADOPTION_SHOWCASE - Grid of 8 random adoptable cats
+// ADOPTION_SHOWCASE - Grid of 4 random adoptable cats with 6-second shuffle
 function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRendererProps) {
   const cats = adoptionCats || [];
   const { data: adoptionCountData } = trpc.screens.getAdoptionCount.useQuery();
   const adoptedCount = adoptionCountData?.count || 0;
   
-  // Show only 4 cats for larger display
-  const displayCats = cats.slice(0, 4);
+  // Use all cats passed in (already limited to 4 by parent)
+  const displayCats = cats;
   
   return (
     <ScreenLayout bgColor="#ffedd5" logoUrl={settings?.logoUrl}>
@@ -395,50 +395,57 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRender
           )}
         </div>
         
-        {/* 2x2 Grid of cats - 4 cats for larger display */}
+        {/* 2x2 Grid of cats - shuffles every 6 seconds with fade animation */}
         <div className="flex-1 grid grid-cols-2 grid-rows-2 gap-6 max-w-5xl mx-auto w-full">
-          {displayCats.map((cat, index) => (
-            <div 
-              key={cat.id || index}
-              className="relative bg-white rounded-2xl overflow-hidden shadow-xl flex flex-col"
-            >
-              {/* Large square image container */}
-              <div className="relative flex-1 min-h-0">
-                {cat.imagePath ? (
-                  <>
-                    <img 
-                      src={cat.imagePath} 
-                      alt={cat.title}
-                      className="absolute inset-0 w-full h-full object-cover"
-                    />
-                    {/* Adopted badge overlay - larger */}
-                    {(cat as any).isAdopted && (
-                      <div className="absolute top-3 right-3 px-4 py-1.5 rounded-full bg-green-500 text-white text-lg font-bold shadow-lg animate-pulse">
-                        🎉 Adopted!
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <div className="absolute inset-0 bg-orange-100 flex items-center justify-center">
-                    <span className="text-8xl">🐱</span>
-                    {/* Adopted badge overlay for no-image cats */}
-                    {(cat as any).isAdopted && (
-                      <div className="absolute top-3 right-3 px-4 py-1.5 rounded-full bg-green-500 text-white text-lg font-bold shadow-lg animate-pulse">
-                        🎉 Adopted!
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-              {/* Cat info - larger text */}
-              <div className="p-4 bg-white">
-                <h3 className="text-2xl font-bold text-orange-900 truncate">{cat.title}</h3>
-                {cat.subtitle && (
-                  <p className="text-lg text-orange-700 truncate">{cat.subtitle}</p>
-                )}
-              </div>
-            </div>
-          ))}
+          <AnimatePresence mode="popLayout">
+            {displayCats.map((cat, index) => (
+              <motion.div 
+                key={cat.id}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.5 }}
+                layout
+                className="relative bg-white rounded-2xl overflow-hidden shadow-xl flex flex-col"
+              >
+                {/* Large square image container */}
+                <div className="relative flex-1 min-h-0">
+                  {cat.imagePath ? (
+                    <>
+                      <img 
+                        src={cat.imagePath} 
+                        alt={cat.title}
+                        className="absolute inset-0 w-full h-full object-cover"
+                      />
+                      {/* Adopted badge overlay - larger */}
+                      {(cat as any).isAdopted && (
+                        <div className="absolute top-3 right-3 px-4 py-1.5 rounded-full bg-green-500 text-white text-lg font-bold shadow-lg animate-pulse">
+                          🎉 Adopted!
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="absolute inset-0 bg-orange-100 flex items-center justify-center">
+                      <span className="text-8xl">🐱</span>
+                      {/* Adopted badge overlay for no-image cats */}
+                      {(cat as any).isAdopted && (
+                        <div className="absolute top-3 right-3 px-4 py-1.5 rounded-full bg-green-500 text-white text-lg font-bold shadow-lg animate-pulse">
+                          🎉 Adopted!
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                {/* Cat info - larger text */}
+                <div className="p-4 bg-white">
+                  <h3 className="text-2xl font-bold text-orange-900 truncate">{cat.title}</h3>
+                  {cat.subtitle && (
+                    <p className="text-lg text-orange-700 truncate">{cat.subtitle}</p>
+                  )}
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
           
           {/* Fill empty slots with placeholders if less than 4 cats */}
           {displayCats.length < 4 && Array.from({ length: 4 - displayCats.length }).map((_, i) => (

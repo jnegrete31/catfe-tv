@@ -641,3 +641,8 @@
 - [x] Stabilize playlist - only rebuild when screens actually change
 - [x] Increase duration for adoption counter and check-in screens (20s and 30s defaults)
 - [ ] Test on Mac app
+
+## Bug Fix - Adoption Grid Photos
+- [x] Fix photos not displaying - now fetches all adoption cats upfront and caches
+- [x] Add 6-second shuffle animation for cat photos in grid with fade effect
+- [x] Test on TV display - photos now showing correctly with shuffle
