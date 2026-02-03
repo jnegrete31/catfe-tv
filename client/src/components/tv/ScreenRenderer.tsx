@@ -83,15 +83,11 @@ function ScreenLayout({
   bgColor,
   imagePath,
   imageDisplayMode = "cover",
-  showLogo = true,
-  logoUrl,
 }: { 
   children: React.ReactNode;
   bgColor?: string;
   imagePath?: string | null;
   imageDisplayMode?: "cover" | "contain" | null;
-  showLogo?: boolean;
-  logoUrl?: string | null;
 }) {
   const isContain = imageDisplayMode === "contain";
   
@@ -127,12 +123,7 @@ function ScreenLayout({
         </>
       )}
       
-      {/* Logo in bottom-left corner - positioned above the Recently Adopted banner */}
-      {showLogo && (
-        <div className="absolute z-20" style={{ bottom: '144px', left: '24px' }}>
-          <CatfeLogo logoUrl={logoUrl} />
-        </div>
-      )}
+      {/* Logo is now handled by LogoWidget overlay in TVDisplay */}
       
       {/* Content - always show text overlay for cover mode, hide for contain mode */}
       {(!isContain) && (
@@ -166,7 +157,7 @@ function SnapAndPurrScreen({ screen, settings }: ScreenRendererProps) {
   const bodyColorClass = hasImage ? "text-white/80 drop-shadow" : "text-pink-700";
   
   return (
-    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#fce7f3" logoUrl={settings?.logoUrl}>
+    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#fce7f3" >
       <div className="text-center max-w-4xl">
         <h1 className={`tv-text-large mb-6 ${textColorClass}`}>
           {screen.title || "Snap & Purr!"}
@@ -199,7 +190,7 @@ function EventScreen({ screen, settings }: ScreenRendererProps) {
   const bodyColorClass = hasImage ? "text-white/80 drop-shadow" : "text-purple-700";
   
   return (
-    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#ede9fe" logoUrl={settings?.logoUrl}>
+    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#ede9fe" >
       <div className="flex flex-col md:flex-row items-center justify-between w-full max-w-6xl gap-8">
         <div className="flex-1">
           <div className="inline-block px-4 py-2 rounded-full bg-purple-500 text-white text-lg mb-4">
@@ -232,7 +223,7 @@ function EventScreen({ screen, settings }: ScreenRendererProps) {
 // TODAY_AT_CATFE - Daily specials/activities
 function TodayAtCatfeScreen({ screen, settings }: ScreenRendererProps) {
   return (
-    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#fef3c7" logoUrl={settings?.logoUrl}>
+    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#fef3c7" >
       <div className="text-center max-w-5xl">
         <div className="inline-block px-6 py-3 rounded-full bg-amber-500 text-white text-xl mb-6">
           Today at {settings?.locationName || "Catfé"}
@@ -263,7 +254,7 @@ function TodayAtCatfeScreen({ screen, settings }: ScreenRendererProps) {
 // MEMBERSHIP - Membership promotion
 function MembershipScreen({ screen, settings }: ScreenRendererProps) {
   return (
-    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#d1fae5" logoUrl={settings?.logoUrl}>
+    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#d1fae5" >
       <div className="flex flex-col md:flex-row items-center justify-between w-full max-w-6xl gap-8">
         <div className="flex-1">
           <div className="inline-block px-4 py-2 rounded-full bg-emerald-500 text-white text-lg mb-4">
@@ -296,7 +287,7 @@ function MembershipScreen({ screen, settings }: ScreenRendererProps) {
 // REMINDER - General reminders
 function ReminderScreen({ screen, settings }: ScreenRendererProps) {
   return (
-    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#dbeafe" logoUrl={settings?.logoUrl}>
+    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#dbeafe" >
       <div className="text-center max-w-4xl">
         <div className="inline-block px-4 py-2 rounded-full bg-blue-500 text-white text-lg mb-6">
           Reminder
@@ -328,7 +319,7 @@ function AdoptionScreen({ screen, settings }: ScreenRendererProps) {
   const bodyColorClass = hasImage ? "text-white/80 drop-shadow" : "text-red-700";
   
   return (
-    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#fee2e2" logoUrl={settings?.logoUrl}>
+    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#fee2e2" >
       <div className="flex flex-col md:flex-row items-center justify-between w-full max-w-6xl gap-8">
         <div className="flex-1">
           {isAdopted ? (
@@ -374,7 +365,7 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRender
   const displayCats = cats;
   
   return (
-    <ScreenLayout bgColor="#ffedd5" logoUrl={settings?.logoUrl}>
+    <ScreenLayout bgColor="#ffedd5" >
       <div className="w-full h-full flex flex-col px-8 py-6">
         {/* Header - compact */}
         <div className="text-center mb-4">
@@ -482,7 +473,7 @@ function AdoptionCounterScreen({ screen, settings }: ScreenRendererProps) {
   const totalCount = settingsData?.totalAdoptionCount || 0;
   
   return (
-    <ScreenLayout bgColor="#dcfce7" logoUrl={settings?.logoUrl}>
+    <ScreenLayout bgColor="#dcfce7" >
       <div className="text-center max-w-5xl">
         {/* Confetti-style decorations */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -531,7 +522,7 @@ function AdoptionCounterScreen({ screen, settings }: ScreenRendererProps) {
 // THANK_YOU - Appreciation messages
 function ThankYouScreen({ screen, settings }: ScreenRendererProps) {
   return (
-    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#e0e7ff" logoUrl={settings?.logoUrl}>
+    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#e0e7ff" >
       <div className="text-center max-w-4xl">
         <h1 className="tv-text-large mb-6 text-indigo-900">
           {screen.title || "Thank You!"}
@@ -571,7 +562,7 @@ function HappyTailsScreen({ screen, settings }: ScreenRendererProps) {
   
   if (!photos || photos.length === 0) {
     return (
-      <ScreenLayout bgColor="#fef3c7" logoUrl={settings?.logoUrl}>
+      <ScreenLayout bgColor="#fef3c7" >
         <div className="text-center">
           <div className="text-8xl mb-6">❤️</div>
           <h1 className="tv-text-large mb-4 text-amber-900">Happy Tails</h1>
@@ -678,10 +669,7 @@ function HappyTailsScreen({ screen, settings }: ScreenRendererProps) {
         </AnimatePresence>
       </div>
       
-      {/* Logo */}
-      <div className="absolute bottom-8 left-8">
-        <CatfeLogo logoUrl={settings?.logoUrl} />
-      </div>
+      {/* Logo handled by LogoWidget overlay */}
       
       {/* QR Code for uploads - bottom right */}
       <div className="absolute bottom-8 right-8 flex items-end gap-6">
@@ -744,7 +732,7 @@ function SnapPurrGalleryScreen({ screen, settings }: ScreenRendererProps) {
   
   if (!photos || photos.length === 0) {
     return (
-      <ScreenLayout bgColor="#fef9c3" logoUrl={settings?.logoUrl}>
+      <ScreenLayout bgColor="#fef9c3" >
         <div className="text-center">
           <div className="text-8xl mb-6">📸</div>
           <h1 className="tv-text-large mb-4 text-yellow-900">Snap & Purr Gallery</h1>
@@ -911,10 +899,7 @@ function HappyTailsQRScreen({ screen, settings }: ScreenRendererProps) {
         </div>
       </div>
       
-      {/* Logo */}
-      <div className="absolute bottom-8 left-8">
-        <CatfeLogo logoUrl={settings?.logoUrl} />
-      </div>
+      {/* Logo handled by LogoWidget overlay */}
       
       {/* Paw prints decoration */}
       <div className="absolute bottom-8 right-8 flex gap-4 opacity-30">
@@ -971,10 +956,7 @@ function SnapPurrQRScreen({ screen, settings }: ScreenRendererProps) {
         </div>
       </div>
       
-      {/* Logo */}
-      <div className="absolute bottom-8 left-8">
-        <CatfeLogo logoUrl={settings?.logoUrl} />
-      </div>
+      {/* Logo handled by LogoWidget overlay */}
       
       {/* Camera decoration */}
       <div className="absolute bottom-8 right-8 flex gap-4 opacity-30">
@@ -992,7 +974,7 @@ function LivestreamScreen({ screen, settings }: ScreenRendererProps) {
   
   if (!livestreamUrl) {
     return (
-      <ScreenLayout bgColor="#1f2937" logoUrl={settings?.logoUrl}>
+      <ScreenLayout bgColor="#1f2937" >
         <div className="text-center">
           <div className="text-6xl mb-6">📹</div>
           <h1 className="tv-text-large mb-4 text-white">Livestream</h1>
@@ -1023,10 +1005,7 @@ function LivestreamScreen({ screen, settings }: ScreenRendererProps) {
         <span className="text-white font-bold text-xl">LIVE</span>
       </div>
       
-      {/* Logo overlay */}
-      <div className="absolute bottom-36 left-8">
-        <CatfeLogo logoUrl={settings?.logoUrl} />
-      </div>
+      {/* Logo handled by LogoWidget overlay */}
       
       {/* Title overlay if provided */}
       {screen.title && (
@@ -1053,7 +1032,7 @@ function CheckInScreen({ screen, settings }: ScreenRendererProps) {
   const locationName = settingsData?.locationName || "Catfé";
   
   return (
-    <ScreenLayout bgColor="#cffafe" logoUrl={settings?.logoUrl}>
+    <ScreenLayout bgColor="#cffafe" >
       <div className="w-full h-full p-12 flex flex-col">
         {/* Header */}
         <div className="text-center mb-8">

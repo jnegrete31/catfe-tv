@@ -11,7 +11,9 @@ import {
   photoSubmissions, InsertPhotoSubmission, PhotoSubmission,
   suggestedCaptions, InsertSuggestedCaption, SuggestedCaption,
   polls, InsertPoll, Poll,
-  pollVotes, InsertPollVote, PollVote
+  pollVotes, InsertPollVote, PollVote,
+  playlists, InsertPlaylist, Playlist,
+  playlistScreens, InsertPlaylistScreen, PlaylistScreen
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -1446,4 +1448,230 @@ export async function resetCurrentPollVotes() {
   await db.update(polls).set({ lastShownAt: new Date() }).where(eq(polls.id, currentPoll.id));
   
   return { success: true, pollId: currentPoll.id };
+}
+
+
+// ============ PLAYLIST QUERIES ============
+
+/**
+ * Get all playlists
+ */
+export async function getAllPlaylists(): Promise<Playlist[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(playlists).orderBy(asc(playlists.sortOrder));
+}
+
+/**
+ * Get the currently active playlist
+ */
+export async function getActivePlaylist(): Promise<Playlist | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(playlists).where(eq(playlists.isActive, true)).limit(1);
+  return result[0] || null;
+}
+
+/**
+ * Get playlist by ID
+ */
+export async function getPlaylistById(id: number): Promise<Playlist | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(playlists).where(eq(playlists.id, id)).limit(1);
+  return result[0] || null;
+}
+
+/**
+ * Create a new playlist
+ */
+export async function createPlaylist(data: { name: string; description?: string }): Promise<{ id: number }> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Get max sortOrder
+  const existing = await db.select().from(playlists).orderBy(desc(playlists.sortOrder)).limit(1);
+  const maxOrder = existing[0]?.sortOrder ?? -1;
+  
+  const result = await db.insert(playlists).values({
+    name: data.name,
+    description: data.description || null,
+    sortOrder: maxOrder + 1,
+    isActive: false,
+    isDefault: false,
+  });
+  
+  return { id: result[0].insertId };
+}
+
+/**
+ * Update a playlist
+ */
+export async function updatePlaylist(id: number, data: { name?: string; description?: string }): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  
+  const updateData: Partial<InsertPlaylist> = {};
+  if (data.name !== undefined) updateData.name = data.name;
+  if (data.description !== undefined) updateData.description = data.description;
+  
+  if (Object.keys(updateData).length > 0) {
+    await db.update(playlists).set(updateData).where(eq(playlists.id, id));
+  }
+}
+
+/**
+ * Delete a playlist
+ */
+export async function deletePlaylist(id: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  
+  // Delete associated screen links first
+  await db.delete(playlistScreens).where(eq(playlistScreens.playlistId, id));
+  // Delete the playlist
+  await db.delete(playlists).where(eq(playlists.id, id));
+}
+
+/**
+ * Set a playlist as active (deactivates all others)
+ */
+export async function setActivePlaylist(id: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  
+  // Deactivate all playlists
+  await db.update(playlists).set({ isActive: false });
+  // Activate the selected one
+  await db.update(playlists).set({ isActive: true }).where(eq(playlists.id, id));
+}
+
+/**
+ * Get screens for a playlist
+ */
+export async function getScreensForPlaylist(playlistId: number): Promise<Screen[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const links = await db.select()
+    .from(playlistScreens)
+    .where(eq(playlistScreens.playlistId, playlistId))
+    .orderBy(asc(playlistScreens.sortOrder));
+  
+  if (links.length === 0) return [];
+  
+  const screenIds = links.map(l => l.screenId);
+  const allScreens = await db.select().from(screens).where(
+    or(...screenIds.map(id => eq(screens.id, id)))
+  );
+  
+  // Sort by the playlist order
+  const screenMap = new Map(allScreens.map(s => [s.id, s]));
+  return links.map(l => screenMap.get(l.screenId)).filter((s): s is Screen => !!s);
+}
+
+/**
+ * Set screens for a playlist (replaces existing)
+ */
+export async function setScreensForPlaylist(playlistId: number, screenIds: number[]): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  
+  // Delete existing links
+  await db.delete(playlistScreens).where(eq(playlistScreens.playlistId, playlistId));
+  
+  // Insert new links
+  if (screenIds.length > 0) {
+    const values = screenIds.map((screenId, index) => ({
+      playlistId,
+      screenId,
+      sortOrder: index,
+    }));
+    await db.insert(playlistScreens).values(values);
+  }
+}
+
+/**
+ * Add a screen to a playlist
+ */
+export async function addScreenToPlaylist(playlistId: number, screenId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  
+  // Get max sortOrder for this playlist
+  const existing = await db.select()
+    .from(playlistScreens)
+    .where(eq(playlistScreens.playlistId, playlistId))
+    .orderBy(desc(playlistScreens.sortOrder))
+    .limit(1);
+  const maxOrder = existing[0]?.sortOrder ?? -1;
+  
+  await db.insert(playlistScreens).values({
+    playlistId,
+    screenId,
+    sortOrder: maxOrder + 1,
+  });
+}
+
+/**
+ * Remove a screen from a playlist
+ */
+export async function removeScreenFromPlaylist(playlistId: number, screenId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  
+  await db.delete(playlistScreens).where(
+    and(
+      eq(playlistScreens.playlistId, playlistId),
+      eq(playlistScreens.screenId, screenId)
+    )
+  );
+}
+
+/**
+ * Get active screens for the current active playlist
+ * Falls back to all active screens if no playlist is active
+ */
+export async function getActiveScreensForCurrentPlaylist(): Promise<Screen[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  // Get active playlist
+  const activePlaylist = await getActivePlaylist();
+  
+  if (activePlaylist) {
+    // Get screens for the active playlist
+    const playlistScreensList = await getScreensForPlaylist(activePlaylist.id);
+    // Filter to only active screens
+    return playlistScreensList.filter(s => s.isActive);
+  }
+  
+  // Fallback: return all active screens
+  return getActiveScreens();
+}
+
+/**
+ * Seed default playlists
+ */
+export async function seedDefaultPlaylists(): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  
+  const existing = await db.select().from(playlists);
+  if (existing.length > 0) return; // Already seeded
+  
+  const defaultPlaylists = [
+    { name: "Lounge", description: "Default playlist for the cat lounge", isDefault: true, isActive: true },
+    { name: "Events", description: "Special events and promotions" },
+    { name: "Volunteer Orientation", description: "Information for new volunteers" },
+  ];
+  
+  for (let i = 0; i < defaultPlaylists.length; i++) {
+    await db.insert(playlists).values({
+      ...defaultPlaylists[i],
+      sortOrder: i,
+      isActive: defaultPlaylists[i].isActive || false,
+      isDefault: defaultPlaylists[i].isDefault || false,
+    });
+  }
 }

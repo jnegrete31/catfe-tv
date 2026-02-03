@@ -211,6 +211,13 @@
       "when": 1770078611094,
       "tag": "0029_premium_ultimatum",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "5",
+      "when": 1770133267134,
+      "tag": "0030_lovely_supernaut",
+      "breakpoints": true
     }
   ]
 }

@@ -137,8 +137,8 @@ export function usePlaylist() {
     return () => clearInterval(interval);
   }, [pollTimeWindow]);
   
-  // Fetch screens from API
-  const screensQuery = trpc.screens.getActive.useQuery(undefined, {
+  // Fetch screens from active playlist (or all active screens if no playlist selected)
+  const screensQuery = trpc.playlists.getActiveScreens.useQuery(undefined, {
     refetchInterval: (settings?.refreshIntervalSeconds || 60) * 1000,
     retry: 2,
   });

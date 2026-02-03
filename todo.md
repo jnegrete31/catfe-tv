@@ -659,3 +659,15 @@
 
 ## Bug Fix - Snap & Purr Gallery QR Code
 - [x] Made QR code larger and more prominent on Snap & Purr Gallery slide
+
+## Bug Fix - Remove Duplicate Logos
+- [x] Remove logos from individual screen components (keep only LogoWidget overlay)
+
+## Feature - Playlist Management System
+- [x] Create playlists database table (id, name, description, isActive)
+- [x] Create playlist_screens junction table to link screens to playlists
+- [x] Add API endpoints for playlist CRUD operations
+- [x] Build admin UI for creating/editing playlists
+- [x] Add playlist selector in admin to choose active playlist
+- [x] Update TV display to filter screens by active playlist
+- [x] Add default playlists: Lounge, Events, Volunteer Orientation (via seed button)

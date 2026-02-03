@@ -15,6 +15,7 @@ import { SessionHistory } from "@/components/admin/SessionHistory";
 import { WixSync } from "@/components/admin/WixSync";
 import CaptionManager from "@/components/admin/CaptionManager";
 import { PollManager } from "@/components/admin/PollManager";
+import { PlaylistManager } from "@/components/admin/PlaylistManager";
 import { trpc } from "@/lib/trpc";
 import type { Screen } from "@shared/types";
 import { 
@@ -31,6 +32,7 @@ import {
   CalendarDays,
   MessageSquare,
   Vote,
+  ListMusic,
 } from "lucide-react";
 import { IOSInstallPrompt } from "@/components/IOSInstallPrompt";
 
@@ -166,7 +168,7 @@ export default function Admin() {
       {/* Main Content */}
       <main className="container py-4 pb-24">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full grid grid-cols-8 mb-4">
+          <TabsList className="w-full grid grid-cols-9 mb-4">
             <TabsTrigger value="screens" className="flex items-center gap-1 text-xs sm:text-sm">
               <LayoutGrid className="w-4 h-4" />
               <span className="hidden sm:inline">Screens</span>
@@ -194,6 +196,10 @@ export default function Admin() {
             <TabsTrigger value="reports" className="flex items-center gap-1 text-xs sm:text-sm">
               <BarChart3 className="w-4 h-4" />
               <span className="hidden sm:inline">Reports</span>
+            </TabsTrigger>
+            <TabsTrigger value="playlists" className="flex items-center gap-1 text-xs sm:text-sm">
+              <ListMusic className="w-4 h-4" />
+              <span className="hidden sm:inline">Playlists</span>
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-1 text-xs sm:text-sm">
               <Settings className="w-4 h-4" />
@@ -261,6 +267,11 @@ export default function Admin() {
           {/* Polls Tab */}
           <TabsContent value="polls">
             <PollManager />
+          </TabsContent>
+
+          {/* Playlists Tab */}
+          <TabsContent value="playlists">
+            <PlaylistManager />
           </TabsContent>
 
           {/* Settings Tab */}

@@ -306,3 +306,36 @@ export const pollVotes = mysqlTable("pollVotes", {
 
 export type PollVote = typeof pollVotes.$inferSelect;
 export type InsertPollVote = typeof pollVotes.$inferInsert;
+
+/**
+ * Playlists table - named collections of screens for different occasions
+ * e.g., "Lounge", "Events", "Volunteer Orientation"
+ */
+export const playlists = mysqlTable("playlists", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: varchar("description", { length: 500 }),
+  isActive: boolean("isActive").notNull().default(false), // Only one playlist can be active at a time
+  isDefault: boolean("isDefault").notNull().default(false), // Default playlist for fallback
+  sortOrder: int("sortOrder").notNull().default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Playlist = typeof playlists.$inferSelect;
+export type InsertPlaylist = typeof playlists.$inferInsert;
+
+/**
+ * Junction table linking screens to playlists
+ * A screen can belong to multiple playlists
+ */
+export const playlistScreens = mysqlTable("playlistScreens", {
+  id: int("id").autoincrement().primaryKey(),
+  playlistId: int("playlistId").notNull(),
+  screenId: int("screenId").notNull(),
+  sortOrder: int("sortOrder").notNull().default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type PlaylistScreen = typeof playlistScreens.$inferSelect;
+export type InsertPlaylistScreen = typeof playlistScreens.$inferInsert;

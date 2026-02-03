@@ -76,6 +76,19 @@ import {
   createTemplatePoll,
   getAdoptableCats,
   type PollOption,
+  getAllPlaylists,
+  getActivePlaylist,
+  getPlaylistById,
+  createPlaylist,
+  updatePlaylist,
+  deletePlaylist,
+  setActivePlaylist,
+  getScreensForPlaylist,
+  setScreensForPlaylist,
+  addScreenToPlaylist,
+  removeScreenFromPlaylist,
+  getActiveScreensForCurrentPlaylist,
+  seedDefaultPlaylists,
 } from "./db";
 import {
   testWixConnection,
@@ -1105,6 +1118,116 @@ export const appRouter = router({
     // Public: Reset votes for current poll (called at start of each 30-min session)
     resetCurrentVotes: publicProcedure.mutation(async () => {
       return resetCurrentPollVotes();
+    }),
+  }),
+
+  // ============ PLAYLISTS ============
+  playlists: router({
+    // Public: Get all playlists
+    getAll: publicProcedure.query(async () => {
+      return getAllPlaylists();
+    }),
+
+    // Public: Get active playlist
+    getActive: publicProcedure.query(async () => {
+      return getActivePlaylist();
+    }),
+
+    // Public: Get playlist by ID
+    getById: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        return getPlaylistById(input.id);
+      }),
+
+    // Public: Get screens for a playlist
+    getScreens: publicProcedure
+      .input(z.object({ playlistId: z.number() }))
+      .query(async ({ input }) => {
+        return getScreensForPlaylist(input.playlistId);
+      }),
+
+    // Public: Get active screens for current playlist (for TV display)
+    getActiveScreens: publicProcedure.query(async () => {
+      return getActiveScreensForCurrentPlaylist();
+    }),
+
+    // Admin: Create playlist
+    create: adminProcedure
+      .input(z.object({
+        name: z.string().min(1).max(255),
+        description: z.string().max(500).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        return createPlaylist(input);
+      }),
+
+    // Admin: Update playlist
+    update: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().min(1).max(255).optional(),
+        description: z.string().max(500).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input;
+        await updatePlaylist(id, data);
+        return { success: true };
+      }),
+
+    // Admin: Delete playlist
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await deletePlaylist(input.id);
+        return { success: true };
+      }),
+
+    // Admin: Set active playlist
+    setActive: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await setActivePlaylist(input.id);
+        return { success: true };
+      }),
+
+    // Admin: Set screens for playlist
+    setScreens: adminProcedure
+      .input(z.object({
+        playlistId: z.number(),
+        screenIds: z.array(z.number()),
+      }))
+      .mutation(async ({ input }) => {
+        await setScreensForPlaylist(input.playlistId, input.screenIds);
+        return { success: true };
+      }),
+
+    // Admin: Add screen to playlist
+    addScreen: adminProcedure
+      .input(z.object({
+        playlistId: z.number(),
+        screenId: z.number(),
+      }))
+      .mutation(async ({ input }) => {
+        await addScreenToPlaylist(input.playlistId, input.screenId);
+        return { success: true };
+      }),
+
+    // Admin: Remove screen from playlist
+    removeScreen: adminProcedure
+      .input(z.object({
+        playlistId: z.number(),
+        screenId: z.number(),
+      }))
+      .mutation(async ({ input }) => {
+        await removeScreenFromPlaylist(input.playlistId, input.screenId);
+        return { success: true };
+      }),
+
+    // Admin: Seed default playlists
+    seedDefaults: adminProcedure.mutation(async () => {
+      await seedDefaultPlaylists();
+      return { success: true };
     }),
   }),
 });
