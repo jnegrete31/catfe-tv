@@ -32,18 +32,11 @@ const SCHEDULED_REMINDERS: ScheduledReminder[] = [
     message: "Mini Meow sessions ending soon!",
   },
   {
-    id: "full-purr-55",
+    id: "sessions-55",
     minute: 55,
-    sessionType: "Full Purr",
-    sessionDuration: "60 min",
-    message: "Full Purr sessions ending soon!",
-  },
-  {
-    id: "mini-meow-55",
-    minute: 55,
-    sessionType: "Mini Meow",
-    sessionDuration: "30 min",
-    message: "Mini Meow sessions ending soon!",
+    sessionType: "Full Purr & Mini Meow",
+    sessionDuration: "ending",
+    message: "Sessions ending soon!",
   },
 ];
 

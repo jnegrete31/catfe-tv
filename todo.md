@@ -690,3 +690,7 @@
 - [x] Move waiver QR widget to top-left (where poll widget was)
 - [x] Disable poll widget for now
 - [ ] Test on different screen sizes
+
+## UI Updates - Guest Reminder and Waiver Widget
+- [x] Combine Full Purr and Mini Meow into single message at x:55
+- [x] Make waiver widget vertical and smaller
