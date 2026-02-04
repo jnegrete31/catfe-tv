@@ -413,7 +413,7 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRender
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.6 }}
-            className="grid grid-cols-2 gap-8 max-w-4xl w-full"
+            className="grid grid-cols-2 gap-10 max-w-5xl w-full"
           >
             {displayCats.map((cat, idx) => (
               <motion.div
@@ -425,7 +425,7 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRender
                 style={{ transform: `rotate(${rotations[idx]}deg)` }}
               >
                 {/* Polaroid frame */}
-                <div className="bg-white p-2 pb-12 shadow-2xl rounded-sm relative" style={{ boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1)' }}>
+                <div className="bg-white p-3 pb-16 shadow-2xl rounded-sm relative" style={{ boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1)' }}>
                   {/* Photo */}
                   <div className="relative aspect-square overflow-hidden bg-gray-100">
                     {cat.imagePath ? (
@@ -451,12 +451,12 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRender
                   </div>
                   
                   {/* Cat name - handwritten style */}
-                  <div className="absolute bottom-2 left-2 right-2 text-center">
-                    <p className="text-gray-800 text-xl font-semibold truncate" style={{ fontFamily: 'Georgia, serif' }}>
+                  <div className="absolute bottom-3 left-3 right-3 text-center">
+                    <p className="text-gray-800 text-2xl font-semibold truncate" style={{ fontFamily: 'Georgia, serif' }}>
                       {cat.title}
                     </p>
                     {cat.subtitle && (
-                      <p className="text-gray-500 text-sm truncate">{cat.subtitle}</p>
+                      <p className="text-gray-500 text-base truncate">{cat.subtitle}</p>
                     )}
                   </div>
                 </div>
@@ -471,7 +471,7 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRender
                 animate={{ opacity: 0.5 }}
                 style={{ transform: `rotate(${rotations[displayCats.length + idx] || 0}deg)` }}
               >
-                <div className="bg-white/20 p-2 pb-12 rounded-sm border-2 border-dashed border-white/30">
+                <div className="bg-white/20 p-3 pb-16 rounded-sm border-2 border-dashed border-white/30">
                   <div className="aspect-square flex items-center justify-center bg-white/10">
                     <div className="text-center text-white/50">
                       <span className="text-5xl">🐱</span>
@@ -525,49 +525,124 @@ function AdoptionCounterScreen({ screen, settings }: ScreenRendererProps) {
   const totalCount = settingsData?.totalAdoptionCount || 0;
   
   return (
-    <ScreenLayout bgColor="#dcfce7" >
-      <div className="text-center max-w-5xl">
-        {/* Confetti-style decorations */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-10 left-10 text-6xl animate-bounce" style={{ animationDelay: '0s' }}>🎉</div>
-          <div className="absolute top-20 right-20 text-5xl animate-bounce" style={{ animationDelay: '0.2s' }}>🎊</div>
-          <div className="absolute bottom-20 left-20 text-5xl animate-bounce" style={{ animationDelay: '0.4s' }}>❤️</div>
-          <div className="absolute bottom-10 right-10 text-6xl animate-bounce" style={{ animationDelay: '0.6s' }}>🐱</div>
-          <div className="absolute top-1/4 left-1/4 text-4xl animate-pulse" style={{ animationDelay: '0.3s' }}>⭐</div>
-          <div className="absolute top-1/3 right-1/4 text-4xl animate-pulse" style={{ animationDelay: '0.5s' }}>🌟</div>
-        </div>
-        
-        {/* Main content */}
-        <div className="relative z-10">
-          <div className="inline-block px-8 py-3 mb-6 rounded-full bg-green-500 text-white text-2xl font-bold shadow-lg">
-            🏠 Forever Homes Found!
-          </div>
+    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
+      {/* Animated background pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-10 left-10 w-32 h-32 border-2 border-white/30 rounded-full animate-pulse" />
+        <div className="absolute top-1/4 right-20 w-24 h-24 border-2 border-green-400/30 rounded-full" style={{ animationDelay: '1s' }} />
+        <div className="absolute bottom-20 left-1/4 w-40 h-40 border-2 border-emerald-400/30 rounded-full" />
+        <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-green-400/10 rounded-full" />
+      </div>
+      
+      {/* Subtle light rays */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] h-[200%] opacity-5" 
+           style={{ background: 'radial-gradient(ellipse at center top, rgba(100,255,150,0.3) 0%, transparent 50%)' }} />
+      
+      {/* Floating celebration elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <motion.div 
+          className="absolute top-16 left-16 text-5xl"
+          animate={{ y: [0, -10, 0], rotate: [0, 5, 0] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        >
+          🎉
+        </motion.div>
+        <motion.div 
+          className="absolute top-24 right-24 text-4xl"
+          animate={{ y: [0, -15, 0], rotate: [0, -5, 0] }}
+          transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+        >
+          🎊
+        </motion.div>
+        <motion.div 
+          className="absolute bottom-32 left-24 text-4xl"
+          animate={{ y: [0, -12, 0], scale: [1, 1.1, 1] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+        >
+          ❤️
+        </motion.div>
+        <motion.div 
+          className="absolute bottom-24 right-20 text-5xl"
+          animate={{ y: [0, -8, 0], rotate: [0, 10, 0] }}
+          transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut", delay: 0.7 }}
+        >
+          🐱
+        </motion.div>
+        <motion.div 
+          className="absolute top-1/3 left-1/5 text-3xl"
+          animate={{ scale: [1, 1.2, 1], opacity: [0.6, 1, 0.6] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        >
+          ⭐
+        </motion.div>
+        <motion.div 
+          className="absolute top-1/4 right-1/4 text-3xl"
+          animate={{ scale: [1, 1.3, 1], opacity: [0.5, 1, 0.5] }}
+          transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
+        >
+          🌟
+        </motion.div>
+      </div>
+      
+      {/* Main content */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center"
+        >
+          {/* Badge */}
+          <motion.div 
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            className="inline-flex items-center gap-2 px-6 py-2 mb-8 rounded-full bg-green-500/20 border border-green-400/30"
+          >
+            <span className="text-2xl">🏠</span>
+            <span className="text-green-300 text-xl font-medium tracking-wide">Forever Homes Found</span>
+          </motion.div>
           
-          {/* Big counter number - no animation */}
-          <div className="my-8">
-            <span className="text-[12rem] font-black text-green-700 leading-none drop-shadow-lg inline-block">
+          {/* Big counter number */}
+          <div className="my-6">
+            <motion.span 
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: 'spring', stiffness: 100, delay: 0.2 }}
+              className="text-[14rem] font-black leading-none inline-block"
+              style={{ 
+                fontFamily: 'Georgia, serif',
+                background: 'linear-gradient(180deg, #4ade80 0%, #22c55e 50%, #16a34a 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                filter: 'drop-shadow(0 4px 20px rgba(74, 222, 128, 0.3))'
+              }}
+            >
               {totalCount}
-            </span>
+            </motion.span>
           </div>
           
-          <h1 className="text-5xl font-bold text-green-800 mb-4">
-            {screen.title || "Cats Adopted"}
+          <h1 className="text-5xl font-light tracking-wider text-white mb-4" style={{ fontFamily: 'Georgia, serif' }}>
+            <span className="text-green-400">{screen.title || "Cats"}</span> <span className="text-white/80">Adopted</span>
           </h1>
           
           {screen.subtitle && (
-            <p className="text-3xl text-green-700 mb-6">
+            <p className="text-2xl text-white/60 mb-6">
               {screen.subtitle}
             </p>
           )}
           
-          <div className="mt-8 inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white/80 text-green-800 text-xl font-medium shadow-md">
-            <span>💚</span>
-            <span>Thank you for making a difference!</span>
-            <span>💚</span>
-          </div>
-        </div>
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="mt-8 inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white/10 backdrop-blur-sm border border-white/20"
+          >
+            <span className="text-green-400">💚</span>
+            <span className="text-white/80 text-lg">Thank you for making a difference!</span>
+            <span className="text-green-400">💚</span>
+          </motion.div>
+        </motion.div>
       </div>
-    </ScreenLayout>
+    </div>
   );
 }
 
