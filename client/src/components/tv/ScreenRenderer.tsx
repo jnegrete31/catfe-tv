@@ -753,113 +753,147 @@ function SnapPurrGalleryScreen({ screen, settings }: ScreenRendererProps) {
     );
   }
   
+  // Polaroid rotation angles for visual interest
+  const rotations = [-3, 2, -2];
+  
   return (
-    <div className="tv-screen relative bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50">
-      {/* Decorative background elements */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-yellow-200/20 rounded-full -translate-y-1/2 translate-x-1/2" />
-      <div className="absolute bottom-0 left-0 w-80 h-80 bg-amber-200/20 rounded-full translate-y-1/2 -translate-x-1/2" />
-      
-      {/* Header */}
-      <div className="absolute top-6 left-8 right-8 flex items-center justify-between z-20">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-2xl flex items-center justify-center shadow-lg">
-            <span className="text-3xl">📸</span>
-          </div>
-          <div>
-            <h1 className="text-4xl font-bold text-amber-900" style={{ fontFamily: 'Georgia, serif' }}>Snap & Purr</h1>
-            <p className="text-lg text-amber-700">Moments captured by our visitors</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-amber-600 text-lg font-medium">{photos?.length || 0} photos</span>
-        </div>
+    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
+      {/* Animated background pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-10 left-10 w-32 h-32 border-2 border-white/30 rounded-full animate-pulse" />
+        <div className="absolute top-1/4 right-20 w-24 h-24 border-2 border-amber-400/30 rounded-full" style={{ animationDelay: '1s' }} />
+        <div className="absolute bottom-20 left-1/4 w-40 h-40 border-2 border-orange-400/30 rounded-full" />
+        <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-amber-400/10 rounded-full" />
       </div>
       
-      {/* Photo Collage Grid - 3 photos in a row */}
-      <div className="absolute inset-0 pt-24 pb-28 px-8 z-10">
+      {/* Subtle light rays */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] h-[200%] opacity-5" 
+           style={{ background: 'radial-gradient(ellipse at center top, rgba(255,200,100,0.3) 0%, transparent 50%)' }} />
+      
+      {/* Header - elegant and minimal */}
+      <div className="absolute top-8 left-0 right-0 z-20 text-center">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="inline-block"
+        >
+          <h1 className="text-5xl font-light tracking-wider text-white mb-2" style={{ fontFamily: 'Georgia, serif' }}>
+            <span className="text-amber-400">Snap</span> & <span className="text-orange-400">Purr</span>
+          </h1>
+          <p className="text-lg text-white/60 tracking-widest uppercase">Guest Gallery</p>
+        </motion.div>
+      </div>
+      
+      {/* Polaroid Photo Grid */}
+      <div className="absolute inset-0 flex items-center justify-center px-16 pt-28 pb-24">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentPhotos.map(p => p.id).join('-')}
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.98 }}
-            transition={{ duration: 0.5 }}
-            className="h-full grid grid-cols-3 gap-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6 }}
+            className="flex items-center justify-center gap-8 w-full max-w-6xl"
           >
             {currentPhotos.map((photo, idx) => (
               <motion.div
                 key={photo.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.1, duration: 0.3 }}
-                className="relative group"
+                initial={{ opacity: 0, scale: 0.8, rotate: rotations[idx] - 10 }}
+                animate={{ opacity: 1, scale: 1, rotate: rotations[idx] }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ delay: idx * 0.15, duration: 0.5, type: 'spring', stiffness: 100 }}
+                className="flex-1 max-w-sm"
+                style={{ transform: `rotate(${rotations[idx]}deg)` }}
               >
-                {/* Photo card */}
-                <div className="relative h-full bg-white rounded-2xl shadow-lg overflow-hidden transform transition-transform hover:scale-[1.02]">
+                {/* Polaroid frame */}
+                <div className="bg-white p-3 pb-16 shadow-2xl rounded-sm" style={{ boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1)' }}>
                   {/* Photo */}
-                  <div className="absolute inset-0">
+                  <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
                     <img
                       src={photo.photoUrl}
                       alt={photo.caption || "Visitor photo"}
                       className="w-full h-full object-cover"
                     />
-                    {/* Gradient overlay for text readability */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                    {/* Subtle vignette */}
+                    <div className="absolute inset-0" style={{ boxShadow: 'inset 0 0 60px rgba(0,0,0,0.15)' }} />
+                    
+                    {/* Featured star */}
+                    {photo.isFeatured && (
+                      <div className="absolute top-2 right-2 w-8 h-8 bg-amber-400 rounded-full flex items-center justify-center shadow-lg">
+                        <span className="text-white text-sm">⭐</span>
+                      </div>
+                    )}
                   </div>
                   
-                  {/* Featured badge */}
-                  {photo.isFeatured && (
-                    <div className="absolute top-3 right-3 bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full shadow-md flex items-center gap-1.5 text-sm font-bold">
-                      <span>⭐</span>
-                      <span>Featured</span>
-                    </div>
-                  )}
-                  
-                  {/* Caption and name overlay */}
-                  <div className="absolute bottom-0 left-0 right-0 p-6">
-                    {photo.caption && (
-                      <p className="text-white text-2xl font-medium line-clamp-2 mb-2 drop-shadow-lg">
+                  {/* Caption area - handwritten style */}
+                  <div className="absolute bottom-3 left-3 right-3 text-center">
+                    {photo.caption ? (
+                      <p className="text-gray-700 text-lg truncate" style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>
                         "{photo.caption}"
                       </p>
+                    ) : (
+                      <p className="text-gray-500 text-lg" style={{ fontFamily: 'Georgia, serif' }}>
+                        — {photo.submitterName}
+                      </p>
                     )}
-                    <p className="text-white/90 text-lg drop-shadow-md">
-                      — {photo.submitterName}
-                    </p>
+                    {photo.caption && (
+                      <p className="text-gray-400 text-sm mt-1">— {photo.submitterName}</p>
+                    )}
                   </div>
                 </div>
               </motion.div>
             ))}
             
-            {/* Fill empty slots with placeholder */}
+            {/* Empty polaroid placeholders */}
             {currentPhotos.length < photosToShow && Array.from({ length: photosToShow - currentPhotos.length }).map((_, idx) => (
-              <div key={`empty-${idx}`} className="relative h-full bg-amber-100/50 rounded-3xl border-3 border-dashed border-amber-200 flex items-center justify-center">
-                <div className="text-center text-amber-400">
-                  <span className="text-6xl">📷</span>
-                  <p className="text-xl mt-3 font-medium">Your photo here!</p>
+              <motion.div
+                key={`empty-${idx}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.5 }}
+                className="flex-1 max-w-sm"
+                style={{ transform: `rotate(${rotations[currentPhotos.length + idx] || 0}deg)` }}
+              >
+                <div className="bg-white/20 p-3 pb-16 rounded-sm border-2 border-dashed border-white/30">
+                  <div className="aspect-[4/3] flex items-center justify-center bg-white/10">
+                    <div className="text-center text-white/50">
+                      <span className="text-5xl">📷</span>
+                      <p className="text-sm mt-2">Your photo here!</p>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </motion.div>
         </AnimatePresence>
       </div>
       
-      {/* Logo handled by LogoWidget overlay */}
+      {/* Photo count indicator */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20">
+        <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
+          <span className="text-amber-400 text-lg">📸</span>
+          <span className="text-white/80 text-sm">{photos?.length || 0} memories shared</span>
+        </div>
+      </div>
       
-      {/* QR Code - bottom right - larger and more prominent */}
-      <div className="absolute bottom-12 right-12 z-20">
-        <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-6 shadow-2xl flex items-center gap-5">
-          <div>
-            <p className="text-xl font-bold text-amber-800 mb-1">Share your moment!</p>
-            <p className="text-base text-amber-600">Scan to upload your photo</p>
+      {/* QR Code - bottom right - sleek design */}
+      <div className="absolute bottom-6 right-8 z-20">
+        <motion.div 
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="bg-white/95 backdrop-blur-sm rounded-2xl p-4 shadow-2xl flex items-center gap-4"
+        >
+          <div className="text-right">
+            <p className="text-sm font-semibold text-gray-800">Share your moment</p>
+            <p className="text-xs text-gray-500">Scan to upload</p>
           </div>
-          <div className="bg-white p-2 rounded-xl">
+          <div className="bg-white p-1.5 rounded-lg shadow-inner">
             <QRCodeSVG 
               value={typeof window !== 'undefined' ? `${window.location.origin}/upload/snap-purr` : '/upload/snap-purr'}
-              size={100}
+              size={70}
               level="M"
             />
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

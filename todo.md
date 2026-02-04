@@ -713,3 +713,10 @@
 - [x] Gallery already shows 3 photos at a time
 - [x] Updated shuffle animation to 6 seconds (was 8 seconds)
 - [x] Photo captions already display below each photo
+
+## Feature - Snap & Purr Gallery Redesign
+- [x] Create fresh, visually appealing layout - dark elegant background
+- [x] Polaroid-style photo frames with slight rotation angles
+- [x] Better typography - elegant serif headers with colored accents
+- [x] Animated transitions - spring animations with staggered delays
+- [x] Keep 3 photos with 6-second shuffle
