@@ -18,7 +18,7 @@ export function LogoWidget() {
   }
 
   return (
-    <div className="absolute tv-widget-position-bottom-left z-40">
+    <div className="absolute tv-widget-position-bottom-right z-40">
       <div className="tv-logo rounded-full overflow-hidden shadow-lg bg-white/90 p-[clamp(0.125rem,0.25vw,0.25rem)]">
         <img 
           src={logoUrl} 

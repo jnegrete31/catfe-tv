@@ -454,15 +454,26 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRender
           ))}
         </div>
         
-        {screen.qrUrl && (
-          <div className="text-center mt-4">
-            <p className="text-lg text-orange-700 mb-1">Scan to see all adoptable cats</p>
-            <div className="inline-block">
-              <QRCode url={screen.qrUrl} size={120} />
-            </div>
-          </div>
-        )}
       </div>
+      
+      {/* QR Code - bottom-left corner */}
+      {screen.qrUrl && (
+        <div className="absolute tv-widget-position-bottom-left z-30 flex items-center gap-[clamp(0.5rem,1vw,1rem)]">
+          <div className="bg-white p-[clamp(0.25rem,0.5vw,0.75rem)] rounded-xl shadow-lg qr-responsive">
+            <QRCodeSVG
+              value={screen.qrUrl}
+              size={200}
+              level="M"
+              includeMargin={false}
+              style={{ width: '100%', height: '100%' }}
+            />
+          </div>
+          <div className="bg-white/90 backdrop-blur-sm rounded-xl tv-widget-padding shadow-lg">
+            <p className="tv-widget-text-lg text-orange-800 font-semibold">See all cats</p>
+            <p className="text-[clamp(0.75rem,1vw,1.25rem)] text-orange-600">Scan to browse</p>
+          </div>
+        </div>
+      )}
     </ScreenLayout>
   );
 }
