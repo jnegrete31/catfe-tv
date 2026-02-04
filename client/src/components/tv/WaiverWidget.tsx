@@ -31,11 +31,6 @@ export function WaiverWidget() {
           <span className="text-white font-bold tv-widget-text-xl">Sign Waiver</span>
         </div>
         
-        {/* Description */}
-        <p className="text-white/90 tv-widget-text-lg font-medium mb-[clamp(0.5rem,1vw,1.5rem)]">
-          New guest? Scan to sign!
-        </p>
-        
         {/* QR Code */}
         <div className="bg-white p-[clamp(0.25rem,0.5vw,0.75rem)] rounded-xl qr-responsive">
           <QRCodeSVG
