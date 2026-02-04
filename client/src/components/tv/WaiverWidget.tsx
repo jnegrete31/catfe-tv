@@ -37,22 +37,14 @@ export function WaiverWidget() {
         </p>
         
         {/* QR Code */}
-        <div className="flex items-center gap-[clamp(0.5rem,1.5vw,1.5rem)]">
-          <div className="bg-white p-[clamp(0.25rem,0.5vw,0.75rem)] rounded-xl qr-responsive">
-            <QRCodeSVG
-              value={settings.waiverUrl}
-              size={200}
-              level="M"
-              includeMargin={false}
-              style={{ width: '100%', height: '100%' }}
-            />
-          </div>
-          <div className="flex-1">
-            <p className="text-white tv-widget-text-lg font-medium">Quick & easy!</p>
-            <p className="text-white/70 text-[clamp(0.75rem,1vw,1.25rem)] mt-1">
-              Takes just 1 minute
-            </p>
-          </div>
+        <div className="bg-white p-[clamp(0.25rem,0.5vw,0.75rem)] rounded-xl qr-responsive">
+          <QRCodeSVG
+            value={settings.waiverUrl}
+            size={200}
+            level="M"
+            includeMargin={false}
+            style={{ width: '100%', height: '100%' }}
+          />
         </div>
       </div>
     </div>
