@@ -721,7 +721,7 @@ function SnapPurrGalleryScreen({ screen, settings }: ScreenRendererProps) {
   // Show 3 photos at a time with shuffle
   const photosToShow = 3;
   
-  // Shuffle photos every 8 seconds
+  // Shuffle photos every 6 seconds
   useEffect(() => {
     if (!photos || photos.length === 0) return;
     
@@ -734,7 +734,7 @@ function SnapPurrGalleryScreen({ screen, settings }: ScreenRendererProps) {
     shufflePhotos();
     
     if (photos.length > photosToShow) {
-      const interval = setInterval(shufflePhotos, 8000);
+      const interval = setInterval(shufflePhotos, 6000);
       return () => clearInterval(interval);
     }
   }, [photos]);

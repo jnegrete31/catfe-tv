@@ -708,3 +708,8 @@
 - [ ] Remove Reports tab from admin
 - [ ] Remove reports-related API endpoints
 - [ ] Remove reports components
+
+## Feature - Snap & Purr Gallery Update
+- [x] Gallery already shows 3 photos at a time
+- [x] Updated shuffle animation to 6 seconds (was 8 seconds)
+- [x] Photo captions already display below each photo
