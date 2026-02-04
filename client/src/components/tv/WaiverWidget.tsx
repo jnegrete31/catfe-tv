@@ -24,20 +24,20 @@ export function WaiverWidget() {
       <div 
         className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl shadow-2xl flex flex-col items-center"
         style={{ 
-          padding: 'clamp(0.5rem, 1vw, 1rem)',
-          width: 'clamp(80px, 8vw, 140px)'
+          padding: 'clamp(0.575rem, 1.15vw, 1.15rem)',
+          width: 'clamp(92px, 9.2vw, 161px)'
         }}
       >
         {/* Icon */}
         <FileText 
-          className="text-white mb-[clamp(0.25rem,0.5vw,0.5rem)]" 
-          style={{ width: 'clamp(16px, 1.5vw, 28px)', height: 'clamp(16px, 1.5vw, 28px)' }}
+          className="text-white mb-[clamp(0.29rem,0.575vw,0.575rem)]" 
+          style={{ width: 'clamp(18px, 1.725vw, 32px)', height: 'clamp(18px, 1.725vw, 32px)' }}
         />
         
         {/* Label */}
         <span 
-          className="text-white font-bold text-center mb-[clamp(0.25rem,0.5vw,0.5rem)]"
-          style={{ fontSize: 'clamp(0.5rem, 0.9vw, 1rem)', lineHeight: 1.2 }}
+          className="text-white font-bold text-center mb-[clamp(0.29rem,0.575vw,0.575rem)]"
+          style={{ fontSize: 'clamp(0.575rem, 1.035vw, 1.15rem)', lineHeight: 1.2 }}
         >
           Sign Waiver
         </span>
@@ -45,16 +45,16 @@ export function WaiverWidget() {
         {/* QR Code - smaller */}
         <div 
           className="bg-white rounded-lg"
-          style={{ padding: 'clamp(0.15rem, 0.3vw, 0.4rem)' }}
+          style={{ padding: 'clamp(0.17rem, 0.345vw, 0.46rem)' }}
         >
           <QRCodeSVG
             value={settings.waiverUrl}
-            size={100}
+            size={115}
             level="M"
             includeMargin={false}
             style={{ 
-              width: 'clamp(50px, 5vw, 90px)', 
-              height: 'clamp(50px, 5vw, 90px)' 
+              width: 'clamp(57px, 5.75vw, 103px)', 
+              height: 'clamp(57px, 5.75vw, 103px)' 
             }}
           />
         </div>
