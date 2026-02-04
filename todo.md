@@ -720,3 +720,10 @@
 - [x] Better typography - elegant serif headers with colored accents
 - [x] Animated transitions - spring animations with staggered delays
 - [x] Keep 3 photos with 6-second shuffle
+
+## Feature - Adoption Showcase Redesign
+- [x] Apply dark elegant background from Snap & Purr
+- [x] Add polaroid-style frames with rotation angles
+- [x] Update typography to match elegant serif style
+- [x] Add spring animations with staggered delays
+- [x] Keep 4 cats with 6-second shuffle

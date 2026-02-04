@@ -364,117 +364,158 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRender
   // Use all cats passed in (already limited to 4 by parent)
   const displayCats = cats;
   
+  // Polaroid rotation angles for visual interest
+  const rotations = [-2, 3, -3, 2];
+  
   return (
-    <ScreenLayout bgColor="#ffedd5" >
-      <div className="w-full h-full flex flex-col px-8 py-6">
-        {/* Header - compact */}
-        <div className="text-center mb-4">
-          <div className="inline-block px-6 py-2 rounded-full bg-orange-500 text-white text-2xl font-semibold mb-2">
-            Meet Our Adoptable Cats
-          </div>
-          <h1 className="text-4xl font-bold text-orange-900">
-            {screen.title || "Find Your Purrfect Match"}
+    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
+      {/* Animated background pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-10 left-10 w-32 h-32 border-2 border-white/30 rounded-full animate-pulse" />
+        <div className="absolute top-1/4 right-20 w-24 h-24 border-2 border-orange-400/30 rounded-full" style={{ animationDelay: '1s' }} />
+        <div className="absolute bottom-20 left-1/4 w-40 h-40 border-2 border-pink-400/30 rounded-full" />
+        <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-orange-400/10 rounded-full" />
+      </div>
+      
+      {/* Subtle light rays */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] h-[200%] opacity-5" 
+           style={{ background: 'radial-gradient(ellipse at center top, rgba(255,150,100,0.3) 0%, transparent 50%)' }} />
+      
+      {/* Header - elegant and minimal */}
+      <div className="absolute top-6 left-0 right-0 z-20 text-center">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="inline-block"
+        >
+          <h1 className="text-5xl font-light tracking-wider text-white mb-2" style={{ fontFamily: 'Georgia, serif' }}>
+            <span className="text-orange-400">Meet</span> Our <span className="text-pink-400">Cats</span>
           </h1>
+          <p className="text-lg text-white/60 tracking-widest uppercase">Find Your Purrfect Match</p>
           {/* Adoption success counter */}
           {adoptedCount > 0 && (
-            <div className="mt-2 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-green-100 text-green-800">
-              <span className="text-2xl">🎉</span>
-              <span className="text-lg font-semibold">
-                {adoptedCount} {adoptedCount === 1 ? 'cat' : 'cats'} adopted and counting!
+            <div className="mt-3 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-green-500/20 border border-green-400/30 text-green-300">
+              <span className="text-xl">🎉</span>
+              <span className="text-sm font-medium">
+                {adoptedCount} {adoptedCount === 1 ? 'cat' : 'cats'} found their forever home!
               </span>
             </div>
           )}
-        </div>
-        
-        {/* 2x2 Grid of cats - shuffles every 6 seconds with fade animation */}
-        <div className="flex-1 grid grid-cols-2 grid-rows-2 gap-6 max-w-5xl mx-auto w-full">
-          <AnimatePresence mode="popLayout">
-            {displayCats.map((cat, index) => (
-              <motion.div 
+        </motion.div>
+      </div>
+      
+      {/* 2x2 Polaroid Grid */}
+      <div className="absolute inset-0 flex items-center justify-center px-12 pt-32 pb-20">
+        <AnimatePresence mode="popLayout">
+          <motion.div
+            key={displayCats.map(c => c.id).join('-')}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6 }}
+            className="grid grid-cols-2 gap-8 max-w-4xl w-full"
+          >
+            {displayCats.map((cat, idx) => (
+              <motion.div
                 key={cat.id}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.5 }}
-                layout
-                className="relative bg-white rounded-2xl overflow-hidden shadow-xl flex flex-col"
+                initial={{ opacity: 0, scale: 0.8, rotate: rotations[idx] - 10 }}
+                animate={{ opacity: 1, scale: 1, rotate: rotations[idx] }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ delay: idx * 0.1, duration: 0.5, type: 'spring', stiffness: 100 }}
+                style={{ transform: `rotate(${rotations[idx]}deg)` }}
               >
-                {/* Large square image container */}
-                <div className="relative flex-1 min-h-0">
-                  {cat.imagePath ? (
-                    <>
-                      <img 
-                        src={cat.imagePath} 
+                {/* Polaroid frame */}
+                <div className="bg-white p-2 pb-12 shadow-2xl rounded-sm relative" style={{ boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1)' }}>
+                  {/* Photo */}
+                  <div className="relative aspect-square overflow-hidden bg-gray-100">
+                    {cat.imagePath ? (
+                      <img
+                        src={cat.imagePath}
                         alt={cat.title}
-                        className="absolute inset-0 w-full h-full object-cover"
+                        className="w-full h-full object-cover"
                       />
-                      {/* Adopted badge overlay - larger */}
-                      {(cat as any).isAdopted && (
-                        <div className="absolute top-3 right-3 px-4 py-1.5 rounded-full bg-green-500 text-white text-lg font-bold shadow-lg animate-pulse">
-                          🎉 Adopted!
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <div className="absolute inset-0 bg-orange-100 flex items-center justify-center">
-                      <span className="text-8xl">🐱</span>
-                      {/* Adopted badge overlay for no-image cats */}
-                      {(cat as any).isAdopted && (
-                        <div className="absolute top-3 right-3 px-4 py-1.5 rounded-full bg-green-500 text-white text-lg font-bold shadow-lg animate-pulse">
-                          🎉 Adopted!
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-                {/* Cat info - larger text */}
-                <div className="p-4 bg-white">
-                  <h3 className="text-2xl font-bold text-orange-900 truncate">{cat.title}</h3>
-                  {cat.subtitle && (
-                    <p className="text-lg text-orange-700 truncate">{cat.subtitle}</p>
-                  )}
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-orange-100 to-pink-100 flex items-center justify-center">
+                        <span className="text-7xl">🐱</span>
+                      </div>
+                    )}
+                    {/* Subtle vignette */}
+                    <div className="absolute inset-0" style={{ boxShadow: 'inset 0 0 60px rgba(0,0,0,0.15)' }} />
+                    
+                    {/* Adopted badge */}
+                    {(cat as any).isAdopted && (
+                      <div className="absolute top-2 right-2 px-3 py-1 rounded-full bg-green-500 text-white text-sm font-bold shadow-lg">
+                        🎉 Adopted!
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Cat name - handwritten style */}
+                  <div className="absolute bottom-2 left-2 right-2 text-center">
+                    <p className="text-gray-800 text-xl font-semibold truncate" style={{ fontFamily: 'Georgia, serif' }}>
+                      {cat.title}
+                    </p>
+                    {cat.subtitle && (
+                      <p className="text-gray-500 text-sm truncate">{cat.subtitle}</p>
+                    )}
+                  </div>
                 </div>
               </motion.div>
             ))}
-          </AnimatePresence>
-          
-          {/* Fill empty slots with placeholders if less than 4 cats */}
-          {displayCats.length < 4 && Array.from({ length: 4 - displayCats.length }).map((_, i) => (
-            <div 
-              key={`empty-${i}`}
-              className="bg-orange-100 rounded-2xl flex flex-col overflow-hidden shadow-xl"
-            >
-              <div className="flex-1 flex items-center justify-center">
-                <div className="text-center text-orange-400">
-                  <span className="text-8xl block mb-2">🐱</span>
-                  <span className="text-xl">Coming Soon</span>
+            
+            {/* Empty polaroid placeholders */}
+            {displayCats.length < 4 && Array.from({ length: 4 - displayCats.length }).map((_, idx) => (
+              <motion.div
+                key={`empty-${idx}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.5 }}
+                style={{ transform: `rotate(${rotations[displayCats.length + idx] || 0}deg)` }}
+              >
+                <div className="bg-white/20 p-2 pb-12 rounded-sm border-2 border-dashed border-white/30">
+                  <div className="aspect-square flex items-center justify-center bg-white/10">
+                    <div className="text-center text-white/50">
+                      <span className="text-5xl">🐱</span>
+                      <p className="text-sm mt-2">Coming Soon</p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
-        
+              </motion.div>
+            ))}
+          </motion.div>
+        </AnimatePresence>
       </div>
       
-      {/* QR Code - bottom-left corner */}
+      {/* Cat count indicator */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20">
+        <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
+          <span className="text-orange-400 text-lg">🐾</span>
+          <span className="text-white/80 text-sm">{cats.length} cats looking for homes</span>
+        </div>
+      </div>
+      
+      {/* QR Code - bottom left - sleek design */}
       {screen.qrUrl && (
-        <div className="absolute tv-widget-position-bottom-left z-30 flex items-center gap-[clamp(0.5rem,1vw,1rem)]">
-          <div className="bg-white p-[clamp(0.25rem,0.5vw,0.75rem)] rounded-xl shadow-lg qr-responsive">
-            <QRCodeSVG
-              value={screen.qrUrl}
-              size={200}
-              level="M"
-              includeMargin={false}
-              style={{ width: '100%', height: '100%' }}
-            />
-          </div>
-          <div className="bg-white/90 backdrop-blur-sm rounded-xl tv-widget-padding shadow-lg">
-            <p className="tv-widget-text-lg text-orange-800 font-semibold">See all cats</p>
-            <p className="text-[clamp(0.75rem,1vw,1.25rem)] text-orange-600">Scan to browse</p>
-          </div>
+        <div className="absolute bottom-6 left-8 z-20">
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="bg-white/95 backdrop-blur-sm rounded-2xl p-4 shadow-2xl flex items-center gap-4"
+          >
+            <div className="bg-white p-1.5 rounded-lg shadow-inner">
+              <QRCodeSVG
+                value={screen.qrUrl}
+                size={70}
+                level="M"
+              />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-gray-800">See all cats</p>
+              <p className="text-xs text-gray-500">Scan to browse</p>
+            </div>
+          </motion.div>
         </div>
       )}
-    </ScreenLayout>
+    </div>
   );
 }
 
