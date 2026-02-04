@@ -182,21 +182,24 @@ export function GuestReminderOverlay() {
   }
   
   return (
-    <div className="fixed bottom-12 left-12 z-50 flex flex-col gap-4" style={{ maxWidth: '360px' }}>
+    <div 
+      className="fixed tv-widget-position-bottom-left z-50 flex flex-col gap-[clamp(0.5rem,1vw,1rem)]"
+      style={{ maxWidth: 'clamp(250px, 25vw, 450px)', left: 'clamp(1rem, 2vw, 3rem)', bottom: 'clamp(5rem, 8vw, 10rem)' }}
+    >
       {/* Mute/Unmute Button */}
       <button
         onClick={toggleMute}
-        className="self-start flex items-center gap-3 px-5 py-3 rounded-full bg-black/60 backdrop-blur-sm text-white text-base hover:bg-black/80 transition-colors"
+        className="self-start flex items-center gap-[clamp(0.25rem,0.5vw,0.75rem)] px-[clamp(0.75rem,1.25vw,1.5rem)] py-[clamp(0.5rem,0.75vw,1rem)] rounded-full bg-black/60 backdrop-blur-sm text-white tv-widget-text-lg hover:bg-black/80 transition-colors"
         title={isMuted ? "Unmute chime" : "Mute chime"}
       >
         {isMuted ? (
           <>
-            <VolumeX className="w-6 h-6" />
+            <VolumeX className="tv-icon-sm" />
             <span>Chime Off</span>
           </>
         ) : (
           <>
-            <Volume2 className="w-6 h-6" />
+            <Volume2 className="tv-icon-sm" />
             <span>Chime On</span>
           </>
         )}
@@ -218,16 +221,16 @@ export function GuestReminderOverlay() {
             key={`${reminder.id}-${currentTime.getHours()}`}
             className="animate-in slide-in-from-left duration-500 rounded-2xl shadow-lg overflow-hidden bg-gradient-to-r from-purple-500 to-indigo-600"
           >
-            <div className="px-6 py-4 text-white">
-              <div className="flex items-center gap-4">
-                <Timer className="w-7 h-7 flex-shrink-0" />
+            <div className="tv-widget-padding text-white">
+              <div className="flex items-center gap-[clamp(0.5rem,1vw,1rem)]">
+                <Timer className="tv-icon-md flex-shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-lg">{reminder.sessionType}</div>
-                  <div className="text-base opacity-90">Ending soon • {minutesLeft}:{secondsLeft.toString().padStart(2, '0')}</div>
+                  <div className="font-semibold tv-widget-text-lg">{reminder.sessionType}</div>
+                  <div className="tv-widget-text-lg opacity-90">Ending soon • {minutesLeft}:{secondsLeft.toString().padStart(2, '0')}</div>
                 </div>
               </div>
             </div>
-            <div className="h-2 bg-white/30">
+            <div className="h-[clamp(0.25rem,0.5vw,0.5rem)] bg-white/30">
               <div 
                 className="h-full transition-all duration-1000 bg-white/80"
                 style={{ 
@@ -260,16 +263,16 @@ export function GuestReminderOverlay() {
               }
             `}
           >
-            <div className="px-6 py-4 text-white">
-              <div className="flex items-center gap-4">
+            <div className="tv-widget-padding text-white">
+              <div className="flex items-center gap-[clamp(0.5rem,1vw,1rem)]">
                 {isUrgent ? (
-                  <AlertTriangle className="w-7 h-7 flex-shrink-0 animate-pulse" />
+                  <AlertTriangle className="tv-icon-md flex-shrink-0 animate-pulse" />
                 ) : (
-                  <Bell className="w-7 h-7 flex-shrink-0" />
+                  <Bell className="tv-icon-md flex-shrink-0" />
                 )}
                 <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-lg truncate">{session.guestName}</div>
-                  <div className="text-base opacity-90">
+                  <div className="font-semibold tv-widget-text-lg truncate">{session.guestName}</div>
+                  <div className="tv-widget-text-lg opacity-90">
                     {isExpired ? (
                       "Session ended!"
                     ) : (
@@ -279,7 +282,7 @@ export function GuestReminderOverlay() {
                 </div>
               </div>
             </div>
-            <div className="h-2 bg-white/30">
+            <div className="h-[clamp(0.25rem,0.5vw,0.5rem)] bg-white/30">
               <div 
                 className={`h-full transition-all duration-1000 ${isUrgent ? 'bg-white' : 'bg-white/80'}`}
                 style={{ 

@@ -122,27 +122,40 @@
   aspect-ratio: 16 / 9;
 }
 
+/* Responsive text sizing using viewport width */
 .tv-text-large {
-  font-size: clamp(2.5rem, 5vw, 5rem);
+  font-size: clamp(2rem, 4vw + 1rem, 6rem);
   font-weight: 700;
   font-family: var(--font-display), serif;
   line-height: 1.1;
 }
 
 .tv-text-medium {
-  font-size: clamp(1.5rem, 3vw, 3rem);
+  font-size: clamp(1.25rem, 2.5vw + 0.5rem, 4rem);
   font-family: var(--font-display), serif;
 }
 
 .tv-text-body {
-  font-size: clamp(1.25rem, 2vw, 2rem);
+  font-size: clamp(1rem, 1.5vw + 0.5rem, 2.5rem);
 }
 
+/* Responsive QR container */
 .qr-container {
   background: white;
-  padding: 1rem;
-  border-radius: 0.75rem;
+  padding: clamp(0.5rem, 1vw, 1.5rem);
+  border-radius: clamp(0.5rem, 1vw, 1rem);
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+/* Responsive QR code wrapper - scales QR codes based on viewport */
+.qr-responsive {
+  width: clamp(100px, 12vw, 250px);
+  height: clamp(100px, 12vw, 250px);
+}
+
+.qr-responsive-large {
+  width: clamp(120px, 15vw, 300px);
+  height: clamp(120px, 15vw, 300px);
 }
 
 /* Fade transition for TV screens */
@@ -226,23 +239,66 @@
 
 /* TV Safe Area - Account for TV overscan (typically 5% on each edge) */
 .tv-safe-area {
-  padding: 3rem; /* 48px safe margin for TV overscan */
+  padding: clamp(1.5rem, 3vw, 4rem); /* Responsive safe margin for TV overscan */
 }
 
-/* TV Widget sizing - larger for visibility on TV screens */
-@media (min-width: 1280px) {
-  .tv-widget {
-    transform: scale(1.5);
-    transform-origin: top left;
-  }
-  
-  .tv-widget-right {
-    transform: scale(1.5);
-    transform-origin: top right;
-  }
-  
-  .tv-widget-bottom-left {
-    transform: scale(1.5);
-    transform-origin: bottom left;
-  }
+/* Responsive widget positioning - uses viewport units */
+.tv-widget-position-top-left {
+  top: clamp(1rem, 2vw, 3rem);
+  left: clamp(1rem, 2vw, 3rem);
+}
+
+.tv-widget-position-top-right {
+  top: clamp(1rem, 2vw, 3rem);
+  right: clamp(1rem, 2vw, 3rem);
+}
+
+.tv-widget-position-bottom-left {
+  bottom: clamp(1rem, 2vw, 3rem);
+  left: clamp(1rem, 2vw, 3rem);
+}
+
+.tv-widget-position-bottom-right {
+  bottom: clamp(1rem, 2vw, 3rem);
+  right: clamp(1rem, 2vw, 3rem);
+}
+
+/* Responsive widget text sizes */
+.tv-widget-text-lg {
+  font-size: clamp(1rem, 1.5vw, 2rem);
+}
+
+.tv-widget-text-xl {
+  font-size: clamp(1.25rem, 2vw, 2.5rem);
+}
+
+.tv-widget-text-2xl {
+  font-size: clamp(1.5rem, 2.5vw, 3rem);
+}
+
+/* Responsive widget padding */
+.tv-widget-padding {
+  padding: clamp(0.75rem, 1.5vw, 2rem);
+}
+
+/* Responsive icon sizes */
+.tv-icon-sm {
+  width: clamp(1rem, 2vw, 2rem);
+  height: clamp(1rem, 2vw, 2rem);
+}
+
+.tv-icon-md {
+  width: clamp(1.5rem, 2.5vw, 3rem);
+  height: clamp(1.5rem, 2.5vw, 3rem);
+}
+
+.tv-icon-lg {
+  width: clamp(2rem, 3vw, 4rem);
+  height: clamp(2rem, 3vw, 4rem);
+}
+
+/* Responsive logo size */
+.tv-logo {
+  width: clamp(3rem, 5vw, 6rem);
+  height: clamp(3rem, 5vw, 6rem);
 }

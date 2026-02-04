@@ -323,16 +323,15 @@ export default function TVDisplay() {
       {/* Welcome Overlay for upcoming arrivals */}
       <WelcomeOverlay />
       
-      {/* Poll Widget - top-left corner during voting time */}
+      {/* Poll Widget - DISABLED for now
       <PollWidget />
+      */}
       
-      {/* Poll results are shown on guests' devices only, not on TV */}
+      {/* Waiver QR Code Widget - top-left corner when configured */}
+      <WaiverWidget />
       
       {/* Logo Widget - bottom-left corner */}
       <LogoWidget />
-      
-      {/* Waiver QR Code Widget - bottom-right corner when configured */}
-      <WaiverWidget />
       
       {/* Recently Adopted Banner - DISABLED (wonky behavior on tvOS)
       {recentlyAdopted && recentlyAdopted.length > 0 && (

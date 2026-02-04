@@ -4,10 +4,10 @@ import { FileText } from "lucide-react";
 
 /**
  * WaiverWidget - A small overlay showing QR code for guest waiver
- * Positioned in the bottom-right area of the TV display
+ * Positioned in the top-left area of the TV display (where poll widget used to be)
  * Only shows when waiverUrl is configured in settings
  * 
- * Sized for TV visibility with safe area margins for overscan
+ * Uses responsive CSS classes for proper scaling on different TV sizes
  */
 export function WaiverWidget() {
   const { data: settings } = trpc.settings.get.useQuery(undefined, {
@@ -20,27 +20,39 @@ export function WaiverWidget() {
   }
 
   return (
-    <div className="absolute bottom-12 right-12 z-40 animate-in fade-in slide-in-from-right duration-500">
-      <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-5 shadow-2xl flex items-center gap-5">
-        {/* Icon and text */}
-        <div className="flex flex-col items-start">
-          <div className="flex items-center gap-2 mb-1">
-            <FileText className="w-6 h-6 text-blue-600" />
-            <span className="text-lg font-bold text-gray-800">Sign Waiver</span>
-          </div>
-          <p className="text-sm text-gray-600 max-w-[140px]">
-            Scan to complete your waiver
-          </p>
+    <div className="absolute tv-widget-position-top-left z-40 animate-in fade-in slide-in-from-left duration-500">
+      <div 
+        className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl tv-widget-padding shadow-2xl"
+        style={{ minWidth: 'clamp(200px, 20vw, 400px)' }}
+      >
+        {/* Header */}
+        <div className="flex items-center gap-[clamp(0.5rem,1vw,1rem)] mb-[clamp(0.5rem,1vw,1.5rem)]">
+          <FileText className="tv-icon-md text-white" />
+          <span className="text-white font-bold tv-widget-text-xl">Sign Waiver</span>
         </div>
         
+        {/* Description */}
+        <p className="text-white/90 tv-widget-text-lg font-medium mb-[clamp(0.5rem,1vw,1.5rem)]">
+          New guest? Scan to sign!
+        </p>
+        
         {/* QR Code */}
-        <div className="bg-white p-2 rounded-xl border border-gray-100">
-          <QRCodeSVG
-            value={settings.waiverUrl}
-            size={90}
-            level="M"
-            includeMargin={false}
-          />
+        <div className="flex items-center gap-[clamp(0.5rem,1.5vw,1.5rem)]">
+          <div className="bg-white p-[clamp(0.25rem,0.5vw,0.75rem)] rounded-xl qr-responsive">
+            <QRCodeSVG
+              value={settings.waiverUrl}
+              size={200}
+              level="M"
+              includeMargin={false}
+              style={{ width: '100%', height: '100%' }}
+            />
+          </div>
+          <div className="flex-1">
+            <p className="text-white tv-widget-text-lg font-medium">Quick & easy!</p>
+            <p className="text-white/70 text-[clamp(0.75rem,1vw,1.25rem)] mt-1">
+              Takes just 1 minute
+            </p>
+          </div>
         </div>
       </div>
     </div>

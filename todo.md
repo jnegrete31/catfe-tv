@@ -681,3 +681,12 @@
 - [x] Set staleTime: 0 on screens query in Admin.tsx for fresh data
 - [x] Set staleTime: 0 on playlists and screens queries in PlaylistManager
 - [x] Cache invalidation already in place, now data refreshes immediately
+
+## Feature - Responsive TV Display
+- [x] Update text sizes to use viewport-relative units (vw/vh)
+- [x] Update QR code sizes to scale with screen size
+- [x] Update widget overlays to scale with screen size (PollWidget, LogoWidget, WeatherClockOverlay)
+- [x] Update GuestReminderOverlay to use responsive styles
+- [x] Move waiver QR widget to top-left (where poll widget was)
+- [x] Disable poll widget for now
+- [ ] Test on different screen sizes
