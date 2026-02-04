@@ -741,3 +741,32 @@
 ## Feature - Match Adoption Showcase Polaroid Size to Snap & Purr
 - [x] Update Adoption Showcase polaroid frame sizes to match Snap & Purr gallery
 - [x] Ensure consistent visual appearance across both screens
+
+## Feature - Apply Dark Elegant Design to All Screens
+- [ ] SNAP_AND_PURR (Photo sharing prompt) - Apply dark elegant design
+- [ ] EVENT (Special events) - Apply dark elegant design
+- [ ] TODAY_AT_CATFE (Daily specials) - Apply dark elegant design
+- [ ] MEMBERSHIP (Membership promotion) - Apply dark elegant design
+- [ ] REMINDER (General reminders) - Apply dark elegant design
+- [ ] ADOPTION (Single cat adoption) - Apply dark elegant design
+- [ ] THANK_YOU (Appreciation messages) - Apply dark elegant design
+- [ ] HAPPY_TAILS (Adopted cats slideshow) - Apply dark elegant design
+- [ ] HAPPY_TAILS_QR (Upload QR screen) - Apply dark elegant design
+- [ ] SNAP_PURR_QR (Upload QR screen) - Apply dark elegant design
+- [ ] LIVESTREAM (Live video stream) - Apply dark elegant design
+- [ ] CHECK_IN (Guest check-in) - Apply dark elegant design
+
+## Feature - Dark Elegant Theme for All Screens
+- [x] Redesign SNAP_AND_PURR screen with dark elegant theme
+- [x] Redesign EVENT screen with dark elegant theme
+- [x] Redesign TODAY_AT_CATFE screen with dark elegant theme
+- [x] Redesign MEMBERSHIP screen with dark elegant theme
+- [x] Redesign REMINDER screen with dark elegant theme
+- [x] Redesign ADOPTION screen with dark elegant theme and polaroid photo
+- [x] Redesign THANK_YOU screen with dark elegant theme
+- [x] Redesign HAPPY_TAILS screen with dark elegant theme and polaroid photos
+- [x] Redesign HAPPY_TAILS_QR screen with dark elegant theme
+- [x] Redesign SNAP_PURR_QR screen with dark elegant theme
+- [x] Redesign LIVESTREAM screen with dark elegant theme
+- [x] Redesign CHECK_IN screen with dark elegant theme
+- [x] Update SNAP_PURR_GALLERY empty state with dark elegant theme

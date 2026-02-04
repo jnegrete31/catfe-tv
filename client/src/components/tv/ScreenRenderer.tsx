@@ -151,207 +151,402 @@ function QRCode({ url, size = 180 }: { url: string; size?: number }) {
 
 // SNAP_AND_PURR - Photo sharing prompt
 function SnapAndPurrScreen({ screen, settings }: ScreenRendererProps) {
-  const hasImage = !!screen.imagePath;
-  const textColorClass = hasImage ? "text-white drop-shadow-lg" : "text-pink-900";
-  const subtitleColorClass = hasImage ? "text-white/90 drop-shadow-md" : "text-pink-800";
-  const bodyColorClass = hasImage ? "text-white/80 drop-shadow" : "text-pink-700";
-  
   return (
-    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#fce7f3" >
-      <div className="text-center max-w-4xl">
-        <h1 className={`tv-text-large mb-6 ${textColorClass}`}>
-          {screen.title || "Snap & Purr!"}
-        </h1>
-        {screen.subtitle && (
-          <p className={`tv-text-medium mb-8 ${subtitleColorClass}`}>
-            {screen.subtitle}
-          </p>
-        )}
-        {screen.body && (
-          <p className={`tv-text-body mb-8 ${bodyColorClass}`}>
-            {screen.body}
-          </p>
-        )}
-        {screen.qrUrl && (
-          <div className="flex justify-center">
-            <QRCode url={screen.qrUrl} size={200} />
-          </div>
-        )}
+    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
+      {/* Animated background pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-10 left-10 w-32 h-32 border-2 border-white/30 rounded-full animate-pulse" />
+        <div className="absolute top-1/4 right-20 w-24 h-24 border-2 border-pink-400/30 rounded-full" style={{ animationDelay: '1s' }} />
+        <div className="absolute bottom-20 left-1/4 w-40 h-40 border-2 border-amber-400/30 rounded-full" />
+        <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-pink-400/10 rounded-full" />
       </div>
-    </ScreenLayout>
+      
+      {/* Subtle light rays */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] h-[200%] opacity-5" 
+           style={{ background: 'radial-gradient(ellipse at center top, rgba(255,150,200,0.3) 0%, transparent 50%)' }} />
+      
+      {/* Main content */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center max-w-4xl"
+        >
+          <h1 className="text-6xl font-light tracking-wider text-white mb-6" style={{ fontFamily: 'Georgia, serif' }}>
+            <span className="text-pink-400">{screen.title || "Snap"}</span> <span className="text-white/80">& Purr!</span>
+          </h1>
+          {screen.subtitle && (
+            <p className="text-2xl text-white/70 mb-8">
+              {screen.subtitle}
+            </p>
+          )}
+          {screen.body && (
+            <p className="text-xl text-white/60 mb-8">
+              {screen.body}
+            </p>
+          )}
+          {screen.qrUrl && (
+            <motion.div 
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              className="inline-block bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-2xl"
+            >
+              <QRCodeSVG value={screen.qrUrl} size={200} level="M" />
+            </motion.div>
+          )}
+        </motion.div>
+      </div>
+    </div>
   );
 }
 
 // EVENT - Special events
 function EventScreen({ screen, settings }: ScreenRendererProps) {
-  const hasImage = !!screen.imagePath;
-  const textColorClass = hasImage ? "text-white drop-shadow-lg" : "text-purple-900";
-  const subtitleColorClass = hasImage ? "text-white/90 drop-shadow-md" : "text-purple-800";
-  const bodyColorClass = hasImage ? "text-white/80 drop-shadow" : "text-purple-700";
-  
   return (
-    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#ede9fe" >
-      <div className="flex flex-col md:flex-row items-center justify-between w-full max-w-6xl gap-8">
-        <div className="flex-1">
-          <div className="inline-block px-4 py-2 rounded-full bg-purple-500 text-white text-lg mb-4">
-            Event
-          </div>
-          <h1 className={`tv-text-large mb-4 ${textColorClass}`}>
-            {screen.title}
-          </h1>
-          {screen.subtitle && (
-            <p className={`tv-text-medium mb-4 ${subtitleColorClass}`}>
-              {screen.subtitle}
-            </p>
-          )}
-          {screen.body && (
-            <p className={`tv-text-body ${bodyColorClass}`}>
-              {screen.body}
-            </p>
-          )}
-        </div>
-        {screen.qrUrl && (
-          <div className="flex-shrink-0">
-            <QRCode url={screen.qrUrl} size={180} />
-          </div>
-        )}
+    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
+      {/* Animated background pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-10 left-10 w-32 h-32 border-2 border-white/30 rounded-full animate-pulse" />
+        <div className="absolute top-1/4 right-20 w-24 h-24 border-2 border-purple-400/30 rounded-full" style={{ animationDelay: '1s' }} />
+        <div className="absolute bottom-20 left-1/4 w-40 h-40 border-2 border-violet-400/30 rounded-full" />
+        <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-purple-400/10 rounded-full" />
       </div>
-    </ScreenLayout>
+      
+      {/* Subtle light rays */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] h-[200%] opacity-5" 
+           style={{ background: 'radial-gradient(ellipse at center top, rgba(150,100,255,0.3) 0%, transparent 50%)' }} />
+      
+      {/* Main content */}
+      <div className="absolute inset-0 flex items-center justify-center px-12">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col md:flex-row items-center justify-between w-full max-w-6xl gap-12"
+        >
+          <div className="flex-1">
+            <motion.div 
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              className="inline-flex items-center gap-2 px-5 py-2 mb-6 rounded-full bg-purple-500/20 border border-purple-400/30"
+            >
+              <span className="text-xl">🎉</span>
+              <span className="text-purple-300 text-lg font-medium tracking-wide">Event</span>
+            </motion.div>
+            <h1 className="text-5xl font-light tracking-wider text-white mb-4" style={{ fontFamily: 'Georgia, serif' }}>
+              <span className="text-purple-400">{screen.title}</span>
+            </h1>
+            {screen.subtitle && (
+              <p className="text-2xl text-white/70 mb-4">
+                {screen.subtitle}
+              </p>
+            )}
+            {screen.body && (
+              <p className="text-xl text-white/60">
+                {screen.body}
+              </p>
+            )}
+          </div>
+          {screen.qrUrl && (
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="flex-shrink-0 bg-white/95 backdrop-blur-sm rounded-2xl p-5 shadow-2xl"
+            >
+              <QRCodeSVG value={screen.qrUrl} size={180} level="M" />
+            </motion.div>
+          )}
+        </motion.div>
+      </div>
+    </div>
   );
 }
 
 // TODAY_AT_CATFE - Daily specials/activities
 function TodayAtCatfeScreen({ screen, settings }: ScreenRendererProps) {
   return (
-    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#fef3c7" >
-      <div className="text-center max-w-5xl">
-        <div className="inline-block px-6 py-3 rounded-full bg-amber-500 text-white text-xl mb-6">
-          Today at {settings?.locationName || "Catfé"}
-        </div>
-        <h1 className="tv-text-large mb-6 text-amber-900 drop-shadow-sm">
-          {screen.title}
-        </h1>
-        {screen.subtitle && (
-          <p className="tv-text-medium mb-6 text-amber-800">
-            {screen.subtitle}
-          </p>
-        )}
-        {screen.body && (
-          <p className="tv-text-body text-amber-700 mb-8">
-            {screen.body}
-          </p>
-        )}
-        {screen.qrUrl && (
-          <div className="flex justify-center">
-            <QRCode url={screen.qrUrl} />
-          </div>
-        )}
+    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
+      {/* Animated background pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-10 left-10 w-32 h-32 border-2 border-white/30 rounded-full animate-pulse" />
+        <div className="absolute top-1/4 right-20 w-24 h-24 border-2 border-amber-400/30 rounded-full" style={{ animationDelay: '1s' }} />
+        <div className="absolute bottom-20 left-1/4 w-40 h-40 border-2 border-orange-400/30 rounded-full" />
+        <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-amber-400/10 rounded-full" />
       </div>
-    </ScreenLayout>
+      
+      {/* Subtle light rays */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] h-[200%] opacity-5" 
+           style={{ background: 'radial-gradient(ellipse at center top, rgba(255,200,100,0.3) 0%, transparent 50%)' }} />
+      
+      {/* Main content */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center max-w-5xl"
+        >
+          <motion.div 
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            className="inline-flex items-center gap-2 px-6 py-3 mb-8 rounded-full bg-amber-500/20 border border-amber-400/30"
+          >
+            <span className="text-2xl">☕</span>
+            <span className="text-amber-300 text-xl font-medium tracking-wide">Today at {settings?.locationName || "Catfé"}</span>
+          </motion.div>
+          <h1 className="text-5xl font-light tracking-wider text-white mb-6" style={{ fontFamily: 'Georgia, serif' }}>
+            <span className="text-amber-400">{screen.title}</span>
+          </h1>
+          {screen.subtitle && (
+            <p className="text-2xl text-white/70 mb-6">
+              {screen.subtitle}
+            </p>
+          )}
+          {screen.body && (
+            <p className="text-xl text-white/60 mb-8">
+              {screen.body}
+            </p>
+          )}
+          {screen.qrUrl && (
+            <motion.div 
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              className="inline-block bg-white/95 backdrop-blur-sm rounded-2xl p-5 shadow-2xl"
+            >
+              <QRCodeSVG value={screen.qrUrl} size={160} level="M" />
+            </motion.div>
+          )}
+        </motion.div>
+      </div>
+    </div>
   );
 }
 
 // MEMBERSHIP - Membership promotion
 function MembershipScreen({ screen, settings }: ScreenRendererProps) {
   return (
-    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#d1fae5" >
-      <div className="flex flex-col md:flex-row items-center justify-between w-full max-w-6xl gap-8">
-        <div className="flex-1">
-          <div className="inline-block px-4 py-2 rounded-full bg-emerald-500 text-white text-lg mb-4">
-            Membership
-          </div>
-          <h1 className="tv-text-large mb-4 text-emerald-900">
-            {screen.title}
-          </h1>
-          {screen.subtitle && (
-            <p className="tv-text-medium mb-4 text-emerald-800">
-              {screen.subtitle}
-            </p>
-          )}
-          {screen.body && (
-            <p className="tv-text-body text-emerald-700">
-              {screen.body}
-            </p>
-          )}
-        </div>
-        {screen.qrUrl && (
-          <div className="flex-shrink-0">
-            <QRCode url={screen.qrUrl} size={200} />
-          </div>
-        )}
+    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
+      {/* Animated background pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-10 left-10 w-32 h-32 border-2 border-white/30 rounded-full animate-pulse" />
+        <div className="absolute top-1/4 right-20 w-24 h-24 border-2 border-emerald-400/30 rounded-full" style={{ animationDelay: '1s' }} />
+        <div className="absolute bottom-20 left-1/4 w-40 h-40 border-2 border-teal-400/30 rounded-full" />
+        <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-emerald-400/10 rounded-full" />
       </div>
-    </ScreenLayout>
+      
+      {/* Subtle light rays */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] h-[200%] opacity-5" 
+           style={{ background: 'radial-gradient(ellipse at center top, rgba(100,255,200,0.3) 0%, transparent 50%)' }} />
+      
+      {/* Main content */}
+      <div className="absolute inset-0 flex items-center justify-center px-12">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col md:flex-row items-center justify-between w-full max-w-6xl gap-12"
+        >
+          <div className="flex-1">
+            <motion.div 
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              className="inline-flex items-center gap-2 px-5 py-2 mb-6 rounded-full bg-emerald-500/20 border border-emerald-400/30"
+            >
+              <span className="text-xl">⭐</span>
+              <span className="text-emerald-300 text-lg font-medium tracking-wide">Membership</span>
+            </motion.div>
+            <h1 className="text-5xl font-light tracking-wider text-white mb-4" style={{ fontFamily: 'Georgia, serif' }}>
+              <span className="text-emerald-400">{screen.title}</span>
+            </h1>
+            {screen.subtitle && (
+              <p className="text-2xl text-white/70 mb-4">
+                {screen.subtitle}
+              </p>
+            )}
+            {screen.body && (
+              <p className="text-xl text-white/60">
+                {screen.body}
+              </p>
+            )}
+          </div>
+          {screen.qrUrl && (
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="flex-shrink-0 bg-white/95 backdrop-blur-sm rounded-2xl p-5 shadow-2xl"
+            >
+              <QRCodeSVG value={screen.qrUrl} size={200} level="M" />
+            </motion.div>
+          )}
+        </motion.div>
+      </div>
+    </div>
   );
 }
 
 // REMINDER - General reminders
 function ReminderScreen({ screen, settings }: ScreenRendererProps) {
   return (
-    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#dbeafe" >
-      <div className="text-center max-w-4xl">
-        <div className="inline-block px-4 py-2 rounded-full bg-blue-500 text-white text-lg mb-6">
-          Reminder
-        </div>
-        <h1 className="tv-text-large mb-6 text-blue-900">
-          {screen.title}
-        </h1>
-        {screen.subtitle && (
-          <p className="tv-text-medium mb-4 text-blue-800">
-            {screen.subtitle}
-          </p>
-        )}
-        {screen.body && (
-          <p className="tv-text-body text-blue-700">
-            {screen.body}
-          </p>
-        )}
+    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
+      {/* Animated background pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-10 left-10 w-32 h-32 border-2 border-white/30 rounded-full animate-pulse" />
+        <div className="absolute top-1/4 right-20 w-24 h-24 border-2 border-blue-400/30 rounded-full" style={{ animationDelay: '1s' }} />
+        <div className="absolute bottom-20 left-1/4 w-40 h-40 border-2 border-cyan-400/30 rounded-full" />
+        <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-blue-400/10 rounded-full" />
       </div>
-    </ScreenLayout>
+      
+      {/* Subtle light rays */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] h-[200%] opacity-5" 
+           style={{ background: 'radial-gradient(ellipse at center top, rgba(100,150,255,0.3) 0%, transparent 50%)' }} />
+      
+      {/* Main content */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center max-w-4xl"
+        >
+          <motion.div 
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            className="inline-flex items-center gap-2 px-5 py-2 mb-6 rounded-full bg-blue-500/20 border border-blue-400/30"
+          >
+            <span className="text-xl">📌</span>
+            <span className="text-blue-300 text-lg font-medium tracking-wide">Reminder</span>
+          </motion.div>
+          <h1 className="text-5xl font-light tracking-wider text-white mb-6" style={{ fontFamily: 'Georgia, serif' }}>
+            <span className="text-blue-400">{screen.title}</span>
+          </h1>
+          {screen.subtitle && (
+            <p className="text-2xl text-white/70 mb-4">
+              {screen.subtitle}
+            </p>
+          )}
+          {screen.body && (
+            <p className="text-xl text-white/60">
+              {screen.body}
+            </p>
+          )}
+        </motion.div>
+      </div>
+    </div>
   );
 }
 
 // ADOPTION - Cat adoption promotion
 function AdoptionScreen({ screen, settings }: ScreenRendererProps) {
-  const hasImage = !!screen.imagePath;
   const isAdopted = (screen as any).isAdopted;
-  const textColorClass = hasImage ? "text-white drop-shadow-lg" : "text-red-900";
-  const subtitleColorClass = hasImage ? "text-white/90 drop-shadow-md" : "text-red-800";
-  const bodyColorClass = hasImage ? "text-white/80 drop-shadow" : "text-red-700";
   
   return (
-    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#fee2e2" >
-      <div className="flex flex-col md:flex-row items-center justify-between w-full max-w-6xl gap-8">
-        <div className="flex-1">
-          {isAdopted ? (
-            <div className="inline-block px-4 py-2 rounded-full bg-green-500 text-white text-lg mb-4 animate-pulse">
-              🎉 Adopted!
-            </div>
-          ) : (
-            <div className="inline-block px-4 py-2 rounded-full bg-red-500 text-white text-lg mb-4">
-              Adopt Me!
-            </div>
-          )}
-          <h1 className={`tv-text-large mb-4 ${textColorClass}`}>
-            {screen.title}
-          </h1>
-          {screen.subtitle && (
-            <p className={`tv-text-medium mb-4 ${subtitleColorClass}`}>
-              {screen.subtitle}
-            </p>
-          )}
-          {screen.body && (
-            <p className={`tv-text-body ${bodyColorClass}`}>
-              {screen.body}
-            </p>
-          )}
-        </div>
-        {screen.qrUrl && (
-          <div className="flex-shrink-0">
-            <QRCode url={screen.qrUrl} size={180} />
-          </div>
-        )}
+    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
+      {/* Animated background pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-10 left-10 w-32 h-32 border-2 border-white/30 rounded-full animate-pulse" />
+        <div className="absolute top-1/4 right-20 w-24 h-24 border-2 border-orange-400/30 rounded-full" style={{ animationDelay: '1s' }} />
+        <div className="absolute bottom-20 left-1/4 w-40 h-40 border-2 border-pink-400/30 rounded-full" />
+        <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-orange-400/10 rounded-full" />
       </div>
-    </ScreenLayout>
+      
+      {/* Subtle light rays */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] h-[200%] opacity-5" 
+           style={{ background: 'radial-gradient(ellipse at center top, rgba(255,150,100,0.3) 0%, transparent 50%)' }} />
+      
+      {/* Main content */}
+      <div className="absolute inset-0 flex items-center justify-center px-12">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-row items-center justify-center w-full max-w-6xl gap-16"
+        >
+          {/* Polaroid-style cat photo */}
+          {screen.imagePath && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8, rotate: -3 }}
+              animate={{ opacity: 1, scale: 1, rotate: -2 }}
+              transition={{ delay: 0.1, duration: 0.5, type: 'spring', stiffness: 100 }}
+              style={{ transform: 'rotate(-2deg)' }}
+            >
+              <div className="bg-white p-3 pb-16 shadow-2xl rounded-sm relative" style={{ boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1)' }}>
+                <div className="relative w-80 h-80 overflow-hidden bg-gray-100">
+                  <img
+                    src={screen.imagePath}
+                    alt={screen.title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0" style={{ boxShadow: 'inset 0 0 60px rgba(0,0,0,0.15)' }} />
+                  {isAdopted && (
+                    <div className="absolute top-3 right-3 px-4 py-2 rounded-full bg-green-500 text-white text-lg font-bold shadow-lg">
+                      🎉 Adopted!
+                    </div>
+                  )}
+                </div>
+                <div className="absolute bottom-3 left-3 right-3 text-center">
+                  <p className="text-gray-800 text-2xl font-semibold truncate" style={{ fontFamily: 'Georgia, serif' }}>
+                    {screen.title}
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+          
+          {/* Info section */}
+          <div className="flex-1 max-w-lg">
+            {!screen.imagePath && (
+              <motion.div 
+                initial={{ scale: 0.9 }}
+                animate={{ scale: 1 }}
+                className={`inline-flex items-center gap-2 px-5 py-2 mb-6 rounded-full ${isAdopted ? 'bg-green-500/20 border-green-400/30' : 'bg-orange-500/20 border-orange-400/30'} border`}
+              >
+                <span className="text-xl">{isAdopted ? '🎉' : '🐱'}</span>
+                <span className={`${isAdopted ? 'text-green-300' : 'text-orange-300'} text-lg font-medium tracking-wide`}>
+                  {isAdopted ? 'Adopted!' : 'Adopt Me!'}
+                </span>
+              </motion.div>
+            )}
+            {screen.imagePath && (
+              <motion.div 
+                initial={{ scale: 0.9 }}
+                animate={{ scale: 1 }}
+                className={`inline-flex items-center gap-2 px-5 py-2 mb-6 rounded-full ${isAdopted ? 'bg-green-500/20 border-green-400/30' : 'bg-orange-500/20 border-orange-400/30'} border`}
+              >
+                <span className="text-xl">{isAdopted ? '🎉' : '🐱'}</span>
+                <span className={`${isAdopted ? 'text-green-300' : 'text-orange-300'} text-lg font-medium tracking-wide`}>
+                  {isAdopted ? 'Found a Home!' : 'Looking for Love'}
+                </span>
+              </motion.div>
+            )}
+            {!screen.imagePath && (
+              <h1 className="text-5xl font-light tracking-wider text-white mb-4" style={{ fontFamily: 'Georgia, serif' }}>
+                <span className="text-orange-400">{screen.title}</span>
+              </h1>
+            )}
+            {screen.subtitle && (
+              <p className="text-2xl text-white/70 mb-4">
+                {screen.subtitle}
+              </p>
+            )}
+            {screen.body && (
+              <p className="text-xl text-white/60 mb-6">
+                {screen.body}
+              </p>
+            )}
+            {screen.qrUrl && (
+              <motion.div 
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="inline-block bg-white/95 backdrop-blur-sm rounded-2xl p-4 shadow-2xl"
+              >
+                <div className="text-center mb-2">
+                  <p className="text-sm font-semibold text-gray-700">Learn More</p>
+                </div>
+                <QRCodeSVG value={screen.qrUrl} size={140} level="M" />
+              </motion.div>
+            )}
+          </div>
+        </motion.div>
+      </div>
+    </div>
   );
 }
 
@@ -649,23 +844,82 @@ function AdoptionCounterScreen({ screen, settings }: ScreenRendererProps) {
 // THANK_YOU - Appreciation messages
 function ThankYouScreen({ screen, settings }: ScreenRendererProps) {
   return (
-    <ScreenLayout imagePath={screen.imagePath} imageDisplayMode={(screen as any).imageDisplayMode} bgColor="#e0e7ff" >
-      <div className="text-center max-w-4xl">
-        <h1 className="tv-text-large mb-6 text-indigo-900">
-          {screen.title || "Thank You!"}
-        </h1>
-        {screen.subtitle && (
-          <p className="tv-text-medium mb-4 text-indigo-800">
-            {screen.subtitle}
-          </p>
-        )}
-        {screen.body && (
-          <p className="tv-text-body text-indigo-700">
-            {screen.body}
-          </p>
-        )}
+    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
+      {/* Animated background pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-10 left-10 w-32 h-32 border-2 border-white/30 rounded-full animate-pulse" />
+        <div className="absolute top-1/4 right-20 w-24 h-24 border-2 border-indigo-400/30 rounded-full" style={{ animationDelay: '1s' }} />
+        <div className="absolute bottom-20 left-1/4 w-40 h-40 border-2 border-violet-400/30 rounded-full" />
+        <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-indigo-400/10 rounded-full" />
       </div>
-    </ScreenLayout>
+      
+      {/* Subtle light rays */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] h-[200%] opacity-5" 
+           style={{ background: 'radial-gradient(ellipse at center top, rgba(150,100,255,0.3) 0%, transparent 50%)' }} />
+      
+      {/* Floating hearts */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <motion.div 
+          className="absolute top-20 left-20 text-4xl"
+          animate={{ y: [0, -10, 0], scale: [1, 1.1, 1] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        >
+          💜
+        </motion.div>
+        <motion.div 
+          className="absolute top-32 right-32 text-3xl"
+          animate={{ y: [0, -15, 0], scale: [1, 1.2, 1] }}
+          transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+        >
+          ✨
+        </motion.div>
+        <motion.div 
+          className="absolute bottom-28 left-28 text-3xl"
+          animate={{ y: [0, -12, 0], rotate: [0, 10, 0] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+        >
+          💖
+        </motion.div>
+        <motion.div 
+          className="absolute bottom-20 right-24 text-4xl"
+          animate={{ y: [0, -8, 0], scale: [1, 1.15, 1] }}
+          transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut", delay: 0.7 }}
+        >
+          😻
+        </motion.div>
+      </div>
+      
+      {/* Main content */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center max-w-4xl"
+        >
+          <motion.div 
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            className="inline-flex items-center gap-2 px-6 py-3 mb-8 rounded-full bg-indigo-500/20 border border-indigo-400/30"
+          >
+            <span className="text-2xl">🙏</span>
+            <span className="text-indigo-300 text-xl font-medium tracking-wide">Thank You</span>
+          </motion.div>
+          <h1 className="text-6xl font-light tracking-wider text-white mb-6" style={{ fontFamily: 'Georgia, serif' }}>
+            <span className="text-indigo-400">{screen.title || "Thank You!"}</span>
+          </h1>
+          {screen.subtitle && (
+            <p className="text-2xl text-white/70 mb-4">
+              {screen.subtitle}
+            </p>
+          )}
+          {screen.body && (
+            <p className="text-xl text-white/60">
+              {screen.body}
+            </p>
+          )}
+        </motion.div>
+      </div>
+    </div>
   );
 }
 
@@ -689,41 +943,54 @@ function HappyTailsScreen({ screen, settings }: ScreenRendererProps) {
   
   if (!photos || photos.length === 0) {
     return (
-      <ScreenLayout bgColor="#fef3c7" >
-        <div className="text-center">
-          <div className="text-8xl mb-6">❤️</div>
-          <h1 className="tv-text-large mb-4 text-amber-900">Happy Tails</h1>
-          <p className="tv-text-medium text-amber-700">Coming soon - photos of our adopted cats!</p>
+      <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-10 left-10 w-32 h-32 border-2 border-white/30 rounded-full animate-pulse" />
+          <div className="absolute top-1/4 right-20 w-24 h-24 border-2 border-red-400/30 rounded-full" />
         </div>
-      </ScreenLayout>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-8xl mb-6">❤️</div>
+            <h1 className="text-5xl font-light tracking-wider text-white mb-4" style={{ fontFamily: 'Georgia, serif' }}>
+              <span className="text-red-400">Happy</span> <span className="text-white/80">Tails</span>
+            </h1>
+            <p className="text-xl text-white/60">Coming soon - photos of our adopted cats!</p>
+          </div>
+        </div>
+      </div>
     );
   }
   
   return (
-    <div className="tv-screen relative bg-gradient-to-br from-amber-100 via-orange-50 to-amber-100">
-      {/* Background pattern */}
+    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
+      {/* Animated background pattern */}
       <div className="absolute inset-0 opacity-10">
-        <div className="absolute inset-0" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23f59e0b" fill-opacity="0.4"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")' }} />
+        <div className="absolute top-10 left-10 w-32 h-32 border-2 border-white/30 rounded-full animate-pulse" />
+        <div className="absolute top-1/4 right-20 w-24 h-24 border-2 border-red-400/30 rounded-full" style={{ animationDelay: '1s' }} />
+        <div className="absolute bottom-20 left-1/4 w-40 h-40 border-2 border-pink-400/30 rounded-full" />
+        <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-red-400/10 rounded-full" />
       </div>
+      
+      {/* Subtle light rays */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] h-[200%] opacity-5" 
+           style={{ background: 'radial-gradient(ellipse at center top, rgba(255,100,100,0.3) 0%, transparent 50%)' }} />
       
       {/* Header */}
-      <div className="absolute top-8 left-8 right-8 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center shadow-lg">
-            <span className="text-4xl">❤️</span>
-          </div>
-          <div>
-            <h1 className="text-5xl font-bold text-amber-900" style={{ fontFamily: 'Georgia, serif' }}>Happy Tails</h1>
-            <p className="text-2xl text-amber-700">Our adopted cats in their forever homes</p>
-          </div>
-        </div>
-        <div className="text-amber-600 text-xl">
-          {currentIndex + 1} / {photos.length}
-        </div>
+      <div className="absolute top-8 left-0 right-0 z-20 text-center">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="inline-block"
+        >
+          <h1 className="text-5xl font-light tracking-wider text-white mb-2" style={{ fontFamily: 'Georgia, serif' }}>
+            <span className="text-red-400">Happy</span> <span className="text-white/80">Tails</span>
+          </h1>
+          <p className="text-lg text-white/60 tracking-widest uppercase">Forever Homes Found</p>
+        </motion.div>
       </div>
       
-      {/* Main photo area */}
-      <div className="absolute inset-0 flex items-center justify-center pt-32 pb-24 px-16">
+      {/* Main photo area with polaroid */}
+      <div className="absolute inset-0 flex items-center justify-center pt-28 pb-20 px-16">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentPhoto?.id}
@@ -733,62 +1000,54 @@ function HappyTailsScreen({ screen, settings }: ScreenRendererProps) {
             transition={{ duration: 0.5 }}
             className="flex gap-12 items-center max-w-6xl"
           >
-            {/* Photo with background style for portrait photos */}
-            <div className="flex-shrink-0">
-              <div className="relative w-[500px] h-[500px] rounded-2xl overflow-hidden shadow-2xl">
-                {/* Background for portrait photos */}
-                {currentPhoto?.backgroundStyle === "gradient" ? (
-                  <div 
-                    className="absolute inset-0"
-                    style={{
-                      background: `linear-gradient(135deg, rgba(245, 158, 11, 0.3) 0%, rgba(217, 119, 6, 0.3) 100%)`,
-                    }}
-                  />
-                ) : (
-                  <div 
-                    className="absolute inset-0"
-                    style={{
-                      backgroundImage: `url(${currentPhoto?.photoUrl})`,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
-                      filter: "blur(25px)",
-                      transform: "scale(1.2)",
-                    }}
-                  />
-                )}
-                {/* Actual photo centered */}
-                <div className="absolute inset-0 flex items-center justify-center">
+            {/* Polaroid-style photo */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8, rotate: -3 }}
+              animate={{ opacity: 1, scale: 1, rotate: -2 }}
+              transition={{ delay: 0.1, duration: 0.5, type: 'spring', stiffness: 100 }}
+              style={{ transform: 'rotate(-2deg)' }}
+              className="flex-shrink-0"
+            >
+              <div className="bg-white p-3 pb-16 shadow-2xl rounded-sm relative" style={{ boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1)' }}>
+                <div className="relative w-96 h-96 overflow-hidden bg-gray-100">
                   <img
                     src={currentPhoto?.photoUrl}
                     alt={currentPhoto?.catName || "Adopted cat"}
-                    className="max-w-full max-h-full object-contain"
+                    className="w-full h-full object-cover"
                   />
+                  <div className="absolute inset-0" style={{ boxShadow: 'inset 0 0 60px rgba(0,0,0,0.15)' }} />
+                  {currentPhoto?.isFeatured && (
+                    <div className="absolute top-3 right-3 px-3 py-1 rounded-full bg-amber-400 text-amber-900 text-sm font-bold shadow-lg flex items-center gap-1">
+                      <span>⭐</span> Featured
+                    </div>
+                  )}
                 </div>
-                {currentPhoto?.isFeatured && (
-                  <div className="absolute -top-2 -right-2 bg-yellow-400 text-yellow-900 px-4 py-2 rounded-full shadow-lg flex items-center gap-2 z-10">
-                    <span className="text-2xl">⭐</span>
-                    <span className="font-bold text-lg">Featured</span>
-                  </div>
-                )}
+                <div className="absolute bottom-3 left-3 right-3 text-center">
+                  <p className="text-gray-800 text-2xl font-semibold truncate" style={{ fontFamily: 'Georgia, serif' }}>
+                    {currentPhoto?.catName || "Our Friend"}
+                  </p>
+                </div>
               </div>
-            </div>
+            </motion.div>
             
             {/* Info */}
             <div className="flex-1 space-y-6">
-              <div>
-                <p className="text-2xl text-amber-600 mb-2">Meet</p>
-                <h2 className="text-6xl font-bold text-amber-900" style={{ fontFamily: 'Georgia, serif' }}>
-                  {currentPhoto?.catName || "Our Friend"}
-                </h2>
-              </div>
+              <motion.div 
+                initial={{ scale: 0.9 }}
+                animate={{ scale: 1 }}
+                className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-red-500/20 border border-red-400/30"
+              >
+                <span className="text-xl">🏠</span>
+                <span className="text-red-300 text-lg font-medium tracking-wide">Forever Home</span>
+              </motion.div>
               
               {currentPhoto?.caption && (
-                <p className="text-3xl text-amber-800 leading-relaxed italic">
+                <p className="text-2xl text-white/70 leading-relaxed italic">
                   "{currentPhoto.caption}"
                 </p>
               )}
               
-              <p className="text-2xl text-amber-600">
+              <p className="text-xl text-white/50">
                 — {currentPhoto?.submitterName}
               </p>
             </div>
@@ -796,34 +1055,33 @@ function HappyTailsScreen({ screen, settings }: ScreenRendererProps) {
         </AnimatePresence>
       </div>
       
-      {/* Logo handled by LogoWidget overlay */}
+      {/* Progress indicator */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20">
+        <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
+          <span className="text-red-400 text-lg">❤️</span>
+          <span className="text-white/80 text-sm">{currentIndex + 1} / {photos.length}</span>
+        </div>
+      </div>
       
       {/* QR Code for uploads - bottom right */}
-      <div className="absolute bottom-8 right-8 flex items-end gap-6">
-        {/* Progress dots */}
-        <div className="flex gap-2 mb-2">
-          {photos.map((_, idx) => (
-            <div
-              key={idx}
-              className={`w-3 h-3 rounded-full transition-colors ${
-                idx === currentIndex ? "bg-amber-600" : "bg-amber-300"
-              }`}
+      <div className="absolute bottom-6 right-8 z-20">
+        <motion.div 
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="bg-white/95 backdrop-blur-sm rounded-2xl p-4 shadow-2xl flex items-center gap-4"
+        >
+          <div className="bg-white p-1.5 rounded-lg shadow-inner">
+            <QRCodeSVG 
+              value={typeof window !== 'undefined' ? `${window.location.origin}/upload/happy-tails` : '/upload/happy-tails'}
+              size={70}
+              level="M"
             />
-          ))}
-        </div>
-        
-        {/* QR Code */}
-        <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-4 shadow-xl">
-          <div className="text-center mb-2">
-            <p className="text-sm font-semibold text-amber-800">Share yours!</p>
           </div>
-          <QRCodeSVG 
-            value={typeof window !== 'undefined' ? `${window.location.origin}/upload/happy-tails` : '/upload/happy-tails'}
-            size={100}
-            level="M"
-          />
-          <p className="text-xs text-amber-600 text-center mt-2">Scan to upload</p>
-        </div>
+          <div>
+            <p className="text-sm font-semibold text-gray-800">Share yours!</p>
+            <p className="text-xs text-gray-500">Scan to upload</p>
+          </div>
+        </motion.div>
       </div>
     </div>
   );
@@ -859,13 +1117,21 @@ function SnapPurrGalleryScreen({ screen, settings }: ScreenRendererProps) {
   
   if (!photos || photos.length === 0) {
     return (
-      <ScreenLayout bgColor="#fef9c3" >
-        <div className="text-center">
-          <div className="text-8xl mb-6">📸</div>
-          <h1 className="tv-text-large mb-4 text-yellow-900">Snap & Purr Gallery</h1>
-          <p className="tv-text-medium text-yellow-700">Scan the QR code to share your photos!</p>
+      <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-10 left-10 w-32 h-32 border-2 border-white/30 rounded-full animate-pulse" />
+          <div className="absolute top-1/4 right-20 w-24 h-24 border-2 border-amber-400/30 rounded-full" />
         </div>
-      </ScreenLayout>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-8xl mb-6">📸</div>
+            <h1 className="text-5xl font-light tracking-wider text-white mb-4" style={{ fontFamily: 'Georgia, serif' }}>
+              <span className="text-amber-400">Snap</span> & <span className="text-orange-400">Purr</span>
+            </h1>
+            <p className="text-xl text-white/60">Scan the QR code to share your photos!</p>
+          </div>
+        </div>
+      </div>
     );
   }
   
@@ -1023,50 +1289,77 @@ function HappyTailsQRScreen({ screen, settings }: ScreenRendererProps) {
     : '/upload/happy-tails';
   
   return (
-    <div className="tv-screen relative bg-gradient-to-br from-orange-100 via-amber-50 to-orange-100">
-      {/* Decorative elements */}
-      <div className="absolute top-0 left-0 w-64 h-64 bg-orange-200/30 rounded-full -translate-x-1/2 -translate-y-1/2" />
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-amber-200/30 rounded-full translate-x-1/3 translate-y-1/3" />
-      
-      <div className="relative z-10 w-full h-full flex flex-col items-center justify-center p-12">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-4 mb-6">
-            <span className="text-7xl">🏠</span>
-            <span className="text-7xl">❤️</span>
-            <span className="text-7xl">🐱</span>
-          </div>
-          <h1 className="text-6xl font-bold text-orange-900 mb-4" style={{ fontFamily: 'Georgia, serif' }}>
-            Happy Tails
-          </h1>
-          <p className="text-3xl text-orange-700">
-            Share photos of your adopted cat in their new home!
-          </p>
-        </div>
-        
-        {/* QR Code */}
-        <div className="bg-white p-8 rounded-3xl shadow-2xl mb-8">
-          <QRCode url={uploadUrl} size={280} />
-        </div>
-        
-        {/* Instructions */}
-        <div className="text-center">
-          <p className="text-2xl text-orange-800 mb-2">
-            📱 Scan with your phone to upload
-          </p>
-          <p className="text-xl text-orange-600">
-            Your photo will appear on our TV after approval!
-          </p>
-        </div>
+    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
+      {/* Animated background pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-10 left-10 w-32 h-32 border-2 border-white/30 rounded-full animate-pulse" />
+        <div className="absolute top-1/4 right-20 w-24 h-24 border-2 border-red-400/30 rounded-full" style={{ animationDelay: '1s' }} />
+        <div className="absolute bottom-20 left-1/4 w-40 h-40 border-2 border-pink-400/30 rounded-full" />
+        <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-red-400/10 rounded-full" />
       </div>
       
-      {/* Logo handled by LogoWidget overlay */}
+      {/* Subtle light rays */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] h-[200%] opacity-5" 
+           style={{ background: 'radial-gradient(ellipse at center top, rgba(255,100,100,0.3) 0%, transparent 50%)' }} />
       
-      {/* Paw prints decoration */}
-      <div className="absolute bottom-8 right-8 flex gap-4 opacity-30">
-        <span className="text-6xl">🐾</span>
-        <span className="text-5xl">🐾</span>
-        <span className="text-4xl">🐾</span>
+      {/* Floating emojis */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <motion.div 
+          className="absolute top-20 left-20 text-4xl"
+          animate={{ y: [0, -10, 0], scale: [1, 1.1, 1] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        >
+          🏠
+        </motion.div>
+        <motion.div 
+          className="absolute top-32 right-32 text-3xl"
+          animate={{ y: [0, -15, 0], scale: [1, 1.2, 1] }}
+          transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+        >
+          ❤️
+        </motion.div>
+        <motion.div 
+          className="absolute bottom-28 left-28 text-3xl"
+          animate={{ y: [0, -12, 0], rotate: [0, 10, 0] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+        >
+          🐱
+        </motion.div>
+      </div>
+      
+      {/* Main content */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center"
+        >
+          <h1 className="text-5xl font-light tracking-wider text-white mb-4" style={{ fontFamily: 'Georgia, serif' }}>
+            <span className="text-red-400">Happy</span> <span className="text-white/80">Tails</span>
+          </h1>
+          <p className="text-xl text-white/60 mb-8">
+            Share photos of your adopted cat in their new home!
+          </p>
+          
+          {/* QR Code */}
+          <motion.div 
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            className="inline-block bg-white/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl mb-8"
+          >
+            <QRCode url={uploadUrl} size={280} />
+          </motion.div>
+          
+          {/* Instructions */}
+          <div className="space-y-2">
+            <p className="text-lg text-white/70">
+              📱 Scan with your phone to upload
+            </p>
+            <p className="text-base text-white/50">
+              Your photo will appear on our TV after approval!
+            </p>
+          </div>
+        </motion.div>
       </div>
     </div>
   );
@@ -1080,50 +1373,77 @@ function SnapPurrQRScreen({ screen, settings }: ScreenRendererProps) {
     : '/upload/snap-purr';
   
   return (
-    <div className="tv-screen relative bg-gradient-to-br from-yellow-100 via-amber-50 to-yellow-100">
-      {/* Decorative elements */}
-      <div className="absolute top-0 right-0 w-72 h-72 bg-yellow-200/40 rounded-full translate-x-1/3 -translate-y-1/3" />
-      <div className="absolute bottom-0 left-0 w-80 h-80 bg-amber-200/40 rounded-full -translate-x-1/3 translate-y-1/3" />
-      
-      <div className="relative z-10 w-full h-full flex flex-col items-center justify-center p-12">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-4 mb-6">
-            <span className="text-7xl">📸</span>
-            <span className="text-7xl">😸</span>
-            <span className="text-7xl">✨</span>
-          </div>
-          <h1 className="text-6xl font-bold text-yellow-900 mb-4" style={{ fontFamily: 'Georgia, serif' }}>
-            Snap & Purr!
-          </h1>
-          <p className="text-3xl text-yellow-700">
-            Share your photos from today's visit!
-          </p>
-        </div>
-        
-        {/* QR Code */}
-        <div className="bg-white p-8 rounded-3xl shadow-2xl mb-8">
-          <QRCode url={uploadUrl} size={280} />
-        </div>
-        
-        {/* Instructions */}
-        <div className="text-center">
-          <p className="text-2xl text-yellow-800 mb-2">
-            📱 Scan with your phone to upload
-          </p>
-          <p className="text-xl text-yellow-600">
-            Your photo will appear on our TV after approval!
-          </p>
-        </div>
+    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
+      {/* Animated background pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-10 left-10 w-32 h-32 border-2 border-white/30 rounded-full animate-pulse" />
+        <div className="absolute top-1/4 right-20 w-24 h-24 border-2 border-amber-400/30 rounded-full" style={{ animationDelay: '1s' }} />
+        <div className="absolute bottom-20 left-1/4 w-40 h-40 border-2 border-yellow-400/30 rounded-full" />
+        <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-amber-400/10 rounded-full" />
       </div>
       
-      {/* Logo handled by LogoWidget overlay */}
+      {/* Subtle light rays */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] h-[200%] opacity-5" 
+           style={{ background: 'radial-gradient(ellipse at center top, rgba(255,200,100,0.3) 0%, transparent 50%)' }} />
       
-      {/* Camera decoration */}
-      <div className="absolute bottom-8 right-8 flex gap-4 opacity-30">
-        <span className="text-5xl">📷</span>
-        <span className="text-4xl">🐱</span>
-        <span className="text-5xl">💛</span>
+      {/* Floating emojis */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <motion.div 
+          className="absolute top-20 left-20 text-4xl"
+          animate={{ y: [0, -10, 0], scale: [1, 1.1, 1] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        >
+          📸
+        </motion.div>
+        <motion.div 
+          className="absolute top-32 right-32 text-3xl"
+          animate={{ y: [0, -15, 0], scale: [1, 1.2, 1] }}
+          transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+        >
+          😸
+        </motion.div>
+        <motion.div 
+          className="absolute bottom-28 left-28 text-3xl"
+          animate={{ y: [0, -12, 0], rotate: [0, 10, 0] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+        >
+          ✨
+        </motion.div>
+      </div>
+      
+      {/* Main content */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center"
+        >
+          <h1 className="text-5xl font-light tracking-wider text-white mb-4" style={{ fontFamily: 'Georgia, serif' }}>
+            <span className="text-amber-400">Snap</span> <span className="text-white/80">& Purr!</span>
+          </h1>
+          <p className="text-xl text-white/60 mb-8">
+            Share your photos from today's visit!
+          </p>
+          
+          {/* QR Code */}
+          <motion.div 
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            className="inline-block bg-white/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl mb-8"
+          >
+            <QRCode url={uploadUrl} size={280} />
+          </motion.div>
+          
+          {/* Instructions */}
+          <div className="space-y-2">
+            <p className="text-lg text-white/70">
+              📱 Scan with your phone to upload
+            </p>
+            <p className="text-base text-white/50">
+              Your photo will appear on our TV after approval!
+            </p>
+          </div>
+        </motion.div>
       </div>
     </div>
   );
@@ -1135,13 +1455,21 @@ function LivestreamScreen({ screen, settings }: ScreenRendererProps) {
   
   if (!livestreamUrl) {
     return (
-      <ScreenLayout bgColor="#1f2937" >
-        <div className="text-center">
-          <div className="text-6xl mb-6">📹</div>
-          <h1 className="tv-text-large mb-4 text-white">Livestream</h1>
-          <p className="tv-text-medium text-gray-400">No stream URL configured</p>
+      <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-10 left-10 w-32 h-32 border-2 border-white/30 rounded-full animate-pulse" />
+          <div className="absolute top-1/4 right-20 w-24 h-24 border-2 border-red-400/30 rounded-full" />
         </div>
-      </ScreenLayout>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-6xl mb-6">📹</div>
+            <h1 className="text-5xl font-light tracking-wider text-white mb-4" style={{ fontFamily: 'Georgia, serif' }}>
+              <span className="text-red-400">Live</span><span className="text-white/80">stream</span>
+            </h1>
+            <p className="text-xl text-white/60">No stream URL configured</p>
+          </div>
+        </div>
+      </div>
     );
   }
   
@@ -1160,24 +1488,30 @@ function LivestreamScreen({ screen, settings }: ScreenRendererProps) {
         Your browser does not support HLS video.
       </video>
       
-      {/* Live indicator */}
-      <div className="absolute top-8 left-8 flex items-center gap-3 px-4 py-2 bg-red-600 rounded-lg shadow-lg">
+      {/* Live indicator with elegant styling */}
+      <motion.div 
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        className="absolute top-8 left-8 flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-red-600 to-red-500 rounded-full shadow-2xl"
+      >
         <div className="w-3 h-3 bg-white rounded-full animate-pulse" />
-        <span className="text-white font-bold text-xl">LIVE</span>
-      </div>
-      
-      {/* Logo handled by LogoWidget overlay */}
+        <span className="text-white font-bold text-xl tracking-wider">LIVE</span>
+      </motion.div>
       
       {/* Title overlay if provided */}
       {screen.title && (
-        <div className="absolute bottom-8 left-8 right-8">
-          <div className="bg-black/60 backdrop-blur-sm rounded-xl px-6 py-4">
-            <h2 className="text-white text-3xl font-bold">{screen.title}</h2>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="absolute bottom-8 left-8 right-8"
+        >
+          <div className="bg-black/70 backdrop-blur-md rounded-2xl px-8 py-5 border border-white/10">
+            <h2 className="text-white text-3xl font-light tracking-wide" style={{ fontFamily: 'Georgia, serif' }}>{screen.title}</h2>
             {screen.subtitle && (
-              <p className="text-gray-300 text-xl mt-1">{screen.subtitle}</p>
+              <p className="text-white/70 text-xl mt-2">{screen.subtitle}</p>
             )}
           </div>
-        </div>
+        </motion.div>
       )}
     </div>
   );
@@ -1193,103 +1527,139 @@ function CheckInScreen({ screen, settings }: ScreenRendererProps) {
   const locationName = settingsData?.locationName || "Catfé";
   
   return (
-    <ScreenLayout bgColor="#cffafe" >
-      <div className="w-full h-full p-12 flex flex-col">
+    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
+      {/* Animated background pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-10 left-10 w-32 h-32 border-2 border-white/30 rounded-full animate-pulse" />
+        <div className="absolute top-1/4 right-20 w-24 h-24 border-2 border-cyan-400/30 rounded-full" style={{ animationDelay: '1s' }} />
+        <div className="absolute bottom-20 left-1/4 w-40 h-40 border-2 border-teal-400/30 rounded-full" />
+        <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-cyan-400/10 rounded-full" />
+      </div>
+      
+      {/* Subtle light rays */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] h-[200%] opacity-5" 
+           style={{ background: 'radial-gradient(ellipse at center top, rgba(100,200,255,0.3) 0%, transparent 50%)' }} />
+      
+      <div className="absolute inset-0 p-10 flex flex-col">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-6xl font-bold text-cyan-800 mb-2">
-            Welcome to {locationName}!
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-6"
+        >
+          <h1 className="text-5xl font-light tracking-wider text-white mb-2" style={{ fontFamily: 'Georgia, serif' }}>
+            Welcome to <span className="text-cyan-400">{locationName}</span>!
           </h1>
-          <p className="text-2xl text-cyan-700">
+          <p className="text-xl text-white/60">
             {screen.subtitle || "Please complete these steps before your visit"}
           </p>
-        </div>
+        </motion.div>
         
         {/* Main content - 3 columns */}
-        <div className="flex-1 grid grid-cols-3 gap-8">
+        <div className="flex-1 grid grid-cols-3 gap-6">
           {/* Column 1: Waiver */}
-          <div className="bg-white/90 rounded-3xl p-8 shadow-xl flex flex-col items-center">
-            <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mb-4">
-              <span className="text-4xl">📝</span>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10 flex flex-col items-center"
+          >
+            <div className="w-14 h-14 rounded-full bg-blue-500/20 border border-blue-400/30 flex items-center justify-center mb-4">
+              <span className="text-3xl">📝</span>
             </div>
-            <h2 className="text-3xl font-bold text-gray-800 mb-2">Sign Waiver</h2>
-            <p className="text-lg text-gray-600 text-center mb-6">
+            <h2 className="text-2xl font-light text-white mb-2" style={{ fontFamily: 'Georgia, serif' }}>Sign Waiver</h2>
+            <p className="text-sm text-white/60 text-center mb-4">
               Scan to complete your liability waiver
             </p>
             {waiverUrl ? (
-              <div className="bg-white p-4 rounded-2xl shadow-md">
-                <QRCodeSVG value={waiverUrl} size={160} level="M" />
+              <div className="bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-2xl">
+                <QRCodeSVG value={waiverUrl} size={140} level="M" />
               </div>
             ) : (
-              <p className="text-gray-500 italic">Ask staff for waiver</p>
+              <p className="text-white/50 italic text-sm">Ask staff for waiver</p>
             )}
-          </div>
+          </motion.div>
           
           {/* Column 2: WiFi */}
-          <div className="bg-white/90 rounded-3xl p-8 shadow-xl flex flex-col items-center">
-            <div className="w-16 h-16 rounded-full bg-cyan-100 flex items-center justify-center mb-4">
-              <span className="text-4xl">📶</span>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10 flex flex-col items-center"
+          >
+            <div className="w-14 h-14 rounded-full bg-cyan-500/20 border border-cyan-400/30 flex items-center justify-center mb-4">
+              <span className="text-3xl">📶</span>
             </div>
-            <h2 className="text-3xl font-bold text-gray-800 mb-2">Free WiFi</h2>
-            <p className="text-lg text-gray-600 text-center mb-6">
+            <h2 className="text-2xl font-light text-white mb-2" style={{ fontFamily: 'Georgia, serif' }}>Free WiFi</h2>
+            <p className="text-sm text-white/60 text-center mb-4">
               Connect to our guest network
             </p>
             {wifiName ? (
-              <div className="text-center space-y-4">
-                <div className="bg-cyan-50 rounded-xl px-6 py-4">
-                  <p className="text-sm text-cyan-600 font-medium">Network Name</p>
-                  <p className="text-2xl font-bold text-cyan-800">{wifiName}</p>
+              <div className="text-center space-y-3 w-full">
+                <div className="bg-white/10 rounded-xl px-4 py-3 border border-white/10">
+                  <p className="text-xs text-cyan-400 font-medium uppercase tracking-wider">Network Name</p>
+                  <p className="text-xl font-medium text-white">{wifiName}</p>
                 </div>
                 {wifiPassword && (
-                  <div className="bg-cyan-50 rounded-xl px-6 py-4">
-                    <p className="text-sm text-cyan-600 font-medium">Password</p>
-                    <p className="text-2xl font-bold text-cyan-800 font-mono">{wifiPassword}</p>
+                  <div className="bg-white/10 rounded-xl px-4 py-3 border border-white/10">
+                    <p className="text-xs text-cyan-400 font-medium uppercase tracking-wider">Password</p>
+                    <p className="text-xl font-mono text-white">{wifiPassword}</p>
                   </div>
                 )}
               </div>
             ) : (
-              <p className="text-gray-500 italic">Ask staff for WiFi details</p>
+              <p className="text-white/50 italic text-sm">Ask staff for WiFi details</p>
             )}
-          </div>
+          </motion.div>
           
           {/* Column 3: House Rules */}
-          <div className="bg-white/90 rounded-3xl p-8 shadow-xl flex flex-col">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10 flex flex-col"
+          >
             <div className="flex items-center justify-center mb-4">
-              <div className="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center">
-                <span className="text-4xl">📋</span>
+              <div className="w-14 h-14 rounded-full bg-orange-500/20 border border-orange-400/30 flex items-center justify-center">
+                <span className="text-3xl">📋</span>
               </div>
             </div>
-            <h2 className="text-3xl font-bold text-gray-800 mb-2 text-center">House Rules</h2>
-            <p className="text-lg text-gray-600 text-center mb-6">
+            <h2 className="text-2xl font-light text-white mb-2 text-center" style={{ fontFamily: 'Georgia, serif' }}>House Rules</h2>
+            <p className="text-sm text-white/60 text-center mb-4">
               Help keep our cats happy & safe
             </p>
             {houseRules.length > 0 ? (
-              <ul className="space-y-3 flex-1 overflow-auto">
+              <ul className="space-y-2 flex-1 overflow-auto">
                 {houseRules.map((rule, index) => (
                   <li key={index} className="flex items-start gap-3">
-                    <span className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0 text-orange-700 font-bold">
+                    <span className="w-6 h-6 rounded-full bg-orange-500/20 border border-orange-400/30 flex items-center justify-center flex-shrink-0 text-orange-400 text-sm font-medium">
                       {index + 1}
                     </span>
-                    <span className="text-lg text-gray-700 pt-1">{rule}</span>
+                    <span className="text-sm text-white/70 pt-0.5">{rule}</span>
                   </li>
                 ))}
               </ul>
             ) : (
               <div className="flex-1 flex items-center justify-center">
-                <p className="text-gray-500 italic">Rules will be displayed here</p>
+                <p className="text-white/50 italic text-sm">Rules will be displayed here</p>
               </div>
             )}
-          </div>
+          </motion.div>
         </div>
         
         {/* Footer */}
-        <div className="text-center mt-8">
-          <p className="text-xl text-cyan-700">
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="text-center mt-6"
+        >
+          <p className="text-lg text-white/50">
             🐱 Thank you for visiting! Enjoy your time with our furry friends! 🐱
           </p>
-        </div>
+        </motion.div>
       </div>
-    </ScreenLayout>
+    </div>
   );
 }
 
