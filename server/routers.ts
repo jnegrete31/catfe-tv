@@ -90,17 +90,7 @@ import {
   getActiveScreensForCurrentPlaylist,
   seedDefaultPlaylists,
 } from "./db";
-import {
-  testWixConnection,
-  getTodaysWixBookings,
-  mapBookingToSessionType,
-  type WixBooking,
-} from "./wixBookings";
-import {
-  getAutoSyncStatus,
-  toggleAutoSync,
-  syncWixBookings,
-} from "./wixAutoSync";
+// Wix integration removed
 import { storagePut } from "./storage";
 import { notifyOwner } from "./_core/notification";
 
@@ -806,124 +796,7 @@ export const appRouter = router({
       }),
   }),
 
-  // Wix Bookings Integration
-  wix: router({
-    // Test Wix API connection
-    testConnection: protectedProcedure.query(async () => {
-      return testWixConnection();
-    }),
-
-    // Get today's bookings from Wix
-    getTodaysBookings: protectedProcedure.query(async () => {
-      try {
-        const bookings = await getTodaysWixBookings();
-        return {
-          success: true,
-          bookings: bookings.map((b: WixBooking) => ({
-            id: b.id,
-            guestName: `${b.contactDetails.firstName || ''} ${b.contactDetails.lastName || ''}`.trim() || 'Guest',
-            email: b.contactDetails.email,
-            phone: b.contactDetails.phone,
-            startTime: b.bookedEntity?.slot?.startDate || b.startDate,
-            endTime: b.bookedEntity?.slot?.endDate || b.endDate,
-            participants: b.totalParticipants || 1,
-            status: b.status,
-          })),
-        };
-      } catch (error) {
-        return {
-          success: false,
-          bookings: [],
-          error: error instanceof Error ? error.message : 'Unknown error',
-        };
-      }
-    }),
-
-    // Sync today's Wix bookings to guest sessions
-    syncTodaysBookings: protectedProcedure.mutation(async () => {
-      try {
-        const bookings = await getTodaysWixBookings();
-        let synced = 0;
-        let skipped = 0;
-        const errors: string[] = [];
-
-        for (const booking of bookings) {
-          try {
-            // Check if already synced
-            const existing = await getGuestSessionByWixBookingId(booking.id);
-            if (existing) {
-              skipped++;
-              continue;
-            }
-
-            // Map booking to session
-            const startTime = new Date(booking.bookedEntity?.slot?.startDate || booking.startDate);
-            const endTime = new Date(booking.bookedEntity?.slot?.endDate || booking.endDate);
-            const durationMinutes = Math.round((endTime.getTime() - startTime.getTime()) / (1000 * 60));
-            
-            // Map duration to enum value
-            let duration: "15" | "30" | "60" = "30";
-            if (durationMinutes <= 20) duration = "15";
-            else if (durationMinutes <= 40) duration = "30";
-            else duration = "60";
-
-            const guestName = `${booking.contactDetails.firstName || ''} ${booking.contactDetails.lastName || ''}`.trim() || 'Wix Guest';
-
-            await createGuestSessionFromWixBooking({
-              wixBookingId: booking.id,
-              guestName,
-              guestCount: booking.totalParticipants || 1,
-              duration,
-              checkInAt: startTime,
-              expiresAt: endTime,
-              status: startTime <= new Date() && endTime > new Date() ? 'active' : 
-                      endTime <= new Date() ? 'completed' : 'active',
-            });
-            synced++;
-          } catch (err) {
-            errors.push(`Failed to sync booking ${booking.id}: ${err instanceof Error ? err.message : 'Unknown error'}`);
-          }
-        }
-
-        return {
-          success: true,
-          synced,
-          skipped,
-          total: bookings.length,
-          errors: errors.length > 0 ? errors : undefined,
-        };
-      } catch (error) {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error instanceof Error ? error.message : 'Failed to sync bookings',
-        });
-      }
-    }),
-
-    // Get synced sessions from today
-    getSyncedSessions: protectedProcedure.query(async () => {
-      return getWixSyncedSessionsToday();
-    }),
-
-    // Get auto-sync status
-    getAutoSyncStatus: protectedProcedure.query(async () => {
-      return getAutoSyncStatus();
-    }),
-
-    // Toggle auto-sync on/off
-    toggleAutoSync: protectedProcedure
-      .input(z.object({ enabled: z.boolean() }))
-      .mutation(async ({ input }) => {
-        toggleAutoSync(input.enabled);
-        return { success: true, enabled: input.enabled };
-      }),
-
-    // Trigger manual sync (uses the same function as auto-sync)
-    triggerSync: protectedProcedure.mutation(async () => {
-      const result = await syncWixBookings();
-      return result;
-    }),
-  }),
+  // Wix integration removed
 
   // ============ SUGGESTED CAPTIONS ============
   captions: router({

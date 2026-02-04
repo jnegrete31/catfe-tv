@@ -694,3 +694,17 @@
 ## UI Updates - Guest Reminder and Waiver Widget
 - [x] Combine Full Purr and Mini Meow into single message at x:55
 - [x] Make waiver widget vertical and smaller
+
+## Bug Fix - Guest Time Extension
+- [x] Fixed: getActiveGuestSessions now includes both "active" and "extended" status sessions
+- [x] Extended sessions no longer disappear from the active list
+
+## Cleanup - Remove Wix Integration
+- [ ] Remove Wix sync code from server
+- [ ] Remove Wix-related API endpoints
+- [ ] Remove Wix environment variables references
+
+## Cleanup - Remove Reports
+- [ ] Remove Reports tab from admin
+- [ ] Remove reports-related API endpoints
+- [ ] Remove reports components

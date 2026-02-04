@@ -349,8 +349,14 @@ export async function getActiveGuestSessions() {
   const db = await getDb();
   if (!db) return [];
   
+  // Include both "active" and "extended" sessions
   return db.select().from(guestSessions)
-    .where(eq(guestSessions.status, "active"))
+    .where(
+      or(
+        eq(guestSessions.status, "active"),
+        eq(guestSessions.status, "extended")
+      )
+    )
     .orderBy(asc(guestSessions.expiresAt));
 }
 

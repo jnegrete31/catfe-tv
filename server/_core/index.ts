@@ -7,7 +7,7 @@ import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
-import { startAutoSync } from "../wixAutoSync";
+// Wix auto-sync removed
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -61,8 +61,7 @@ async function startServer() {
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
     
-    // Start Wix auto-sync background job
-    startAutoSync();
+    // Wix auto-sync removed
   });
 }
 

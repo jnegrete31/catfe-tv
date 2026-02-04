@@ -11,8 +11,8 @@ import { SettingsForm } from "@/components/admin/SettingsForm";
 import { PlaylistPreview } from "@/components/admin/ScreenPreview";
 import { GuestCheckIn } from "@/components/admin/GuestCheckIn";
 import PhotoModeration from "@/components/admin/PhotoModeration";
-import { SessionHistory } from "@/components/admin/SessionHistory";
-import { WixSync } from "@/components/admin/WixSync";
+// SessionHistory removed
+// WixSync removed
 import CaptionManager from "@/components/admin/CaptionManager";
 import { PollManager } from "@/components/admin/PollManager";
 import { PlaylistManager } from "@/components/admin/PlaylistManager";
@@ -28,8 +28,7 @@ import {
   ExternalLink,
   Users,
   Image,
-  BarChart3,
-  CalendarDays,
+
   MessageSquare,
   Vote,
   ListMusic,
@@ -179,10 +178,7 @@ export default function Admin() {
               <Users className="w-4 h-4" />
               <span className="hidden sm:inline">Guests</span>
             </TabsTrigger>
-            <TabsTrigger value="wix" className="flex items-center gap-1 text-xs sm:text-sm">
-              <CalendarDays className="w-4 h-4" />
-              <span className="hidden sm:inline">Wix</span>
-            </TabsTrigger>
+
             <TabsTrigger value="photos" className="flex items-center gap-1 text-xs sm:text-sm">
               <Image className="w-4 h-4" />
               <span className="hidden sm:inline">Photos</span>
@@ -195,10 +191,7 @@ export default function Admin() {
               <Vote className="w-4 h-4" />
               <span className="hidden sm:inline">Polls</span>
             </TabsTrigger>
-            <TabsTrigger value="reports" className="flex items-center gap-1 text-xs sm:text-sm">
-              <BarChart3 className="w-4 h-4" />
-              <span className="hidden sm:inline">Reports</span>
-            </TabsTrigger>
+
             <TabsTrigger value="playlists" className="flex items-center gap-1 text-xs sm:text-sm">
               <ListMusic className="w-4 h-4" />
               <span className="hidden sm:inline">Playlists</span>
@@ -246,10 +239,7 @@ export default function Admin() {
             <GuestCheckIn />
           </TabsContent>
           
-          {/* Wix Bookings Tab */}
-          <TabsContent value="wix">
-            <WixSync />
-          </TabsContent>
+
           
           {/* Photos Tab */}
           <TabsContent value="photos">
@@ -261,10 +251,7 @@ export default function Admin() {
             <CaptionManager />
           </TabsContent>
           
-          {/* Reports Tab */}
-          <TabsContent value="reports">
-            <SessionHistory />
-          </TabsContent>
+
           
           {/* Polls Tab */}
           <TabsContent value="polls">
