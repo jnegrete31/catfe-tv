@@ -1,12 +1,13 @@
-import { motion } from "framer-motion";
 import type { Screen, Settings } from "@shared/types";
 import { QRCodeSVG } from "qrcode.react";
 import { trpc } from "@/lib/trpc";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 // Template element type (matches the schema)
 interface TemplateElement {
   id: string;
-  type: "title" | "subtitle" | "body" | "photo" | "qrCode" | "logo" | "clock" | "weather" | "counter";
+  type: "title" | "subtitle" | "body" | "photo" | "qrCode" | "logo" | "clock" | "weather" | "counter" | "galleryGrid" | "adoptionGrid" | "catPhoto";
   x: number;
   y: number;
   width: number;
@@ -24,6 +25,8 @@ interface TemplateElement {
   padding?: number;
   objectFit?: "cover" | "contain" | "fill";
   visible?: boolean;
+  galleryType?: "snap_purr" | "happy_tails"; // For gallery grid elements
+  photosToShow?: number; // Number of photos to display in gallery
 }
 
 // Widget overrides type for per-slide widget customization
@@ -52,6 +55,7 @@ interface TemplateRendererProps {
   screen: Screen;
   settings: Settings | null;
   adoptionCount?: number;
+  adoptionCats?: Screen[];
 }
 
 // Clock component for template
@@ -82,6 +86,102 @@ function WeatherElement({ style }: { style: React.CSSProperties }) {
     <div style={style} className="flex items-center justify-center gap-2">
       <span className="text-2xl">☀️</span>
       <span>72°F</span>
+    </div>
+  );
+}
+
+// Gallery Grid Element - fetches and displays photos from database
+function GalleryGridElement({ 
+  element, 
+  style 
+}: { 
+  element: TemplateElement; 
+  style: React.CSSProperties;
+}) {
+  const galleryType = element.galleryType || "snap_purr";
+  const photosToShow = element.photosToShow || 3;
+  
+  const { data: photos } = trpc.photos.getApproved.useQuery({ type: galleryType });
+  const [displayedPhotos, setDisplayedPhotos] = useState<typeof photos>([]);
+  
+  // Shuffle photos every 6 seconds
+  useEffect(() => {
+    if (!photos || photos.length === 0) return;
+    
+    const shufflePhotos = () => {
+      const shuffled = [...photos].sort(() => Math.random() - 0.5);
+      setDisplayedPhotos(shuffled.slice(0, photosToShow));
+    };
+    
+    shufflePhotos();
+    
+    if (photos.length > photosToShow) {
+      const interval = setInterval(shufflePhotos, 6000);
+      return () => clearInterval(interval);
+    }
+  }, [photos, photosToShow]);
+  
+  const currentPhotos = displayedPhotos || [];
+  
+  // Polaroid rotation angles for visual interest
+  const rotations = [-3, 2, -2, 3, -1];
+  
+  if (!photos || photos.length === 0) {
+    return (
+      <div style={style} className="flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">📸</div>
+          <p className="text-white/60 text-lg">No photos yet</p>
+          <p className="text-white/40 text-sm">Scan the QR code to share!</p>
+        </div>
+      </div>
+    );
+  }
+  
+  return (
+    <div style={style} className="flex items-center justify-center">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentPhotos.map(p => p.id).join('-')}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.6 }}
+          className="flex items-center justify-center gap-6 w-full h-full px-4"
+        >
+          {currentPhotos.map((photo, idx) => (
+            <motion.div
+              key={photo.id}
+              initial={{ opacity: 0, scale: 0.8, rotate: rotations[idx % rotations.length] - 10 }}
+              animate={{ opacity: 1, scale: 1, rotate: rotations[idx % rotations.length] }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ delay: idx * 0.15, duration: 0.5, type: 'spring', stiffness: 100 }}
+              className="flex-1"
+              style={{ 
+                maxWidth: `${90 / photosToShow}%`,
+                transform: `rotate(${rotations[idx % rotations.length]}deg)` 
+              }}
+            >
+              {/* Polaroid frame */}
+              <div className="bg-white p-3 pb-12 shadow-2xl rounded-sm" style={{ boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
+                <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
+                  <img
+                    src={photo.photoUrl}
+                    alt={photo.caption || "Gallery photo"}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                {/* Caption */}
+                {photo.caption && (
+                  <div className="mt-2 text-center">
+                    <p className="text-gray-700 text-sm font-medium truncate">{photo.caption}</p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }
@@ -242,6 +342,49 @@ function RenderElement({
           style={baseStyle}
         >
           <span style={{ ...textStyle, fontWeight: "bold" }}>{count}</span>
+        </motion.div>
+      );
+
+    case "galleryGrid":
+      // Dynamic gallery grid that fetches photos from database
+      return <GalleryGridElement element={element} style={baseStyle} />;
+
+    case "adoptionGrid":
+      // Placeholder for adoption grid - will be rendered by parent component
+      return (
+        <div style={{ ...baseStyle, border: "2px dashed rgba(255,255,255,0.3)", borderRadius: 8 }} className="flex items-center justify-center">
+          <span className="text-white/50 text-lg">🐱 Adoption Cats Load Here</span>
+        </div>
+      );
+
+    case "catPhoto":
+      // Cat photo from the screen's imagePath
+      if (!screen.imagePath) {
+        return (
+          <div style={baseStyle} className="bg-gray-800/50 flex items-center justify-center rounded-lg">
+            <div className="text-center">
+              <span className="text-6xl">🐱</span>
+              <p className="text-white/50 mt-2">Photo Coming Soon</p>
+            </div>
+          </div>
+        );
+      }
+      return (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          style={{ ...baseStyle, backgroundColor: "white", padding: "12px", paddingBottom: "48px", boxShadow: "0 10px 30px rgba(0,0,0,0.3)" }}
+        >
+          <img
+            src={screen.imagePath}
+            alt={screen.title}
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: element.objectFit || "cover",
+              borderRadius: 4,
+            }}
+          />
         </motion.div>
       );
 

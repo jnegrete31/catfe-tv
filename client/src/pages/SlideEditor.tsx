@@ -53,7 +53,7 @@ interface WidgetOverrides {
 // Template element type
 interface TemplateElement {
   id: string;
-  type: "title" | "subtitle" | "body" | "photo" | "qrCode" | "logo" | "clock" | "weather" | "counter";
+  type: "title" | "subtitle" | "body" | "photo" | "qrCode" | "logo" | "clock" | "weather" | "counter" | "galleryGrid" | "adoptionGrid" | "catPhoto";
   x: number;
   y: number;
   width: number;
@@ -71,6 +71,8 @@ interface TemplateElement {
   padding?: number;
   objectFit?: "cover" | "contain" | "fill";
   visible?: boolean;
+  galleryType?: "snap_purr" | "happy_tails"; // For gallery grid elements
+  photosToShow?: number; // Number of photos to display in gallery
 }
 
 // Screen types available for editing
@@ -101,6 +103,9 @@ const ELEMENT_ICONS: Record<string, React.ReactNode> = {
   clock: <Clock className="h-4 w-4" />,
   weather: <Sun className="h-4 w-4" />,
   counter: <Hash className="h-4 w-4" />,
+  galleryGrid: <Image className="h-4 w-4" />,
+  adoptionGrid: <Image className="h-4 w-4" />,
+  catPhoto: <Image className="h-4 w-4" />,
 };
 
 export default function SlideEditor() {
@@ -320,18 +325,52 @@ export default function SlideEditor() {
 
   // Add new element
   const addElement = (type: TemplateElement["type"]) => {
+    // Default sizes based on element type
+    let width = 30;
+    let height = 15;
+    let x = 10;
+    let y = 10;
+    let galleryType: "snap_purr" | "happy_tails" | undefined = undefined;
+    let photosToShow: number | undefined = undefined;
+    
+    // Special sizing for dynamic content elements
+    if (type === "galleryGrid") {
+      width = 90;
+      height = 60;
+      x = 5;
+      y = 25;
+      // Auto-detect gallery type based on screen type
+      galleryType = selectedScreenType === "HAPPY_TAILS" ? "happy_tails" : "snap_purr";
+      photosToShow = 3;
+    } else if (type === "adoptionGrid") {
+      width = 90;
+      height = 50;
+      x = 5;
+      y = 30;
+    } else if (type === "catPhoto") {
+      width = 35;
+      height = 50;
+      x = 32;
+      y = 25;
+    } else if (type === "photo") {
+      width = 30;
+      height = 40;
+    }
+    
     const newElement: TemplateElement = {
       id: `${type}-${Date.now()}`,
       type,
-      x: 10,
-      y: 10,
-      width: 30,
-      height: 15,
+      x,
+      y,
+      width,
+      height,
       fontSize: type === "title" ? 64 : type === "subtitle" ? 36 : 24,
       fontWeight: type === "title" ? "bold" : "normal",
       textAlign: "center",
       color: "#ffffff",
       visible: true,
+      ...(galleryType && { galleryType }),
+      ...(photosToShow && { photosToShow }),
     };
     setElements((prev) => [...prev, newElement]);
     setSelectedElementId(newElement.id);
@@ -458,6 +497,40 @@ export default function SlideEditor() {
       case "counter":
         content = <span style={{ ...textStyle, fontSize: `${(element.fontSize || 120) * 0.1}px` }}>47</span>;
         break;
+      case "galleryGrid":
+        content = (
+          <div className="w-full h-full flex items-center justify-center gap-2 p-2 border-2 border-dashed border-amber-500/50 rounded bg-amber-500/10">
+            <div className="flex flex-col items-center">
+              <Image className="h-6 w-6 text-amber-500" />
+              <span className="text-xs text-amber-500 mt-1">Gallery Grid</span>
+              <span className="text-[10px] text-amber-400/70">{element.galleryType === "happy_tails" ? "Happy Tails" : "Snap & Purr"}</span>
+              <span className="text-[10px] text-amber-400/70">{element.photosToShow || 3} photos</span>
+            </div>
+          </div>
+        );
+        break;
+      case "adoptionGrid":
+        content = (
+          <div className="w-full h-full flex items-center justify-center gap-2 p-2 border-2 border-dashed border-green-500/50 rounded bg-green-500/10">
+            <div className="flex flex-col items-center">
+              <Image className="h-6 w-6 text-green-500" />
+              <span className="text-xs text-green-500 mt-1">Adoption Grid</span>
+              <span className="text-[10px] text-green-400/70">Auto-loads cats</span>
+            </div>
+          </div>
+        );
+        break;
+      case "catPhoto":
+        content = (
+          <div className="w-full h-full flex items-center justify-center p-2 border-2 border-dashed border-blue-500/50 rounded bg-blue-500/10">
+            <div className="flex flex-col items-center">
+              <Image className="h-6 w-6 text-blue-500" />
+              <span className="text-xs text-blue-500 mt-1">Cat Photo</span>
+              <span className="text-[10px] text-blue-400/70">From screen data</span>
+            </div>
+          </div>
+        );
+        break;
     }
 
     return (
@@ -555,6 +628,42 @@ export default function SlideEditor() {
                     </Button>
                   )
                 )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm">Dynamic Content</CardTitle>
+                <p className="text-xs text-muted-foreground">Auto-loads from database</p>
+              </CardHeader>
+              <CardContent className="grid grid-cols-2 gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex flex-col h-16 text-xs border-amber-500/50 hover:bg-amber-500/10"
+                  onClick={() => addElement("galleryGrid")}
+                >
+                  <Image className="h-4 w-4 text-amber-500" />
+                  <span className="mt-1">Gallery Grid</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex flex-col h-16 text-xs border-green-500/50 hover:bg-green-500/10"
+                  onClick={() => addElement("adoptionGrid")}
+                >
+                  <Image className="h-4 w-4 text-green-500" />
+                  <span className="mt-1">Adoption Grid</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex flex-col h-16 text-xs border-blue-500/50 hover:bg-blue-500/10 col-span-2"
+                  onClick={() => addElement("catPhoto")}
+                >
+                  <Image className="h-4 w-4 text-blue-500" />
+                  <span className="mt-1">Cat Photo (from screen)</span>
+                </Button>
               </CardContent>
             </Card>
 
@@ -938,6 +1047,49 @@ export default function SlideEditor() {
                           />
                         </div>
                       </div>
+                      
+                      {/* Gallery Grid specific controls */}
+                      {selectedElement.type === "galleryGrid" && (
+                        <>
+                          <div className="pt-2 border-t">
+                            <Label className="text-xs font-medium">Gallery Settings</Label>
+                          </div>
+                          <div>
+                            <Label className="text-xs">Gallery Type</Label>
+                            <Select
+                              value={selectedElement.galleryType || "snap_purr"}
+                              onValueChange={(v) => updateElement(selectedElement.id, { galleryType: v as "snap_purr" | "happy_tails" })}
+                            >
+                              <SelectTrigger className="h-8 text-xs mt-1">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="snap_purr">Snap & Purr</SelectItem>
+                                <SelectItem value="happy_tails">Happy Tails</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label className="text-xs">Photos to Show</Label>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Slider
+                                value={[selectedElement.photosToShow || 3]}
+                                onValueChange={([v]) => updateElement(selectedElement.id, { photosToShow: v })}
+                                min={1}
+                                max={6}
+                                step={1}
+                                className="flex-1"
+                              />
+                              <Input
+                                type="number"
+                                value={selectedElement.photosToShow || 3}
+                                onChange={(e) => updateElement(selectedElement.id, { photosToShow: Number(e.target.value) })}
+                                className="w-16 h-8 text-xs"
+                              />
+                            </div>
+                          </div>
+                        </>
+                      )}
                     </TabsContent>
                   </Tabs>
                 </CardContent>

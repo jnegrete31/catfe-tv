@@ -849,3 +849,16 @@
 
 ## Bug Fix - Custom Slide Name
 - [x] Fix custom slide name not saving (saves as 'Custom Slide' instead of entered name)
+
+## Bug Fix - Gallery Photos Not Appearing with Templates
+- [ ] Investigate how TemplateRenderer handles dynamic content (gallery photos)
+- [ ] Fix template system to load dynamic photos alongside template customizations
+- [ ] Add special element types for dynamic content (gallery grid, cat photo, etc.)
+
+## Bug Fix - Gallery Photos Not Appearing (Feb 5)
+- [x] Fix: Snap & Purr Gallery photos not appearing when edited in visual editor
+- [x] Add GalleryGridElement component to TemplateRenderer for dynamic photo fetching
+- [x] Add galleryType and photosToShow properties to TemplateElement interface
+- [x] Add Gallery Grid element type to slide editor with gallery-specific controls
+- [x] Remove conflicting static Photo elements from SNAP_PURR_GALLERY template
+- [x] Test gallery display with approved photos from database
