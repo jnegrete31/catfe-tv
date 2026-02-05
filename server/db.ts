@@ -13,7 +13,8 @@ import {
   polls, InsertPoll, Poll,
   pollVotes, InsertPollVote, PollVote,
   playlists, InsertPlaylist, Playlist,
-  playlistScreens, InsertPlaylistScreen, PlaylistScreen
+  playlistScreens, InsertPlaylistScreen, PlaylistScreen,
+  slideTemplates, InsertSlideTemplate, SlideTemplate, TemplateElement
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -1679,5 +1680,157 @@ export async function seedDefaultPlaylists(): Promise<void> {
       isActive: defaultPlaylists[i].isActive || false,
       isDefault: defaultPlaylists[i].isDefault || false,
     });
+  }
+}
+
+
+// ============ SLIDE TEMPLATE QUERIES ============
+
+export async function getAllSlideTemplates(): Promise<SlideTemplate[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  try {
+    return await db.select().from(slideTemplates);
+  } catch (error) {
+    console.error("[Database] Failed to get slide templates:", error);
+    return [];
+  }
+}
+
+export async function getSlideTemplateByScreenType(screenType: string): Promise<SlideTemplate | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  
+  try {
+    const results = await db.select().from(slideTemplates).where(eq(slideTemplates.screenType, screenType as any));
+    return results[0];
+  } catch (error) {
+    console.error("[Database] Failed to get slide template:", error);
+    return undefined;
+  }
+}
+
+export async function upsertSlideTemplate(template: Partial<InsertSlideTemplate> & { screenType: string }): Promise<SlideTemplate | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  
+  try {
+    // Check if template exists
+    const existing = await getSlideTemplateByScreenType(template.screenType);
+    
+    if (existing) {
+      // Update existing template
+      await db.update(slideTemplates)
+        .set({
+          name: template.name,
+          backgroundColor: template.backgroundColor,
+          backgroundGradient: template.backgroundGradient,
+          backgroundImageUrl: template.backgroundImageUrl,
+          elements: template.elements,
+          defaultFontFamily: template.defaultFontFamily,
+          defaultFontColor: template.defaultFontColor,
+          showAnimations: template.showAnimations,
+          animationStyle: template.animationStyle,
+        })
+        .where(eq(slideTemplates.screenType, template.screenType as any));
+      
+      return await getSlideTemplateByScreenType(template.screenType);
+    } else {
+      // Insert new template
+      await db.insert(slideTemplates).values({
+        screenType: template.screenType as any,
+        name: template.name || `${template.screenType} Template`,
+        backgroundColor: template.backgroundColor || "#1a1a2e",
+        elements: template.elements || "[]",
+        defaultFontFamily: template.defaultFontFamily || "Inter",
+        defaultFontColor: template.defaultFontColor || "#ffffff",
+        showAnimations: template.showAnimations ?? true,
+        animationStyle: template.animationStyle || "fade",
+      });
+      
+      return await getSlideTemplateByScreenType(template.screenType);
+    }
+  } catch (error) {
+    console.error("[Database] Failed to upsert slide template:", error);
+    return undefined;
+  }
+}
+
+export async function deleteSlideTemplate(screenType: string): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  
+  try {
+    await db.delete(slideTemplates).where(eq(slideTemplates.screenType, screenType as any));
+    return true;
+  } catch (error) {
+    console.error("[Database] Failed to delete slide template:", error);
+    return false;
+  }
+}
+
+// Default template elements for each screen type
+export function getDefaultTemplateElements(screenType: string): TemplateElement[] {
+  const baseElements: Record<string, TemplateElement[]> = {
+    ADOPTION: [
+      { id: "photo", type: "photo", x: 5, y: 10, width: 40, height: 70, objectFit: "cover", borderRadius: 8 },
+      { id: "title", type: "title", x: 50, y: 15, width: 45, height: 10, fontSize: 72, fontWeight: "bold", textAlign: "left" },
+      { id: "subtitle", type: "subtitle", x: 50, y: 28, width: 45, height: 8, fontSize: 36, fontWeight: "normal", textAlign: "left", color: "#a0a0a0" },
+      { id: "body", type: "body", x: 50, y: 40, width: 45, height: 30, fontSize: 28, textAlign: "left" },
+      { id: "qrCode", type: "qrCode", x: 50, y: 72, width: 20, height: 20 },
+    ],
+    ADOPTION_SHOWCASE: [
+      { id: "title", type: "title", x: 10, y: 5, width: 80, height: 10, fontSize: 64, fontWeight: "bold", textAlign: "center" },
+      { id: "subtitle", type: "subtitle", x: 10, y: 15, width: 80, height: 5, fontSize: 28, textAlign: "center", color: "#a0a0a0" },
+    ],
+    ADOPTION_COUNTER: [
+      { id: "counter", type: "counter", x: 25, y: 25, width: 50, height: 40, fontSize: 280, fontWeight: "black", textAlign: "center" },
+      { id: "title", type: "title", x: 10, y: 70, width: 80, height: 10, fontSize: 56, textAlign: "center" },
+    ],
+    EVENT: [
+      { id: "photo", type: "photo", x: 0, y: 0, width: 50, height: 100, objectFit: "cover" },
+      { id: "title", type: "title", x: 55, y: 20, width: 40, height: 15, fontSize: 64, fontWeight: "bold", textAlign: "left" },
+      { id: "subtitle", type: "subtitle", x: 55, y: 38, width: 40, height: 8, fontSize: 36, textAlign: "left", color: "#fbbf24" },
+      { id: "body", type: "body", x: 55, y: 50, width: 40, height: 30, fontSize: 28, textAlign: "left" },
+      { id: "qrCode", type: "qrCode", x: 75, y: 75, width: 15, height: 15 },
+    ],
+    CHECK_IN: [
+      { id: "title", type: "title", x: 10, y: 10, width: 80, height: 12, fontSize: 72, fontWeight: "bold", textAlign: "center" },
+      { id: "subtitle", type: "subtitle", x: 10, y: 25, width: 80, height: 8, fontSize: 32, textAlign: "center" },
+      { id: "qrCode", type: "qrCode", x: 5, y: 40, width: 25, height: 35 },
+    ],
+    THANK_YOU: [
+      { id: "title", type: "title", x: 10, y: 30, width: 80, height: 20, fontSize: 96, fontWeight: "light", textAlign: "center" },
+      { id: "subtitle", type: "subtitle", x: 10, y: 55, width: 80, height: 10, fontSize: 48, textAlign: "center" },
+    ],
+  };
+  
+  return baseElements[screenType] || [
+    { id: "title", type: "title", x: 10, y: 10, width: 80, height: 15, fontSize: 64, fontWeight: "bold", textAlign: "center" },
+    { id: "subtitle", type: "subtitle", x: 10, y: 30, width: 80, height: 10, fontSize: 36, textAlign: "center" },
+    { id: "body", type: "body", x: 10, y: 45, width: 80, height: 40, fontSize: 28, textAlign: "center" },
+  ];
+}
+
+export async function seedDefaultSlideTemplates(): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  
+  const screenTypes = [
+    "ADOPTION", "ADOPTION_SHOWCASE", "ADOPTION_COUNTER", "EVENT", 
+    "CHECK_IN", "THANK_YOU", "TODAY_AT_CATFE", "MEMBERSHIP", "REMINDER",
+    "HAPPY_TAILS", "SNAP_PURR_GALLERY", "LIVESTREAM"
+  ];
+  
+  for (const screenType of screenTypes) {
+    const existing = await getSlideTemplateByScreenType(screenType);
+    if (!existing) {
+      await upsertSlideTemplate({
+        screenType: screenType as any,
+        name: `${screenType.replace(/_/g, " ")} Template`,
+        elements: JSON.stringify(getDefaultTemplateElements(screenType)),
+      });
+    }
   }
 }

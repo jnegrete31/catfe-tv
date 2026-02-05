@@ -784,3 +784,29 @@
 - [x] Increase Event screen text size
 
 - [x] Fix Event photos not appearing on slides
+
+
+## Feature - Visual Slide Editor (Wix-style)
+- [ ] Create slideTemplates database table for storing customizations
+- [ ] Add tRPC endpoints for saving/loading template settings
+- [ ] Build visual editor page with TV-sized canvas
+- [ ] Implement drag-and-drop for elements (text, photos, QR codes)
+- [ ] Add resize handles for photos and text boxes
+- [ ] Add font size sliders and controls
+- [ ] Add position controls (X/Y coordinates)
+- [ ] Implement live preview on canvas
+- [ ] Save template customizations per screen type
+- [ ] Apply saved templates to TV display renderer
+- [ ] Update Apple TV app to use template settings
+
+
+## Feature - Visual Slide Editor (Wix-style)
+- [x] Database schema for storing template customizations (slideTemplates table)
+- [x] tRPC endpoints for saving/loading templates
+- [x] Visual editor UI with drag-and-drop canvas
+- [x] Element controls (resize, move, delete)
+- [x] Property panel for font size, colors, etc.
+- [x] Live preview on 16:9 canvas
+- [x] Integrate templates into TV display renderer (TemplateRenderer component)
+- [x] Add "Editor" button to admin dashboard header
+- [x] Unit tests for template CRUD operations

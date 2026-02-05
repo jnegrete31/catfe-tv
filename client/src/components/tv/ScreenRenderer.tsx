@@ -5,6 +5,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { trpc } from "@/lib/trpc";
 import { useState, useEffect } from "react";
 import { PollScreen } from "./PollScreen";
+import { TemplateRenderer } from "./TemplateRenderer";
 
 // Animated counter hook for counting up effect
 function useCountUp(target: number, duration: number = 2000) {
@@ -1768,6 +1769,45 @@ function CheckInScreen({ screen, settings }: ScreenRendererProps) {
 
 // Main renderer that selects the appropriate component
 export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendererProps) {
+  // Check if a custom template exists for this screen type
+  const { data: template } = trpc.templates.getByScreenType.useQuery(
+    { screenType: screen.type },
+    { staleTime: 60000 }
+  );
+  
+  // Check if template has custom elements (not just defaults)
+  let hasCustomTemplate = false;
+  try {
+    const elements = JSON.parse(template?.elements || "[]");
+    // Consider it custom if it has elements and was explicitly saved
+    hasCustomTemplate = !!(elements.length > 0 && template && 'id' in template && (template as any).id !== undefined);
+  } catch {
+    hasCustomTemplate = false;
+  }
+  
+  // If custom template exists, use TemplateRenderer
+  if (hasCustomTemplate) {
+    return (
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={screen.id}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-full h-full"
+        >
+          <TemplateRenderer 
+            screen={screen} 
+            settings={settings} 
+            adoptionCount={settings?.totalAdoptionCount}
+          />
+        </motion.div>
+      </AnimatePresence>
+    );
+  }
+  
+  // Otherwise use default hardcoded renderers
   const renderers: Record<string, React.FC<ScreenRendererProps>> = {
     SNAP_AND_PURR: SnapAndPurrScreen,
     EVENT: EventScreen,

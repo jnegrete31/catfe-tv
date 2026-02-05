@@ -339,3 +339,71 @@ export const playlistScreens = mysqlTable("playlistScreens", {
 
 export type PlaylistScreen = typeof playlistScreens.$inferSelect;
 export type InsertPlaylistScreen = typeof playlistScreens.$inferInsert;
+
+
+/**
+ * Slide template element types
+ */
+export const templateElementTypeEnum = mysqlEnum("templateElementType", [
+  "title", "subtitle", "body", "photo", "qrCode", "logo", "clock", "weather", "counter"
+]);
+
+/**
+ * Slide templates table - stores visual customizations for each screen type
+ * Allows drag-and-drop positioning, resizing, and styling of elements
+ */
+export const slideTemplates = mysqlTable("slideTemplates", {
+  id: int("id").autoincrement().primaryKey(),
+  screenType: screenTypeEnum.notNull().unique(), // One template per screen type
+  name: varchar("name", { length: 255 }).notNull(),
+  // Canvas settings
+  backgroundColor: varchar("backgroundColor", { length: 32 }).default("#1a1a2e"),
+  backgroundGradient: varchar("backgroundGradient", { length: 255 }), // CSS gradient string
+  backgroundImageUrl: varchar("backgroundImageUrl", { length: 1024 }),
+  // Element positions and styles stored as JSON
+  // Each element: { type, x, y, width, height, fontSize, fontWeight, fontFamily, color, opacity, rotation, zIndex }
+  elements: text("elements").notNull(), // JSON array of element configurations
+  // Global settings
+  defaultFontFamily: varchar("defaultFontFamily", { length: 64 }).default("Inter"),
+  defaultFontColor: varchar("defaultFontColor", { length: 32 }).default("#ffffff"),
+  showAnimations: boolean("showAnimations").notNull().default(true),
+  animationStyle: varchar("animationStyle", { length: 32 }).default("fade"), // fade, slide, zoom
+  // Timestamps
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type SlideTemplate = typeof slideTemplates.$inferSelect;
+export type InsertSlideTemplate = typeof slideTemplates.$inferInsert;
+
+/**
+ * Type definition for template elements (stored in elements JSON field)
+ */
+export type TemplateElement = {
+  id: string; // Unique ID for the element
+  type: "title" | "subtitle" | "body" | "photo" | "qrCode" | "logo" | "clock" | "weather" | "counter";
+  // Position (percentage of canvas, 0-100)
+  x: number;
+  y: number;
+  // Size (percentage of canvas, 0-100)
+  width: number;
+  height: number;
+  // Typography
+  fontSize?: number; // in pixels
+  fontWeight?: string; // normal, bold, 100-900
+  fontFamily?: string;
+  textAlign?: "left" | "center" | "right";
+  // Styling
+  color?: string;
+  backgroundColor?: string;
+  borderRadius?: number;
+  opacity?: number; // 0-1
+  rotation?: number; // degrees
+  // Layout
+  zIndex?: number;
+  padding?: number;
+  // Photo-specific
+  objectFit?: "cover" | "contain" | "fill";
+  // Visibility
+  visible?: boolean;
+};

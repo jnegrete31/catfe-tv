@@ -32,6 +32,7 @@ import {
   MessageSquare,
   Vote,
   ListMusic,
+  Palette,
 } from "lucide-react";
 import { IOSInstallPrompt } from "@/components/IOSInstallPrompt";
 
@@ -153,6 +154,16 @@ export default function Admin() {
               <a href="/tv" target="_blank" rel="noopener noreferrer">
                 <ExternalLink className="w-4 h-4 mr-1" />
                 TV View
+              </a>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              asChild
+            >
+              <a href="/admin/slide-editor">
+                <Palette className="w-4 h-4 mr-1" />
+                Editor
               </a>
             </Button>
             <Button

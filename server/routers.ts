@@ -89,6 +89,12 @@ import {
   removeScreenFromPlaylist,
   getActiveScreensForCurrentPlaylist,
   seedDefaultPlaylists,
+  getAllSlideTemplates,
+  getSlideTemplateByScreenType,
+  upsertSlideTemplate,
+  deleteSlideTemplate,
+  getDefaultTemplateElements,
+  seedDefaultSlideTemplates,
 } from "./db";
 // Wix integration removed
 import { storagePut } from "./storage";
@@ -1100,6 +1106,74 @@ export const appRouter = router({
     // Admin: Seed default playlists
     seedDefaults: adminProcedure.mutation(async () => {
       await seedDefaultPlaylists();
+      return { success: true };
+    }),
+  }),
+
+  // Slide Templates router - visual editor customizations
+  templates: router({
+    // Get all templates
+    getAll: publicProcedure.query(async () => {
+      return await getAllSlideTemplates();
+    }),
+
+    // Get template by screen type
+    getByScreenType: publicProcedure
+      .input(z.object({ screenType: z.string() }))
+      .query(async ({ input }) => {
+        const template = await getSlideTemplateByScreenType(input.screenType);
+        if (!template) {
+          // Return default template if none exists
+          return {
+            screenType: input.screenType,
+            elements: JSON.stringify(getDefaultTemplateElements(input.screenType)),
+            backgroundColor: "#1a1a2e",
+            defaultFontFamily: "Inter",
+            defaultFontColor: "#ffffff",
+            showAnimations: true,
+            animationStyle: "fade",
+          };
+        }
+        return template;
+      }),
+
+    // Get default elements for a screen type
+    getDefaultElements: publicProcedure
+      .input(z.object({ screenType: z.string() }))
+      .query(async ({ input }) => {
+        return getDefaultTemplateElements(input.screenType);
+      }),
+
+    // Admin: Save/update template
+    save: adminProcedure
+      .input(z.object({
+        screenType: z.string(),
+        name: z.string().optional(),
+        backgroundColor: z.string().optional(),
+        backgroundGradient: z.string().nullable().optional(),
+        backgroundImageUrl: z.string().nullable().optional(),
+        elements: z.string(), // JSON string of TemplateElement[]
+        defaultFontFamily: z.string().optional(),
+        defaultFontColor: z.string().optional(),
+        showAnimations: z.boolean().optional(),
+        animationStyle: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const template = await upsertSlideTemplate(input as any);
+        return template;
+      }),
+
+    // Admin: Delete template (resets to default)
+    delete: adminProcedure
+      .input(z.object({ screenType: z.string() }))
+      .mutation(async ({ input }) => {
+        await deleteSlideTemplate(input.screenType);
+        return { success: true };
+      }),
+
+    // Admin: Seed default templates
+    seedDefaults: adminProcedure.mutation(async () => {
+      await seedDefaultSlideTemplates();
       return { success: true };
     }),
   }),
