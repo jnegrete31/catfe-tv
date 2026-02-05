@@ -116,6 +116,7 @@ export default function SlideEditor() {
   const [showNewSlideDialog, setShowNewSlideDialog] = useState(false);
   const [newSlideTitle, setNewSlideTitle] = useState("");
   const [isCreatingSlide, setIsCreatingSlide] = useState(false);
+  const [templateName, setTemplateName] = useState<string>("");
   const [widgetOverrides, setWidgetOverrides] = useState<WidgetOverrides>({
     logo: { visible: true, x: 2, y: 2, width: 8, height: 8, opacity: 1 },
     weather: { visible: true, x: 85, y: 2, fontSize: 18, color: "#ffffff", opacity: 1 },
@@ -150,6 +151,7 @@ export default function SlideEditor() {
     setElements([]);
     setBackgroundColor("#1a1a2e");
     setSelectedElementId(null);
+    setTemplateName("");
     setWidgetOverrides({
       logo: { visible: true, x: 2, y: 2, width: 8, height: 8, opacity: 1 },
       weather: { visible: true, x: 85, y: 2, fontSize: 18, color: "#ffffff", opacity: 1 },
@@ -187,6 +189,12 @@ export default function SlideEditor() {
         const parsedElements = JSON.parse(template.elements || "[]");
         setElements(parsedElements);
         setBackgroundColor(template.backgroundColor || "#1a1a2e");
+        // Load template name if available
+        if ('name' in template && template.name) {
+          setTemplateName(template.name as string);
+        } else {
+          setTemplateName("");
+        }
         // Load widget overrides if available
         if ('widgetOverrides' in template && template.widgetOverrides) {
           const parsedOverrides = JSON.parse(template.widgetOverrides as string);
@@ -343,6 +351,7 @@ export default function SlideEditor() {
   const handleSave = () => {
     saveMutation.mutate({
       screenType: selectedScreenType,
+      name: templateName || undefined,
       elements: JSON.stringify(elements),
       backgroundColor,
       widgetOverrides: JSON.stringify(widgetOverrides),
@@ -678,6 +687,26 @@ export default function SlideEditor() {
 
           {/* Right sidebar - Properties */}
           <div className="space-y-4">
+            {/* Template Name for CUSTOM slides */}
+            {selectedScreenType === "CUSTOM" && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm">Slide Name</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Input
+                    value={templateName}
+                    onChange={(e) => {
+                      setTemplateName(e.target.value);
+                      setHasChanges(true);
+                    }}
+                    placeholder="Enter slide name"
+                    className="h-8 text-sm"
+                  />
+                </CardContent>
+              </Card>
+            )}
+
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm">Background</CardTitle>
@@ -1194,13 +1223,15 @@ export default function SlideEditor() {
                     isActive: true,
                   });
                   toast.success(`Custom slide "${newSlideTitle}" created!`);
+                  // Store the name for saving with the template
+                  setTemplateName(newSlideTitle.trim());
                   setNewSlideTitle("");
                   setShowNewSlideDialog(false);
                   // Switch to editing the new custom slide template
                   setSelectedScreenType("CUSTOM");
                   // Clear elements for fresh start
                   setElements([]);
-                  setHasChanges(false);
+                  setHasChanges(true); // Mark as having changes so the name gets saved
                 } catch (error) {
                   toast.error("Failed to create custom slide");
                 } finally {

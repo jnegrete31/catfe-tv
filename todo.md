@@ -846,3 +846,6 @@
 - [x] Add snap-to-grid when dragging elements
 - [x] Add center guides (horizontal and vertical center lines)
 - [x] Add toggle to enable/disable grid
+
+## Bug Fix - Custom Slide Name
+- [x] Fix custom slide name not saving (saves as 'Custom Slide' instead of entered name)
