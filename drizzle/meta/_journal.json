@@ -225,6 +225,13 @@
       "when": 1770313557186,
       "tag": "0031_moaning_peter_quill",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "5",
+      "when": 1770317159914,
+      "tag": "0032_abnormal_starbolt",
+      "breakpoints": true
     }
   ]
 }

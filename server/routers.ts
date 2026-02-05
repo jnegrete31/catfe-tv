@@ -119,6 +119,7 @@ const screenTypes = [
   "POLL",
   "POLL_QR",
   "CHECK_IN",
+  "CUSTOM",
 ] as const;
 
 // Input schemas

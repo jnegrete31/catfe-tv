@@ -9,7 +9,8 @@ import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
-import { ArrowLeft, Save, RotateCcw, Move, Maximize2, Type, Image, QrCode, Clock, Sun, Hash, Eye, EyeOff, Trash2, Plus, GripVertical } from "lucide-react";
+import { ArrowLeft, Save, RotateCcw, Move, Maximize2, Type, Image, QrCode, Clock, Sun, Hash, Eye, EyeOff, Trash2, Plus, GripVertical, PlusCircle } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
 // Template element type
@@ -49,6 +50,7 @@ const SCREEN_TYPES = [
   { value: "HAPPY_TAILS", label: "Happy Tails" },
   { value: "SNAP_PURR_GALLERY", label: "Snap & Purr Gallery" },
   { value: "LIVESTREAM", label: "Livestream" },
+  { value: "CUSTOM", label: "Custom Slides" },
 ];
 
 // Element type icons
@@ -74,7 +76,11 @@ export default function SlideEditor() {
   const [isResizing, setIsResizing] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [hasChanges, setHasChanges] = useState(false);
+  const [showNewSlideDialog, setShowNewSlideDialog] = useState(false);
+  const [newSlideTitle, setNewSlideTitle] = useState("");
+  const [isCreatingSlide, setIsCreatingSlide] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
+  const utils = trpc.useUtils();
 
   // Fetch template for selected screen type
   const { data: template, refetch: refetchTemplate } = trpc.templates.getByScreenType.useQuery(
@@ -382,6 +388,17 @@ export default function SlideEditor() {
                     {type.label}
                   </SelectItem>
                 ))}
+                <div className="border-t my-1" />
+                <button
+                  className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setShowNewSlideDialog(true);
+                  }}
+                >
+                  <PlusCircle className="h-4 w-4 mr-2" />
+                  New Custom Slide
+                </button>
               </SelectContent>
             </Select>
             <Button variant="outline" onClick={handleReset}>
@@ -764,6 +781,69 @@ export default function SlideEditor() {
           </div>
         </div>
       </div>
+
+      {/* New Custom Slide Dialog */}
+      <Dialog open={showNewSlideDialog} onOpenChange={setShowNewSlideDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Create New Custom Slide</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="slideTitle">Slide Title</Label>
+              <Input
+                id="slideTitle"
+                placeholder="Enter a title for your custom slide"
+                value={newSlideTitle}
+                onChange={(e) => setNewSlideTitle(e.target.value)}
+              />
+            </div>
+            <p className="text-sm text-muted-foreground">
+              This will create a new custom slide that you can design from scratch.
+              After creating, add elements like text, photos, and QR codes to build your slide.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowNewSlideDialog(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={async () => {
+                if (!newSlideTitle.trim()) {
+                  toast.error("Please enter a title for your slide");
+                  return;
+                }
+                setIsCreatingSlide(true);
+                try {
+                  // Create a new screen with type CUSTOM
+                  const result = await utils.client.screens.create.mutate({
+                    type: "CUSTOM",
+                    title: newSlideTitle.trim(),
+                    priority: 5,
+                    durationSeconds: 15,
+                    isActive: true,
+                  });
+                  toast.success(`Custom slide "${newSlideTitle}" created!`);
+                  setNewSlideTitle("");
+                  setShowNewSlideDialog(false);
+                  // Switch to editing the new custom slide template
+                  setSelectedScreenType("CUSTOM");
+                  // Clear elements for fresh start
+                  setElements([]);
+                  setHasChanges(false);
+                } catch (error) {
+                  toast.error("Failed to create custom slide");
+                } finally {
+                  setIsCreatingSlide(false);
+                }
+              }}
+              disabled={isCreatingSlide || !newSlideTitle.trim()}
+            >
+              {isCreatingSlide ? "Creating..." : "Create Slide"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

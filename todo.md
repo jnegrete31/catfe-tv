@@ -817,3 +817,9 @@
 
 ## Bug Fix - Slide Editor Properties Panel
 - [x] Fix properties panel disappearing after dragging an element
+
+## Feature - Custom Slide Creation
+- [x] Add "New Custom Slide" option to editor dropdown
+- [x] Create dialog to enter custom slide title
+- [x] Save custom slides as a new screen type (CUSTOM)
+- [x] Display custom slides in TV rotation

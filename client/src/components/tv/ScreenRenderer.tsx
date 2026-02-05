@@ -1825,6 +1825,47 @@ export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendere
     SNAP_PURR_QR: SnapPurrQRScreen,
     POLL: () => <PollScreen />,
     CHECK_IN: CheckInScreen,
+    // Custom slides always use TemplateRenderer with their saved template
+    CUSTOM: ({ screen }) => {
+      // For CUSTOM screens, render with dark elegant theme
+      return (
+        <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
+          {/* Animated background pattern */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-10 left-10 w-32 h-32 border-2 border-white/30 rounded-full animate-pulse" />
+            <div className="absolute top-1/4 right-20 w-24 h-24 border-2 border-pink-400/30 rounded-full" />
+            <div className="absolute bottom-20 left-1/4 w-40 h-40 border-2 border-blue-400/30 rounded-full" />
+          </div>
+          
+          {/* Content */}
+          <div className="relative z-10 w-full h-full flex flex-col items-center justify-center p-8 md:p-16">
+            <h1 className="text-6xl md:text-7xl font-bold text-white mb-4 text-center">{screen.title}</h1>
+            {screen.subtitle && (
+              <p className="text-3xl md:text-4xl text-white/80 text-center">{screen.subtitle}</p>
+            )}
+            {screen.body && (
+              <p className="text-2xl md:text-3xl text-white/60 mt-6 max-w-4xl text-center">{screen.body}</p>
+            )}
+            {screen.imagePath && (
+              <div className="mt-8">
+                <div className="bg-white p-4 pb-16 shadow-2xl" style={{ transform: 'rotate(-2deg)' }}>
+                  <img 
+                    src={screen.imagePath} 
+                    alt={screen.title}
+                    className="w-[400px] h-[300px] object-cover"
+                  />
+                </div>
+              </div>
+            )}
+            {screen.qrUrl && (
+              <div className="mt-8 bg-white p-4 rounded-lg shadow-xl">
+                <QRCodeSVG value={screen.qrUrl} size={150} level="M" />
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    },
   };
   
   const Renderer = renderers[screen.type] || EventScreen;

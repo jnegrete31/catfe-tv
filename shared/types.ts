@@ -25,6 +25,7 @@ export const SCREEN_TYPES = [
   "POLL",
   "POLL_QR",
   "CHECK_IN",
+  "CUSTOM",
 ] as const;
 
 export type ScreenType = typeof SCREEN_TYPES[number];
@@ -48,6 +49,7 @@ export const SCREEN_TYPE_CONFIG: Record<ScreenType, { label: string; color: stri
   POLL: { label: "Cat Poll", color: "#7c3aed", bgColor: "#ede9fe" },
   POLL_QR: { label: "Poll QR", color: "#8b5cf6", bgColor: "#f3e8ff" },
   CHECK_IN: { label: "Guest Check-in", color: "#0891b2", bgColor: "#cffafe" },
+  CUSTOM: { label: "Custom Slide", color: "#6b7280", bgColor: "#f3f4f6" },
 };
 
 // Days of week
