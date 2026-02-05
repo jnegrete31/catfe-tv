@@ -862,3 +862,13 @@
 - [x] Add Gallery Grid element type to slide editor with gallery-specific controls
 - [x] Remove conflicting static Photo elements from SNAP_PURR_GALLERY template
 - [x] Test gallery display with approved photos from database
+
+## Feature - Photo Likes for Snap & Purr Gallery (Feb 5)
+- [x] Add likes count field to photoSubmissions table
+- [x] Create photoLikes table to track individual likes (prevent duplicate likes)
+- [x] Create API endpoint to like a photo
+- [x] Create API endpoint to get photos sorted by likes
+- [x] Update gallery display to show like counts on photos
+- [x] Create public photo voting page accessible via QR code
+- [x] Add sorting option in gallery (newest vs most-liked)
+- [x] Test like feature end-to-end

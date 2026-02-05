@@ -9,6 +9,7 @@ import {
   screenViews, InsertScreenView,
   guestSessions, InsertGuestSession, GuestSession,
   photoSubmissions, InsertPhotoSubmission, PhotoSubmission,
+  photoLikes, InsertPhotoLike, PhotoLike,
   suggestedCaptions, InsertSuggestedCaption, SuggestedCaption,
   polls, InsertPoll, Poll,
   pollVotes, InsertPollVote, PollVote,
@@ -1833,4 +1834,123 @@ export async function seedDefaultSlideTemplates(): Promise<void> {
       });
     }
   }
+}
+
+
+// ============ PHOTO LIKES ============
+
+/**
+ * Like a photo - prevents duplicate likes from same fingerprint
+ */
+export async function likePhoto(photoId: number, voterFingerprint: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Check if already liked
+  const existingLike = await db.select().from(photoLikes)
+    .where(and(
+      eq(photoLikes.photoId, photoId),
+      eq(photoLikes.voterFingerprint, voterFingerprint)
+    ))
+    .limit(1);
+  
+  if (existingLike.length > 0) {
+    return { success: false, error: "Already liked", alreadyLiked: true };
+  }
+  
+  // Add like
+  await db.insert(photoLikes).values({
+    photoId,
+    voterFingerprint,
+  });
+  
+  // Update likes count on photo
+  await db.update(photoSubmissions)
+    .set({ likesCount: sql`${photoSubmissions.likesCount} + 1` })
+    .where(eq(photoSubmissions.id, photoId));
+  
+  return { success: true };
+}
+
+/**
+ * Unlike a photo
+ */
+export async function unlikePhoto(photoId: number, voterFingerprint: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Check if liked
+  const existingLike = await db.select().from(photoLikes)
+    .where(and(
+      eq(photoLikes.photoId, photoId),
+      eq(photoLikes.voterFingerprint, voterFingerprint)
+    ))
+    .limit(1);
+  
+  if (existingLike.length === 0) {
+    return { success: false, error: "Not liked" };
+  }
+  
+  // Remove like
+  await db.delete(photoLikes).where(and(
+    eq(photoLikes.photoId, photoId),
+    eq(photoLikes.voterFingerprint, voterFingerprint)
+  ));
+  
+  // Update likes count on photo
+  await db.update(photoSubmissions)
+    .set({ likesCount: sql`GREATEST(${photoSubmissions.likesCount} - 1, 0)` })
+    .where(eq(photoSubmissions.id, photoId));
+  
+  return { success: true };
+}
+
+/**
+ * Check if a user has liked a photo
+ */
+export async function hasLikedPhoto(photoId: number, voterFingerprint: string): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  
+  const existingLike = await db.select().from(photoLikes)
+    .where(and(
+      eq(photoLikes.photoId, photoId),
+      eq(photoLikes.voterFingerprint, voterFingerprint)
+    ))
+    .limit(1);
+  
+  return existingLike.length > 0;
+}
+
+/**
+ * Get photos sorted by likes (most liked first)
+ */
+export async function getPhotosByLikes(type: "happy_tails" | "snap_purr", limit: number = 20) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db.select().from(photoSubmissions)
+    .where(
+      and(
+        eq(photoSubmissions.type, type),
+        eq(photoSubmissions.status, "approved"),
+        eq(photoSubmissions.showOnTv, true)
+      )
+    )
+    .orderBy(desc(photoSubmissions.likesCount), desc(photoSubmissions.createdAt))
+    .limit(limit);
+}
+
+/**
+ * Get user's liked photo IDs
+ */
+export async function getUserLikedPhotos(voterFingerprint: string): Promise<number[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const likes = await db.select({ photoId: photoLikes.photoId })
+    .from(photoLikes)
+    .where(eq(photoLikes.voterFingerprint, voterFingerprint));
+  
+  return likes.map(l => l.photoId);
 }

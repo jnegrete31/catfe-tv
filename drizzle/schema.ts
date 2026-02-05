@@ -226,6 +226,8 @@ export const photoSubmissions = mysqlTable("photoSubmissions", {
   isFeatured: boolean("isFeatured").notNull().default(false), // Featured photos show more prominently
   backgroundStyle: mysqlEnum("backgroundStyle", ["blur", "gradient"]).default("blur"), // For portrait photos
   borderStyle: mysqlEnum("borderStyle", ["rounded", "polaroid", "film", "none"]).default("rounded"), // Photo frame style
+  // Likes count
+  likesCount: int("likesCount").notNull().default(0), // Total number of likes
   // Timestamps
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -233,6 +235,20 @@ export const photoSubmissions = mysqlTable("photoSubmissions", {
 
 export type PhotoSubmission = typeof photoSubmissions.$inferSelect;
 export type InsertPhotoSubmission = typeof photoSubmissions.$inferInsert;
+
+/**
+ * Photo likes table - tracks individual likes to prevent duplicates
+ */
+export const photoLikes = mysqlTable("photoLikes", {
+  id: int("id").autoincrement().primaryKey(),
+  photoId: int("photoId").notNull(), // References photoSubmissions.id
+  // Anonymous voting - track by device fingerprint to prevent duplicate likes
+  voterFingerprint: varchar("voterFingerprint", { length: 64 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type PhotoLike = typeof photoLikes.$inferSelect;
+export type InsertPhotoLike = typeof photoLikes.$inferInsert;
 
 /**
  * Caption type for suggested captions

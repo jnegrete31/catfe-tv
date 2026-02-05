@@ -95,6 +95,11 @@ import {
   deleteSlideTemplate,
   getDefaultTemplateElements,
   seedDefaultSlideTemplates,
+  likePhoto,
+  unlikePhoto,
+  hasLikedPhoto,
+  getPhotosByLikes,
+  getUserLikedPhotos,
 } from "./db";
 // Wix integration removed
 import { storagePut } from "./storage";
@@ -706,6 +711,55 @@ export const appRouter = router({
     getFeatured: publicProcedure.query(async () => {
       return getFeaturedPhotos();
     }),
+
+    // Public: Like a photo
+    like: publicProcedure
+      .input(z.object({
+        photoId: z.number(),
+        fingerprint: z.string().min(1).max(64),
+      }))
+      .mutation(async ({ input }) => {
+        return likePhoto(input.photoId, input.fingerprint);
+      }),
+
+    // Public: Unlike a photo
+    unlike: publicProcedure
+      .input(z.object({
+        photoId: z.number(),
+        fingerprint: z.string().min(1).max(64),
+      }))
+      .mutation(async ({ input }) => {
+        return unlikePhoto(input.photoId, input.fingerprint);
+      }),
+
+    // Public: Check if user has liked a photo
+    hasLiked: publicProcedure
+      .input(z.object({
+        photoId: z.number(),
+        fingerprint: z.string().min(1).max(64),
+      }))
+      .query(async ({ input }) => {
+        return hasLikedPhoto(input.photoId, input.fingerprint);
+      }),
+
+    // Public: Get photos sorted by likes
+    getByLikes: publicProcedure
+      .input(z.object({
+        type: z.enum(["happy_tails", "snap_purr"]),
+        limit: z.number().min(1).max(100).default(20),
+      }))
+      .query(async ({ input }) => {
+        return getPhotosByLikes(input.type, input.limit);
+      }),
+
+    // Public: Get user's liked photo IDs
+    getUserLikes: publicProcedure
+      .input(z.object({
+        fingerprint: z.string().min(1).max(64),
+      }))
+      .query(async ({ input }) => {
+        return getUserLikedPhotos(input.fingerprint);
+      }),
   }),
 
   // ============ GITHUB INTEGRATION ============

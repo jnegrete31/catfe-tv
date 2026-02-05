@@ -12,6 +12,7 @@ import UploadSnapPurr from "./pages/UploadSnapPurr";
 import GuestSlideshow from "./pages/GuestSlideshow";
 import Vote from "./pages/Vote";
 import SlideEditor from "./pages/SlideEditor";
+import PhotoVote from "./pages/PhotoVote";
 
 function Router() {
   return (
@@ -24,6 +25,7 @@ function Router() {
       <Route path="/slideshow/:type" component={GuestSlideshow} />
       <Route path="/vote/:pollId" component={Vote} />
       <Route path="/admin/slide-editor" component={SlideEditor} />
+      <Route path="/photos/vote" component={PhotoVote} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
