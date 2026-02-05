@@ -123,8 +123,20 @@ export default function SlideEditor() {
     waiverQr: { visible: true, x: 2, y: 2, size: 80, opacity: 1, label: "Sign Waiver" },
   });
   const [selectedWidget, setSelectedWidget] = useState<string | null>(null);
+  const [showGrid, setShowGrid] = useState(true);
+  const [snapToGrid, setSnapToGrid] = useState(true);
   const canvasRef = useRef<HTMLDivElement>(null);
   const utils = trpc.useUtils();
+
+  // Grid settings
+  const GRID_SIZE = 5; // 5% increments
+  const SNAP_THRESHOLD = 2; // Snap within 2% of grid line
+
+  // Snap value to grid
+  const snapValue = (value: number): number => {
+    if (!snapToGrid) return value;
+    return Math.round(value / GRID_SIZE) * GRID_SIZE;
+  };
 
   // Fetch template for selected screen type
   const { data: template, refetch: refetchTemplate, isLoading: isLoadingTemplate } = trpc.templates.getByScreenType.useQuery(
@@ -228,11 +240,31 @@ export default function SlideEditor() {
     [isDragging, selectedElementId, dragStart, elements, updateElement]
   );
 
-  // Handle mouse up (stop drag)
+  // Handle mouse up (stop drag) - snap to grid
   const handleMouseUp = useCallback(() => {
+    // Snap element to grid when drag ends
+    if (isDragging && selectedElementId && snapToGrid) {
+      const element = elements.find((el) => el.id === selectedElementId);
+      if (element) {
+        updateElement(selectedElementId, {
+          x: snapValue(element.x),
+          y: snapValue(element.y),
+        });
+      }
+    }
+    // Snap element size to grid when resize ends
+    if (isResizing && selectedElementId && snapToGrid) {
+      const element = elements.find((el) => el.id === selectedElementId);
+      if (element) {
+        updateElement(selectedElementId, {
+          width: snapValue(element.width),
+          height: snapValue(element.height),
+        });
+      }
+    }
     setIsDragging(false);
     setIsResizing(false);
-  }, []);
+  }, [isDragging, isResizing, selectedElementId, elements, snapToGrid, snapValue, updateElement]);
 
   // Add global mouse listeners
   useEffect(() => {
@@ -570,10 +602,32 @@ export default function SlideEditor() {
           <div className="lg:col-span-2">
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <Maximize2 className="h-4 w-4" />
-                  Preview Canvas (16:9)
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Maximize2 className="h-4 w-4" />
+                    Preview Canvas (16:9)
+                  </CardTitle>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1.5">
+                      <Switch
+                        id="show-grid"
+                        checked={showGrid}
+                        onCheckedChange={setShowGrid}
+                        className="scale-75"
+                      />
+                      <Label htmlFor="show-grid" className="text-xs cursor-pointer">Grid</Label>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Switch
+                        id="snap-grid"
+                        checked={snapToGrid}
+                        onCheckedChange={setSnapToGrid}
+                        className="scale-75"
+                      />
+                      <Label htmlFor="snap-grid" className="text-xs cursor-pointer">Snap</Label>
+                    </div>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
                 <div
@@ -595,12 +649,25 @@ export default function SlideEditor() {
                   {elements.map(renderElement)}
 
                   {/* Grid overlay for alignment */}
-                  <div className="absolute inset-0 pointer-events-none opacity-20">
-                    <div className="w-full h-full" style={{
-                      backgroundImage: "linear-gradient(to right, rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.1) 1px, transparent 1px)",
-                      backgroundSize: "10% 10%"
-                    }} />
-                  </div>
+                  {showGrid && (
+                    <div className="absolute inset-0 pointer-events-none">
+                      {/* Grid lines every 5% */}
+                      <div className="w-full h-full" style={{
+                        backgroundImage: "linear-gradient(to right, rgba(255,255,255,0.15) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.15) 1px, transparent 1px)",
+                        backgroundSize: "5% 5%"
+                      }} />
+                      {/* Center vertical line */}
+                      <div className="absolute top-0 bottom-0 left-1/2 w-px bg-blue-400/50" />
+                      {/* Center horizontal line */}
+                      <div className="absolute left-0 right-0 top-1/2 h-px bg-blue-400/50" />
+                      {/* Thirds vertical lines */}
+                      <div className="absolute top-0 bottom-0 left-1/3 w-px bg-green-400/30" />
+                      <div className="absolute top-0 bottom-0 left-2/3 w-px bg-green-400/30" />
+                      {/* Thirds horizontal lines */}
+                      <div className="absolute left-0 right-0 top-1/3 h-px bg-green-400/30" />
+                      <div className="absolute left-0 right-0 top-2/3 h-px bg-green-400/30" />
+                    </div>
+                  )}
                 </div>
                 <p className="text-xs text-muted-foreground mt-2 text-center">
                   Click and drag elements to reposition. Drag corners to resize.

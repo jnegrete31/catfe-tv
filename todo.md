@@ -840,3 +840,9 @@
 
 ## Bug Fix - Slide Editor Template Loading
 - [x] Fix template not loading saved changes when switching screen types
+
+## Feature - Snap to Grid
+- [x] Add visual grid lines to the canvas
+- [x] Add snap-to-grid when dragging elements
+- [x] Add center guides (horizontal and vertical center lines)
+- [x] Add toggle to enable/disable grid
