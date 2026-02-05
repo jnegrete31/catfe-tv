@@ -116,16 +116,44 @@ struct TVDisplayView: View {
 struct LoadingView: View {
     var body: some View {
         ZStack {
-            Color(hex: "#fef3c7")
+            // Dark industrial background
+            Color(hex: "#1f2937")
+            
+            // Warm amber glow
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [Color(hex: "#d97706").opacity(0.3), Color.clear],
+                        center: .center,
+                        startRadius: 0,
+                        endRadius: 400
+                    )
+                )
+                .frame(width: 800, height: 800)
+                .position(x: 960, y: -100)
+            
+            // Mint green floor
+            VStack {
+                Spacer()
+                LinearGradient(
+                    colors: [Color.clear, Color(hex: "#a8d5ba").opacity(0.3)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 150)
+            }
             
             VStack(spacing: 24) {
+                Text("🐱")
+                    .font(.system(size: 80))
+                
                 ProgressView()
                     .scaleEffect(2)
-                    .tint(Color(hex: "#92400e"))
+                    .tint(Color(hex: "#f97316"))
                 
                 Text("Loading content...")
                     .font(.title2)
-                    .foregroundColor(Color(hex: "#92400e"))
+                    .foregroundColor(Color(hex: "#fef3c7"))
             }
         }
     }
@@ -165,20 +193,71 @@ struct ErrorView: View {
 struct FallbackView: View {
     var body: some View {
         ZStack {
-            Color(hex: "#fef3c7")
+            // Dark industrial background
+            Color(hex: "#1f2937")
+            
+            // Warm amber glows
+            GeometryReader { geometry in
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [Color(hex: "#d97706").opacity(0.25), Color.clear],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: 500
+                        )
+                    )
+                    .frame(width: 1000, height: 1000)
+                    .position(x: geometry.size.width * 0.3, y: -200)
+                
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [Color(hex: "#f97316").opacity(0.2), Color.clear],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: 400
+                        )
+                    )
+                    .frame(width: 800, height: 800)
+                    .position(x: geometry.size.width * 0.7, y: -100)
+            }
+            
+            // Mint green floor reflection
+            VStack {
+                Spacer()
+                LinearGradient(
+                    colors: [Color.clear, Color(hex: "#a8d5ba").opacity(0.3)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 200)
+            }
+            
+            // Cat decorations
+            GeometryReader { geometry in
+                Text("🐱")
+                    .font(.system(size: 60))
+                    .opacity(0.1)
+                    .position(x: geometry.size.width - 80, y: geometry.size.height - 50)
+                
+                Text("🐾")
+                    .font(.system(size: 40))
+                    .opacity(0.05)
+                    .position(x: 100, y: geometry.size.height * 0.4)
+            }
             
             VStack(spacing: 16) {
-                Image(systemName: "cat.fill")
-                    .font(.system(size: 80))
-                    .foregroundColor(Color(hex: "#92400e"))
+                Text("🐱")
+                    .font(.system(size: 100))
                 
                 Text("Catfé TV")
-                    .font(.system(size: 48, weight: .bold, design: .serif))
-                    .foregroundColor(Color(hex: "#92400e"))
+                    .font(.system(size: 56, weight: .bold, design: .serif))
+                    .foregroundColor(Color(hex: "#fef3c7"))
                 
                 Text("No content available")
                     .font(.title3)
-                    .foregroundColor(Color(hex: "#b45309"))
+                    .foregroundColor(Color(hex: "#fef3c7").opacity(0.7))
             }
         }
     }
@@ -212,6 +291,7 @@ struct WeatherClockOverlay: View {
                 HStack(spacing: 8) {
                     Image(systemName: code.weatherIcon)
                         .font(.title2)
+                        .foregroundColor(Color(hex: "#f97316"))
                     
                     VStack(alignment: .leading, spacing: 2) {
                         Text("\(temp)°F")
@@ -221,10 +301,10 @@ struct WeatherClockOverlay: View {
                             .opacity(0.8)
                     }
                 }
-                .foregroundColor(.white)
+                .foregroundColor(Color(hex: "#fef3c7"))
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
-                .background(Color.black.opacity(0.4))
+                .background(Color(hex: "#292524").opacity(0.8))
                 .clipShape(RoundedRectangle(cornerRadius: 12))
             }
             
@@ -246,10 +326,10 @@ struct TimeDisplay: View {
                 .font(.caption)
                 .opacity(0.8)
         }
-        .foregroundColor(.white)
+        .foregroundColor(Color(hex: "#fef3c7"))
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
-        .background(Color.black.opacity(0.4))
+        .background(Color(hex: "#292524").opacity(0.8))
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .onReceive(timer) { time in
             currentTime = time
