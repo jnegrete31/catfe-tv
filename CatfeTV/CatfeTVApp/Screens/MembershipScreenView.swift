@@ -2,7 +2,7 @@
 //  MembershipScreenView.swift
 //  CatfeTVApp
 //
-//  Membership promotion screen
+//  Membership promotion screen - Lounge-inspired design
 //
 
 import SwiftUI
@@ -15,22 +15,26 @@ struct MembershipScreenView: View {
             HStack(spacing: 60) {
                 // Left side - Content
                 VStack(alignment: .leading, spacing: 32) {
-                    // Badge
-                    ScreenBadge(text: "Members Only", color: .catfeSage)
+                    // Badge with emoji
+                    ScreenBadge(
+                        text: "Members Only",
+                        color: .loungeMintGreen,
+                        emoji: "⭐"
+                    )
                     
                     Spacer()
                     
                     // Title
                     Text(screen.title)
                         .font(CatfeTypography.heroTitle)
-                        .foregroundColor(.catfeBrown)
+                        .foregroundColor(.loungeCream)
                         .lineLimit(2)
                     
                     // Subtitle
                     if let subtitle = screen.subtitle {
                         Text(subtitle)
                             .font(CatfeTypography.title)
-                            .foregroundColor(.catfeSage)
+                            .foregroundColor(.loungeMintGreen)
                     }
                     
                     // Benefits
@@ -41,11 +45,11 @@ struct MembershipScreenView: View {
                                     HStack(alignment: .top, spacing: 16) {
                                         Image(systemName: "checkmark.circle.fill")
                                             .font(.system(size: 28))
-                                            .foregroundColor(.catfeSage)
+                                            .foregroundColor(.loungeMintGreen)
                                         
                                         Text(line.replacingOccurrences(of: "• ", with: ""))
                                             .font(CatfeTypography.body)
-                                            .foregroundColor(.catfeBrown)
+                                            .foregroundColor(.loungeCream)
                                     }
                                 }
                             }
@@ -61,10 +65,10 @@ struct MembershipScreenView: View {
                 VStack(spacing: 40) {
                     // Membership card illustration or image
                     if let imageURL = screen.imageURL {
-                        ScreenImage(url: imageURL)
-                            .aspectRatio(16/10, contentMode: .fit)
-                            .cornerRadius(24)
-                            .shadow(color: .black.opacity(0.15), radius: 20)
+                        PolaroidFrame(caption: nil, rotation: -2) {
+                            ScreenImage(url: imageURL)
+                                .frame(width: 500, height: 320)
+                        }
                     } else {
                         // Default membership card design
                         MembershipCardView()
@@ -74,13 +78,7 @@ struct MembershipScreenView: View {
                     
                     // QR Code
                     if let qrURL = screen.qrCodeURL {
-                        VStack(spacing: 16) {
-                            QRCodeView(url: qrURL, size: 200)
-                            
-                            Text("Scan to Join")
-                                .font(CatfeTypography.subtitle)
-                                .foregroundColor(.catfeBrown.opacity(0.7))
-                        }
+                        QRCodeView(url: qrURL, size: 200)
                     }
                 }
                 .frame(width: UIScreen.main.bounds.width * 0.35)
@@ -89,16 +87,16 @@ struct MembershipScreenView: View {
     }
 }
 
-// MARK: - Membership Card View
+// MARK: - Membership Card View (Lounge-inspired)
 
 struct MembershipCardView: View {
     var body: some View {
         ZStack {
-            // Card background
+            // Card background with lounge colors
             RoundedRectangle(cornerRadius: 24)
                 .fill(
                     LinearGradient(
-                        colors: [.catfeTerracotta, .catfeDarkTerracotta],
+                        colors: [.loungeWarmOrange, .loungeAmber],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
@@ -107,9 +105,8 @@ struct MembershipCardView: View {
             // Card content
             VStack(alignment: .leading, spacing: 20) {
                 HStack {
-                    Image(systemName: "cat.fill")
+                    Text("🐱")
                         .font(.system(size: 40))
-                        .foregroundColor(.white.opacity(0.9))
                     
                     Spacer()
                     
@@ -131,7 +128,8 @@ struct MembershipCardView: View {
             .padding(32)
         }
         .aspectRatio(16/10, contentMode: .fit)
-        .shadow(color: .black.opacity(0.2), radius: 20)
+        .shadow(color: .black.opacity(0.3), radius: 20)
+        .rotationEffect(.degrees(-2))
     }
 }
 

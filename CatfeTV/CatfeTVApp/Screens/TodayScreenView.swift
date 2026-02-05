@@ -2,7 +2,7 @@
 //  TodayScreenView.swift
 //  CatfeTVApp
 //
-//  Today at Catfé screen
+//  Today at Catfé screen - Lounge-inspired design
 //
 
 import SwiftUI
@@ -17,21 +17,28 @@ struct TodayScreenView: View {
                 // Header
                 HStack {
                     VStack(alignment: .leading, spacing: 8) {
+                        // Badge with emoji
+                        ScreenBadge(
+                            text: "Today at Catfé",
+                            color: .loungeAmber,
+                            emoji: "☀️"
+                        )
+                        
                         Text(screen.title)
                             .font(CatfeTypography.heroTitle)
-                            .foregroundColor(.catfeBrown)
+                            .foregroundColor(.loungeCream)
                         
                         Text(currentDate.formattedDate)
                             .font(CatfeTypography.title)
-                            .foregroundColor(.catfeGold)
+                            .foregroundColor(.loungeWarmOrange)
                     }
                     
                     Spacer()
                     
-                    // Cat icon
-                    Image(systemName: "cat.fill")
+                    // Cat emoji
+                    Text("🐱")
                         .font(.system(size: 80))
-                        .foregroundColor(.catfeTerracotta.opacity(0.3))
+                        .opacity(0.3)
                 }
                 
                 // Main Content
@@ -41,7 +48,7 @@ struct TodayScreenView: View {
                         if let subtitle = screen.subtitle {
                             Text(subtitle)
                                 .font(CatfeTypography.subtitle)
-                                .foregroundColor(.catfeBrown.opacity(0.8))
+                                .foregroundColor(.loungeCream.opacity(0.8))
                         }
                         
                         // Body text as bullet points
@@ -52,17 +59,17 @@ struct TodayScreenView: View {
                                         HStack(alignment: .top, spacing: 16) {
                                             if line.hasPrefix("•") {
                                                 Circle()
-                                                    .fill(Color.catfeTerracotta)
+                                                    .fill(Color.loungeWarmOrange)
                                                     .frame(width: 16, height: 16)
                                                     .padding(.top, 12)
                                                 
                                                 Text(line.replacingOccurrences(of: "• ", with: ""))
                                                     .font(CatfeTypography.body)
-                                                    .foregroundColor(.catfeBrown)
+                                                    .foregroundColor(.loungeCream)
                                             } else {
                                                 Text(line)
                                                     .font(CatfeTypography.body)
-                                                    .foregroundColor(.catfeBrown)
+                                                    .foregroundColor(.loungeCream)
                                             }
                                         }
                                     }
@@ -74,13 +81,12 @@ struct TodayScreenView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     
-                    // Image (if available)
+                    // Image (if available) in polaroid frame
                     if let imageURL = screen.imageURL {
-                        ScreenImage(url: imageURL)
-                            .frame(width: UIScreen.main.bounds.width * 0.35)
-                            .aspectRatio(4/3, contentMode: .fit)
-                            .cornerRadius(24)
-                            .shadow(color: .black.opacity(0.1), radius: 20)
+                        PolaroidFrame(caption: nil, rotation: 2) {
+                            ScreenImage(url: imageURL)
+                                .frame(width: 450, height: 340)
+                        }
                     }
                 }
                 
@@ -88,12 +94,7 @@ struct TodayScreenView: View {
                 if let qrURL = screen.qrCodeURL {
                     HStack {
                         Spacer()
-                        VStack(spacing: 12) {
-                            QRCodeView(url: qrURL, size: 150)
-                            Text("Learn More")
-                                .font(CatfeTypography.caption)
-                                .foregroundColor(.catfeBrown.opacity(0.6))
-                        }
+                        QRCodeView(url: qrURL, size: 150)
                     }
                 }
             }

@@ -2,7 +2,7 @@
 //  RemindersScreenView.swift
 //  CatfeTVApp
 //
-//  Reminders and rules screen
+//  Reminders and rules screen - Lounge-inspired design
 //
 
 import SwiftUI
@@ -10,13 +10,13 @@ import SwiftUI
 struct RemindersScreenView: View {
     let screen: Screen
     
-    private let reminderIcons = [
-        "hand.raised.fill",
-        "camera.fill",
-        "heart.fill",
-        "cup.and.saucer.fill",
-        "bell.fill",
-        "pawprint.fill"
+    private let reminderEmojis = [
+        "✋",
+        "📸",
+        "❤️",
+        "☕",
+        "🔔",
+        "🐾"
     ]
     
     var body: some View {
@@ -25,22 +25,29 @@ struct RemindersScreenView: View {
                 // Header
                 HStack {
                     VStack(alignment: .leading, spacing: 8) {
+                        // Badge with emoji
+                        ScreenBadge(
+                            text: "Friendly Reminders",
+                            color: .loungeWarmOrange,
+                            emoji: "📢"
+                        )
+                        
                         Text(screen.title)
                             .font(CatfeTypography.heroTitle)
-                            .foregroundColor(.catfeBrown)
+                            .foregroundColor(.loungeCream)
                         
                         if let subtitle = screen.subtitle {
                             Text(subtitle)
                                 .font(CatfeTypography.title)
-                                .foregroundColor(Color(hex: "F57C00"))
+                                .foregroundColor(.loungeWarmOrange)
                         }
                     }
                     
                     Spacer()
                     
-                    Image(systemName: "bell.fill")
-                        .font(.system(size: 60))
-                        .foregroundColor(Color(hex: "F57C00").opacity(0.3))
+                    Text("🐱")
+                        .font(.system(size: 80))
+                        .opacity(0.3)
                 }
                 
                 // Reminders Grid
@@ -54,8 +61,7 @@ struct RemindersScreenView: View {
                         ForEach(Array(reminders.enumerated()), id: \.offset) { index, reminder in
                             ReminderCard(
                                 text: reminder.replacingOccurrences(of: "• ", with: ""),
-                                icon: reminderIcons[index % reminderIcons.count],
-                                color: Color(hex: "F57C00")
+                                emoji: reminderEmojis[index % reminderEmojis.count]
                             )
                         }
                     }
@@ -67,7 +73,7 @@ struct RemindersScreenView: View {
                 HStack {
                     Text("Thank you for helping us keep our cats happy and healthy!")
                         .font(CatfeTypography.body)
-                        .foregroundColor(.catfeBrown.opacity(0.7))
+                        .foregroundColor(.loungeCream.opacity(0.7))
                         .italic()
                     
                     Spacer()
@@ -81,35 +87,34 @@ struct RemindersScreenView: View {
     }
 }
 
-// MARK: - Reminder Card
+// MARK: - Reminder Card (Lounge-inspired)
 
 struct ReminderCard: View {
     let text: String
-    let icon: String
-    let color: Color
+    let emoji: String
     
     var body: some View {
         HStack(spacing: 24) {
             ZStack {
                 Circle()
-                    .fill(color.opacity(0.15))
+                    .fill(Color.loungeWarmOrange.opacity(0.2))
                     .frame(width: 80, height: 80)
                 
-                Image(systemName: icon)
+                Text(emoji)
                     .font(.system(size: 36))
-                    .foregroundColor(color)
             }
             
             Text(text)
                 .font(CatfeTypography.body)
-                .foregroundColor(.catfeBrown)
+                .foregroundColor(.loungeCharcoal)
                 .multilineTextAlignment(.leading)
             
             Spacer()
         }
         .padding(24)
-        .background(Color.white.opacity(0.7))
+        .background(Color.loungeCream)
         .cornerRadius(20)
+        .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
     }
 }
 

@@ -2,7 +2,7 @@
 //  EventsScreenView.swift
 //  CatfeTVApp
 //
-//  Events screen showing upcoming events
+//  Events screen showing upcoming events - Lounge-inspired design
 //
 
 import SwiftUI
@@ -15,22 +15,26 @@ struct EventsScreenView: View {
             HStack(spacing: 60) {
                 // Event Info (Left side)
                 VStack(alignment: .leading, spacing: 32) {
-                    // Badge
-                    ScreenBadge(text: "Upcoming Event", color: screen.type.accentColor)
+                    // Badge with emoji
+                    ScreenBadge(
+                        text: "Upcoming Event",
+                        color: .loungeAmber,
+                        emoji: "🎉"
+                    )
                     
                     Spacer()
                     
                     // Event Title
                     Text(screen.title)
                         .font(CatfeTypography.heroTitle)
-                        .foregroundColor(.catfeBrown)
+                        .foregroundColor(.loungeCream)
                         .lineLimit(3)
                     
                     // Subtitle
                     if let subtitle = screen.subtitle {
                         Text(subtitle)
                             .font(CatfeTypography.title)
-                            .foregroundColor(screen.type.accentColor)
+                            .foregroundColor(.loungeWarmOrange)
                     }
                     
                     // Event Details
@@ -40,11 +44,11 @@ struct EventsScreenView: View {
                             HStack(spacing: 16) {
                                 Image(systemName: "calendar")
                                     .font(.system(size: 32))
-                                    .foregroundColor(screen.type.accentColor)
+                                    .foregroundColor(.loungeWarmOrange)
                                 
                                 Text(eventDate.formattedDate)
                                     .font(CatfeTypography.subtitle)
-                                    .foregroundColor(.catfeBrown)
+                                    .foregroundColor(.loungeCream)
                             }
                         }
                         
@@ -53,11 +57,11 @@ struct EventsScreenView: View {
                             HStack(spacing: 16) {
                                 Image(systemName: "clock")
                                     .font(.system(size: 32))
-                                    .foregroundColor(screen.type.accentColor)
+                                    .foregroundColor(.loungeWarmOrange)
                                 
                                 Text(eventTime)
                                     .font(CatfeTypography.subtitle)
-                                    .foregroundColor(.catfeBrown)
+                                    .foregroundColor(.loungeCream)
                             }
                         }
                         
@@ -66,11 +70,11 @@ struct EventsScreenView: View {
                             HStack(spacing: 16) {
                                 Image(systemName: "mappin.circle")
                                     .font(.system(size: 32))
-                                    .foregroundColor(screen.type.accentColor)
+                                    .foregroundColor(.loungeWarmOrange)
                                 
                                 Text(location)
                                     .font(CatfeTypography.subtitle)
-                                    .foregroundColor(.catfeBrown)
+                                    .foregroundColor(.loungeCream)
                             }
                         }
                     }
@@ -80,7 +84,7 @@ struct EventsScreenView: View {
                     if let body = screen.bodyText {
                         Text(body)
                             .font(CatfeTypography.body)
-                            .foregroundColor(.catfeBrown.opacity(0.8))
+                            .foregroundColor(.loungeCream.opacity(0.8))
                             .lineLimit(4)
                             .padding(.top, 16)
                     }
@@ -92,23 +96,16 @@ struct EventsScreenView: View {
                 // Image and QR Code (Right side)
                 VStack(spacing: 32) {
                     if let imageURL = screen.imageURL {
-                        ScreenImage(url: imageURL)
-                            .frame(maxWidth: .infinity)
-                            .aspectRatio(16/9, contentMode: .fit)
-                            .cornerRadius(24)
-                            .shadow(color: .black.opacity(0.1), radius: 20)
+                        PolaroidFrame(caption: nil, rotation: 2) {
+                            ScreenImage(url: imageURL)
+                                .frame(width: 500, height: 350)
+                        }
                     }
                     
                     Spacer()
                     
                     if let qrURL = screen.qrCodeURL {
-                        VStack(spacing: 16) {
-                            QRCodeView(url: qrURL, size: 180)
-                            
-                            Text("Scan to RSVP")
-                                .font(CatfeTypography.caption)
-                                .foregroundColor(.catfeBrown.opacity(0.6))
-                        }
+                        QRCodeView(url: qrURL, size: 180)
                     }
                 }
                 .frame(width: UIScreen.main.bounds.width * 0.35)

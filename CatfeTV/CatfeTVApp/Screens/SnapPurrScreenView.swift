@@ -2,7 +2,7 @@
 //  SnapPurrScreenView.swift
 //  CatfeTVApp
 //
-//  Snap & Purr social media call-to-action screen
+//  Snap & Purr social media call-to-action screen - Lounge-inspired design
 //
 
 import SwiftUI
@@ -20,17 +20,16 @@ struct SnapPurrScreenView: View {
                     HStack(spacing: 20) {
                         Image(systemName: "camera.fill")
                             .font(.system(size: 60))
-                            .foregroundColor(.catfeTerracotta)
+                            .foregroundColor(.loungeWarmOrange)
                             .scaleEffect(isAnimating ? 1.1 : 1.0)
                             .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: isAnimating)
                         
                         Text("+")
                             .font(.system(size: 48, weight: .bold))
-                            .foregroundColor(.catfeBrown.opacity(0.5))
+                            .foregroundColor(.loungeCream.opacity(0.5))
                         
-                        Image(systemName: "cat.fill")
+                        Text("🐱")
                             .font(.system(size: 60))
-                            .foregroundColor(.catfeTerracotta)
                             .scaleEffect(isAnimating ? 1.0 : 1.1)
                             .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: isAnimating)
                     }
@@ -40,27 +39,27 @@ struct SnapPurrScreenView: View {
                     // Title
                     Text(screen.title)
                         .font(CatfeTypography.heroTitle)
-                        .foregroundColor(.catfeTerracotta)
+                        .foregroundColor(.loungeCream)
                     
                     // Subtitle
                     if let subtitle = screen.subtitle {
                         Text(subtitle)
                             .font(CatfeTypography.title)
-                            .foregroundColor(.catfeBrown)
+                            .foregroundColor(.loungeMintGreen)
                     }
                     
                     // Body text
                     if let body = screen.bodyText {
                         Text(body)
                             .font(CatfeTypography.body)
-                            .foregroundColor(.catfeBrown.opacity(0.8))
+                            .foregroundColor(.loungeCream.opacity(0.8))
                             .lineLimit(4)
                     }
                     
                     // Hashtag
                     Text("#CatfeSantaClarita")
                         .font(CatfeTypography.title)
-                        .foregroundColor(.catfeTerracotta)
+                        .foregroundColor(.loungeWarmOrange)
                         .padding(.top, 16)
                     
                     Spacer()
@@ -76,12 +75,12 @@ struct SnapPurrScreenView: View {
                 
                 // Right side - QR Code and Image
                 VStack(spacing: 40) {
-                    // Image
+                    // Image in polaroid frame
                     if let imageURL = screen.imageURL {
-                        ScreenImage(url: imageURL)
-                            .aspectRatio(1, contentMode: .fit)
-                            .cornerRadius(24)
-                            .shadow(color: .black.opacity(0.15), radius: 20)
+                        PolaroidFrame(caption: nil, rotation: 2) {
+                            ScreenImage(url: imageURL)
+                                .frame(width: 400, height: 400)
+                        }
                     } else {
                         // Placeholder with cat photos grid
                         PhotoGridPlaceholder()
@@ -91,13 +90,7 @@ struct SnapPurrScreenView: View {
                     
                     // QR Code
                     if let qrURL = screen.qrCodeURL {
-                        VStack(spacing: 16) {
-                            QRCodeView(url: qrURL, size: 200)
-                            
-                            Text("Scan to Follow Us")
-                                .font(CatfeTypography.subtitle)
-                                .foregroundColor(.catfeBrown.opacity(0.7))
-                        }
+                        QRCodeView(url: qrURL, size: 200)
                     }
                 }
                 .frame(width: UIScreen.main.bounds.width * 0.35)
@@ -109,7 +102,7 @@ struct SnapPurrScreenView: View {
     }
 }
 
-// MARK: - Social Icon
+// MARK: - Social Icon (Updated for lounge theme)
 
 struct SocialIcon: View {
     let name: String
@@ -119,35 +112,41 @@ struct SocialIcon: View {
         VStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.system(size: 48))
-                .foregroundColor(.catfeTerracotta)
+                .foregroundColor(.loungeWarmOrange)
             
             Text(name)
                 .font(CatfeTypography.caption)
-                .foregroundColor(.catfeBrown.opacity(0.7))
+                .foregroundColor(.loungeCream.opacity(0.7))
         }
     }
 }
 
-// MARK: - Photo Grid Placeholder
+// MARK: - Photo Grid Placeholder (Updated for lounge theme)
 
 struct PhotoGridPlaceholder: View {
     var body: some View {
-        LazyVGrid(columns: [
-            GridItem(.flexible(), spacing: 8),
-            GridItem(.flexible(), spacing: 8)
-        ], spacing: 8) {
-            ForEach(0..<4) { _ in
-                Rectangle()
-                    .fill(Color.catfeTerracotta.opacity(0.2))
-                    .aspectRatio(1, contentMode: .fit)
-                    .overlay(
-                        Image(systemName: "cat.fill")
-                            .font(.system(size: 40))
-                            .foregroundColor(.catfeTerracotta.opacity(0.4))
-                    )
+        VStack(spacing: 16) {
+            LazyVGrid(columns: [
+                GridItem(.flexible(), spacing: 8),
+                GridItem(.flexible(), spacing: 8)
+            ], spacing: 8) {
+                ForEach(0..<4) { _ in
+                    Rectangle()
+                        .fill(Color.loungeStone.opacity(0.3))
+                        .aspectRatio(1, contentMode: .fit)
+                        .overlay(
+                            Text("🐱")
+                                .font(.system(size: 40))
+                                .opacity(0.5)
+                        )
+                }
             }
         }
-        .cornerRadius(24)
+        .padding(24)
+        .background(Color.loungeCream)
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.3), radius: 15, x: 0, y: 8)
+        .rotationEffect(.degrees(-2))
     }
 }
 
