@@ -150,21 +150,46 @@ function QRCode({ url, size = 180 }: { url: string; size?: number }) {
   );
 }
 
-// SNAP_AND_PURR - Photo sharing prompt
+// SNAP_AND_PURR - Photo sharing prompt (Lounge-inspired design)
 function SnapAndPurrScreen({ screen, settings }: ScreenRendererProps) {
   return (
-    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
-      {/* Animated background pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-10 left-10 w-32 h-32 border-2 border-white/30 rounded-full animate-pulse" />
-        <div className="absolute top-1/4 right-20 w-24 h-24 border-2 border-pink-400/30 rounded-full" style={{ animationDelay: '1s' }} />
-        <div className="absolute bottom-20 left-1/4 w-40 h-40 border-2 border-amber-400/30 rounded-full" />
-        <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-pink-400/10 rounded-full" />
-      </div>
+    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%)' }}>
+      {/* Mint green floor reflection at bottom */}
+      <div className="absolute bottom-0 left-0 right-0 h-1/3" 
+           style={{ background: 'linear-gradient(to top, rgba(134, 197, 169, 0.15) 0%, transparent 100%)' }} />
       
-      {/* Subtle light rays */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] h-[200%] opacity-5" 
-           style={{ background: 'radial-gradient(ellipse at center top, rgba(255,150,200,0.3) 0%, transparent 50%)' }} />
+      {/* Warm amber light glow from top (like wicker pendant lights) */}
+      <div className="absolute top-0 left-1/4 w-64 h-64 rounded-full opacity-30"
+           style={{ background: 'radial-gradient(circle, rgba(218, 165, 32, 0.4) 0%, transparent 70%)' }} />
+      <div className="absolute top-0 right-1/4 w-64 h-64 rounded-full opacity-30"
+           style={{ background: 'radial-gradient(circle, rgba(218, 165, 32, 0.4) 0%, transparent 70%)' }} />
+      
+      {/* Playful cat silhouettes inspired by mural */}
+      <div className="absolute inset-0 opacity-[0.08]">
+        {/* Orange cat silhouette */}
+        <svg className="absolute top-16 left-16 w-40 h-40" viewBox="0 0 100 100" fill="#E8913A">
+          <ellipse cx="50" cy="60" rx="35" ry="30" />
+          <circle cx="50" cy="30" r="22" />
+          <polygon points="30,15 35,35 25,30" />
+          <polygon points="70,15 65,35 75,30" />
+          <circle cx="42" cy="28" r="4" fill="#1a1a1a" />
+          <circle cx="58" cy="28" r="4" fill="#1a1a1a" />
+        </svg>
+        {/* Gray cat silhouette */}
+        <svg className="absolute bottom-24 right-20 w-32 h-32" viewBox="0 0 100 100" fill="#7a7a7a">
+          <ellipse cx="50" cy="60" rx="35" ry="30" />
+          <circle cx="50" cy="30" r="22" />
+          <polygon points="30,15 35,35 25,30" />
+          <polygon points="70,15 65,35 75,30" />
+        </svg>
+        {/* Cream cat silhouette */}
+        <svg className="absolute top-1/3 right-12 w-28 h-28" viewBox="0 0 100 100" fill="#F5E6D3">
+          <ellipse cx="50" cy="60" rx="35" ry="30" />
+          <circle cx="50" cy="30" r="22" />
+          <polygon points="30,15 35,35 25,30" />
+          <polygon points="70,15 65,35 75,30" />
+        </svg>
+      </div>
       
       {/* Main content */}
       <div className="absolute inset-0 flex items-center justify-center">
@@ -173,26 +198,43 @@ function SnapAndPurrScreen({ screen, settings }: ScreenRendererProps) {
           animate={{ opacity: 1, y: 0 }}
           className="text-center max-w-4xl"
         >
-          <h1 className="text-6xl font-light tracking-wider text-white mb-6" style={{ fontFamily: 'Georgia, serif' }}>
-            <span className="text-pink-400">{screen.title || "Snap"}</span> <span className="text-white/80">& Purr!</span>
+          {/* Camera icon */}
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, type: 'spring' }}
+            className="mx-auto mb-6 w-20 h-20 rounded-2xl flex items-center justify-center"
+            style={{ background: 'linear-gradient(135deg, #E8913A 0%, #D4782A 100%)' }}
+          >
+            <span className="text-4xl">📸</span>
+          </motion.div>
+          
+          <h1 className="text-6xl font-bold tracking-wide mb-4" style={{ fontFamily: 'Georgia, serif' }}>
+            <span style={{ color: '#E8913A' }}>{screen.title || "Snap"}</span>
+            <span className="text-white/90"> & </span>
+            <span style={{ color: '#86C5A9' }}>Purr!</span>
           </h1>
+          
           {screen.subtitle && (
-            <p className="text-2xl text-white/70 mb-8">
+            <p className="text-2xl text-white/70 mb-6" style={{ fontFamily: 'Georgia, serif' }}>
               {screen.subtitle}
             </p>
           )}
           {screen.body && (
-            <p className="text-xl text-white/60 mb-8">
+            <p className="text-xl text-white/50 mb-8">
               {screen.body}
             </p>
           )}
           {screen.qrUrl && (
             <motion.div 
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
-              className="inline-block bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-2xl"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="inline-block rounded-3xl p-6 shadow-2xl"
+              style={{ background: 'linear-gradient(135deg, #F5E6D3 0%, #EDE0D4 100%)' }}
             >
-              <QRCodeSVG value={screen.qrUrl} size={200} level="M" />
+              <QRCodeSVG value={screen.qrUrl} size={200} level="M" fgColor="#2d2d2d" />
+              <p className="mt-3 text-sm font-medium" style={{ color: '#5a5a5a' }}>Scan to share your photos!</p>
             </motion.div>
           )}
         </motion.div>
@@ -201,21 +243,38 @@ function SnapAndPurrScreen({ screen, settings }: ScreenRendererProps) {
   );
 }
 
-// EVENT - Special events
+// EVENT - Special events (Lounge-inspired design)
 function EventScreen({ screen, settings }: ScreenRendererProps) {
   return (
-    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
-      {/* Animated background pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-10 left-10 w-32 h-32 border-2 border-white/30 rounded-full animate-pulse" />
-        <div className="absolute top-1/4 right-20 w-24 h-24 border-2 border-purple-400/30 rounded-full" style={{ animationDelay: '1s' }} />
-        <div className="absolute bottom-20 left-1/4 w-40 h-40 border-2 border-violet-400/30 rounded-full" />
-        <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-purple-400/10 rounded-full" />
-      </div>
+    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(160deg, #F5E6D3 0%, #EDE0D4 40%, #E8DDD0 100%)' }}>
+      {/* Industrial ceiling effect at top */}
+      <div className="absolute top-0 left-0 right-0 h-16" 
+           style={{ background: 'linear-gradient(to bottom, #2d2d2d 0%, transparent 100%)' }} />
       
-      {/* Subtle light rays */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] h-[200%] opacity-5" 
-           style={{ background: 'radial-gradient(ellipse at center top, rgba(150,100,255,0.3) 0%, transparent 50%)' }} />
+      {/* Mint green accent strip */}
+      <div className="absolute bottom-0 left-0 right-0 h-2" style={{ background: '#86C5A9' }} />
+      
+      {/* Warm light glows */}
+      <div className="absolute top-8 left-1/3 w-48 h-48 rounded-full opacity-40"
+           style={{ background: 'radial-gradient(circle, rgba(218, 165, 32, 0.3) 0%, transparent 70%)' }} />
+      <div className="absolute top-8 right-1/3 w-48 h-48 rounded-full opacity-40"
+           style={{ background: 'radial-gradient(circle, rgba(218, 165, 32, 0.3) 0%, transparent 70%)' }} />
+      
+      {/* Decorative cat silhouettes */}
+      <div className="absolute inset-0 opacity-[0.04]">
+        <svg className="absolute bottom-20 left-10 w-24 h-24" viewBox="0 0 100 100" fill="#2d2d2d">
+          <ellipse cx="50" cy="60" rx="35" ry="30" />
+          <circle cx="50" cy="30" r="22" />
+          <polygon points="30,15 35,35 25,30" />
+          <polygon points="70,15 65,35 75,30" />
+        </svg>
+        <svg className="absolute top-32 right-16 w-20 h-20" viewBox="0 0 100 100" fill="#E8913A">
+          <ellipse cx="50" cy="60" rx="35" ry="30" />
+          <circle cx="50" cy="30" r="22" />
+          <polygon points="30,15 35,35 25,30" />
+          <polygon points="70,15 65,35 75,30" />
+        </svg>
+      </div>
       
       {/* Main content */}
       <div className="absolute inset-0 flex items-center justify-center px-16">
@@ -224,7 +283,7 @@ function EventScreen({ screen, settings }: ScreenRendererProps) {
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-row items-center justify-center w-full max-w-7xl gap-16"
         >
-          {/* Event image - polaroid style */}
+          {/* Event image - polaroid style with cream background */}
           {screen.imagePath && (
             <motion.div
               initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
@@ -232,17 +291,17 @@ function EventScreen({ screen, settings }: ScreenRendererProps) {
               transition={{ delay: 0.1, duration: 0.6, type: 'spring', stiffness: 80 }}
               className="flex-shrink-0"
             >
-              <div className="bg-white p-4 pb-16 shadow-2xl rounded-sm relative" style={{ boxShadow: '0 30px 60px -15px rgba(0,0,0,0.6)' }}>
-                <div className="relative w-[380px] h-[380px] overflow-hidden bg-gray-100">
+              <div className="p-4 pb-16 shadow-2xl rounded-lg relative" style={{ background: '#FFFEF9', boxShadow: '0 30px 60px -15px rgba(0,0,0,0.25)' }}>
+                <div className="relative w-[380px] h-[380px] overflow-hidden rounded-md bg-gray-100">
                   <img
                     src={screen.imagePath}
                     alt={screen.title}
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute inset-0" style={{ boxShadow: 'inset 0 0 80px rgba(0,0,0,0.15)' }} />
+                  <div className="absolute inset-0" style={{ boxShadow: 'inset 0 0 80px rgba(0,0,0,0.1)' }} />
                 </div>
                 <div className="absolute bottom-4 left-4 right-4 text-center">
-                  <p className="text-gray-800 text-2xl font-medium" style={{ fontFamily: 'Georgia, serif' }}>
+                  <p className="text-2xl font-medium" style={{ fontFamily: 'Georgia, serif', color: '#3d3d3d' }}>
                     {screen.title}
                   </p>
                 </div>
@@ -255,28 +314,29 @@ function EventScreen({ screen, settings }: ScreenRendererProps) {
             <motion.div 
               initial={{ scale: 0.9 }}
               animate={{ scale: 1 }}
-              className="inline-flex items-center gap-3 px-6 py-3 mb-6 rounded-full bg-purple-500/20 border border-purple-400/30"
+              className="inline-flex items-center gap-3 px-6 py-3 mb-6 rounded-full border-2"
+              style={{ background: 'rgba(232, 145, 58, 0.1)', borderColor: '#E8913A' }}
             >
               <span className="text-3xl">🎉</span>
-              <span className="text-purple-300 text-2xl font-medium tracking-wide">Event</span>
+              <span className="text-2xl font-medium tracking-wide" style={{ color: '#D4782A' }}>Event</span>
             </motion.div>
             {!screen.imagePath && (
-              <h1 className="text-6xl font-light tracking-wider text-white mb-6" style={{ fontFamily: 'Georgia, serif' }}>
-                <span className="text-purple-400">{screen.title}</span>
+              <h1 className="text-6xl font-bold tracking-wide mb-6" style={{ fontFamily: 'Georgia, serif', color: '#2d2d2d' }}>
+                {screen.title}
               </h1>
             )}
             {screen.imagePath && (
-              <h1 className="text-5xl font-light tracking-wider text-white mb-6" style={{ fontFamily: 'Georgia, serif' }}>
-                <span className="text-purple-400">{screen.title}</span>
+              <h1 className="text-5xl font-bold tracking-wide mb-6" style={{ fontFamily: 'Georgia, serif', color: '#2d2d2d' }}>
+                {screen.title}
               </h1>
             )}
             {screen.subtitle && (
-              <p className="text-3xl text-white/80 mb-4">
+              <p className="text-3xl mb-4" style={{ color: '#5a5a5a' }}>
                 {screen.subtitle}
               </p>
             )}
             {screen.body && (
-              <p className="text-2xl text-white/70 leading-relaxed">
+              <p className="text-2xl leading-relaxed" style={{ color: '#6a6a6a' }}>
                 {screen.body}
               </p>
             )}
@@ -285,12 +345,13 @@ function EventScreen({ screen, settings }: ScreenRendererProps) {
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.2 }}
-                className="mt-8 inline-block bg-white/95 backdrop-blur-sm rounded-2xl p-5 shadow-2xl"
+                className="mt-8 inline-block rounded-2xl p-5 shadow-xl"
+                style={{ background: '#FFFEF9' }}
               >
                 <div className="text-center mb-2">
-                  <p className="text-lg font-semibold text-gray-700">Learn More</p>
+                  <p className="text-lg font-semibold" style={{ color: '#3d3d3d' }}>Learn More</p>
                 </div>
-                <QRCodeSVG value={screen.qrUrl} size={150} level="M" />
+                <QRCodeSVG value={screen.qrUrl} size={150} level="M" fgColor="#2d2d2d" />
               </motion.div>
             )}
           </div>
@@ -300,80 +361,112 @@ function EventScreen({ screen, settings }: ScreenRendererProps) {
   );
 }
 
-// TODAY_AT_CATFE - Daily specials/activities
+// TODAY_AT_CATFE - Daily specials/activities (Lounge-inspired design)
 function TodayAtCatfeScreen({ screen, settings }: ScreenRendererProps) {
   return (
-    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
-      {/* Animated background pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-10 left-10 w-32 h-32 border-2 border-white/30 rounded-full animate-pulse" />
-        <div className="absolute top-1/4 right-20 w-24 h-24 border-2 border-amber-400/30 rounded-full" style={{ animationDelay: '1s' }} />
-        <div className="absolute bottom-20 left-1/4 w-40 h-40 border-2 border-orange-400/30 rounded-full" />
-        <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-amber-400/10 rounded-full" />
-      </div>
-      
-      {/* Subtle light rays */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] h-[200%] opacity-5" 
-           style={{ background: 'radial-gradient(ellipse at center top, rgba(255,200,100,0.3) 0%, transparent 50%)' }} />
-      
-      {/* Main content */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center max-w-5xl"
-        >
+    <div className="tv-screen relative overflow-hidden" style={{ background: '#86C5A9' }}>
+      {/* Cream colored content area */}
+      <div className="absolute inset-8 rounded-3xl shadow-2xl" style={{ background: 'linear-gradient(160deg, #F5E6D3 0%, #EDE0D4 100%)' }}>
+        {/* Industrial accent bar at top */}
+        <div className="absolute top-0 left-0 right-0 h-3 rounded-t-3xl" style={{ background: '#2d2d2d' }} />
+        
+        {/* Warm light glows */}
+        <div className="absolute top-12 left-1/4 w-40 h-40 rounded-full opacity-50"
+             style={{ background: 'radial-gradient(circle, rgba(218, 165, 32, 0.25) 0%, transparent 70%)' }} />
+        <div className="absolute top-12 right-1/4 w-40 h-40 rounded-full opacity-50"
+             style={{ background: 'radial-gradient(circle, rgba(218, 165, 32, 0.25) 0%, transparent 70%)' }} />
+        
+        {/* Decorative cat silhouettes */}
+        <div className="absolute inset-0 opacity-[0.03]">
+          <svg className="absolute bottom-16 left-12 w-32 h-32" viewBox="0 0 100 100" fill="#E8913A">
+            <ellipse cx="50" cy="60" rx="35" ry="30" />
+            <circle cx="50" cy="30" r="22" />
+            <polygon points="30,15 35,35 25,30" />
+            <polygon points="70,15 65,35 75,30" />
+          </svg>
+          <svg className="absolute top-24 right-16 w-28 h-28" viewBox="0 0 100 100" fill="#7a7a7a">
+            <ellipse cx="50" cy="60" rx="35" ry="30" />
+            <circle cx="50" cy="30" r="22" />
+            <polygon points="30,15 35,35 25,30" />
+            <polygon points="70,15 65,35 75,30" />
+          </svg>
+        </div>
+        
+        {/* Main content */}
+        <div className="absolute inset-0 flex items-center justify-center">
           <motion.div 
-            initial={{ scale: 0.9 }}
-            animate={{ scale: 1 }}
-            className="inline-flex items-center gap-3 px-8 py-4 mb-8 rounded-full bg-amber-500/20 border border-amber-400/30"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center max-w-5xl px-8"
           >
-            <span className="text-4xl">☕</span>
-            <span className="text-amber-300 text-3xl font-medium tracking-wide">Today at {settings?.locationName || "Catfé"}</span>
-          </motion.div>
-          <h1 className="text-7xl font-light tracking-wider text-white mb-8" style={{ fontFamily: 'Georgia, serif' }}>
-            <span className="text-amber-400">{screen.title}</span>
-          </h1>
-          {screen.subtitle && (
-            <p className="text-4xl text-white/80 mb-6">
-              {screen.subtitle}
-            </p>
-          )}
-          {screen.body && (
-            <p className="text-3xl text-white/70 mb-8 leading-relaxed">
-              {screen.body}
-            </p>
-          )}
-          {screen.qrUrl && (
             <motion.div 
               initial={{ scale: 0.9 }}
               animate={{ scale: 1 }}
-              className="inline-block bg-white/95 backdrop-blur-sm rounded-2xl p-5 shadow-2xl"
+              className="inline-flex items-center gap-3 px-8 py-4 mb-8 rounded-full border-2"
+              style={{ background: 'rgba(232, 145, 58, 0.1)', borderColor: '#E8913A' }}
             >
-              <QRCodeSVG value={screen.qrUrl} size={160} level="M" />
+              <span className="text-4xl">☕</span>
+              <span className="text-3xl font-medium tracking-wide" style={{ color: '#D4782A' }}>Today at {settings?.locationName || "Catfé"}</span>
             </motion.div>
-          )}
-        </motion.div>
+            <h1 className="text-7xl font-bold tracking-wide mb-8" style={{ fontFamily: 'Georgia, serif', color: '#2d2d2d' }}>
+              {screen.title}
+            </h1>
+            {screen.subtitle && (
+              <p className="text-4xl mb-6" style={{ color: '#5a5a5a' }}>
+                {screen.subtitle}
+              </p>
+            )}
+            {screen.body && (
+              <p className="text-3xl mb-8 leading-relaxed" style={{ color: '#6a6a6a' }}>
+                {screen.body}
+              </p>
+            )}
+            {screen.qrUrl && (
+              <motion.div 
+                initial={{ scale: 0.9 }}
+                animate={{ scale: 1 }}
+                className="inline-block rounded-2xl p-5 shadow-xl"
+                style={{ background: '#FFFEF9' }}
+              >
+                <QRCodeSVG value={screen.qrUrl} size={160} level="M" fgColor="#2d2d2d" />
+              </motion.div>
+            )}
+          </motion.div>
+        </div>
       </div>
     </div>
   );
 }
 
-// MEMBERSHIP - Membership promotion
+// MEMBERSHIP - Membership promotion (Lounge-inspired design)
 function MembershipScreen({ screen, settings }: ScreenRendererProps) {
   return (
-    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
-      {/* Animated background pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-10 left-10 w-32 h-32 border-2 border-white/30 rounded-full animate-pulse" />
-        <div className="absolute top-1/4 right-20 w-24 h-24 border-2 border-emerald-400/30 rounded-full" style={{ animationDelay: '1s' }} />
-        <div className="absolute bottom-20 left-1/4 w-40 h-40 border-2 border-teal-400/30 rounded-full" />
-        <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-emerald-400/10 rounded-full" />
-      </div>
+    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%)' }}>
+      {/* Mint green accent glow at bottom */}
+      <div className="absolute bottom-0 left-0 right-0 h-1/2" 
+           style={{ background: 'linear-gradient(to top, rgba(134, 197, 169, 0.2) 0%, transparent 100%)' }} />
       
-      {/* Subtle light rays */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] h-[200%] opacity-5" 
-           style={{ background: 'radial-gradient(ellipse at center top, rgba(100,255,200,0.3) 0%, transparent 50%)' }} />
+      {/* Warm amber light glows */}
+      <div className="absolute top-0 left-1/4 w-64 h-64 rounded-full opacity-30"
+           style={{ background: 'radial-gradient(circle, rgba(218, 165, 32, 0.4) 0%, transparent 70%)' }} />
+      <div className="absolute top-0 right-1/4 w-64 h-64 rounded-full opacity-30"
+           style={{ background: 'radial-gradient(circle, rgba(218, 165, 32, 0.4) 0%, transparent 70%)' }} />
+      
+      {/* Decorative cat silhouettes */}
+      <div className="absolute inset-0 opacity-[0.06]">
+        <svg className="absolute bottom-20 left-16 w-36 h-36" viewBox="0 0 100 100" fill="#86C5A9">
+          <ellipse cx="50" cy="60" rx="35" ry="30" />
+          <circle cx="50" cy="30" r="22" />
+          <polygon points="30,15 35,35 25,30" />
+          <polygon points="70,15 65,35 75,30" />
+        </svg>
+        <svg className="absolute top-24 right-20 w-28 h-28" viewBox="0 0 100 100" fill="#E8913A">
+          <ellipse cx="50" cy="60" rx="35" ry="30" />
+          <circle cx="50" cy="30" r="22" />
+          <polygon points="30,15 35,35 25,30" />
+          <polygon points="70,15 65,35 75,30" />
+        </svg>
+      </div>
       
       {/* Main content */}
       <div className="absolute inset-0 flex items-center justify-center px-12">
@@ -386,21 +479,22 @@ function MembershipScreen({ screen, settings }: ScreenRendererProps) {
             <motion.div 
               initial={{ scale: 0.9 }}
               animate={{ scale: 1 }}
-              className="inline-flex items-center gap-3 px-6 py-3 mb-6 rounded-full bg-emerald-500/20 border border-emerald-400/30"
+              className="inline-flex items-center gap-3 px-6 py-3 mb-6 rounded-full border-2"
+              style={{ background: 'rgba(134, 197, 169, 0.15)', borderColor: '#86C5A9' }}
             >
               <span className="text-3xl">⭐</span>
-              <span className="text-emerald-300 text-2xl font-medium tracking-wide">Membership</span>
+              <span className="text-2xl font-medium tracking-wide" style={{ color: '#86C5A9' }}>Membership</span>
             </motion.div>
-            <h1 className="text-6xl font-light tracking-wider text-white mb-6" style={{ fontFamily: 'Georgia, serif' }}>
-              <span className="text-emerald-400">{screen.title}</span>
+            <h1 className="text-6xl font-bold tracking-wide mb-6" style={{ fontFamily: 'Georgia, serif' }}>
+              <span style={{ color: '#86C5A9' }}>{screen.title}</span>
             </h1>
             {screen.subtitle && (
-              <p className="text-3xl text-white/80 mb-4">
+              <p className="text-3xl mb-4" style={{ color: 'rgba(255,255,255,0.8)' }}>
                 {screen.subtitle}
               </p>
             )}
             {screen.body && (
-              <p className="text-2xl text-white/70 leading-relaxed">
+              <p className="text-2xl leading-relaxed" style={{ color: 'rgba(255,255,255,0.6)' }}>
                 {screen.body}
               </p>
             )}
@@ -410,9 +504,11 @@ function MembershipScreen({ screen, settings }: ScreenRendererProps) {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.2 }}
-              className="flex-shrink-0 bg-white/95 backdrop-blur-sm rounded-2xl p-5 shadow-2xl"
+              className="flex-shrink-0 rounded-2xl p-5 shadow-2xl"
+              style={{ background: 'linear-gradient(135deg, #F5E6D3 0%, #EDE0D4 100%)' }}
             >
-              <QRCodeSVG value={screen.qrUrl} size={200} level="M" />
+              <QRCodeSVG value={screen.qrUrl} size={200} level="M" fgColor="#2d2d2d" />
+              <p className="mt-3 text-center text-sm font-medium" style={{ color: '#5a5a5a' }}>Scan to join</p>
             </motion.div>
           )}
         </motion.div>
@@ -421,47 +517,65 @@ function MembershipScreen({ screen, settings }: ScreenRendererProps) {
   );
 }
 
-// REMINDER - General reminders
+// REMINDER - General reminders (Lounge-inspired design)
 function ReminderScreen({ screen, settings }: ScreenRendererProps) {
   return (
-    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
-      {/* Animated background pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-10 left-10 w-32 h-32 border-2 border-white/30 rounded-full animate-pulse" />
-        <div className="absolute top-1/4 right-20 w-24 h-24 border-2 border-blue-400/30 rounded-full" style={{ animationDelay: '1s' }} />
-        <div className="absolute bottom-20 left-1/4 w-40 h-40 border-2 border-cyan-400/30 rounded-full" />
-        <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-blue-400/10 rounded-full" />
-      </div>
+    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(160deg, #F5E6D3 0%, #EDE0D4 40%, #E8DDD0 100%)' }}>
+      {/* Industrial ceiling effect */}
+      <div className="absolute top-0 left-0 right-0 h-20" 
+           style={{ background: 'linear-gradient(to bottom, #2d2d2d 0%, transparent 100%)' }} />
       
-      {/* Subtle light rays */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] h-[200%] opacity-5" 
-           style={{ background: 'radial-gradient(ellipse at center top, rgba(100,150,255,0.3) 0%, transparent 50%)' }} />
+      {/* Mint green accent at bottom */}
+      <div className="absolute bottom-0 left-0 right-0 h-3" style={{ background: '#86C5A9' }} />
+      
+      {/* Warm light glows */}
+      <div className="absolute top-12 left-1/3 w-48 h-48 rounded-full opacity-40"
+           style={{ background: 'radial-gradient(circle, rgba(218, 165, 32, 0.3) 0%, transparent 70%)' }} />
+      <div className="absolute top-12 right-1/3 w-48 h-48 rounded-full opacity-40"
+           style={{ background: 'radial-gradient(circle, rgba(218, 165, 32, 0.3) 0%, transparent 70%)' }} />
+      
+      {/* Decorative cat silhouettes */}
+      <div className="absolute inset-0 opacity-[0.04]">
+        <svg className="absolute bottom-16 right-12 w-32 h-32" viewBox="0 0 100 100" fill="#E8913A">
+          <ellipse cx="50" cy="60" rx="35" ry="30" />
+          <circle cx="50" cy="30" r="22" />
+          <polygon points="30,15 35,35 25,30" />
+          <polygon points="70,15 65,35 75,30" />
+        </svg>
+        <svg className="absolute top-32 left-16 w-24 h-24" viewBox="0 0 100 100" fill="#7a7a7a">
+          <ellipse cx="50" cy="60" rx="35" ry="30" />
+          <circle cx="50" cy="30" r="22" />
+          <polygon points="30,15 35,35 25,30" />
+          <polygon points="70,15 65,35 75,30" />
+        </svg>
+      </div>
       
       {/* Main content */}
       <div className="absolute inset-0 flex items-center justify-center">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center max-w-4xl"
+          className="text-center max-w-4xl px-8"
         >
           <motion.div 
             initial={{ scale: 0.9 }}
             animate={{ scale: 1 }}
-            className="inline-flex items-center gap-3 px-6 py-3 mb-8 rounded-full bg-blue-500/20 border border-blue-400/30"
+            className="inline-flex items-center gap-3 px-6 py-3 mb-8 rounded-full border-2"
+            style={{ background: 'rgba(232, 145, 58, 0.1)', borderColor: '#E8913A' }}
           >
             <span className="text-3xl">📌</span>
-            <span className="text-blue-300 text-2xl font-medium tracking-wide">Reminder</span>
+            <span className="text-2xl font-medium tracking-wide" style={{ color: '#D4782A' }}>Reminder</span>
           </motion.div>
-          <h1 className="text-7xl font-light tracking-wider text-white mb-8" style={{ fontFamily: 'Georgia, serif' }}>
-            <span className="text-blue-400">{screen.title}</span>
+          <h1 className="text-7xl font-bold tracking-wide mb-8" style={{ fontFamily: 'Georgia, serif', color: '#2d2d2d' }}>
+            {screen.title}
           </h1>
           {screen.subtitle && (
-            <p className="text-4xl text-white/80 mb-6">
+            <p className="text-4xl mb-6" style={{ color: '#5a5a5a' }}>
               {screen.subtitle}
             </p>
           )}
           {screen.body && (
-            <p className="text-3xl text-white/70 leading-relaxed">
+            <p className="text-3xl leading-relaxed" style={{ color: '#6a6a6a' }}>
               {screen.body}
             </p>
           )}
@@ -471,72 +585,54 @@ function ReminderScreen({ screen, settings }: ScreenRendererProps) {
   );
 }
 
-// ADOPTION - Cat adoption promotion
+// ADOPTION - Cat adoption promotion (Lounge-inspired design)
 function AdoptionScreen({ screen, settings }: ScreenRendererProps) {
   const isAdopted = (screen as any).isAdopted;
   
-  // Floating decorative elements
-  const floatingElements = [
-    { emoji: '🐾', x: '5%', y: '15%', delay: 0, size: 'text-4xl' },
-    { emoji: '❤️', x: '92%', y: '20%', delay: 0.5, size: 'text-3xl' },
-    { emoji: '🐾', x: '88%', y: '75%', delay: 1, size: 'text-4xl' },
-    { emoji: '✨', x: '8%', y: '80%', delay: 1.5, size: 'text-3xl' },
-    { emoji: '🧡', x: '15%', y: '45%', delay: 2, size: 'text-2xl' },
-    { emoji: '💕', x: '85%', y: '50%', delay: 2.5, size: 'text-2xl' },
-  ];
-  
   return (
-    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
-      {/* Animated background pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-10 left-10 w-32 h-32 border-2 border-white/30 rounded-full animate-pulse" />
-        <div className="absolute top-1/4 right-20 w-24 h-24 border-2 border-orange-400/30 rounded-full" style={{ animationDelay: '1s' }} />
-        <div className="absolute bottom-20 left-1/4 w-40 h-40 border-2 border-pink-400/30 rounded-full" />
-        <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-orange-400/10 rounded-full" />
+    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%)' }}>
+      {/* Mint green floor reflection */}
+      <div className="absolute bottom-0 left-0 right-0 h-1/3" 
+           style={{ background: 'linear-gradient(to top, rgba(134, 197, 169, 0.2) 0%, transparent 100%)' }} />
+      
+      {/* Warm amber light glows */}
+      <div className="absolute top-0 left-1/4 w-64 h-64 rounded-full opacity-30"
+           style={{ background: 'radial-gradient(circle, rgba(218, 165, 32, 0.4) 0%, transparent 70%)' }} />
+      <div className="absolute top-0 right-1/4 w-64 h-64 rounded-full opacity-30"
+           style={{ background: 'radial-gradient(circle, rgba(218, 165, 32, 0.4) 0%, transparent 70%)' }} />
+      
+      {/* Decorative cat silhouettes */}
+      <div className="absolute inset-0 opacity-[0.06]">
+        <svg className="absolute bottom-24 left-12 w-32 h-32" viewBox="0 0 100 100" fill="#E8913A">
+          <ellipse cx="50" cy="60" rx="35" ry="30" />
+          <circle cx="50" cy="30" r="22" />
+          <polygon points="30,15 35,35 25,30" />
+          <polygon points="70,15 65,35 75,30" />
+        </svg>
+        <svg className="absolute top-24 right-16 w-28 h-28" viewBox="0 0 100 100" fill="#86C5A9">
+          <ellipse cx="50" cy="60" rx="35" ry="30" />
+          <circle cx="50" cy="30" r="22" />
+          <polygon points="30,15 35,35 25,30" />
+          <polygon points="70,15 65,35 75,30" />
+        </svg>
       </div>
       
-      {/* Subtle light rays */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] h-[200%] opacity-5" 
-           style={{ background: 'radial-gradient(ellipse at center top, rgba(255,150,100,0.3) 0%, transparent 50%)' }} />
-      
-      {/* Floating decorative elements */}
-      {floatingElements.map((el, idx) => (
-        <motion.div
-          key={idx}
-          initial={{ opacity: 0, scale: 0 }}
-          animate={{ 
-            opacity: [0.4, 0.7, 0.4], 
-            scale: [1, 1.1, 1],
-            y: [0, -10, 0]
-          }}
-          transition={{ 
-            delay: el.delay, 
-            duration: 3,
-            repeat: Infinity,
-            repeatType: 'reverse'
-          }}
-          className={`absolute ${el.size} pointer-events-none`}
-          style={{ left: el.x, top: el.y }}
-        >
-          {el.emoji}
-        </motion.div>
-      ))}
-      
-      {/* Header - "Meet [Name]" */}
+      {/* Header */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         className="absolute top-8 left-0 right-0 text-center z-10"
       >
-        <h1 className="text-7xl font-light tracking-wider text-white" style={{ fontFamily: 'Georgia, serif' }}>
-          Meet <span className="text-orange-400">{screen.title?.replace('Meet ', '')}</span>
+        <h1 className="text-7xl font-bold tracking-wide" style={{ fontFamily: 'Georgia, serif' }}>
+          <span className="text-white/90">Meet </span>
+          <span style={{ color: '#E8913A' }}>{screen.title?.replace('Meet ', '')}</span>
         </h1>
       </motion.div>
       
-      {/* Main content - larger layout */}
+      {/* Main content */}
       <div className="absolute inset-0 flex items-center justify-center px-16 pt-20">
         <div className="flex flex-row items-center justify-center w-full max-w-7xl gap-12">
-          {/* Large Polaroid-style cat photo */}
+          {/* Polaroid-style cat photo with cream background */}
           {screen.imagePath && (
             <motion.div
               initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
@@ -544,28 +640,28 @@ function AdoptionScreen({ screen, settings }: ScreenRendererProps) {
               transition={{ delay: 0.1, duration: 0.6, type: 'spring', stiffness: 80 }}
               className="flex-shrink-0"
             >
-              <div className="bg-white p-4 pb-20 shadow-2xl rounded-sm relative" style={{ boxShadow: '0 30px 60px -15px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.1)' }}>
-                <div className="relative w-[420px] h-[420px] overflow-hidden bg-gray-100">
+              <div className="p-4 pb-20 shadow-2xl rounded-lg relative" style={{ background: '#FFFEF9', boxShadow: '0 30px 60px -15px rgba(0,0,0,0.5)' }}>
+                <div className="relative w-[420px] h-[420px] overflow-hidden rounded-md bg-gray-100">
                   <img
                     src={screen.imagePath}
                     alt={screen.title}
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute inset-0" style={{ boxShadow: 'inset 0 0 80px rgba(0,0,0,0.15)' }} />
+                  <div className="absolute inset-0" style={{ boxShadow: 'inset 0 0 80px rgba(0,0,0,0.1)' }} />
                   {isAdopted && (
                     <motion.div 
                       initial={{ scale: 0, rotate: -10 }}
                       animate={{ scale: 1, rotate: 5 }}
                       transition={{ delay: 0.5, type: 'spring' }}
-                      className="absolute top-4 right-4 px-5 py-2 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xl font-bold shadow-lg"
+                      className="absolute top-4 right-4 px-5 py-2 rounded-full text-white text-xl font-bold shadow-lg"
+                      style={{ background: 'linear-gradient(135deg, #86C5A9 0%, #6BA58D 100%)' }}
                     >
                       🎉 Adopted!
                     </motion.div>
                   )}
                 </div>
-                {/* Polaroid caption */}
                 <div className="absolute bottom-4 left-4 right-4 text-center">
-                  <p className="text-gray-800 text-3xl font-medium" style={{ fontFamily: 'Georgia, serif' }}>
+                  <p className="text-3xl font-medium" style={{ fontFamily: 'Georgia, serif', color: '#3d3d3d' }}>
                     Meet {screen.title?.replace('Meet ', '')}
                   </p>
                 </div>
@@ -573,88 +669,82 @@ function AdoptionScreen({ screen, settings }: ScreenRendererProps) {
             </motion.div>
           )}
           
-          {/* Info section - richer content */}
+          {/* Info section */}
           <div className="flex-1 max-w-xl space-y-6">
-            {/* Status badge */}
             <motion.div 
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.2 }}
-              className={`inline-flex items-center gap-3 px-6 py-3 rounded-full ${isAdopted ? 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-green-400/40' : 'bg-gradient-to-r from-orange-500/20 to-pink-500/20 border-orange-400/40'} border backdrop-blur-sm`}
+              className={`inline-flex items-center gap-3 px-6 py-3 rounded-full border-2`}
+              style={{ 
+                background: isAdopted ? 'rgba(134, 197, 169, 0.15)' : 'rgba(232, 145, 58, 0.15)', 
+                borderColor: isAdopted ? '#86C5A9' : '#E8913A' 
+              }}
             >
               <span className="text-3xl">{isAdopted ? '🎉' : '🐱'}</span>
-              <span className={`${isAdopted ? 'text-green-300' : 'text-orange-300'} text-2xl font-medium tracking-wide`}>
+              <span className="text-2xl font-medium tracking-wide" style={{ color: isAdopted ? '#86C5A9' : '#E8913A' }}>
                 {isAdopted ? 'Found a Forever Home!' : 'Looking for Love'}
               </span>
             </motion.div>
             
-            {/* Age/Gender info */}
             {screen.subtitle && (
               <motion.p 
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3 }}
-                className="text-4xl text-white/90 font-light"
+                className="text-4xl font-light" style={{ color: 'rgba(255,255,255,0.9)' }}
               >
                 {screen.subtitle}
               </motion.p>
             )}
             
-            {/* Bio/Description */}
             {screen.body && (
               <motion.p 
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.4 }}
-                className="text-2xl text-white/70 leading-relaxed"
+                className="text-2xl leading-relaxed" style={{ color: 'rgba(255,255,255,0.6)' }}
               >
                 {screen.body}
               </motion.p>
             )}
             
-            {/* Call to action message */}
             {!isAdopted && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
-                className="bg-white/5 backdrop-blur-sm rounded-2xl p-5 border border-white/10"
+                className="rounded-2xl p-5 border"
+                style={{ background: 'rgba(245, 230, 211, 0.1)', borderColor: 'rgba(245, 230, 211, 0.2)' }}
               >
-                <p className="text-lg text-white/70 italic" style={{ fontFamily: 'Georgia, serif' }}>
+                <p className="text-lg italic" style={{ fontFamily: 'Georgia, serif', color: 'rgba(255,255,255,0.7)' }}>
                   "Scan the QR to Adopt Me :)"
                 </p>
               </motion.div>
             )}
             
-            {/* QR Code */}
             {screen.qrUrl && (
               <motion.div 
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.6 }}
-                className="inline-block bg-white/95 backdrop-blur-sm rounded-2xl p-5 shadow-2xl"
+                className="inline-block rounded-2xl p-5 shadow-2xl"
+                style={{ background: 'linear-gradient(135deg, #F5E6D3 0%, #EDE0D4 100%)' }}
               >
                 <div className="text-center mb-3">
-                  <p className="text-base font-semibold text-gray-700">Learn More</p>
+                  <p className="text-base font-semibold" style={{ color: '#3d3d3d' }}>Learn More</p>
                 </div>
-                <QRCodeSVG value={screen.qrUrl} size={150} level="M" />
+                <QRCodeSVG value={screen.qrUrl} size={150} level="M" fgColor="#2d2d2d" />
               </motion.div>
             )}
           </div>
         </div>
       </div>
-      
-      {/* Bottom decorative wave */}
-      <div className="absolute bottom-0 left-0 right-0 h-24 opacity-20">
-        <svg viewBox="0 0 1440 100" preserveAspectRatio="none" className="w-full h-full">
-          <path fill="rgba(255,150,100,0.3)" d="M0,50 C360,100 720,0 1080,50 C1260,75 1380,25 1440,50 L1440,100 L0,100 Z" />
-        </svg>
-      </div>
     </div>
   );
 }
 
-// ADOPTION_SHOWCASE - Grid of 4 random adoptable cats with 6-second shuffle
+// ADOPTION_SHOWCASE - Grid of 4 random adoptable cats (Lounge-inspired design)
 function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRendererProps) {
   const cats = adoptionCats || [];
   const { data: adoptionCountData } = trpc.screens.getAdoptionCount.useQuery();
@@ -667,35 +757,49 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRender
   const rotations = [-2, 3, -3, 2];
   
   return (
-    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
-      {/* Animated background pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-10 left-10 w-32 h-32 border-2 border-white/30 rounded-full animate-pulse" />
-        <div className="absolute top-1/4 right-20 w-24 h-24 border-2 border-orange-400/30 rounded-full" style={{ animationDelay: '1s' }} />
-        <div className="absolute bottom-20 left-1/4 w-40 h-40 border-2 border-pink-400/30 rounded-full" />
-        <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-orange-400/10 rounded-full" />
+    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%)' }}>
+      {/* Mint green floor reflection */}
+      <div className="absolute bottom-0 left-0 right-0 h-1/3" 
+           style={{ background: 'linear-gradient(to top, rgba(134, 197, 169, 0.2) 0%, transparent 100%)' }} />
+      
+      {/* Warm amber light glows */}
+      <div className="absolute top-0 left-1/4 w-64 h-64 rounded-full opacity-30"
+           style={{ background: 'radial-gradient(circle, rgba(218, 165, 32, 0.4) 0%, transparent 70%)' }} />
+      <div className="absolute top-0 right-1/4 w-64 h-64 rounded-full opacity-30"
+           style={{ background: 'radial-gradient(circle, rgba(218, 165, 32, 0.4) 0%, transparent 70%)' }} />
+      
+      {/* Decorative cat silhouettes */}
+      <div className="absolute inset-0 opacity-[0.04]">
+        <svg className="absolute bottom-20 left-8 w-28 h-28" viewBox="0 0 100 100" fill="#E8913A">
+          <ellipse cx="50" cy="60" rx="35" ry="30" />
+          <circle cx="50" cy="30" r="22" />
+          <polygon points="30,15 35,35 25,30" />
+          <polygon points="70,15 65,35 75,30" />
+        </svg>
+        <svg className="absolute top-20 right-12 w-24 h-24" viewBox="0 0 100 100" fill="#86C5A9">
+          <ellipse cx="50" cy="60" rx="35" ry="30" />
+          <circle cx="50" cy="30" r="22" />
+          <polygon points="30,15 35,35 25,30" />
+          <polygon points="70,15 65,35 75,30" />
+        </svg>
       </div>
       
-      {/* Subtle light rays */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] h-[200%] opacity-5" 
-           style={{ background: 'radial-gradient(ellipse at center top, rgba(255,150,100,0.3) 0%, transparent 50%)' }} />
-      
-      {/* Header - elegant and minimal */}
+      {/* Header */}
       <div className="absolute top-6 left-0 right-0 z-20 text-center">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="inline-block"
         >
-          <h1 className="text-7xl font-light tracking-wider text-white mb-2" style={{ fontFamily: 'Georgia, serif' }}>
-            <span className="text-orange-400">Meet</span> Our <span className="text-pink-400">Cats</span>
+          <h1 className="text-7xl font-bold tracking-wide mb-2" style={{ fontFamily: 'Georgia, serif' }}>
+            <span style={{ color: '#E8913A' }}>Meet</span> <span className="text-white/90">Our</span> <span style={{ color: '#86C5A9' }}>Cats</span>
           </h1>
-          <p className="text-2xl text-white/60 tracking-widest uppercase">Find Your Purrfect Match</p>
+          <p className="text-2xl tracking-widest uppercase" style={{ color: 'rgba(255,255,255,0.5)' }}>Find Your Purrfect Match</p>
           {/* Adoption success counter */}
           {adoptedCount > 0 && (
-            <div className="mt-4 inline-flex items-center gap-3 px-6 py-3 rounded-full bg-green-500/20 border border-green-400/30 text-green-300">
+            <div className="mt-4 inline-flex items-center gap-3 px-6 py-3 rounded-full border-2" style={{ background: 'rgba(134, 197, 169, 0.15)', borderColor: '#86C5A9' }}>
               <span className="text-3xl">🎉</span>
-              <span className="text-xl font-medium">
+              <span className="text-xl font-medium" style={{ color: '#86C5A9' }}>
                 {adoptedCount} {adoptedCount === 1 ? 'cat' : 'cats'} found their forever home!
               </span>
             </div>
@@ -723,8 +827,8 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRender
                 transition={{ delay: idx * 0.1, duration: 0.5, type: 'spring', stiffness: 100 }}
                 style={{ transform: `rotate(${rotations[idx]}deg)` }}
               >
-                {/* Polaroid frame */}
-                <div className="bg-white p-3 pb-16 shadow-2xl rounded-sm relative" style={{ boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1)' }}>
+                {/* Polaroid frame with cream background */}
+                <div className="p-3 pb-16 shadow-2xl rounded-lg relative" style={{ background: '#FFFEF9', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
                   {/* Photo */}
                   <div className="relative aspect-square overflow-hidden bg-gray-100">
                     {cat.imagePath ? (
@@ -1221,18 +1325,22 @@ function SnapPurrGalleryScreen({ screen, settings }: ScreenRendererProps) {
   
   if (!photos || photos.length === 0) {
     return (
-      <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-10 left-10 w-32 h-32 border-2 border-white/30 rounded-full animate-pulse" />
-          <div className="absolute top-1/4 right-20 w-24 h-24 border-2 border-amber-400/30 rounded-full" />
-        </div>
+      <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%)' }}>
+        {/* Mint green floor reflection */}
+        <div className="absolute bottom-0 left-0 right-0 h-1/3" 
+             style={{ background: 'linear-gradient(to top, rgba(134, 197, 169, 0.2) 0%, transparent 100%)' }} />
+        {/* Warm amber light glows */}
+        <div className="absolute top-0 left-1/3 w-48 h-48 rounded-full opacity-30"
+             style={{ background: 'radial-gradient(circle, rgba(218, 165, 32, 0.4) 0%, transparent 70%)' }} />
+        <div className="absolute top-0 right-1/3 w-48 h-48 rounded-full opacity-30"
+             style={{ background: 'radial-gradient(circle, rgba(218, 165, 32, 0.4) 0%, transparent 70%)' }} />
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
             <div className="text-8xl mb-6">📸</div>
-            <h1 className="text-5xl font-light tracking-wider text-white mb-4" style={{ fontFamily: 'Georgia, serif' }}>
-              <span className="text-amber-400">Snap</span> & <span className="text-orange-400">Purr</span>
+            <h1 className="text-5xl font-bold tracking-wide mb-4" style={{ fontFamily: 'Georgia, serif' }}>
+              <span style={{ color: '#E8913A' }}>Snap</span> <span className="text-white/90">&</span> <span style={{ color: '#86C5A9' }}>Purr</span>
             </h1>
-            <p className="text-xl text-white/60">Scan the QR code to share your photos!</p>
+            <p className="text-xl" style={{ color: 'rgba(255,255,255,0.6)' }}>Scan the QR code to share your photos!</p>
           </div>
         </div>
       </div>
@@ -1243,30 +1351,44 @@ function SnapPurrGalleryScreen({ screen, settings }: ScreenRendererProps) {
   const rotations = [-3, 2, -2];
   
   return (
-    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
-      {/* Animated background pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-10 left-10 w-32 h-32 border-2 border-white/30 rounded-full animate-pulse" />
-        <div className="absolute top-1/4 right-20 w-24 h-24 border-2 border-amber-400/30 rounded-full" style={{ animationDelay: '1s' }} />
-        <div className="absolute bottom-20 left-1/4 w-40 h-40 border-2 border-orange-400/30 rounded-full" />
-        <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-amber-400/10 rounded-full" />
+    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%)' }}>
+      {/* Mint green floor reflection */}
+      <div className="absolute bottom-0 left-0 right-0 h-1/3" 
+           style={{ background: 'linear-gradient(to top, rgba(134, 197, 169, 0.2) 0%, transparent 100%)' }} />
+      
+      {/* Warm amber light glows */}
+      <div className="absolute top-0 left-1/4 w-64 h-64 rounded-full opacity-30"
+           style={{ background: 'radial-gradient(circle, rgba(218, 165, 32, 0.4) 0%, transparent 70%)' }} />
+      <div className="absolute top-0 right-1/4 w-64 h-64 rounded-full opacity-30"
+           style={{ background: 'radial-gradient(circle, rgba(218, 165, 32, 0.4) 0%, transparent 70%)' }} />
+      
+      {/* Decorative cat silhouettes */}
+      <div className="absolute inset-0 opacity-[0.04]">
+        <svg className="absolute bottom-20 left-8 w-24 h-24" viewBox="0 0 100 100" fill="#E8913A">
+          <ellipse cx="50" cy="60" rx="35" ry="30" />
+          <circle cx="50" cy="30" r="22" />
+          <polygon points="30,15 35,35 25,30" />
+          <polygon points="70,15 65,35 75,30" />
+        </svg>
+        <svg className="absolute top-20 right-12 w-20 h-20" viewBox="0 0 100 100" fill="#86C5A9">
+          <ellipse cx="50" cy="60" rx="35" ry="30" />
+          <circle cx="50" cy="30" r="22" />
+          <polygon points="30,15 35,35 25,30" />
+          <polygon points="70,15 65,35 75,30" />
+        </svg>
       </div>
       
-      {/* Subtle light rays */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] h-[200%] opacity-5" 
-           style={{ background: 'radial-gradient(ellipse at center top, rgba(255,200,100,0.3) 0%, transparent 50%)' }} />
-      
-      {/* Header - elegant and minimal */}
+      {/* Header */}
       <div className="absolute top-8 left-0 right-0 z-20 text-center">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="inline-block"
         >
-          <h1 className="text-5xl font-light tracking-wider text-white mb-2" style={{ fontFamily: 'Georgia, serif' }}>
-            <span className="text-amber-400">Snap</span> & <span className="text-orange-400">Purr</span>
+          <h1 className="text-5xl font-bold tracking-wide mb-2" style={{ fontFamily: 'Georgia, serif' }}>
+            <span style={{ color: '#E8913A' }}>Snap</span> <span className="text-white/90">&</span> <span style={{ color: '#86C5A9' }}>Purr</span>
           </h1>
-          <p className="text-lg text-white/60 tracking-widest uppercase">Guest Gallery</p>
+          <p className="text-lg tracking-widest uppercase" style={{ color: 'rgba(255,255,255,0.5)' }}>Guest Gallery</p>
         </motion.div>
       </div>
       
@@ -1291,8 +1413,8 @@ function SnapPurrGalleryScreen({ screen, settings }: ScreenRendererProps) {
                 className="flex-1 max-w-sm"
                 style={{ transform: `rotate(${rotations[idx]}deg)` }}
               >
-                {/* Polaroid frame */}
-                <div className="bg-white p-3 pb-16 shadow-2xl rounded-sm" style={{ boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1)' }}>
+                {/* Polaroid frame with cream background */}
+                <div className="p-3 pb-16 shadow-2xl rounded-lg" style={{ background: '#FFFEF9', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
                   {/* Photo */}
                   <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
                     <img

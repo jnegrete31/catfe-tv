@@ -114,6 +114,29 @@
   --sidebar-ring: oklch(0.65 0.15 45);
 }
 
+/* Catfé Lounge Color Palette */
+:root {
+  /* Mint Green (floor) */
+  --catfe-mint: oklch(0.85 0.12 155);
+  --catfe-mint-dark: oklch(0.75 0.14 155);
+  /* Warm Orange (mural cats) */
+  --catfe-orange: oklch(0.7 0.18 55);
+  --catfe-orange-dark: oklch(0.6 0.2 50);
+  /* Cream/Beige (walls) */
+  --catfe-cream: oklch(0.95 0.02 85);
+  --catfe-cream-dark: oklch(0.88 0.03 80);
+  /* Industrial Black (ceiling) */
+  --catfe-black: oklch(0.2 0.01 50);
+  /* Warm Amber (wicker lights) */
+  --catfe-amber: oklch(0.75 0.15 70);
+  --catfe-amber-glow: oklch(0.85 0.12 75);
+  /* Mural Cat Colors */
+  --catfe-cat-orange: oklch(0.72 0.16 60);
+  --catfe-cat-gray: oklch(0.55 0.02 50);
+  --catfe-cat-cream: oklch(0.92 0.03 85);
+  --catfe-cat-black: oklch(0.25 0.01 50);
+}
+
 /* TV Display specific styles */
 .tv-screen {
   width: 100%;

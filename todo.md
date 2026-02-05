@@ -872,3 +872,11 @@
 - [x] Create public photo voting page accessible via QR code
 - [x] Add sorting option in gallery (newest vs most-liked)
 - [x] Test like feature end-to-end
+
+## Feature - TV Display Redesign to Match Lounge Aesthetic (Feb 5)
+- [x] Update color palette: mint green, warm orange, cream, black, amber
+- [x] Redesign TV screen backgrounds with new colors
+- [x] Add playful cat illustrations inspired by lounge mural
+- [x] Update typography and spacing for modern industrial feel
+- [x] Add warm, inviting design elements (rounded corners, soft shadows)
+- [x] Test all TV screens with new design
