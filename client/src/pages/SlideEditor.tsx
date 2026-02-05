@@ -822,7 +822,39 @@ export default function SlideEditor() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div>
-                  <Label className="text-xs">Color</Label>
+                  <Label className="text-xs">Color Presets</Label>
+                  <div className="grid grid-cols-6 gap-1 mt-1">
+                    {[
+                      { color: "#1f2937", name: "Charcoal" },
+                      { color: "#292524", name: "Dark Brown" },
+                      { color: "#a8d5ba", name: "Mint Green" },
+                      { color: "#f97316", name: "Warm Orange" },
+                      { color: "#fef3c7", name: "Cream" },
+                      { color: "#d97706", name: "Amber" },
+                      { color: "#78716c", name: "Stone" },
+                      { color: "#1a1a2e", name: "Deep Navy" },
+                      { color: "#065f46", name: "Forest" },
+                      { color: "#7c3aed", name: "Purple" },
+                      { color: "#dc2626", name: "Red" },
+                      { color: "#0ea5e9", name: "Sky Blue" },
+                    ].map((preset) => (
+                      <button
+                        key={preset.color}
+                        onClick={() => {
+                          setBackgroundColor(preset.color);
+                          setHasChanges(true);
+                        }}
+                        className={`w-8 h-8 rounded border-2 transition-all hover:scale-110 ${
+                          backgroundColor === preset.color ? "border-white ring-2 ring-offset-1 ring-offset-background ring-primary" : "border-transparent"
+                        }`}
+                        style={{ backgroundColor: preset.color }}
+                        title={preset.name}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs">Custom Color</Label>
                   <div className="flex gap-2 mt-1">
                     <Input
                       type="color"

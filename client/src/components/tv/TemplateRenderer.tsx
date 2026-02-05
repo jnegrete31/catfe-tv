@@ -523,23 +523,54 @@ export function TemplateRenderer({ screen, settings, adoptionCount }: TemplateRe
     return widgets;
   };
 
+  // Determine if using dark or light background for appropriate decorations
+  const isDarkBg = backgroundColor.startsWith('#1') || backgroundColor.startsWith('#2') || backgroundColor.startsWith('#0');
+  
   return (
     <div
       className="tv-screen relative overflow-hidden"
       style={{ backgroundColor }}
     >
-      {/* Animated background pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-10 left-10 w-32 h-32 border-2 border-white/30 rounded-full animate-pulse" />
-        <div className="absolute top-1/4 right-20 w-24 h-24 border-2 border-white/30 rounded-full" style={{ animationDelay: "1s" }} />
-        <div className="absolute bottom-20 left-1/4 w-40 h-40 border-2 border-white/30 rounded-full" />
-      </div>
+      {/* Lounge-inspired warm amber light glows (like wicker pendant lights) */}
+      {isDarkBg && (
+        <>
+          <div 
+            className="absolute -top-20 left-1/4 w-96 h-96 rounded-full opacity-20 blur-3xl"
+            style={{ background: "radial-gradient(circle, #d97706 0%, transparent 70%)" }}
+          />
+          <div 
+            className="absolute -top-20 right-1/4 w-80 h-80 rounded-full opacity-15 blur-3xl"
+            style={{ background: "radial-gradient(circle, #f97316 0%, transparent 70%)" }}
+          />
+        </>
+      )}
 
-      {/* Subtle gradient overlay */}
+      {/* Mint green floor reflection (matching epoxy floor) */}
+      {isDarkBg && (
+        <div 
+          className="absolute bottom-0 left-0 right-0 h-32 opacity-30"
+          style={{ 
+            background: "linear-gradient(to top, #a8d5ba 0%, transparent 100%)",
+          }}
+        />
+      )}
+
+      {/* Playful cat silhouette decorations */}
+      {isDarkBg && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute bottom-4 right-8 text-6xl opacity-10">🐱</div>
+          <div className="absolute top-1/3 left-4 text-4xl opacity-5 rotate-12">🐾</div>
+          <div className="absolute bottom-1/4 left-1/4 text-3xl opacity-5">🐾</div>
+        </div>
+      )}
+
+      {/* Subtle gradient overlay for depth */}
       <div
         className="absolute inset-0 opacity-20"
         style={{
-          background: "radial-gradient(ellipse at center top, rgba(255,255,255,0.1) 0%, transparent 50%)",
+          background: isDarkBg 
+            ? "radial-gradient(ellipse at center top, rgba(217,119,6,0.15) 0%, transparent 50%)"
+            : "radial-gradient(ellipse at center top, rgba(0,0,0,0.05) 0%, transparent 50%)",
         }}
       />
 
