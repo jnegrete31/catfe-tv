@@ -1158,6 +1158,7 @@ export const appRouter = router({
         defaultFontColor: z.string().optional(),
         showAnimations: z.boolean().optional(),
         animationStyle: z.string().optional(),
+        widgetOverrides: z.string().optional(), // JSON string of WidgetOverrides
       }))
       .mutation(async ({ input }) => {
         const template = await upsertSlideTemplate(input as any);

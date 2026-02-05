@@ -13,6 +13,43 @@ import { ArrowLeft, Save, RotateCcw, Move, Maximize2, Type, Image, QrCode, Clock
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
+// Widget overrides type for per-slide widget customization
+interface WidgetOverrides {
+  logo?: {
+    visible?: boolean;
+    x?: number;
+    y?: number;
+    width?: number;
+    height?: number;
+    opacity?: number;
+  };
+  weather?: {
+    visible?: boolean;
+    x?: number;
+    y?: number;
+    fontSize?: number;
+    color?: string;
+    opacity?: number;
+  };
+  clock?: {
+    visible?: boolean;
+    x?: number;
+    y?: number;
+    fontSize?: number;
+    color?: string;
+    opacity?: number;
+    showDate?: boolean;
+  };
+  waiverQr?: {
+    visible?: boolean;
+    x?: number;
+    y?: number;
+    size?: number;
+    opacity?: number;
+    label?: string;
+  };
+}
+
 // Template element type
 interface TemplateElement {
   id: string;
@@ -79,14 +116,37 @@ export default function SlideEditor() {
   const [showNewSlideDialog, setShowNewSlideDialog] = useState(false);
   const [newSlideTitle, setNewSlideTitle] = useState("");
   const [isCreatingSlide, setIsCreatingSlide] = useState(false);
+  const [widgetOverrides, setWidgetOverrides] = useState<WidgetOverrides>({
+    logo: { visible: true, x: 2, y: 2, width: 8, height: 8, opacity: 1 },
+    weather: { visible: true, x: 85, y: 2, fontSize: 18, color: "#ffffff", opacity: 1 },
+    clock: { visible: true, x: 92, y: 2, fontSize: 24, color: "#ffffff", opacity: 1, showDate: true },
+    waiverQr: { visible: true, x: 2, y: 2, size: 80, opacity: 1, label: "Sign Waiver" },
+  });
+  const [selectedWidget, setSelectedWidget] = useState<string | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const utils = trpc.useUtils();
 
   // Fetch template for selected screen type
-  const { data: template, refetch: refetchTemplate } = trpc.templates.getByScreenType.useQuery(
+  const { data: template, refetch: refetchTemplate, isLoading: isLoadingTemplate } = trpc.templates.getByScreenType.useQuery(
     { screenType: selectedScreenType },
-    { enabled: !!selectedScreenType }
+    { enabled: !!selectedScreenType, staleTime: 0 } // Always fetch fresh data
   );
+
+  // Handle screen type change - reset state and refetch
+  const handleScreenTypeChange = (newScreenType: string) => {
+    // Reset to defaults before loading new template
+    setElements([]);
+    setBackgroundColor("#1a1a2e");
+    setSelectedElementId(null);
+    setWidgetOverrides({
+      logo: { visible: true, x: 2, y: 2, width: 8, height: 8, opacity: 1 },
+      weather: { visible: true, x: 85, y: 2, fontSize: 18, color: "#ffffff", opacity: 1 },
+      clock: { visible: true, x: 92, y: 2, fontSize: 24, color: "#ffffff", opacity: 1, showDate: true },
+      waiverQr: { visible: true, x: 2, y: 2, size: 80, opacity: 1, label: "Sign Waiver" },
+    });
+    setHasChanges(false);
+    setSelectedScreenType(newScreenType);
+  };
 
   // Save template mutation
   const saveMutation = trpc.templates.save.useMutation({
@@ -115,6 +175,11 @@ export default function SlideEditor() {
         const parsedElements = JSON.parse(template.elements || "[]");
         setElements(parsedElements);
         setBackgroundColor(template.backgroundColor || "#1a1a2e");
+        // Load widget overrides if available
+        if ('widgetOverrides' in template && template.widgetOverrides) {
+          const parsedOverrides = JSON.parse(template.widgetOverrides as string);
+          setWidgetOverrides(prev => ({ ...prev, ...parsedOverrides }));
+        }
       } catch (e) {
         console.error("Failed to parse template elements:", e);
         setElements([]);
@@ -248,7 +313,20 @@ export default function SlideEditor() {
       screenType: selectedScreenType,
       elements: JSON.stringify(elements),
       backgroundColor,
+      widgetOverrides: JSON.stringify(widgetOverrides),
     });
+  };
+
+  // Update widget override property
+  const updateWidgetOverride = (widget: keyof WidgetOverrides, property: string, value: any) => {
+    setWidgetOverrides(prev => ({
+      ...prev,
+      [widget]: {
+        ...prev[widget],
+        [property]: value,
+      },
+    }));
+    setHasChanges(true);
   };
 
   // Reset to defaults
@@ -378,7 +456,7 @@ export default function SlideEditor() {
             <h1 className="text-xl font-semibold">Slide Template Editor</h1>
           </div>
           <div className="flex items-center gap-2">
-            <Select value={selectedScreenType} onValueChange={setSelectedScreenType}>
+            <Select value={selectedScreenType} onValueChange={handleScreenTypeChange}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Select screen type" />
               </SelectTrigger>
@@ -778,6 +856,231 @@ export default function SlideEditor() {
                 </CardContent>
               </Card>
             )}
+
+            {/* Widget Overrides */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm">Overlay Widgets</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Logo Widget */}
+                <div className="space-y-2 p-3 bg-muted/50 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-medium flex items-center gap-2">
+                      <Image className="h-3 w-3" /> Logo
+                    </Label>
+                    <Switch
+                      checked={widgetOverrides.logo?.visible !== false}
+                      onCheckedChange={(v) => updateWidgetOverride('logo', 'visible', v)}
+                    />
+                  </div>
+                  {widgetOverrides.logo?.visible !== false && (
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label className="text-xs">X (%)</Label>
+                        <Input
+                          type="number"
+                          value={widgetOverrides.logo?.x || 2}
+                          onChange={(e) => updateWidgetOverride('logo', 'x', Number(e.target.value))}
+                          className="h-7 text-xs"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Y (%)</Label>
+                        <Input
+                          type="number"
+                          value={widgetOverrides.logo?.y || 2}
+                          onChange={(e) => updateWidgetOverride('logo', 'y', Number(e.target.value))}
+                          className="h-7 text-xs"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Size (%)</Label>
+                        <Input
+                          type="number"
+                          value={widgetOverrides.logo?.width || 8}
+                          onChange={(e) => {
+                            const size = Number(e.target.value);
+                            updateWidgetOverride('logo', 'width', size);
+                            updateWidgetOverride('logo', 'height', size);
+                          }}
+                          className="h-7 text-xs"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Opacity</Label>
+                        <Input
+                          type="number"
+                          min={0}
+                          max={1}
+                          step={0.1}
+                          value={widgetOverrides.logo?.opacity || 1}
+                          onChange={(e) => updateWidgetOverride('logo', 'opacity', Number(e.target.value))}
+                          className="h-7 text-xs"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Weather Widget */}
+                <div className="space-y-2 p-3 bg-muted/50 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-medium flex items-center gap-2">
+                      <Sun className="h-3 w-3" /> Weather
+                    </Label>
+                    <Switch
+                      checked={widgetOverrides.weather?.visible !== false}
+                      onCheckedChange={(v) => updateWidgetOverride('weather', 'visible', v)}
+                    />
+                  </div>
+                  {widgetOverrides.weather?.visible !== false && (
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label className="text-xs">X (%)</Label>
+                        <Input
+                          type="number"
+                          value={widgetOverrides.weather?.x || 85}
+                          onChange={(e) => updateWidgetOverride('weather', 'x', Number(e.target.value))}
+                          className="h-7 text-xs"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Y (%)</Label>
+                        <Input
+                          type="number"
+                          value={widgetOverrides.weather?.y || 2}
+                          onChange={(e) => updateWidgetOverride('weather', 'y', Number(e.target.value))}
+                          className="h-7 text-xs"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Font Size</Label>
+                        <Input
+                          type="number"
+                          value={widgetOverrides.weather?.fontSize || 18}
+                          onChange={(e) => updateWidgetOverride('weather', 'fontSize', Number(e.target.value))}
+                          className="h-7 text-xs"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Color</Label>
+                        <Input
+                          type="color"
+                          value={widgetOverrides.weather?.color || "#ffffff"}
+                          onChange={(e) => updateWidgetOverride('weather', 'color', e.target.value)}
+                          className="h-7 w-full p-0 border-0"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Clock Widget */}
+                <div className="space-y-2 p-3 bg-muted/50 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-medium flex items-center gap-2">
+                      <Clock className="h-3 w-3" /> Clock
+                    </Label>
+                    <Switch
+                      checked={widgetOverrides.clock?.visible !== false}
+                      onCheckedChange={(v) => updateWidgetOverride('clock', 'visible', v)}
+                    />
+                  </div>
+                  {widgetOverrides.clock?.visible !== false && (
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label className="text-xs">X (%)</Label>
+                        <Input
+                          type="number"
+                          value={widgetOverrides.clock?.x || 92}
+                          onChange={(e) => updateWidgetOverride('clock', 'x', Number(e.target.value))}
+                          className="h-7 text-xs"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Y (%)</Label>
+                        <Input
+                          type="number"
+                          value={widgetOverrides.clock?.y || 2}
+                          onChange={(e) => updateWidgetOverride('clock', 'y', Number(e.target.value))}
+                          className="h-7 text-xs"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Font Size</Label>
+                        <Input
+                          type="number"
+                          value={widgetOverrides.clock?.fontSize || 24}
+                          onChange={(e) => updateWidgetOverride('clock', 'fontSize', Number(e.target.value))}
+                          className="h-7 text-xs"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Show Date</Label>
+                        <Switch
+                          checked={widgetOverrides.clock?.showDate !== false}
+                          onCheckedChange={(v) => updateWidgetOverride('clock', 'showDate', v)}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Waiver QR Widget */}
+                <div className="space-y-2 p-3 bg-muted/50 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-medium flex items-center gap-2">
+                      <QrCode className="h-3 w-3" /> Waiver QR
+                    </Label>
+                    <Switch
+                      checked={widgetOverrides.waiverQr?.visible !== false}
+                      onCheckedChange={(v) => updateWidgetOverride('waiverQr', 'visible', v)}
+                    />
+                  </div>
+                  {widgetOverrides.waiverQr?.visible !== false && (
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label className="text-xs">X (%)</Label>
+                        <Input
+                          type="number"
+                          value={widgetOverrides.waiverQr?.x || 2}
+                          onChange={(e) => updateWidgetOverride('waiverQr', 'x', Number(e.target.value))}
+                          className="h-7 text-xs"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Y (%)</Label>
+                        <Input
+                          type="number"
+                          value={widgetOverrides.waiverQr?.y || 2}
+                          onChange={(e) => updateWidgetOverride('waiverQr', 'y', Number(e.target.value))}
+                          className="h-7 text-xs"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Size (px)</Label>
+                        <Input
+                          type="number"
+                          value={widgetOverrides.waiverQr?.size || 80}
+                          onChange={(e) => updateWidgetOverride('waiverQr', 'size', Number(e.target.value))}
+                          className="h-7 text-xs"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Label</Label>
+                        <Input
+                          type="text"
+                          value={widgetOverrides.waiverQr?.label || "Sign Waiver"}
+                          onChange={(e) => updateWidgetOverride('waiverQr', 'label', e.target.value)}
+                          className="h-7 text-xs"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

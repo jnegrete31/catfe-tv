@@ -369,6 +369,8 @@ export const slideTemplates = mysqlTable("slideTemplates", {
   defaultFontColor: varchar("defaultFontColor", { length: 32 }).default("#ffffff"),
   showAnimations: boolean("showAnimations").notNull().default(true),
   animationStyle: varchar("animationStyle", { length: 32 }).default("fade"), // fade, slide, zoom
+  // Widget overrides - per-slide customization of overlay widgets (logo, weather, clock, waiver QR)
+  widgetOverrides: text("widgetOverrides"), // JSON object of WidgetOverrides type
   // Timestamps
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -407,4 +409,43 @@ export type TemplateElement = {
   objectFit?: "cover" | "contain" | "fill";
   // Visibility
   visible?: boolean;
+};
+
+/**
+ * Widget override settings for per-slide customization of overlay widgets
+ */
+export type WidgetOverrides = {
+  logo?: {
+    visible?: boolean;
+    x?: number; // percentage 0-100
+    y?: number;
+    width?: number;
+    height?: number;
+    opacity?: number;
+  };
+  weather?: {
+    visible?: boolean;
+    x?: number;
+    y?: number;
+    fontSize?: number;
+    color?: string;
+    opacity?: number;
+  };
+  clock?: {
+    visible?: boolean;
+    x?: number;
+    y?: number;
+    fontSize?: number;
+    color?: string;
+    opacity?: number;
+    showDate?: boolean;
+  };
+  waiverQr?: {
+    visible?: boolean;
+    x?: number;
+    y?: number;
+    size?: number;
+    opacity?: number;
+    label?: string;
+  };
 };

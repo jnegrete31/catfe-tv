@@ -823,3 +823,20 @@
 - [x] Create dialog to enter custom slide title
 - [x] Save custom slides as a new screen type (CUSTOM)
 - [x] Display custom slides in TV rotation
+
+## Feature - Per-Slide Widget Customization
+- [ ] Update template schema to include widget override settings (logo, weather, clock, waiver QR)
+- [ ] Add widget visibility toggles to slide editor
+- [ ] Add widget position/size controls to slide editor
+- [ ] Add widget style controls (opacity, color) to slide editor
+- [ ] Integrate widget overrides into TV display renderer
+
+
+## Feature - Per-Slide Widget Customization (Completed)
+- [x] Add widget toggle switches (show/hide per slide)
+- [x] Add position controls (X, Y) for each widget
+- [x] Add size/font controls for each widget
+- [x] Integrate widget overrides into TV display renderer
+
+## Bug Fix - Slide Editor Template Loading
+- [x] Fix template not loading saved changes when switching screen types

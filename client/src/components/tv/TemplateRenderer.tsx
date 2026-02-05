@@ -26,6 +26,28 @@ interface TemplateElement {
   visible?: boolean;
 }
 
+// Widget overrides type for per-slide widget customization
+interface WidgetOverride {
+  visible?: boolean;
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  fontSize?: number;
+  color?: string;
+  opacity?: number;
+  size?: number;
+  label?: string;
+  showDate?: boolean;
+}
+
+interface WidgetOverrides {
+  logo?: WidgetOverride;
+  weather?: WidgetOverride;
+  clock?: WidgetOverride;
+  waiverQr?: WidgetOverride;
+}
+
 interface TemplateRendererProps {
   screen: Screen;
   settings: Settings | null;
@@ -244,12 +266,119 @@ export function TemplateRenderer({ screen, settings, adoptionCount }: TemplateRe
     console.error("Failed to parse template elements:", e);
   }
 
+  // Parse widget overrides from template
+  let widgetOverrides: WidgetOverrides = {};
+  try {
+    if (template && 'widgetOverrides' in template && template.widgetOverrides) {
+      widgetOverrides = JSON.parse(template.widgetOverrides as string);
+    }
+  } catch (e) {
+    console.error("Failed to parse widget overrides:", e);
+  }
+
   // If no template or no elements, return null (fallback to default renderer)
   if (!template || elements.length === 0) {
     return null;
   }
 
   const backgroundColor = template.backgroundColor || "#1a1a2e";
+  
+  // Helper to render overlay widgets with overrides
+  const renderOverlayWidgets = () => {
+    const widgets = [];
+    
+    // Logo widget
+    if (widgetOverrides.logo?.visible !== false && settings?.logoUrl) {
+      const logo = widgetOverrides.logo || {};
+      widgets.push(
+        <div
+          key="logo-widget"
+          className="absolute"
+          style={{
+            left: `${logo.x || 2}%`,
+            top: `${logo.y || 2}%`,
+            width: `${logo.width || 8}%`,
+            height: `${logo.height || 8}%`,
+            opacity: logo.opacity || 1,
+            zIndex: 100,
+          }}
+        >
+          <img src={settings.logoUrl} alt="Logo" className="w-full h-full object-contain" />
+        </div>
+      );
+    }
+    
+    // Weather widget
+    if (widgetOverrides.weather?.visible !== false) {
+      const weather = widgetOverrides.weather || {};
+      widgets.push(
+        <div
+          key="weather-widget"
+          className="absolute flex items-center gap-1"
+          style={{
+            left: `${weather.x || 85}%`,
+            top: `${weather.y || 2}%`,
+            fontSize: weather.fontSize || 18,
+            color: weather.color || "#ffffff",
+            opacity: weather.opacity || 1,
+            zIndex: 100,
+          }}
+        >
+          <span>☀️</span>
+          <span>72°F</span>
+        </div>
+      );
+    }
+    
+    // Clock widget
+    if (widgetOverrides.clock?.visible !== false) {
+      const clock = widgetOverrides.clock || {};
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+      const dateStr = now.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+      widgets.push(
+        <div
+          key="clock-widget"
+          className="absolute text-right"
+          style={{
+            right: `${100 - (clock.x || 92) - 8}%`,
+            top: `${clock.y || 2}%`,
+            fontSize: clock.fontSize || 24,
+            color: clock.color || "#ffffff",
+            opacity: clock.opacity || 1,
+            zIndex: 100,
+          }}
+        >
+          <div className="font-bold">{timeStr}</div>
+          {clock.showDate !== false && <div className="text-sm opacity-70">{dateStr}</div>}
+        </div>
+      );
+    }
+    
+    // Waiver QR widget
+    if (widgetOverrides.waiverQr?.visible !== false && settings?.waiverUrl) {
+      const qr = widgetOverrides.waiverQr || {};
+      widgets.push(
+        <div
+          key="waiver-qr-widget"
+          className="absolute flex flex-col items-center"
+          style={{
+            left: `${qr.x || 2}%`,
+            top: `${qr.y || 2}%`,
+            opacity: qr.opacity || 1,
+            zIndex: 100,
+          }}
+        >
+          <div className="bg-white p-2 rounded-lg">
+            <QRCodeSVG value={settings.waiverUrl} size={qr.size || 80} level="M" />
+          </div>
+          <span className="text-white text-xs mt-1">{qr.label || "Sign Waiver"}</span>
+        </div>
+      );
+    }
+    
+    return widgets;
+  };
 
   return (
     <div
@@ -281,6 +410,9 @@ export function TemplateRenderer({ screen, settings, adoptionCount }: TemplateRe
           adoptionCount={adoptionCount}
         />
       ))}
+
+      {/* Render overlay widgets with per-slide customizations */}
+      {renderOverlayWidgets()}
     </div>
   );
 }

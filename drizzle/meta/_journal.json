@@ -232,6 +232,13 @@
       "when": 1770317159914,
       "tag": "0032_abnormal_starbolt",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "5",
+      "when": 1770317934872,
+      "tag": "0033_careless_nuke",
+      "breakpoints": true
     }
   ]
 }
