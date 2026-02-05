@@ -777,3 +777,10 @@
 - [x] Add decorative elements (paw prints, hearts, sparkles)
 - [x] Improve layout to fill more screen space
 - [x] Add warm, inviting messaging
+
+## Bug Fix - Text Readability on TV
+- [x] Increase Adoption screen text size (name, age, description)
+- [x] Change Adoption Showcase grid to single row layout
+- [x] Increase Event screen text size
+
+- [x] Fix Event photos not appearing on slides

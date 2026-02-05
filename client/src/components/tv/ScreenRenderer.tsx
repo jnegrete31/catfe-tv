@@ -217,45 +217,82 @@ function EventScreen({ screen, settings }: ScreenRendererProps) {
            style={{ background: 'radial-gradient(ellipse at center top, rgba(150,100,255,0.3) 0%, transparent 50%)' }} />
       
       {/* Main content */}
-      <div className="absolute inset-0 flex items-center justify-center px-12">
+      <div className="absolute inset-0 flex items-center justify-center px-16">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col md:flex-row items-center justify-between w-full max-w-6xl gap-12"
+          className="flex flex-row items-center justify-center w-full max-w-7xl gap-16"
         >
-          <div className="flex-1">
+          {/* Event image - polaroid style */}
+          {screen.imagePath && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
+              animate={{ opacity: 1, scale: 1, rotate: -2 }}
+              transition={{ delay: 0.1, duration: 0.6, type: 'spring', stiffness: 80 }}
+              className="flex-shrink-0"
+            >
+              <div className="bg-white p-4 pb-16 shadow-2xl rounded-sm relative" style={{ boxShadow: '0 30px 60px -15px rgba(0,0,0,0.6)' }}>
+                <div className="relative w-[380px] h-[380px] overflow-hidden bg-gray-100">
+                  <img
+                    src={screen.imagePath}
+                    alt={screen.title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0" style={{ boxShadow: 'inset 0 0 80px rgba(0,0,0,0.15)' }} />
+                </div>
+                <div className="absolute bottom-4 left-4 right-4 text-center">
+                  <p className="text-gray-800 text-2xl font-medium" style={{ fontFamily: 'Georgia, serif' }}>
+                    {screen.title}
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+          
+          {/* Event info */}
+          <div className="flex-1 max-w-xl">
             <motion.div 
               initial={{ scale: 0.9 }}
               animate={{ scale: 1 }}
-              className="inline-flex items-center gap-2 px-5 py-2 mb-6 rounded-full bg-purple-500/20 border border-purple-400/30"
+              className="inline-flex items-center gap-3 px-6 py-3 mb-6 rounded-full bg-purple-500/20 border border-purple-400/30"
             >
-              <span className="text-xl">🎉</span>
-              <span className="text-purple-300 text-lg font-medium tracking-wide">Event</span>
+              <span className="text-3xl">🎉</span>
+              <span className="text-purple-300 text-2xl font-medium tracking-wide">Event</span>
             </motion.div>
-            <h1 className="text-5xl font-light tracking-wider text-white mb-4" style={{ fontFamily: 'Georgia, serif' }}>
-              <span className="text-purple-400">{screen.title}</span>
-            </h1>
+            {!screen.imagePath && (
+              <h1 className="text-6xl font-light tracking-wider text-white mb-6" style={{ fontFamily: 'Georgia, serif' }}>
+                <span className="text-purple-400">{screen.title}</span>
+              </h1>
+            )}
+            {screen.imagePath && (
+              <h1 className="text-5xl font-light tracking-wider text-white mb-6" style={{ fontFamily: 'Georgia, serif' }}>
+                <span className="text-purple-400">{screen.title}</span>
+              </h1>
+            )}
             {screen.subtitle && (
-              <p className="text-2xl text-white/70 mb-4">
+              <p className="text-3xl text-white/80 mb-4">
                 {screen.subtitle}
               </p>
             )}
             {screen.body && (
-              <p className="text-xl text-white/60">
+              <p className="text-2xl text-white/70 leading-relaxed">
                 {screen.body}
               </p>
             )}
+            {screen.qrUrl && (
+              <motion.div 
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="mt-8 inline-block bg-white/95 backdrop-blur-sm rounded-2xl p-5 shadow-2xl"
+              >
+                <div className="text-center mb-2">
+                  <p className="text-lg font-semibold text-gray-700">Learn More</p>
+                </div>
+                <QRCodeSVG value={screen.qrUrl} size={150} level="M" />
+              </motion.div>
+            )}
           </div>
-          {screen.qrUrl && (
-            <motion.div 
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="flex-shrink-0 bg-white/95 backdrop-blur-sm rounded-2xl p-5 shadow-2xl"
-            >
-              <QRCodeSVG value={screen.qrUrl} size={180} level="M" />
-            </motion.div>
-          )}
         </motion.div>
       </div>
     </div>
@@ -288,21 +325,21 @@ function TodayAtCatfeScreen({ screen, settings }: ScreenRendererProps) {
           <motion.div 
             initial={{ scale: 0.9 }}
             animate={{ scale: 1 }}
-            className="inline-flex items-center gap-2 px-6 py-3 mb-8 rounded-full bg-amber-500/20 border border-amber-400/30"
+            className="inline-flex items-center gap-3 px-8 py-4 mb-8 rounded-full bg-amber-500/20 border border-amber-400/30"
           >
-            <span className="text-2xl">☕</span>
-            <span className="text-amber-300 text-xl font-medium tracking-wide">Today at {settings?.locationName || "Catfé"}</span>
+            <span className="text-4xl">☕</span>
+            <span className="text-amber-300 text-3xl font-medium tracking-wide">Today at {settings?.locationName || "Catfé"}</span>
           </motion.div>
-          <h1 className="text-5xl font-light tracking-wider text-white mb-6" style={{ fontFamily: 'Georgia, serif' }}>
+          <h1 className="text-7xl font-light tracking-wider text-white mb-8" style={{ fontFamily: 'Georgia, serif' }}>
             <span className="text-amber-400">{screen.title}</span>
           </h1>
           {screen.subtitle && (
-            <p className="text-2xl text-white/70 mb-6">
+            <p className="text-4xl text-white/80 mb-6">
               {screen.subtitle}
             </p>
           )}
           {screen.body && (
-            <p className="text-xl text-white/60 mb-8">
+            <p className="text-3xl text-white/70 mb-8 leading-relaxed">
               {screen.body}
             </p>
           )}
@@ -348,21 +385,21 @@ function MembershipScreen({ screen, settings }: ScreenRendererProps) {
             <motion.div 
               initial={{ scale: 0.9 }}
               animate={{ scale: 1 }}
-              className="inline-flex items-center gap-2 px-5 py-2 mb-6 rounded-full bg-emerald-500/20 border border-emerald-400/30"
+              className="inline-flex items-center gap-3 px-6 py-3 mb-6 rounded-full bg-emerald-500/20 border border-emerald-400/30"
             >
-              <span className="text-xl">⭐</span>
-              <span className="text-emerald-300 text-lg font-medium tracking-wide">Membership</span>
+              <span className="text-3xl">⭐</span>
+              <span className="text-emerald-300 text-2xl font-medium tracking-wide">Membership</span>
             </motion.div>
-            <h1 className="text-5xl font-light tracking-wider text-white mb-4" style={{ fontFamily: 'Georgia, serif' }}>
+            <h1 className="text-6xl font-light tracking-wider text-white mb-6" style={{ fontFamily: 'Georgia, serif' }}>
               <span className="text-emerald-400">{screen.title}</span>
             </h1>
             {screen.subtitle && (
-              <p className="text-2xl text-white/70 mb-4">
+              <p className="text-3xl text-white/80 mb-4">
                 {screen.subtitle}
               </p>
             )}
             {screen.body && (
-              <p className="text-xl text-white/60">
+              <p className="text-2xl text-white/70 leading-relaxed">
                 {screen.body}
               </p>
             )}
@@ -409,21 +446,21 @@ function ReminderScreen({ screen, settings }: ScreenRendererProps) {
           <motion.div 
             initial={{ scale: 0.9 }}
             animate={{ scale: 1 }}
-            className="inline-flex items-center gap-2 px-5 py-2 mb-6 rounded-full bg-blue-500/20 border border-blue-400/30"
+            className="inline-flex items-center gap-3 px-6 py-3 mb-8 rounded-full bg-blue-500/20 border border-blue-400/30"
           >
-            <span className="text-xl">📌</span>
-            <span className="text-blue-300 text-lg font-medium tracking-wide">Reminder</span>
+            <span className="text-3xl">📌</span>
+            <span className="text-blue-300 text-2xl font-medium tracking-wide">Reminder</span>
           </motion.div>
-          <h1 className="text-5xl font-light tracking-wider text-white mb-6" style={{ fontFamily: 'Georgia, serif' }}>
+          <h1 className="text-7xl font-light tracking-wider text-white mb-8" style={{ fontFamily: 'Georgia, serif' }}>
             <span className="text-blue-400">{screen.title}</span>
           </h1>
           {screen.subtitle && (
-            <p className="text-2xl text-white/70 mb-4">
+            <p className="text-4xl text-white/80 mb-6">
               {screen.subtitle}
             </p>
           )}
           {screen.body && (
-            <p className="text-xl text-white/60">
+            <p className="text-3xl text-white/70 leading-relaxed">
               {screen.body}
             </p>
           )}
@@ -490,7 +527,7 @@ function AdoptionScreen({ screen, settings }: ScreenRendererProps) {
         animate={{ opacity: 1, y: 0 }}
         className="absolute top-8 left-0 right-0 text-center z-10"
       >
-        <h1 className="text-5xl font-light tracking-wider text-white" style={{ fontFamily: 'Georgia, serif' }}>
+        <h1 className="text-7xl font-light tracking-wider text-white" style={{ fontFamily: 'Georgia, serif' }}>
           Meet <span className="text-orange-400">{screen.title?.replace('Meet ', '')}</span>
         </h1>
       </motion.div>
@@ -527,7 +564,7 @@ function AdoptionScreen({ screen, settings }: ScreenRendererProps) {
                 </div>
                 {/* Polaroid caption */}
                 <div className="absolute bottom-4 left-4 right-4 text-center">
-                  <p className="text-gray-800 text-2xl font-medium" style={{ fontFamily: 'Georgia, serif' }}>
+                  <p className="text-gray-800 text-3xl font-medium" style={{ fontFamily: 'Georgia, serif' }}>
                     Meet {screen.title?.replace('Meet ', '')}
                   </p>
                 </div>
@@ -544,8 +581,8 @@ function AdoptionScreen({ screen, settings }: ScreenRendererProps) {
               transition={{ delay: 0.2 }}
               className={`inline-flex items-center gap-3 px-6 py-3 rounded-full ${isAdopted ? 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-green-400/40' : 'bg-gradient-to-r from-orange-500/20 to-pink-500/20 border-orange-400/40'} border backdrop-blur-sm`}
             >
-              <span className="text-2xl">{isAdopted ? '🎉' : '🐱'}</span>
-              <span className={`${isAdopted ? 'text-green-300' : 'text-orange-300'} text-xl font-medium tracking-wide`}>
+              <span className="text-3xl">{isAdopted ? '🎉' : '🐱'}</span>
+              <span className={`${isAdopted ? 'text-green-300' : 'text-orange-300'} text-2xl font-medium tracking-wide`}>
                 {isAdopted ? 'Found a Forever Home!' : 'Looking for Love'}
               </span>
             </motion.div>
@@ -556,7 +593,7 @@ function AdoptionScreen({ screen, settings }: ScreenRendererProps) {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3 }}
-                className="text-3xl text-white/80 font-light"
+                className="text-4xl text-white/90 font-light"
               >
                 {screen.subtitle}
               </motion.p>
@@ -568,7 +605,7 @@ function AdoptionScreen({ screen, settings }: ScreenRendererProps) {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.4 }}
-                className="text-xl text-white/60 leading-relaxed"
+                className="text-2xl text-white/70 leading-relaxed"
               >
                 {screen.body}
               </motion.p>
@@ -649,15 +686,15 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRender
           animate={{ opacity: 1, y: 0 }}
           className="inline-block"
         >
-          <h1 className="text-5xl font-light tracking-wider text-white mb-2" style={{ fontFamily: 'Georgia, serif' }}>
+          <h1 className="text-7xl font-light tracking-wider text-white mb-2" style={{ fontFamily: 'Georgia, serif' }}>
             <span className="text-orange-400">Meet</span> Our <span className="text-pink-400">Cats</span>
           </h1>
-          <p className="text-lg text-white/60 tracking-widest uppercase">Find Your Purrfect Match</p>
+          <p className="text-2xl text-white/60 tracking-widest uppercase">Find Your Purrfect Match</p>
           {/* Adoption success counter */}
           {adoptedCount > 0 && (
-            <div className="mt-3 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-green-500/20 border border-green-400/30 text-green-300">
-              <span className="text-xl">🎉</span>
-              <span className="text-sm font-medium">
+            <div className="mt-4 inline-flex items-center gap-3 px-6 py-3 rounded-full bg-green-500/20 border border-green-400/30 text-green-300">
+              <span className="text-3xl">🎉</span>
+              <span className="text-xl font-medium">
                 {adoptedCount} {adoptedCount === 1 ? 'cat' : 'cats'} found their forever home!
               </span>
             </div>
@@ -665,8 +702,8 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRender
         </motion.div>
       </div>
       
-      {/* 2x2 Polaroid Grid */}
-      <div className="absolute inset-0 flex items-center justify-center px-12 pt-32 pb-20">
+      {/* Single Row Polaroid Grid */}
+      <div className="absolute inset-0 flex items-center justify-center px-6 pt-40 pb-24">
         <AnimatePresence mode="popLayout">
           <motion.div
             key={displayCats.map(c => c.id).join('-')}
@@ -674,7 +711,7 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRender
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.6 }}
-            className="grid grid-cols-2 gap-10 max-w-5xl w-full"
+            className="flex flex-row gap-5 justify-center items-center w-full"
           >
             {displayCats.map((cat, idx) => (
               <motion.div
@@ -712,12 +749,12 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRender
                   </div>
                   
                   {/* Cat name - handwritten style */}
-                  <div className="absolute bottom-3 left-3 right-3 text-center">
+                  <div className="absolute bottom-2 left-2 right-2 text-center">
                     <p className="text-gray-800 text-2xl font-semibold truncate" style={{ fontFamily: 'Georgia, serif' }}>
-                      {cat.title}
+                      Meet {cat.title?.replace('Meet ', '')}
                     </p>
                     {cat.subtitle && (
-                      <p className="text-gray-500 text-base truncate">{cat.subtitle}</p>
+                      <p className="text-gray-600 text-lg truncate">{cat.subtitle}</p>
                     )}
                   </div>
                 </div>
@@ -965,21 +1002,21 @@ function ThankYouScreen({ screen, settings }: ScreenRendererProps) {
           <motion.div 
             initial={{ scale: 0.9 }}
             animate={{ scale: 1 }}
-            className="inline-flex items-center gap-2 px-6 py-3 mb-8 rounded-full bg-indigo-500/20 border border-indigo-400/30"
+            className="inline-flex items-center gap-3 px-8 py-4 mb-8 rounded-full bg-indigo-500/20 border border-indigo-400/30"
           >
-            <span className="text-2xl">🙏</span>
-            <span className="text-indigo-300 text-xl font-medium tracking-wide">Thank You</span>
+            <span className="text-4xl">🙏</span>
+            <span className="text-indigo-300 text-3xl font-medium tracking-wide">Thank You</span>
           </motion.div>
-          <h1 className="text-6xl font-light tracking-wider text-white mb-6" style={{ fontFamily: 'Georgia, serif' }}>
+          <h1 className="text-8xl font-light tracking-wider text-white mb-8" style={{ fontFamily: 'Georgia, serif' }}>
             <span className="text-indigo-400">{screen.title || "Thank You!"}</span>
           </h1>
           {screen.subtitle && (
-            <p className="text-2xl text-white/70 mb-4">
+            <p className="text-4xl text-white/80 mb-6">
               {screen.subtitle}
             </p>
           )}
           {screen.body && (
-            <p className="text-xl text-white/60">
+            <p className="text-3xl text-white/70 leading-relaxed">
               {screen.body}
             </p>
           )}
