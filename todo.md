@@ -810,3 +810,10 @@
 - [x] Integrate templates into TV display renderer (TemplateRenderer component)
 - [x] Add "Editor" button to admin dashboard header
 - [x] Unit tests for template CRUD operations
+
+## Bug Fix - Slide Editor Visibility
+- [x] Ensure Editor button is visible in admin dashboard header
+- [x] Verify font size increase/decrease controls are working
+
+## Bug Fix - Slide Editor Properties Panel
+- [x] Fix properties panel disappearing after dragging an element

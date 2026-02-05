@@ -485,7 +485,13 @@ export default function SlideEditor() {
                   ref={canvasRef}
                   className="relative w-full aspect-video rounded-lg overflow-hidden"
                   style={{ backgroundColor }}
-                  onClick={() => setSelectedElementId(null)}
+                  onClick={(e) => {
+                    // Only clear selection if we clicked directly on the canvas (not on an element)
+                    // and we weren't dragging
+                    if (e.target === e.currentTarget && !isDragging && !isResizing) {
+                      setSelectedElementId(null);
+                    }
+                  }}
                 >
                   {/* Background gradient overlay */}
                   <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
