@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Play, Trash2, Edit, ListMusic, Check, Clock, Calendar } from "lucide-react";
+import { Plus, Play, Trash2, Edit, ListMusic, Check, Clock, Calendar, X } from "lucide-react";
 import { DAYS_OF_WEEK } from "@shared/types";
 import { ScheduleTimeline } from "./ScheduleTimeline";
 
@@ -26,13 +26,17 @@ const PLAYLIST_COLORS = [
   { value: "#6366f1", label: "Indigo" },
 ];
 
+interface TimeSlot {
+  timeStart: string;
+  timeEnd: string;
+}
+
 interface PlaylistFormData {
   name: string;
   description: string;
   schedulingEnabled: boolean;
   daysOfWeek: number[];
-  timeStart: string;
-  timeEnd: string;
+  timeSlots: TimeSlot[];
   color: string;
 }
 
@@ -41,8 +45,7 @@ const defaultFormData: PlaylistFormData = {
   description: "",
   schedulingEnabled: false,
   daysOfWeek: [],
-  timeStart: "",
-  timeEnd: "",
+  timeSlots: [{ timeStart: "", timeEnd: "" }],
   color: "#C2884E",
 };
 
@@ -58,6 +61,22 @@ function PlaylistFormFields({
       ? data.daysOfWeek.filter((d) => d !== day)
       : [...data.daysOfWeek, day].sort();
     onChange({ ...data, daysOfWeek: newDays });
+  };
+
+  const updateTimeSlot = (index: number, field: "timeStart" | "timeEnd", value: string) => {
+    const newSlots = [...data.timeSlots];
+    newSlots[index] = { ...newSlots[index], [field]: value };
+    onChange({ ...data, timeSlots: newSlots });
+  };
+
+  const addTimeSlot = () => {
+    onChange({ ...data, timeSlots: [...data.timeSlots, { timeStart: "", timeEnd: "" }] });
+  };
+
+  const removeTimeSlot = (index: number) => {
+    if (data.timeSlots.length <= 1) return;
+    const newSlots = data.timeSlots.filter((_, i) => i !== index);
+    onChange({ ...data, timeSlots: newSlots });
   };
 
   return (
@@ -153,10 +172,7 @@ function PlaylistFormFields({
                 variant="ghost"
                 className="h-6 text-xs"
                 onClick={() =>
-                  onChange({
-                    ...data,
-                    daysOfWeek: [1, 2, 3, 4, 5],
-                  })
+                  onChange({ ...data, daysOfWeek: [1, 2, 3, 4, 5] })
                 }
               >
                 Weekdays
@@ -167,10 +183,7 @@ function PlaylistFormFields({
                 variant="ghost"
                 className="h-6 text-xs"
                 onClick={() =>
-                  onChange({
-                    ...data,
-                    daysOfWeek: [0, 6],
-                  })
+                  onChange({ ...data, daysOfWeek: [0, 6] })
                 }
               >
                 Weekends
@@ -181,10 +194,7 @@ function PlaylistFormFields({
                 variant="ghost"
                 className="h-6 text-xs"
                 onClick={() =>
-                  onChange({
-                    ...data,
-                    daysOfWeek: [0, 1, 2, 3, 4, 5, 6],
-                  })
+                  onChange({ ...data, daysOfWeek: [0, 1, 2, 3, 4, 5, 6] })
                 }
               >
                 Every Day
@@ -192,31 +202,60 @@ function PlaylistFormFields({
             </div>
           </div>
 
-          {/* Time Window */}
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2">
-              <Clock className="w-4 h-4" />
-              Time Window
-            </Label>
-            <div className="flex items-center gap-2">
-              <Input
-                type="time"
-                value={data.timeStart}
-                onChange={(e) =>
-                  onChange({ ...data, timeStart: e.target.value })
-                }
-                className="w-32"
-              />
-              <span className="text-muted-foreground">to</span>
-              <Input
-                type="time"
-                value={data.timeEnd}
-                onChange={(e) =>
-                  onChange({ ...data, timeEnd: e.target.value })
-                }
-                className="w-32"
-              />
+          {/* Time Windows */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                Time Windows
+              </Label>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="h-7 text-xs"
+                onClick={addTimeSlot}
+              >
+                <Plus className="w-3 h-3 mr-1" />
+                Add Time
+              </Button>
             </div>
+            {data.timeSlots.map((slot, index) => (
+              <div key={index} className="flex items-center gap-2 bg-muted/30 p-2 rounded-lg">
+                <span className="text-xs text-muted-foreground w-4 text-center font-medium">
+                  {index + 1}
+                </span>
+                <Input
+                  type="time"
+                  value={slot.timeStart}
+                  onChange={(e) => updateTimeSlot(index, "timeStart", e.target.value)}
+                  className="w-28 h-8 text-sm"
+                />
+                <span className="text-muted-foreground text-sm">to</span>
+                <Input
+                  type="time"
+                  value={slot.timeEnd}
+                  onChange={(e) => updateTimeSlot(index, "timeEnd", e.target.value)}
+                  className="w-28 h-8 text-sm"
+                />
+                {data.timeSlots.length > 1 && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
+                    onClick={() => removeTimeSlot(index)}
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </Button>
+                )}
+              </div>
+            ))}
+            {data.timeSlots.length > 1 && (
+              <p className="text-xs text-muted-foreground">
+                This playlist will be active during all {data.timeSlots.length} time windows
+              </p>
+            )}
           </div>
         </div>
       )}
@@ -301,39 +340,36 @@ export function PlaylistManager() {
     onError: (err) => toast.error(err.message),
   });
 
+  // Convert form data timeSlots to API format
+  const formToApi = (formData: PlaylistFormData) => {
+    const validSlots = formData.timeSlots.filter(s => s.timeStart && s.timeEnd);
+    return {
+      name: formData.name,
+      description: formData.description || undefined,
+      schedulingEnabled: formData.schedulingEnabled,
+      daysOfWeek: formData.daysOfWeek.length > 0 ? formData.daysOfWeek : undefined,
+      // Keep legacy fields for backward compat (first slot)
+      timeStart: validSlots[0]?.timeStart || undefined,
+      timeEnd: validSlots[0]?.timeEnd || undefined,
+      // New multi-slot field
+      timeSlots: validSlots.length > 0 ? validSlots : undefined,
+      color: formData.color,
+    };
+  };
+
   const handleCreate = () => {
     if (!newPlaylist.name.trim()) {
       toast.error("Please enter a playlist name");
       return;
     }
-    createMutation.mutate({
-      name: newPlaylist.name,
-      description: newPlaylist.description || undefined,
-      schedulingEnabled: newPlaylist.schedulingEnabled,
-      daysOfWeek:
-        newPlaylist.daysOfWeek.length > 0
-          ? newPlaylist.daysOfWeek
-          : undefined,
-      timeStart: newPlaylist.timeStart || undefined,
-      timeEnd: newPlaylist.timeEnd || undefined,
-      color: newPlaylist.color,
-    });
+    createMutation.mutate(formToApi(newPlaylist));
   };
 
   const handleUpdate = () => {
     if (!editingPlaylist) return;
     updateMutation.mutate({
       id: editingPlaylist.id,
-      name: editingPlaylist.name,
-      description: editingPlaylist.description || undefined,
-      schedulingEnabled: editingPlaylist.schedulingEnabled,
-      daysOfWeek:
-        editingPlaylist.daysOfWeek.length > 0
-          ? editingPlaylist.daysOfWeek
-          : undefined,
-      timeStart: editingPlaylist.timeStart || undefined,
-      timeEnd: editingPlaylist.timeEnd || undefined,
-      color: editingPlaylist.color,
+      ...formToApi(editingPlaylist),
     });
   };
 
@@ -354,16 +390,35 @@ export function PlaylistManager() {
   };
 
   const handleEditPlaylist = (playlist: any) => {
+    // Convert API data to form data - prefer timeSlots array, fallback to legacy fields
+    const timeSlots: TimeSlot[] = playlist.timeSlots && playlist.timeSlots.length > 0
+      ? playlist.timeSlots
+      : playlist.timeStart && playlist.timeEnd
+        ? [{ timeStart: playlist.timeStart, timeEnd: playlist.timeEnd }]
+        : [{ timeStart: "", timeEnd: "" }];
+
     setEditingPlaylist({
       id: playlist.id,
       name: playlist.name,
       description: playlist.description || "",
       schedulingEnabled: playlist.schedulingEnabled || false,
       daysOfWeek: playlist.daysOfWeek || [],
-      timeStart: playlist.timeStart || "",
-      timeEnd: playlist.timeEnd || "",
+      timeSlots,
       color: playlist.color || "#C2884E",
     });
+  };
+
+  // Format time slots for display on playlist cards
+  const formatTimeSlots = (playlist: any) => {
+    const slots: TimeSlot[] = playlist.timeSlots && playlist.timeSlots.length > 0
+      ? playlist.timeSlots
+      : playlist.timeStart && playlist.timeEnd
+        ? [{ timeStart: playlist.timeStart, timeEnd: playlist.timeEnd }]
+        : [];
+
+    if (slots.length === 0) return null;
+
+    return slots.map((s: TimeSlot) => `${s.timeStart} – ${s.timeEnd}`).join(", ");
   };
 
   if (isLoading) {
@@ -434,60 +489,61 @@ export function PlaylistManager() {
 
       {/* Playlist List */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {playlists?.map((playlist) => (
-          <Card
-            key={playlist.id}
-            className={`cursor-pointer transition-all ${
-              selectedPlaylistId === playlist.id
-                ? "ring-2 ring-primary"
-                : "hover:shadow-md"
-            } ${playlist.isActive ? "border-green-500 border-2" : ""}`}
-            onClick={() => setSelectedPlaylistId(playlist.id)}
-          >
-            <CardHeader className="pb-2">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <CardTitle className="flex items-center gap-2">
-                    <div
-                      className="w-3 h-3 rounded-full shrink-0"
-                      style={{
-                        backgroundColor: playlist.color || "#C2884E",
-                      }}
-                    />
-                    <ListMusic className="w-5 h-5" />
-                    {playlist.name}
-                  </CardTitle>
-                  {playlist.description && (
-                    <CardDescription className="mt-1">
-                      {playlist.description}
-                    </CardDescription>
-                  )}
+        {playlists?.map((playlist) => {
+          const timeSummary = formatTimeSlots(playlist);
+          const slotCount = (playlist as any).timeSlots?.length || (playlist.timeStart && playlist.timeEnd ? 1 : 0);
+
+          return (
+            <Card
+              key={playlist.id}
+              className={`cursor-pointer transition-all ${
+                selectedPlaylistId === playlist.id
+                  ? "ring-2 ring-primary"
+                  : "hover:shadow-md"
+              } ${playlist.isActive ? "border-green-500 border-2" : ""}`}
+              onClick={() => setSelectedPlaylistId(playlist.id)}
+            >
+              <CardHeader className="pb-2">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <CardTitle className="flex items-center gap-2">
+                      <div
+                        className="w-3 h-3 rounded-full shrink-0"
+                        style={{
+                          backgroundColor: playlist.color || "#C2884E",
+                        }}
+                      />
+                      <ListMusic className="w-5 h-5" />
+                      {playlist.name}
+                    </CardTitle>
+                    {playlist.description && (
+                      <CardDescription className="mt-1">
+                        {playlist.description}
+                      </CardDescription>
+                    )}
+                  </div>
+                  <div className="flex gap-1">
+                    {playlist.isActive && (
+                      <Badge className="bg-green-500">Active</Badge>
+                    )}
+                    {playlist.schedulingEnabled && (
+                      <Badge variant="outline" className="text-xs">
+                        <Clock className="w-3 h-3 mr-1" />
+                        {slotCount > 1 ? `${slotCount} Times` : "Scheduled"}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
-                <div className="flex gap-1">
-                  {playlist.isActive && (
-                    <Badge className="bg-green-500">Active</Badge>
-                  )}
-                  {playlist.schedulingEnabled && (
-                    <Badge variant="outline" className="text-xs">
-                      <Clock className="w-3 h-3 mr-1" />
-                      Scheduled
-                    </Badge>
-                  )}
-                </div>
-              </div>
-              {/* Schedule summary */}
-              {playlist.schedulingEnabled &&
-                playlist.timeStart &&
-                playlist.timeEnd && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {playlist.timeStart} – {playlist.timeEnd}
+                {/* Schedule summary */}
+                {playlist.schedulingEnabled && timeSummary && (
+                  <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                    {timeSummary}
                     {playlist.daysOfWeek &&
-                      playlist.daysOfWeek.length > 0 &&
-                      playlist.daysOfWeek.length < 7 && (
+                      (playlist.daysOfWeek as number[]).length > 0 &&
+                      (playlist.daysOfWeek as number[]).length < 7 && (
                         <>
-                          {" "}
-                          ·{" "}
-                          {playlist.daysOfWeek
+                          {" "}·{" "}
+                          {(playlist.daysOfWeek as number[])
                             .map(
                               (d: number) =>
                                 DAYS_OF_WEEK.find((dw) => dw.value === d)?.label
@@ -496,58 +552,59 @@ export function PlaylistManager() {
                         </>
                       )}
                     {playlist.daysOfWeek &&
-                      playlist.daysOfWeek.length === 7 && <> · Every day</>}
+                      (playlist.daysOfWeek as number[]).length === 7 && <> · Every day</>}
                   </p>
                 )}
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="flex gap-2">
-                  {!playlist.isActive && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setActiveMutation.mutate({ id: playlist.id });
-                      }}
-                      disabled={setActiveMutation.isPending}
-                    >
-                      <Play className="w-4 h-4 mr-1" />
-                      Activate
-                    </Button>
-                  )}
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEditPlaylist(playlist);
-                    }}
-                  >
-                    <Edit className="w-4 h-4" />
-                  </Button>
-                  {!playlist.isDefault && (
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div className="flex gap-2">
+                    {!playlist.isActive && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveMutation.mutate({ id: playlist.id });
+                        }}
+                        disabled={setActiveMutation.isPending}
+                      >
+                        <Play className="w-4 h-4 mr-1" />
+                        Activate
+                      </Button>
+                    )}
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="text-destructive"
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (confirm("Delete this playlist?")) {
-                          deleteMutation.mutate({ id: playlist.id });
-                        }
+                        handleEditPlaylist(playlist);
                       }}
-                      disabled={deleteMutation.isPending}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Edit className="w-4 h-4" />
                     </Button>
-                  )}
+                    {!playlist.isDefault && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-destructive"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (confirm("Delete this playlist?")) {
+                            deleteMutation.mutate({ id: playlist.id });
+                          }
+                        }}
+                        disabled={deleteMutation.isPending}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {/* Screen Selection for Selected Playlist */}

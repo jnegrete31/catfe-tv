@@ -57,20 +57,35 @@ function buildTimeBlocks(
   view: "playlists" | "screens"
 ): TimeBlock[] {
   if (view === "playlists") {
-    return playlists
-      .filter((p) => p.schedulingEnabled && p.timeStart && p.timeEnd)
-      .map((p, i) => ({
-        id: p.id,
-        name: p.name,
-        color: p.color || PLAYLIST_COLORS[i % PLAYLIST_COLORS.length],
-        startPercent: timeToPercent(p.timeStart!),
-        endPercent: timeToPercent(p.timeEnd!),
-        timeStart: p.timeStart!,
-        timeEnd: p.timeEnd!,
-        type: "playlist" as const,
-        schedulingEnabled: true,
-        daysOfWeek: p.daysOfWeek || undefined,
-      }));
+    const blocks: TimeBlock[] = [];
+    playlists
+      .filter((p) => p.schedulingEnabled)
+      .forEach((p, i) => {
+        const color = p.color || PLAYLIST_COLORS[i % PLAYLIST_COLORS.length];
+        // Use timeSlots array if available, fallback to legacy timeStart/timeEnd
+        const slots: Array<{ timeStart: string; timeEnd: string }> =
+          (p as any).timeSlots && (p as any).timeSlots.length > 0
+            ? (p as any).timeSlots
+            : p.timeStart && p.timeEnd
+              ? [{ timeStart: p.timeStart, timeEnd: p.timeEnd }]
+              : [];
+
+        slots.forEach((slot, slotIndex) => {
+          blocks.push({
+            id: p.id * 1000 + slotIndex, // unique id per slot
+            name: p.name + (slots.length > 1 ? ` (${slotIndex + 1})` : ""),
+            color,
+            startPercent: timeToPercent(slot.timeStart),
+            endPercent: timeToPercent(slot.timeEnd),
+            timeStart: slot.timeStart,
+            timeEnd: slot.timeEnd,
+            type: "playlist" as const,
+            schedulingEnabled: true,
+            daysOfWeek: p.daysOfWeek || undefined,
+          });
+        });
+      });
+    return blocks;
   }
 
   return screens
@@ -101,7 +116,10 @@ function AlwaysOnItems({
 }) {
   if (view === "playlists") {
     const alwaysOn = playlists.filter(
-      (p) => !p.schedulingEnabled || (!p.timeStart && !p.timeEnd)
+      (p) => !p.schedulingEnabled || (
+        !p.timeStart && !p.timeEnd && 
+        (!(p as any).timeSlots || (p as any).timeSlots.length === 0)
+      )
     );
     const manualActive = playlists.find((p) => p.isActive);
 

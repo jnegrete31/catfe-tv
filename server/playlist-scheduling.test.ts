@@ -148,6 +148,133 @@ describe("Playlist Scheduling", () => {
     });
   });
 
+  describe("Multiple time slots", () => {
+    function buildPlaylistTimeBlocks(
+      playlist: {
+        id: number;
+        name: string;
+        schedulingEnabled: boolean;
+        timeSlots?: Array<{ timeStart: string; timeEnd: string }>;
+        timeStart?: string;
+        timeEnd?: string;
+        color?: string;
+        daysOfWeek?: number[];
+      }
+    ) {
+      if (!playlist.schedulingEnabled) return [];
+
+      const slots =
+        playlist.timeSlots && playlist.timeSlots.length > 0
+          ? playlist.timeSlots
+          : playlist.timeStart && playlist.timeEnd
+            ? [{ timeStart: playlist.timeStart, timeEnd: playlist.timeEnd }]
+            : [];
+
+      return slots.map((slot, i) => ({
+        id: playlist.id * 1000 + i,
+        name: playlist.name + (slots.length > 1 ? ` (${i + 1})` : ""),
+        timeStart: slot.timeStart,
+        timeEnd: slot.timeEnd,
+      }));
+    }
+
+    it("should create multiple time blocks from timeSlots array", () => {
+      const blocks = buildPlaylistTimeBlocks({
+        id: 1,
+        name: "Morning & Afternoon",
+        schedulingEnabled: true,
+        timeSlots: [
+          { timeStart: "09:00", timeEnd: "12:00" },
+          { timeStart: "14:00", timeEnd: "17:00" },
+        ],
+      });
+      expect(blocks).toHaveLength(2);
+      expect(blocks[0].name).toBe("Morning & Afternoon (1)");
+      expect(blocks[0].timeStart).toBe("09:00");
+      expect(blocks[0].timeEnd).toBe("12:00");
+      expect(blocks[1].name).toBe("Morning & Afternoon (2)");
+      expect(blocks[1].timeStart).toBe("14:00");
+      expect(blocks[1].timeEnd).toBe("17:00");
+    });
+
+    it("should create unique IDs for each time slot block", () => {
+      const blocks = buildPlaylistTimeBlocks({
+        id: 5,
+        name: "Test",
+        schedulingEnabled: true,
+        timeSlots: [
+          { timeStart: "08:00", timeEnd: "10:00" },
+          { timeStart: "12:00", timeEnd: "14:00" },
+          { timeStart: "16:00", timeEnd: "18:00" },
+        ],
+      });
+      expect(blocks).toHaveLength(3);
+      const ids = blocks.map((b) => b.id);
+      expect(new Set(ids).size).toBe(3); // All unique
+    });
+
+    it("should fall back to legacy timeStart/timeEnd when timeSlots is empty", () => {
+      const blocks = buildPlaylistTimeBlocks({
+        id: 2,
+        name: "Legacy Playlist",
+        schedulingEnabled: true,
+        timeSlots: [],
+        timeStart: "10:00",
+        timeEnd: "15:00",
+      });
+      expect(blocks).toHaveLength(1);
+      expect(blocks[0].name).toBe("Legacy Playlist");
+      expect(blocks[0].timeStart).toBe("10:00");
+      expect(blocks[0].timeEnd).toBe("15:00");
+    });
+
+    it("should fall back to legacy timeStart/timeEnd when timeSlots is undefined", () => {
+      const blocks = buildPlaylistTimeBlocks({
+        id: 3,
+        name: "Old Playlist",
+        schedulingEnabled: true,
+        timeStart: "08:00",
+        timeEnd: "12:00",
+      });
+      expect(blocks).toHaveLength(1);
+      expect(blocks[0].timeStart).toBe("08:00");
+    });
+
+    it("should return empty array when scheduling is disabled", () => {
+      const blocks = buildPlaylistTimeBlocks({
+        id: 4,
+        name: "Disabled",
+        schedulingEnabled: false,
+        timeSlots: [
+          { timeStart: "09:00", timeEnd: "12:00" },
+        ],
+      });
+      expect(blocks).toHaveLength(0);
+    });
+
+    it("should return empty array when no time data exists", () => {
+      const blocks = buildPlaylistTimeBlocks({
+        id: 5,
+        name: "No Times",
+        schedulingEnabled: true,
+      });
+      expect(blocks).toHaveLength(0);
+    });
+
+    it("should not add slot number suffix for single time slot", () => {
+      const blocks = buildPlaylistTimeBlocks({
+        id: 6,
+        name: "Single Slot",
+        schedulingEnabled: true,
+        timeSlots: [
+          { timeStart: "09:00", timeEnd: "17:00" },
+        ],
+      });
+      expect(blocks).toHaveLength(1);
+      expect(blocks[0].name).toBe("Single Slot");
+    });
+  });
+
   describe("Screen scheduling eligibility", () => {
     function isScreenEligible(
       screen: {

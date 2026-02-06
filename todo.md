@@ -936,3 +936,10 @@
 - [ ] Add drag-to-create playlist time blocks on timeline (future enhancement)
 - [x] Integrate timeline into Playlists tab in admin panel
 - [x] Write tests for playlist scheduling logic (26 tests passing)
+
+## Feature - Multiple Time Slots per Playlist
+- [x] Update playlists schema to store multiple time slots as JSON array
+- [x] Update backend create/update mutations to accept time slots array
+- [x] Update PlaylistManager UI to add/remove multiple time windows
+- [x] Update ScheduleTimeline to render multiple blocks per playlist
+- [x] Update tests for multiple time slots (33 tests passing)

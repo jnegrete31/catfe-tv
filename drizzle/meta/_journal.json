@@ -260,6 +260,13 @@
       "when": 1770399743156,
       "tag": "0036_moaning_jack_flag",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "5",
+      "when": 1770400824012,
+      "tag": "0037_strange_mongu",
+      "breakpoints": true
     }
   ]
 }

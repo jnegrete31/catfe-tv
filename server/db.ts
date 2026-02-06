@@ -1500,6 +1500,7 @@ export async function createPlaylist(data: {
   daysOfWeek?: number[];
   timeStart?: string;
   timeEnd?: string;
+  timeSlots?: Array<{ timeStart: string; timeEnd: string }>;
   color?: string;
 }): Promise<{ id: number }> {
   const db = await getDb();
@@ -1516,6 +1517,7 @@ export async function createPlaylist(data: {
     daysOfWeek: data.daysOfWeek || null,
     timeStart: data.timeStart || null,
     timeEnd: data.timeEnd || null,
+    timeSlots: data.timeSlots || null,
     color: data.color || "#C2884E",
     sortOrder: maxOrder + 1,
     isActive: false,
@@ -1535,6 +1537,7 @@ export async function updatePlaylist(id: number, data: {
   daysOfWeek?: number[];
   timeStart?: string;
   timeEnd?: string;
+  timeSlots?: Array<{ timeStart: string; timeEnd: string }>;
   color?: string;
 }): Promise<void> {
   const db = await getDb();
@@ -1547,6 +1550,7 @@ export async function updatePlaylist(id: number, data: {
   if (data.daysOfWeek !== undefined) updateData.daysOfWeek = data.daysOfWeek;
   if (data.timeStart !== undefined) updateData.timeStart = data.timeStart;
   if (data.timeEnd !== undefined) updateData.timeEnd = data.timeEnd;
+  if (data.timeSlots !== undefined) updateData.timeSlots = data.timeSlots;
   if (data.color !== undefined) updateData.color = data.color;
   
   if (Object.keys(updateData).length > 0) {

@@ -1096,6 +1096,7 @@ export const appRouter = router({
         daysOfWeek: z.array(z.number().min(0).max(6)).optional(),
         timeStart: z.string().max(5).optional(),
         timeEnd: z.string().max(5).optional(),
+        timeSlots: z.array(z.object({ timeStart: z.string().max(5), timeEnd: z.string().max(5) })).optional(),
         color: z.string().max(32).optional(),
       }))
       .mutation(async ({ input }) => {
@@ -1112,6 +1113,7 @@ export const appRouter = router({
         daysOfWeek: z.array(z.number().min(0).max(6)).optional(),
         timeStart: z.string().max(5).optional(),
         timeEnd: z.string().max(5).optional(),
+        timeSlots: z.array(z.object({ timeStart: z.string().max(5), timeEnd: z.string().max(5) })).optional(),
         color: z.string().max(32).optional(),
       }))
       .mutation(async ({ input }) => {
