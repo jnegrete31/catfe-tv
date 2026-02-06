@@ -956,3 +956,9 @@
 ## Bug Fix - Template Overlay Doubling (Feb 6)
 - [x] Fix: Template overlay elements appear doubled on top of default screen design in Slide Editor
 - [x] Ensure template elements replace (not duplicate) default screen content when a template is applied
+
+## Bug Fix - Guest Session Countdown Timers Not Showing on Apple TV (Feb 6)
+- [x] Investigate how guest session reminders/countdowns work on web (GuestReminderOverlay)
+- [x] Check API endpoints for guest session expiry data
+- [x] Implement guest session reminder overlay in tvOS (show when guests have 5 min left)
+- [x] Deliver updated Xcode files
