@@ -14,7 +14,7 @@ struct ScreenView: View {
     var body: some View {
         Group {
             switch screen.type {
-            case .snapPurr:
+            case .snapPurr, .snapPurrGallery, .snapPurrQR:
                 SnapPurrScreenView(screen: screen)
             case .events:
                 EventsScreenView(screen: screen)
@@ -30,9 +30,61 @@ struct ScreenView: View {
                 AdoptionShowcaseScreenView(screen: screen, adoptionCats: adoptionCats)
             case .thankYou:
                 ThankYouScreenView(screen: screen)
+            case .custom, .adoptionCounter, .livestream, .happyTails, .happyTailsQR, .poll, .pollQR, .checkIn:
+                // Generic screen for types that don't have custom views yet
+                GenericScreenView(screen: screen)
             }
         }
         .transition(.opacity)
+    }
+}
+
+// MARK: - Generic Screen View (for types without custom views)
+
+struct GenericScreenView: View {
+    let screen: Screen
+    
+    var body: some View {
+        BaseScreenLayout(screen: screen) {
+            VStack(spacing: 40) {
+                // Image if available
+                if let imageURL = screen.imageURL, !imageURL.isEmpty {
+                    ScreenImage(url: imageURL)
+                        .frame(maxWidth: 600, maxHeight: 400)
+                        .clipShape(RoundedRectangle(cornerRadius: 20))
+                        .shadow(color: .black.opacity(0.3), radius: 20, x: 0, y: 10)
+                }
+                
+                // Title
+                Text(screen.title)
+                    .font(CatfeTypography.title)
+                    .foregroundColor(.loungeCream)
+                    .multilineTextAlignment(.center)
+                
+                // Subtitle
+                if let subtitle = screen.subtitle {
+                    Text(subtitle)
+                        .font(CatfeTypography.subtitle)
+                        .foregroundColor(.loungeAmber)
+                        .multilineTextAlignment(.center)
+                }
+                
+                // Body text
+                if let body = screen.bodyText {
+                    Text(body)
+                        .font(CatfeTypography.body)
+                        .foregroundColor(.loungeCream.opacity(0.8))
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(8)
+                }
+                
+                // QR Code
+                if let qrUrl = screen.qrCodeURL, !qrUrl.isEmpty {
+                    QRCodeView(url: qrUrl, size: 200)
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
     }
 }
 

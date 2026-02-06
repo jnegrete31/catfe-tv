@@ -11,14 +11,25 @@ import SwiftUI
 // MARK: - Screen Types
 
 enum ScreenType: String, Codable, CaseIterable, Identifiable {
-    case snapPurr = "snap_purr"
-    case events = "events"
-    case today = "today"
-    case membership = "membership"
-    case reminders = "reminders"
-    case adoption = "adoption"
-    case adoptionShowcase = "adoption_showcase"
-    case thankYou = "thank_you"
+    // Backend values (uppercase with underscores)
+    case snapPurr = "SNAP_AND_PURR"
+    case events = "EVENT"
+    case today = "TODAY_AT_CATFE"
+    case membership = "MEMBERSHIP"
+    case reminders = "REMINDER"
+    case adoption = "ADOPTION"
+    case adoptionShowcase = "ADOPTION_SHOWCASE"
+    case adoptionCounter = "ADOPTION_COUNTER"
+    case thankYou = "THANK_YOU"
+    case livestream = "LIVESTREAM"
+    case happyTails = "HAPPY_TAILS"
+    case snapPurrGallery = "SNAP_PURR_GALLERY"
+    case happyTailsQR = "HAPPY_TAILS_QR"
+    case snapPurrQR = "SNAP_PURR_QR"
+    case poll = "POLL"
+    case pollQR = "POLL_QR"
+    case checkIn = "CHECK_IN"
+    case custom = "CUSTOM"
     
     var id: String { rawValue }
     
@@ -31,20 +42,36 @@ enum ScreenType: String, Codable, CaseIterable, Identifiable {
         case .reminders: return "Reminders"
         case .adoption: return "Adoption"
         case .adoptionShowcase: return "Adoptable Cats"
+        case .adoptionCounter: return "Adoption Counter"
         case .thankYou: return "Thank You"
+        case .livestream: return "Livestream"
+        case .happyTails: return "Happy Tails"
+        case .snapPurrGallery: return "Snap & Purr Gallery"
+        case .happyTailsQR: return "Happy Tails QR"
+        case .snapPurrQR: return "Snap & Purr QR"
+        case .poll: return "Poll"
+        case .pollQR: return "Poll QR"
+        case .checkIn: return "Check In"
+        case .custom: return "Custom"
         }
     }
     
     var icon: String {
         switch self {
-        case .snapPurr: return "camera.fill"
+        case .snapPurr, .snapPurrGallery, .snapPurrQR: return "camera.fill"
         case .events: return "calendar"
         case .today: return "sun.max.fill"
         case .membership: return "person.crop.circle.badge.checkmark"
         case .reminders: return "bell.fill"
         case .adoption: return "heart.fill"
         case .adoptionShowcase: return "square.grid.2x2.fill"
+        case .adoptionCounter: return "number.circle.fill"
         case .thankYou: return "hands.clap.fill"
+        case .livestream: return "video.fill"
+        case .happyTails, .happyTailsQR: return "pawprint.fill"
+        case .poll, .pollQR: return "chart.bar.fill"
+        case .checkIn: return "person.badge.plus"
+        case .custom: return "star.fill"
         }
     }
 }
@@ -59,13 +86,16 @@ struct Screen: Identifiable, Codable, Equatable {
     var subtitle: String?
     var bodyText: String?
     var imageURL: String?
+    var imageDisplayMode: String?
     var qrCodeURL: String?
     var duration: Int // seconds
     var priority: Int
     var isActive: Bool
     var isAdopted: Bool // For adoption screens
+    var isProtected: Bool
     var sortOrder: Int
     var schedule: ScreenSchedule?
+    var livestreamUrl: String?
     var createdAt: Date
     var updatedAt: Date
     
@@ -89,13 +119,16 @@ struct Screen: Identifiable, Codable, Equatable {
         subtitle: String? = nil,
         bodyText: String? = nil,
         imageURL: String? = nil,
+        imageDisplayMode: String? = "cover",
         qrCodeURL: String? = nil,
         duration: Int = 10,
         priority: Int = 0,
         isActive: Bool = true,
         isAdopted: Bool = false,
+        isProtected: Bool = false,
         sortOrder: Int = 0,
         schedule: ScreenSchedule? = nil,
+        livestreamUrl: String? = nil,
         catName: String? = nil,
         catAge: String? = nil,
         catGender: String? = nil,
@@ -112,13 +145,16 @@ struct Screen: Identifiable, Codable, Equatable {
         self.subtitle = subtitle
         self.bodyText = bodyText
         self.imageURL = imageURL
+        self.imageDisplayMode = imageDisplayMode
         self.qrCodeURL = qrCodeURL
         self.duration = duration
         self.priority = priority
         self.isActive = isActive
         self.isAdopted = isAdopted
+        self.isProtected = isProtected
         self.sortOrder = sortOrder
         self.schedule = schedule
+        self.livestreamUrl = livestreamUrl
         self.createdAt = Date()
         self.updatedAt = Date()
         self.catName = catName
@@ -133,6 +169,83 @@ struct Screen: Identifiable, Codable, Equatable {
     
     static func == (lhs: Screen, rhs: Screen) -> Bool {
         lhs.id == rhs.id
+    }
+}
+
+// MARK: - API Screen Model (matches backend JSON exactly)
+
+struct APIScreen: Codable {
+    var id: Int
+    var type: String
+    var title: String
+    var subtitle: String?
+    var body: String?
+    var imagePath: String?
+    var imageDisplayMode: String?
+    var qrUrl: String?
+    var startAt: String?
+    var endAt: String?
+    var daysOfWeek: [Int]?
+    var timeStart: String?
+    var timeEnd: String?
+    var priority: Int
+    var durationSeconds: Int
+    var sortOrder: Int
+    var isActive: Bool
+    var isProtected: Bool
+    var isAdopted: Bool
+    var livestreamUrl: String?
+    var createdAt: String
+    var updatedAt: String
+    
+    /// Convert API screen to local Screen model
+    func toScreen() -> Screen {
+        let screenType = ScreenType(rawValue: type) ?? .custom
+        
+        // Parse dates
+        let isoFormatter = ISO8601DateFormatter()
+        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        
+        let isoFormatterNoFrac = ISO8601DateFormatter()
+        isoFormatterNoFrac.formatOptions = [.withInternetDateTime]
+        
+        func parseDate(_ str: String?) -> Date? {
+            guard let str = str else { return nil }
+            return isoFormatter.date(from: str) ?? isoFormatterNoFrac.date(from: str)
+        }
+        
+        // Build schedule if scheduling fields are present
+        var schedule: ScreenSchedule? = nil
+        if daysOfWeek != nil || timeStart != nil || timeEnd != nil || startAt != nil || endAt != nil {
+            schedule = ScreenSchedule(
+                startDate: parseDate(startAt),
+                endDate: parseDate(endAt),
+                daysOfWeek: daysOfWeek ?? [0, 1, 2, 3, 4, 5, 6],
+                startTime: timeStart,
+                endTime: timeEnd
+            )
+        }
+        
+        return Screen(
+            id: UUID(),
+            numericId: id,
+            type: screenType,
+            title: title,
+            subtitle: subtitle,
+            bodyText: body,
+            imageURL: imagePath,
+            imageDisplayMode: imageDisplayMode,
+            qrCodeURL: qrUrl,
+            duration: durationSeconds,
+            priority: priority,
+            isActive: isActive,
+            isAdopted: isAdopted,
+            isProtected: isProtected,
+            sortOrder: sortOrder,
+            schedule: schedule,
+            livestreamUrl: livestreamUrl,
+            eventDate: parseDate(startAt)
+        )
     }
 }
 
@@ -327,7 +440,7 @@ extension Screen {
             Screen(
                 type: .adoption,
                 title: "Meet Scout",
-                subtitle: "Looking for a forever home",
+                subtitle: "6 months old • Female",
                 imageURL: "https://raw.githubusercontent.com/jnegrete31/catfe-tv/main/assets/catfe-tv/2026/01/1769716107287-scout.jpg",
                 duration: 12,
                 catName: "Scout",

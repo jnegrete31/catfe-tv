@@ -254,14 +254,20 @@ extension ScreenType {
     
     var accentColor: Color {
         switch self {
-        case .snapPurr: return .loungeWarmOrange
+        case .snapPurr, .snapPurrGallery, .snapPurrQR: return .loungeWarmOrange
         case .events: return .loungeAmber
         case .today: return .loungeWarmOrange
         case .membership: return .loungeMintGreen
         case .reminders: return .loungeWarmOrange
         case .adoption: return .loungeWarmOrange
         case .adoptionShowcase: return .loungeAmber
+        case .adoptionCounter: return .loungeAmber
         case .thankYou: return .loungeMintGreen
+        case .livestream: return .loungeWarmOrange
+        case .happyTails, .happyTailsQR: return .loungeMintGreen
+        case .poll, .pollQR: return .loungeAmber
+        case .checkIn: return .loungeMintGreen
+        case .custom: return .loungeWarmOrange
         }
     }
     

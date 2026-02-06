@@ -258,14 +258,14 @@ struct MiniScreenPreview: View {
                 Text(screen.title)
                     .font(.title3)
                     .fontWeight(.bold)
-                    .foregroundColor(.catfeBrown)
+                    .foregroundColor(screen.type.textColor)
                     .lineLimit(2)
                 
                 // Subtitle
                 if let subtitle = screen.subtitle {
                     Text(subtitle)
                         .font(.caption)
-                        .foregroundColor(.catfeBrown.opacity(0.7))
+                        .foregroundColor(screen.type.textColor.opacity(0.7))
                         .lineLimit(1)
                 }
                 

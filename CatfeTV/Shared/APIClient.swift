@@ -107,8 +107,15 @@ class APIClient: ObservableObject {
         error = nil
         
         do {
-            // Fetch all screens using tRPC
-            let url = URL(string: "\(baseURL)/api/trpc/screens.getAll")!
+            // Use screens.getActive (public, no auth needed) for TV display
+            // Use screens.getAll (protected) for admin
+            #if os(tvOS)
+            let endpoint = "screens.getActive"
+            #else
+            let endpoint = getAuthToken() != nil ? "screens.getAll" : "screens.getActive"
+            #endif
+            
+            let url = URL(string: "\(baseURL)/api/trpc/\(endpoint)")!
             var request = URLRequest(url: url)
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             addAuthHeader(to: &request)
@@ -116,17 +123,21 @@ class APIClient: ObservableObject {
             let (data, response) = try await URLSession.shared.data(for: request)
             
             if let httpResponse = response as? HTTPURLResponse {
-                print("Fetch screens response: \(httpResponse.statusCode)")
-                if let responseString = String(data: data, encoding: .utf8) {
-                    print("Response data: \(responseString.prefix(500))")
-                }
+                print("Fetch screens response (\(endpoint)): \(httpResponse.statusCode)")
             }
             
             if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
-                let trpcResponse = try decoder.decode(TRPCResponse<[Screen]>.self, from: data)
-                screens = trpcResponse.result.data.json
+                // Decode using APIScreen model that matches backend JSON exactly
+                let trpcResponse = try JSONDecoder().decode(TRPCResponse<[APIScreen]>.self, from: data)
+                let apiScreens = trpcResponse.result.data.json
+                
+                // Convert API screens to local Screen model
+                screens = apiScreens.map { $0.toScreen() }
+                
+                print("Successfully loaded \(screens.count) screens from API")
                 saveToCache()
             } else {
+                print("API returned non-200, falling back to cache")
                 // Fall back to local cache or sample data
                 loadFromCache()
             }
@@ -401,8 +412,10 @@ class APIClient: ObservableObject {
         do {
             let data = try Data(contentsOf: cacheURL)
             screens = try decoder.decode([Screen].self, from: data)
+            print("Loaded \(screens.count) screens from cache")
         } catch {
             // Use sample data if no cache exists
+            print("No cache found, using sample data")
             screens = Screen.sampleScreens
             saveToCache()
         }

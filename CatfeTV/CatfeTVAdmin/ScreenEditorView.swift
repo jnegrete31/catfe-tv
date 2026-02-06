@@ -283,6 +283,7 @@ struct ScreenEditorView: View {
         
         return Screen(
             id: screen?.id ?? UUID(),
+            numericId: screen?.numericId,
             type: screenType,
             title: title,
             subtitle: subtitle.isEmpty ? nil : subtitle,
