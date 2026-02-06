@@ -154,13 +154,29 @@ class AuthService: ObservableObject {
     // MARK: - Handle OAuth Callback
     
     func handleCallback(url: URL) async -> Bool {
-        // Parse the callback URL for the auth token
-        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
-              let token = components.queryItems?.first(where: { $0.name == "token" })?.value else {
-            error = "Invalid callback URL"
+        print("OAuth callback URL: \(url.absoluteString)")
+        
+        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+            error = "Invalid callback URL format"
             return false
         }
         
+        // Check for error response first
+        if let errorParam = components.queryItems?.first(where: { $0.name == "error" })?.value {
+            print("OAuth error received: \(errorParam)")
+            error = "Authentication failed: \(errorParam)"
+            return false
+        }
+        
+        // Look for the token
+        guard let token = components.queryItems?.first(where: { $0.name == "token" })?.value else {
+            print("No token found in callback URL")
+            print("Query items: \(components.queryItems ?? [])")
+            error = "No authentication token received"
+            return false
+        }
+        
+        print("Token received, saving and checking auth status")
         saveToken(token)
         await checkAuthStatus()
         return isAuthenticated

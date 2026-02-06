@@ -103,6 +103,8 @@ struct LoginView: View {
         let callbackScheme = "catfetv"
         let authURL = buildAuthURL()
         
+        print("Starting OAuth with URL: \(authURL.absoluteString)")
+        
         let session = ASWebAuthenticationSession(
             url: authURL,
             callbackURLScheme: callbackScheme
@@ -112,18 +114,23 @@ struct LoginView: View {
             if let error = error {
                 if (error as NSError).code == ASWebAuthenticationSessionError.canceledLogin.rawValue {
                     // User cancelled, no error to show
+                    print("User cancelled login")
                     return
                 }
+                print("OAuth session error: \(error)")
                 errorMessage = error.localizedDescription
                 showError = true
                 return
             }
             
             guard let callbackURL = callbackURL else {
+                print("No callback URL received")
                 errorMessage = "No callback URL received"
                 showError = true
                 return
             }
+            
+            print("Received callback URL: \(callbackURL.absoluteString)")
             
             // Handle the callback
             Task {
