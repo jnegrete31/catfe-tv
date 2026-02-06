@@ -10,6 +10,7 @@ import SwiftUI
 struct SettingsView: View {
     @EnvironmentObject var apiClient: APIClient
     @EnvironmentObject var weatherService: WeatherService
+    @EnvironmentObject var authService: AuthService
     
     @State private var locationName: String = ""
     @State private var defaultDurationSeconds: Int = 10
@@ -19,9 +20,53 @@ struct SettingsView: View {
     
     @State private var isSaving = false
     @State private var showingSaveConfirmation = false
+    @State private var showingLogoutConfirmation = false
     
     var body: some View {
         Form {
+            // User Profile Section
+            Section {
+                if let user = authService.currentUser {
+                    HStack(spacing: 16) {
+                        // Avatar
+                        if let avatarUrl = user.avatarUrl, let url = URL(string: avatarUrl) {
+                            AsyncImage(url: url) { image in
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                            } placeholder: {
+                                Image(systemName: "person.circle.fill")
+                                    .font(.system(size: 50))
+                                    .foregroundColor(.catfeTerracotta)
+                            }
+                            .frame(width: 50, height: 50)
+                            .clipShape(Circle())
+                        } else {
+                            Image(systemName: "person.circle.fill")
+                                .font(.system(size: 50))
+                                .foregroundColor(.catfeTerracotta)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(user.name)
+                                .font(.headline)
+                            
+                            HStack(spacing: 4) {
+                                Image(systemName: user.isAdmin ? "checkmark.shield.fill" : "person.fill")
+                                    .font(.caption)
+                                Text(user.isAdmin ? "Admin" : "User")
+                                    .font(.caption)
+                            }
+                            .foregroundColor(user.isAdmin ? .green : .secondary)
+                        }
+                        
+                        Spacer()
+                    }
+                }
+            } header: {
+                Text("Account")
+            }
+            
             // Location
             Section {
                 TextField("Location Name", text: $locationName)
@@ -166,6 +211,19 @@ struct SettingsView: View {
                 }
                 .disabled(isSaving)
             }
+            
+            // Logout Section
+            Section {
+                Button(role: .destructive) {
+                    showingLogoutConfirmation = true
+                } label: {
+                    HStack {
+                        Spacer()
+                        Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
+                        Spacer()
+                    }
+                }
+            }
         }
         .navigationTitle("Settings")
         .onAppear {
@@ -175,6 +233,16 @@ struct SettingsView: View {
             Button("OK", role: .cancel) {}
         } message: {
             Text("Your settings have been saved successfully.")
+        }
+        .alert("Sign Out", isPresented: $showingLogoutConfirmation) {
+            Button("Cancel", role: .cancel) {}
+            Button("Sign Out", role: .destructive) {
+                Task {
+                    await authService.logout()
+                }
+            }
+        } message: {
+            Text("Are you sure you want to sign out?")
         }
     }
     
@@ -225,6 +293,7 @@ struct SettingsView_Previews: PreviewProvider {
             SettingsView()
                 .environmentObject(APIClient.shared)
                 .environmentObject(WeatherService.shared)
+                .environmentObject(AuthService.shared)
         }
     }
 }

@@ -34,6 +34,7 @@
 		IOS006 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = IOSF006 /* SettingsView.swift */; };
 		IOS007 /* PreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = IOSF007 /* PreviewView.swift */; };
 		IOS008 /* ScheduleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = IOSF008 /* ScheduleView.swift */; };
+		IOS009 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = IOSF010 /* LoginView.swift */; };
 		
 		/* Shared */
 		SH001 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHF001 /* Models.swift */; };
@@ -48,6 +49,8 @@
 		SH010 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHF005 /* Theme.swift */; };
 		SH011 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHF006 /* Extensions.swift */; };
 		SH012 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHF006 /* Extensions.swift */; };
+		SH013 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHF007 /* AuthService.swift */; };
+		SH014 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHF007 /* AuthService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -80,6 +83,7 @@
 		IOSF007 /* PreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewView.swift; sourceTree = "<group>"; };
 		IOSF008 /* ScheduleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleView.swift; sourceTree = "<group>"; };
 		IOSF009 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		IOSF010 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		
 		/* Shared Files */
 		SHF001 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
@@ -88,6 +92,7 @@
 		SHF004 /* ImageCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCache.swift; sourceTree = "<group>"; };
 		SHF005 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		SHF006 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		SHF007 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		
 		/* Products */
 		PROD001 /* CatfeTVApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CatfeTVApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -176,6 +181,7 @@
 			children = (
 				IOSF001 /* CatfeTVAdminApp.swift */,
 				IOSF002 /* ContentView.swift */,
+				IOSF010 /* LoginView.swift */,
 				IOSF004 /* ScreenListView.swift */,
 				IOSF005 /* ScreenEditorView.swift */,
 				IOSF006 /* SettingsView.swift */,
@@ -192,6 +198,7 @@
 			children = (
 				SHF001 /* Models.swift */,
 				SHF002 /* APIClient.swift */,
+				SHF007 /* AuthService.swift */,
 				SHF003 /* WeatherService.swift */,
 				SHF004 /* ImageCache.swift */,
 				SHF005 /* Theme.swift */,
@@ -319,6 +326,7 @@
 				SH007 /* ImageCache.swift in Sources */,
 				SH009 /* Theme.swift in Sources */,
 				SH011 /* Extensions.swift in Sources */,
+				SH013 /* AuthService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -328,6 +336,7 @@
 			files = (
 				IOS001 /* CatfeTVAdminApp.swift in Sources */,
 				IOS002 /* ContentView.swift in Sources */,
+				IOS009 /* LoginView.swift in Sources */,
 				IOS004 /* ScreenListView.swift in Sources */,
 				IOS005 /* ScreenEditorView.swift in Sources */,
 				IOS006 /* SettingsView.swift in Sources */,
@@ -339,6 +348,7 @@
 				SH008 /* ImageCache.swift in Sources */,
 				SH010 /* Theme.swift in Sources */,
 				SH012 /* Extensions.swift in Sources */,
+				SH014 /* AuthService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -58,6 +58,22 @@ class APIClient: ObservableObject {
         }
     }
     
+    // MARK: - Auth Token Helper
+    
+    private func getAuthToken() -> String? {
+        #if os(iOS)
+        return AuthService.shared.authToken
+        #else
+        return nil
+        #endif
+    }
+    
+    private func addAuthHeader(to request: inout URLRequest) {
+        if let token = getAuthToken() {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+    }
+    
     // MARK: - tRPC Response Wrappers
     
     struct TRPCResponse<T: Decodable>: Decodable {
@@ -95,6 +111,7 @@ class APIClient: ObservableObject {
             let url = URL(string: "\(baseURL)/api/trpc/screens.getAll")!
             var request = URLRequest(url: url)
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            addAuthHeader(to: &request)
             
             let (data, response) = try await URLSession.shared.data(for: request)
             
@@ -132,6 +149,7 @@ class APIClient: ObservableObject {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        addAuthHeader(to: &request)
         
         let body = ["json": input]
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
@@ -168,6 +186,7 @@ class APIClient: ObservableObject {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        addAuthHeader(to: &request)
         
         let body: [String: Any] = [
             "json": [
@@ -205,6 +224,7 @@ class APIClient: ObservableObject {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        addAuthHeader(to: &request)
         
         let body: [String: Any] = ["json": ["id": numericId]]
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
@@ -233,6 +253,7 @@ class APIClient: ObservableObject {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        addAuthHeader(to: &request)
         
         let body: [String: Any] = ["json": ["orders": orders]]
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
@@ -282,6 +303,7 @@ class APIClient: ObservableObject {
             let url = URL(string: "\(baseURL)/api/trpc/settings.get")!
             var request = URLRequest(url: url)
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            addAuthHeader(to: &request)
             
             let (data, response) = try await URLSession.shared.data(for: request)
             
@@ -301,6 +323,7 @@ class APIClient: ObservableObject {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        addAuthHeader(to: &request)
         
         var input: [String: Any] = [:]
         if let locationName = newSettings.locationName { input["locationName"] = locationName }
@@ -328,6 +351,7 @@ class APIClient: ObservableObject {
         let url = URL(string: "\(baseURL)/api/trpc/guests.getActive")!
         var request = URLRequest(url: url)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        addAuthHeader(to: &request)
         
         let (data, response) = try await URLSession.shared.data(for: request)
         
@@ -410,6 +434,7 @@ class APIClient: ObservableObject {
         let url = URL(string: "\(baseURL)/api/upload/image")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
+        addAuthHeader(to: &request)
         
         let boundary = UUID().uuidString
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
@@ -446,18 +471,5 @@ class APIClient: ObservableObject {
             return URL(string: path)
         }
         return URL(string: "\(baseURL)/\(path)")
-    }
-}
-
-// MARK: - Offline Support
-
-extension APIClient {
-    func isOffline() -> Bool {
-        // Simple offline check - in production, use NWPathMonitor
-        return false
-    }
-    
-    func syncWhenOnline() {
-        // Queue operations for when connectivity returns
     }
 }
