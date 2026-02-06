@@ -53,6 +53,14 @@
 		SH012 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHF006 /* Extensions.swift */; };
 		SH013 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHF007 /* AuthService.swift */; };
 		SH014 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHF007 /* AuthService.swift */; };
+		3161834B7E6A46B68ED9BD06 /* AdoptionCounterScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20862D8E78C246B7B1CBA93E /* AdoptionCounterScreenView.swift */; };
+		6B1024C94B61446E9B0021F2 /* CheckInScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CCB061F120B466EAD114384 /* CheckInScreenView.swift */; };
+		22810065BDE340519254637D /* CosmicHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86CB68B09382437D9B459095 /* CosmicHelpers.swift */; };
+		303610EFC664458D9517DB33 /* HappyTailsQRScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95CD9A1BFCB64E6BB89476CB /* HappyTailsQRScreenView.swift */; };
+		160E26B617F844B9A485E8BA /* HappyTailsScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18F4708A52AA458882948CFB /* HappyTailsScreenView.swift */; };
+		1015FBD1570A481DB7476D37 /* LivestreamScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57676A24DBA740B8A2F54355 /* LivestreamScreenView.swift */; };
+		77D9526A66A04277AA19C611 /* SnapPurrGalleryScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F4846B359046729E9989E3 /* SnapPurrGalleryScreenView.swift */; };
+		117C38FFEFEB49CE8690FA9D /* SnapPurrQRScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 703BA8C8A61D4DC9907F0324 /* SnapPurrQRScreenView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -101,6 +109,14 @@
 		/* Products */
 		PROD001 /* CatfeTVApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CatfeTVApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		PROD002 /* CatfeTVAdmin.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CatfeTVAdmin.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		20862D8E78C246B7B1CBA93E /* AdoptionCounterScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdoptionCounterScreenView.swift; sourceTree = "<group>"; };
+		6CCB061F120B466EAD114384 /* CheckInScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckInScreenView.swift; sourceTree = "<group>"; };
+		86CB68B09382437D9B459095 /* CosmicHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CosmicHelpers.swift; sourceTree = "<group>"; };
+		95CD9A1BFCB64E6BB89476CB /* HappyTailsQRScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HappyTailsQRScreenView.swift; sourceTree = "<group>"; };
+		18F4708A52AA458882948CFB /* HappyTailsScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HappyTailsScreenView.swift; sourceTree = "<group>"; };
+		57676A24DBA740B8A2F54355 /* LivestreamScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LivestreamScreenView.swift; sourceTree = "<group>"; };
+		A6F4846B359046729E9989E3 /* SnapPurrGalleryScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapPurrGalleryScreenView.swift; sourceTree = "<group>"; };
+		703BA8C8A61D4DC9907F0324 /* SnapPurrQRScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapPurrQRScreenView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -167,6 +183,14 @@
 				TVF011 /* SnapPurrScreenView.swift */,
 				TVF012 /* TodayScreenView.swift */,
 				TVF013 /* ThankYouScreenView.swift */,
+				20862D8E78C246B7B1CBA93E /* AdoptionCounterScreenView.swift */,
+				6CCB061F120B466EAD114384 /* CheckInScreenView.swift */,
+				86CB68B09382437D9B459095 /* CosmicHelpers.swift */,
+				95CD9A1BFCB64E6BB89476CB /* HappyTailsQRScreenView.swift */,
+				18F4708A52AA458882948CFB /* HappyTailsScreenView.swift */,
+				57676A24DBA740B8A2F54355 /* LivestreamScreenView.swift */,
+				A6F4846B359046729E9989E3 /* SnapPurrGalleryScreenView.swift */,
+				703BA8C8A61D4DC9907F0324 /* SnapPurrQRScreenView.swift */,
 			);
 			path = Screens;
 			sourceTree = "<group>";
@@ -324,6 +348,14 @@
 				TV011 /* SnapPurrScreenView.swift in Sources */,
 				TV012 /* TodayScreenView.swift in Sources */,
 				TV013 /* ThankYouScreenView.swift in Sources */,
+				3161834B7E6A46B68ED9BD06 /* AdoptionCounterScreenView.swift in Sources */,
+				6B1024C94B61446E9B0021F2 /* CheckInScreenView.swift in Sources */,
+				22810065BDE340519254637D /* CosmicHelpers.swift in Sources */,
+				303610EFC664458D9517DB33 /* HappyTailsQRScreenView.swift in Sources */,
+				160E26B617F844B9A485E8BA /* HappyTailsScreenView.swift in Sources */,
+				1015FBD1570A481DB7476D37 /* LivestreamScreenView.swift in Sources */,
+				77D9526A66A04277AA19C611 /* SnapPurrGalleryScreenView.swift in Sources */,
+				117C38FFEFEB49CE8690FA9D /* SnapPurrQRScreenView.swift in Sources */,
 				TV015 /* PollWidget.swift in Sources */,
 					TV016 /* PollResultsWidget.swift in Sources */,
 					TV017 /* TemplateOverlayView.swift in Sources */,

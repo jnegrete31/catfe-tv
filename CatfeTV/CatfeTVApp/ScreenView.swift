@@ -26,8 +26,12 @@ struct ScreenView: View {
             } else {
                 // No template: use default native screen design
                 switch screen.type {
-                case .snapPurr, .snapPurrGallery, .snapPurrQR:
+                case .snapPurr:
                     SnapPurrScreenView(screen: screen)
+                case .snapPurrGallery:
+                    SnapPurrGalleryScreenView(screen: screen)
+                case .snapPurrQR:
+                    SnapPurrQRScreenView(screen: screen)
                 case .events:
                     EventsScreenView(screen: screen)
                 case .today:
@@ -40,9 +44,19 @@ struct ScreenView: View {
                     AdoptionScreenView(screen: screen)
                 case .adoptionShowcase:
                     AdoptionShowcaseScreenView(screen: screen, adoptionCats: adoptionCats)
+                case .adoptionCounter:
+                    AdoptionCounterScreenView(screen: screen, settings: settings)
                 case .thankYou:
                     ThankYouScreenView(screen: screen)
-                case .custom, .adoptionCounter, .livestream, .happyTails, .happyTailsQR, .poll, .pollQR, .checkIn:
+                case .happyTails:
+                    HappyTailsScreenView(screen: screen)
+                case .happyTailsQR:
+                    HappyTailsQRScreenView(screen: screen)
+                case .livestream:
+                    LivestreamScreenView(screen: screen)
+                case .checkIn:
+                    CheckInScreenView(screen: screen, settings: settings)
+                case .custom, .poll, .pollQR:
                     GenericScreenView(screen: screen)
                 }
             }

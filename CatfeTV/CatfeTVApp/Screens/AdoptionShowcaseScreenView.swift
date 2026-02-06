@@ -2,207 +2,173 @@
 //  AdoptionShowcaseScreenView.swift
 //  CatfeTVApp
 //
-//  Adoption showcase screen showing a 2x2 grid of adoptable cats - Lounge-inspired design
+//  Adoption showcase grid - matches web AdoptionShowcaseScreen design
 //
 
 import SwiftUI
 
 struct AdoptionShowcaseScreenView: View {
     let screen: Screen
-    let adoptionCats: [Screen]
+    var adoptionCats: [Screen] = []
     
-    // Show only 4 cats for the 2x2 grid
-    private var displayCats: [Screen] {
-        Array(adoptionCats.prefix(4))
-    }
+    @State private var appeared = false
     
-    // Count adopted cats
-    private var adoptedCount: Int {
-        adoptionCats.filter { $0.isAdopted == true }.count
-    }
-    
-    private var availableCount: Int {
-        adoptionCats.filter { $0.isAdopted != true }.count
+    private var availableCats: [Screen] {
+        adoptionCats.filter { !$0.isAdopted }
     }
     
     var body: some View {
-        BaseScreenLayout(screen: screen) {
-            VStack(spacing: 32) {
+        ZStack {
+            // Dark background
+            LinearGradient(
+                colors: [Color(hex: "2d2d2d"), Color(hex: "1a1a1a")],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+            
+            // Warm amber glow
+            GeometryReader { geo in
+                Circle()
+                    .fill(RadialGradient(
+                        colors: [Color(hex: "DAA520").opacity(0.3), Color.clear],
+                        center: .center, startRadius: 0, endRadius: geo.size.width * 0.35
+                    ))
+                    .frame(width: geo.size.width * 0.7, height: geo.size.width * 0.7)
+                    .position(x: geo.size.width * 0.5, y: -geo.size.height * 0.1)
+            }
+            
+            // Mint green floor
+            VStack {
+                Spacer()
+                LinearGradient(
+                    colors: [Color.clear, Color.loungeMintGreen.opacity(0.2)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 300)
+            }
+            .ignoresSafeArea()
+            
+            VStack(spacing: 30) {
                 // Header
-                HStack {
-                    VStack(alignment: .leading, spacing: 12) {
-                        // Badge with emoji
-                        ScreenBadge(
-                            text: "Meet Our Cats",
-                            color: .loungeWarmOrange,
-                            emoji: "🐱"
-                        )
-                        
-                        // Title
-                        Text(screen.title.isEmpty ? "Find Your Purrfect Match" : screen.title)
-                            .font(CatfeTypography.largeTitle)
-                            .foregroundColor(.loungeCream)
-                    }
-                    
-                    Spacer()
-                    
-                    // Stats
-                    VStack(alignment: .trailing, spacing: 8) {
-                        if adoptedCount > 0 {
-                            HStack(spacing: 8) {
-                                Text("🎉")
-                                Text("\(adoptedCount) cat\(adoptedCount == 1 ? "" : "s") found their forever home!")
-                            }
-                            .font(CatfeTypography.body)
-                            .foregroundColor(.loungeMintGreen)
-                        }
-                        
-                        Text("\(availableCount) looking for homes")
-                            .font(CatfeTypography.caption)
-                            .foregroundColor(.loungeCream.opacity(0.7))
-                    }
+                HStack(spacing: 0) {
+                    Text("Meet Our ")
+                        .foregroundColor(.white.opacity(0.9))
+                    Text("Adoptable Cats")
+                        .foregroundColor(Color(hex: "E8913A"))
                 }
-                .padding(.top, 20)
+                .font(.system(size: 56, weight: .bold, design: .serif))
+                .opacity(appeared ? 1 : 0)
+                .animation(.easeOut(duration: 0.6), value: appeared)
                 
-                // 2x2 Grid of cats in polaroid frames
-                LazyVGrid(columns: [
-                    GridItem(.flexible(), spacing: 40),
-                    GridItem(.flexible(), spacing: 40)
-                ], spacing: 40) {
-                    ForEach(0..<4, id: \.self) { index in
-                        if index < displayCats.count {
-                            CatGridCard(cat: displayCats[index], rotation: index % 2 == 0 ? -2 : 2)
-                        } else {
-                            PlaceholderCard()
+                // Subtitle
+                Text(screen.subtitle ?? "Each one is looking for their forever home")
+                    .font(.system(size: 24, weight: .light))
+                    .foregroundColor(.white.opacity(0.6))
+                    .opacity(appeared ? 1 : 0)
+                    .animation(.easeOut(duration: 0.5).delay(0.1), value: appeared)
+                
+                Spacer().frame(height: 10)
+                
+                // Cat grid
+                if availableCats.isEmpty {
+                    VStack(spacing: 20) {
+                        Text("🎉")
+                            .font(.system(size: 80))
+                        Text("All cats have found homes!")
+                            .font(.system(size: 36, weight: .medium))
+                            .foregroundColor(.white.opacity(0.8))
+                        Text("Check back soon for new arrivals")
+                            .font(.system(size: 22))
+                            .foregroundColor(.white.opacity(0.5))
+                    }
+                    .padding(.top, 60)
+                } else {
+                    let columns = min(availableCats.count, 4)
+                    let gridColumns = Array(repeating: GridItem(.flexible(), spacing: 24), count: columns)
+                    
+                    LazyVGrid(columns: gridColumns, spacing: 24) {
+                        ForEach(Array(availableCats.prefix(8).enumerated()), id: \.element.id) { index, cat in
+                            CatShowcaseCard(cat: cat, index: index, appeared: appeared)
                         }
                     }
+                    .padding(.horizontal, 60)
                 }
-                .padding(.horizontal, 20)
                 
-                // QR Code (if provided)
+                Spacer()
+                
+                // QR Code
                 if let qrURL = screen.qrCodeURL, !qrURL.isEmpty {
-                    HStack {
-                        Spacer()
-                        QRCodeView(url: qrURL, size: 120)
+                    HStack(spacing: 16) {
+                        QRCodeView(url: qrURL, size: 100)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("View All Cats")
+                                .font(.system(size: 20, weight: .semibold))
+                                .foregroundColor(Color(hex: "E8913A"))
+                            Text("Scan for more info")
+                                .font(.system(size: 14))
+                                .foregroundColor(.white.opacity(0.5))
+                        }
                     }
-                    .padding(.horizontal, 40)
                     .padding(.bottom, 20)
                 }
             }
+            .padding(.top, 30)
+        }
+        .onAppear {
+            withAnimation {
+                appeared = true
+            }
         }
     }
 }
 
-// MARK: - Cat Grid Card (Lounge-inspired polaroid style)
+// MARK: - Cat Showcase Card
 
-struct CatGridCard: View {
+private struct CatShowcaseCard: View {
     let cat: Screen
-    let rotation: Double
+    let index: Int
+    let appeared: Bool
     
     var body: some View {
         VStack(spacing: 0) {
-            // Cat Image
-            ZStack(alignment: .topTrailing) {
-                ScreenImage(url: cat.imageURL)
-                    .frame(height: 280)
-                    .clipped()
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                
-                // Adopted badge if applicable
-                if cat.isAdopted == true {
-                    Text("🎉 Adopted!")
-                        .font(CatfeTypography.badge)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(Color.loungeMintGreen)
-                        .cornerRadius(20)
-                        .padding(12)
-                }
-            }
+            // Photo
+            ScreenImage(url: cat.imageURL)
+                .frame(height: 180)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
             
-            // Cat Info
-            VStack(alignment: .center, spacing: 4) {
-                Text(cat.catName ?? cat.title)
-                    .font(.system(size: 28, weight: .medium, design: .serif))
-                    .foregroundColor(.loungeCharcoal)
-                    .lineLimit(1)
+            // Info
+            VStack(spacing: 4) {
+                Text(cat.catName ?? cat.title.replacingOccurrences(of: "Meet ", with: ""))
+                    .font(.system(size: 22, weight: .semibold, design: .serif))
+                    .foregroundColor(.white)
                 
-                if let age = cat.catAge, let gender = cat.catGender {
-                    Text("\(age) • \(gender)")
-                        .font(CatfeTypography.caption)
-                        .foregroundColor(.loungeCharcoal.opacity(0.7))
-                        .lineLimit(1)
+                if let age = cat.catAge {
+                    Text(age)
+                        .font(.system(size: 14))
+                        .foregroundColor(.white.opacity(0.5))
+                }
+                
+                if let breed = cat.catBreed {
+                    Text(breed)
+                        .font(.system(size: 14))
+                        .foregroundColor(Color.loungeMintGreen.opacity(0.8))
                 }
             }
-            .padding(.top, 16)
-            .padding(.bottom, 8)
+            .padding(.vertical, 12)
         }
-        .padding(16)
-        .background(Color.loungeCream)
-        .cornerRadius(16)
-        .shadow(color: .black.opacity(0.3), radius: 15, x: 0, y: 8)
-        .rotationEffect(.degrees(rotation))
-    }
-}
-
-// MARK: - Placeholder Card (Lounge-inspired)
-
-struct PlaceholderCard: View {
-    var body: some View {
-        VStack(spacing: 0) {
-            // Placeholder image area
-            ZStack {
-                Color.loungeStone.opacity(0.2)
-                
-                VStack(spacing: 12) {
-                    Text("🐱")
-                        .font(.system(size: 60))
-                        .opacity(0.5)
-                    Text("Coming Soon")
-                        .font(CatfeTypography.caption)
-                        .foregroundColor(.loungeCharcoal.opacity(0.5))
-                }
-            }
-            .frame(height: 280)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-            
-            // Placeholder info
-            VStack(spacing: 8) {
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(Color.loungeStone.opacity(0.2))
-                    .frame(height: 24)
-                    .frame(maxWidth: 150)
-                
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(Color.loungeStone.opacity(0.15))
-                    .frame(height: 18)
-                    .frame(maxWidth: 100)
-            }
-            .padding(.top, 16)
-            .padding(.bottom, 8)
-        }
-        .padding(16)
-        .background(Color.loungeCream)
-        .cornerRadius(16)
-        .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
-        .rotationEffect(.degrees(-1))
-    }
-}
-
-// MARK: - Preview
-
-#if DEBUG
-struct AdoptionShowcaseScreenView_Previews: PreviewProvider {
-    static var previews: some View {
-        AdoptionShowcaseScreenView(
-            screen: Screen(
-                type: .adoptionShowcase,
-                title: "Find Your Purrfect Match",
-                qrCodeURL: "https://catfesantaclarita.com/adopt"
-            ),
-            adoptionCats: Screen.sampleScreens.filter { $0.type == .adoption }
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.white.opacity(0.08))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                )
         )
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .opacity(appeared ? 1 : 0)
+        .scaleEffect(appeared ? 1 : 0.85)
+        .animation(.spring(response: 0.5, dampingFraction: 0.7).delay(Double(index) * 0.08 + 0.2), value: appeared)
     }
 }
-#endif

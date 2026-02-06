@@ -2,7 +2,7 @@
 //  RemindersScreenView.swift
 //  CatfeTVApp
 //
-//  Reminders and rules screen - Lounge-inspired design
+//  Reminders screen - matches web ReminderScreen design
 //
 
 import SwiftUI
@@ -10,120 +10,138 @@ import SwiftUI
 struct RemindersScreenView: View {
     let screen: Screen
     
-    private let reminderEmojis = [
-        "✋",
-        "📸",
-        "❤️",
-        "☕",
-        "🔔",
-        "🐾"
-    ]
+    @State private var appeared = false
     
     var body: some View {
-        BaseScreenLayout(screen: screen) {
-            VStack(spacing: 48) {
-                // Header
-                HStack {
-                    VStack(alignment: .leading, spacing: 8) {
-                        // Badge with emoji
-                        ScreenBadge(
-                            text: "Friendly Reminders",
-                            color: .loungeWarmOrange,
-                            emoji: "📢"
-                        )
-                        
-                        Text(screen.title)
-                            .font(CatfeTypography.heroTitle)
-                            .foregroundColor(.loungeCream)
-                        
-                        if let subtitle = screen.subtitle {
-                            Text(subtitle)
-                                .font(CatfeTypography.title)
-                                .foregroundColor(.loungeWarmOrange)
-                        }
-                    }
-                    
-                    Spacer()
-                    
-                    Text("🐱")
-                        .font(.system(size: 80))
-                        .opacity(0.3)
+        ZStack {
+            // Warm cream background
+            LinearGradient(
+                colors: [Color(hex: "F5E6D3"), Color(hex: "EDE0D4"), Color(hex: "E8DDD0")],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+            
+            // Warm amber glow
+            GeometryReader { geo in
+                Circle()
+                    .fill(RadialGradient(
+                        colors: [Color(hex: "DAA520").opacity(0.15), Color.clear],
+                        center: .center, startRadius: 0, endRadius: geo.size.width * 0.4
+                    ))
+                    .frame(width: geo.size.width * 0.8, height: geo.size.width * 0.8)
+                    .position(x: geo.size.width * 0.5, y: -geo.size.height * 0.1)
+            }
+            
+            VStack(spacing: 30) {
+                // Badge
+                HStack(spacing: 8) {
+                    Text("⏰")
+                        .font(.system(size: 20))
+                    Text("Reminder")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(Color(hex: "E8913A"))
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(
+                    Capsule()
+                        .fill(Color(hex: "E8913A").opacity(0.15))
+                        .overlay(Capsule().stroke(Color(hex: "E8913A").opacity(0.3), lineWidth: 1))
+                )
+                .opacity(appeared ? 1 : 0)
+                .animation(.easeOut(duration: 0.5), value: appeared)
+                
+                // Title
+                Text(screen.title)
+                    .font(.system(size: 64, weight: .bold, design: .serif))
+                    .foregroundColor(Color(hex: "3d3d3d"))
+                    .multilineTextAlignment(.center)
+                    .opacity(appeared ? 1 : 0)
+                    .offset(y: appeared ? 0 : -20)
+                    .animation(.easeOut(duration: 0.6).delay(0.1), value: appeared)
+                
+                // Subtitle
+                if let subtitle = screen.subtitle {
+                    Text(subtitle)
+                        .font(.system(size: 32, weight: .light))
+                        .foregroundColor(Color(hex: "5a4a3a").opacity(0.8))
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: 1000)
+                        .opacity(appeared ? 1 : 0)
+                        .animation(.easeOut(duration: 0.5).delay(0.2), value: appeared)
                 }
                 
-                // Reminders Grid
-                if let body = screen.bodyText {
-                    let reminders = body.components(separatedBy: "\n").filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
+                Spacer().frame(height: 20)
+                
+                // Main content: Image + Body
+                HStack(alignment: .center, spacing: 60) {
+                    // Image
+                    if screen.imageURL != nil {
+                        VStack(spacing: 0) {
+                            ScreenImage(url: screen.imageURL)
+                                .frame(width: 450, height: 350)
+                                .clipShape(RoundedRectangle(cornerRadius: 4))
+                            
+                            Text("Reminder")
+                                .font(.system(size: 20, weight: .medium, design: .serif))
+                                .foregroundColor(Color(hex: "3d3d3d"))
+                                .padding(.top, 16)
+                                .padding(.bottom, 8)
+                        }
+                        .padding(20)
+                        .padding(.bottom, 30)
+                        .background(Color(hex: "FFFEF9"))
+                        .cornerRadius(12)
+                        .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
+                        .rotationEffect(.degrees(-1))
+                        .opacity(appeared ? 1 : 0)
+                        .scaleEffect(appeared ? 1 : 0.85)
+                        .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.3), value: appeared)
+                    }
                     
-                    LazyVGrid(columns: [
-                        GridItem(.flexible(), spacing: 32),
-                        GridItem(.flexible(), spacing: 32)
-                    ], spacing: 32) {
-                        ForEach(Array(reminders.enumerated()), id: \.offset) { index, reminder in
-                            ReminderCard(
-                                text: reminder.replacingOccurrences(of: "• ", with: ""),
-                                emoji: reminderEmojis[index % reminderEmojis.count]
-                            )
+                    // Body text
+                    VStack(alignment: .leading, spacing: 20) {
+                        if let body = screen.bodyText {
+                            Text(body)
+                                .font(.system(size: 26, weight: .regular))
+                                .foregroundColor(Color(hex: "5a4a3a").opacity(0.7))
+                                .lineSpacing(8)
+                                .lineLimit(8)
+                        }
+                        
+                        Spacer()
+                        
+                        // QR Code
+                        if let qrURL = screen.qrCodeURL, !qrURL.isEmpty {
+                            HStack(spacing: 16) {
+                                QRCodeView(url: qrURL, size: 140)
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Learn More")
+                                        .font(.system(size: 20, weight: .semibold))
+                                        .foregroundColor(Color(hex: "E8913A"))
+                                    Text("Scan for details")
+                                        .font(.system(size: 16))
+                                        .foregroundColor(Color(hex: "5a4a3a").opacity(0.5))
+                                }
+                            }
                         }
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .opacity(appeared ? 1 : 0)
+                    .offset(x: appeared ? 0 : 30)
+                    .animation(.easeOut(duration: 0.6).delay(0.4), value: appeared)
                 }
+                .padding(.horizontal, 80)
                 
                 Spacer()
-                
-                // Footer
-                HStack {
-                    Text("Thank you for helping us keep our cats happy and healthy!")
-                        .font(CatfeTypography.body)
-                        .foregroundColor(.loungeCream.opacity(0.7))
-                        .italic()
-                    
-                    Spacer()
-                    
-                    if let qrURL = screen.qrCodeURL {
-                        QRCodeView(url: qrURL, size: 120)
-                    }
-                }
+            }
+            .padding(.top, 40)
+        }
+        .onAppear {
+            withAnimation {
+                appeared = true
             }
         }
     }
 }
-
-// MARK: - Reminder Card (Lounge-inspired)
-
-struct ReminderCard: View {
-    let text: String
-    let emoji: String
-    
-    var body: some View {
-        HStack(spacing: 24) {
-            ZStack {
-                Circle()
-                    .fill(Color.loungeWarmOrange.opacity(0.2))
-                    .frame(width: 80, height: 80)
-                
-                Text(emoji)
-                    .font(.system(size: 36))
-            }
-            
-            Text(text)
-                .font(CatfeTypography.body)
-                .foregroundColor(.loungeCharcoal)
-                .multilineTextAlignment(.leading)
-            
-            Spacer()
-        }
-        .padding(24)
-        .background(Color.loungeCream)
-        .cornerRadius(20)
-        .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
-    }
-}
-
-// MARK: - Preview
-
-#if DEBUG
-struct RemindersScreenView_Previews: PreviewProvider {
-    static var previews: some View {
-        RemindersScreenView(screen: Screen.sampleScreens[5])
-    }
-}
-#endif

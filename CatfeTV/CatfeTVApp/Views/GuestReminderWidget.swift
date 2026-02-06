@@ -52,7 +52,21 @@ class ChimeSoundManager {
     /// IDs of reminders that have already triggered a chime (to avoid repeats)
     private var playedChimeIds = Set<String>()
     
-    private init() {}
+    private init() {
+        configureAudioSession()
+    }
+    
+    /// Configure audio session to mix with other audio (Apple Music, etc.)
+    /// This prevents the chime from pausing any currently playing media.
+    private func configureAudioSession() {
+        do {
+            let audioSession = AVAudioSession.sharedInstance()
+            try audioSession.setCategory(.ambient, mode: .default, options: [.mixWithOthers])
+            try audioSession.setActive(true, options: [.notifyOthersOnDeactivation])
+        } catch {
+            print("Failed to configure audio session: \(error)")
+        }
+    }
     
     /// Play a gentle two-tone chime if this reminder ID hasn't played yet.
     /// The chime consists of two soft sine wave tones (C5 → E5) for a pleasant notification.
@@ -141,6 +155,9 @@ class ChimeSoundManager {
             channelData[i] = sample
         }
         
+        // Ensure audio session is configured for mixing before each play
+        configureAudioSession()
+        
         // Play using AVAudioEngine
         let engine = AVAudioEngine()
         let player = AVAudioPlayerNode()
@@ -154,6 +171,8 @@ class ChimeSoundManager {
             player.scheduleBuffer(buffer, completionHandler: { [weak self] in
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     engine.stop()
+                    // Deactivate our audio session gently so other audio continues
+                    try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
                     self?.isPlaying = false
                 }
             })
