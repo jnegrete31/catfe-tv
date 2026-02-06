@@ -1988,28 +1988,24 @@ function TemplateElementsOverlay({ screenType, screen, settings }: { screenType:
 
 // Main renderer that selects the appropriate component
 export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendererProps) {
-  // For CUSTOM screen types, use TemplateRenderer directly (no default design exists)
-  const isCustomType = screen.type === "CUSTOM";
-  
-  // Only fetch full template for CUSTOM screens (other types use overlay)
-  const { data: customTemplate } = trpc.templates.getByScreenType.useQuery(
+  // Fetch template for this screen type (all types, not just CUSTOM)
+  const { data: savedTemplate } = trpc.templates.getByScreenType.useQuery(
     { screenType: screen.type },
-    { staleTime: 60000, enabled: isCustomType }
+    { staleTime: 60000 }
   );
   
-  // Check if CUSTOM screen has a saved template
-  let hasCustomTemplate = false;
-  if (isCustomType) {
-    try {
-      const elements = JSON.parse(customTemplate?.elements || "[]");
-      hasCustomTemplate = !!(elements.length > 0 && customTemplate && 'id' in customTemplate && (customTemplate as any).id !== undefined);
-    } catch {
-      hasCustomTemplate = false;
-    }
+  // Check if this screen type has a saved template with elements
+  let hasSavedTemplate = false;
+  try {
+    const elements = JSON.parse(savedTemplate?.elements || "[]");
+    hasSavedTemplate = !!(elements.length > 0 && savedTemplate && 'id' in savedTemplate && (savedTemplate as any).id !== undefined);
+  } catch {
+    hasSavedTemplate = false;
   }
   
-  // If CUSTOM screen has a template, use TemplateRenderer (full replacement is fine for CUSTOM)
-  if (isCustomType && hasCustomTemplate) {
+  // If ANY screen type has a saved template, use TemplateRenderer as full replacement
+  // This prevents doubling: template elements replace the default design entirely
+  if (hasSavedTemplate) {
     return (
       <AnimatePresence mode="wait">
         <motion.div
@@ -2024,13 +2020,14 @@ export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendere
             screen={screen} 
             settings={settings} 
             adoptionCount={settings?.totalAdoptionCount}
+            adoptionCats={adoptionCats}
           />
         </motion.div>
       </AnimatePresence>
     );
   }
   
-  // For all standard screen types: use default renderers with optional template element overlay
+  // No saved template: use default renderers
   const renderers: Record<string, React.FC<ScreenRendererProps>> = {
     SNAP_AND_PURR: SnapAndPurrScreen,
     EVENT: EventScreen,
@@ -2103,10 +2100,8 @@ export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendere
         transition={{ duration: 0.5 }}
         className="w-full h-full relative"
       >
-        {/* Default screen design */}
+        {/* Default screen design (no template saved for this type) */}
         <Renderer screen={screen} settings={settings} adoptionCats={adoptionCats} />
-        {/* Template elements overlay - renders on top of the default design */}
-        <TemplateElementsOverlay screenType={screen.type} screen={screen} settings={settings} />
       </motion.div>
     </AnimatePresence>
   );

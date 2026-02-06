@@ -945,10 +945,14 @@
 - [x] Update tests for multiple time slots (33 tests passing)
 
 ## Feature - Template Overlay Data in API for tvOS
-- [ ] Include template elements in screens.getActive API response
-- [ ] Add template data to screen model (overlay elements with position, size, color, text)
-- [ ] Update tvOS Models.swift with TemplateElement model
-- [ ] Update tvOS APIClient to parse template overlay data
-- [ ] Create TemplateOverlayView in tvOS to render custom elements on top of native screens
-- [ ] Integrate overlay into tvOS ScreenView
+- [x] Include template elements in screens.getActive API response
+- [x] Add template data to screen model (overlay elements with position, size, color, text)
+- [x] Update tvOS Models.swift with TemplateElement model
+- [x] Update tvOS APIClient to parse template overlay data
+- [x] Create TemplateOverlayView in tvOS to render custom elements on top of native screens
+- [x] Integrate overlay into tvOS ScreenView
 - [ ] Test template changes appearing on Apple TV
+
+## Bug Fix - Template Overlay Doubling (Feb 6)
+- [x] Fix: Template overlay elements appear doubled on top of default screen design in Slide Editor
+- [x] Ensure template elements replace (not duplicate) default screen content when a template is applied
