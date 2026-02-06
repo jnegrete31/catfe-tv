@@ -591,22 +591,64 @@ extension Screen {
 
 struct GuestSession: Codable, Identifiable {
     var id: Int
-    var guestName: String?
-    var partySize: Int
-    var checkInTime: Date
-    var checkOutTime: Date?
-    var sessionDurationMinutes: Int
-    var status: String
+    var guestName: String
+    var guestCount: Int
+    var duration: String // "15", "30", or "60" minutes
+    var status: String // "active", "completed", "extended"
+    var checkInAt: Date
+    var expiresAt: Date
+    var checkedOutAt: Date?
     var notes: String?
+    var reminderShown: Bool
     
     enum CodingKeys: String, CodingKey {
         case id
         case guestName
-        case partySize
-        case checkInTime
-        case checkOutTime
-        case sessionDurationMinutes
+        case guestCount
+        case duration
         case status
+        case checkInAt
+        case expiresAt
+        case checkedOutAt
         case notes
+        case reminderShown
+    }
+    
+    /// Time remaining until session expires (in seconds)
+    var timeRemaining: TimeInterval {
+        return expiresAt.timeIntervalSinceNow
+    }
+    
+    /// Whether the session has less than 5 minutes remaining
+    var isNearingExpiry: Bool {
+        return timeRemaining > 0 && timeRemaining <= 5 * 60
+    }
+    
+    /// Whether the session has less than 2 minutes remaining (urgent)
+    var isUrgent: Bool {
+        return timeRemaining > 0 && timeRemaining <= 2 * 60
+    }
+    
+    /// Whether the session has expired
+    var isExpired: Bool {
+        return timeRemaining <= 0
+    }
+    
+    /// Formatted time remaining string (e.g., "4:32")
+    var formattedTimeRemaining: String {
+        let remaining = max(0, timeRemaining)
+        let minutes = Int(remaining) / 60
+        let seconds = Int(remaining) % 60
+        return "\(minutes):\(String(format: "%02d", seconds))"
+    }
+    
+    /// Session type label based on duration
+    var sessionTypeLabel: String {
+        switch duration {
+        case "15": return "Guest Pass"
+        case "30": return "Mini Meow"
+        case "60": return "Full Meow"
+        default: return "Session"
+        }
     }
 }

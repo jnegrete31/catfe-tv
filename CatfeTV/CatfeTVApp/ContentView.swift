@@ -70,6 +70,18 @@ struct ContentView: View {
                     Spacer()
                 }
                 
+                // Guest Session Reminder Widget (bottom-left corner)
+                VStack {
+                    Spacer()
+                    HStack {
+                        GuestReminderWidget()
+                            .frame(maxWidth: 500)
+                            .padding(.bottom, 100)
+                            .padding(.leading, 60)
+                        Spacer()
+                    }
+                }
+                
                 // Progress Indicator
                 VStack {
                     Spacer()

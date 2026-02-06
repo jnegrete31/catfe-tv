@@ -25,6 +25,7 @@
 		TV015 /* PollWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF016 /* PollWidget.swift */; };
 			TV016 /* PollResultsWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF017 /* PollResultsWidget.swift */; };
 			TV017 /* TemplateOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF018 /* TemplateOverlayView.swift */; };
+			TV018 /* GuestReminderWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF019 /* GuestReminderWidget.swift */; };
 		
 		/* iOS Admin App */
 		IOS001 /* CatfeTVAdminApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = IOSF001 /* CatfeTVAdminApp.swift */; };
@@ -74,6 +75,7 @@
 		TVF016 /* PollWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PollWidget.swift; sourceTree = "<group>"; };
 			TVF017 /* PollResultsWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PollResultsWidget.swift; sourceTree = "<group>"; };
 			TVF018 /* TemplateOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateOverlayView.swift; sourceTree = "<group>"; };
+			TVF019 /* GuestReminderWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestReminderWidget.swift; sourceTree = "<group>"; };
 		
 		/* iOS Admin App Files */
 		IOSF001 /* CatfeTVAdminApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatfeTVAdminApp.swift; sourceTree = "<group>"; };
@@ -174,7 +176,8 @@
 			children = (
 				TVF016 /* PollWidget.swift */,
 				TVF017 /* PollResultsWidget.swift */,
-				TVF018 /* TemplateOverlayView.swift */,
+					TVF018 /* TemplateOverlayView.swift */,
+					TVF019 /* GuestReminderWidget.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -324,6 +327,7 @@
 				TV015 /* PollWidget.swift in Sources */,
 					TV016 /* PollResultsWidget.swift in Sources */,
 					TV017 /* TemplateOverlayView.swift in Sources */,
+					TV018 /* GuestReminderWidget.swift in Sources */,
 					SH001 /* Models.swift in Sources */,
 				SH003 /* APIClient.swift in Sources */,
 				SH005 /* WeatherService.swift in Sources */,

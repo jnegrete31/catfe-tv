@@ -359,16 +359,31 @@ class APIClient: ObservableObject {
     // MARK: - Guest Sessions
     
     func fetchGuestSessions() async throws -> [GuestSession] {
-        let url = URL(string: "\(baseURL)/api/trpc/guests.getActive")!
+        let url = URL(string: "\(baseURL)/api/trpc/guestSessions.getActive")!
         var request = URLRequest(url: url)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        addAuthHeader(to: &request)
         
         let (data, response) = try await URLSession.shared.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse,
               httpResponse.statusCode == 200 else {
             throw APIError(message: "Failed to fetch guest sessions")
+        }
+        
+        let trpcResponse = try decoder.decode(TRPCResponse<[GuestSession]>.self, from: data)
+        return trpcResponse.result.data.json
+    }
+    
+    func fetchSessionsNeedingReminder() async throws -> [GuestSession] {
+        let url = URL(string: "\(baseURL)/api/trpc/guestSessions.getNeedingReminder")!
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200 else {
+            throw APIError(message: "Failed to fetch sessions needing reminder")
         }
         
         let trpcResponse = try decoder.decode(TRPCResponse<[GuestSession]>.self, from: data)
