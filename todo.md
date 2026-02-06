@@ -908,3 +908,10 @@
 
 ## Bug Fix - Apple TV Screensaver
 - [x] Fix: Apple TV screensaver/wallpaper activates after idle time - need to keep screen awake
+
+## Feature - Scheduling Toggle Switch
+- [x] Add schedulingEnabled field to screens database schema
+- [x] Update backend routers to handle schedulingEnabled field
+- [x] Add toggle switch in admin screen editor to enable/disable scheduling
+- [x] Update playlist logic: when scheduling is off, screen always shows (if active)
+- [x] Test scheduling toggle on/off behavior

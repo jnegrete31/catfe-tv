@@ -75,9 +75,10 @@ function SortableScreenItem({ screen, onEdit, onDelete, onToggleActive }: Sortab
   
   const typeConfig = SCREEN_TYPE_CONFIG[screen.type as keyof typeof SCREEN_TYPE_CONFIG];
   
-  const hasScheduling = screen.startAt || screen.endAt || 
+  const hasScheduleRules = screen.startAt || screen.endAt || 
     (screen.daysOfWeek && screen.daysOfWeek.length > 0) ||
     screen.timeStart || screen.timeEnd;
+  const schedulingEnabled = (screen as any).schedulingEnabled;
   
   return (
     <Card
@@ -141,10 +142,10 @@ function SortableScreenItem({ screen, onEdit, onDelete, onToggleActive }: Sortab
               {screen.durationSeconds}s
             </span>
             <span>Priority: {screen.priority}</span>
-            {hasScheduling && (
-              <span className="flex items-center gap-1">
+            {hasScheduleRules && (
+              <span className={`flex items-center gap-1 ${schedulingEnabled ? 'text-blue-600' : 'text-muted-foreground'}`}>
                 <Calendar className="w-3 h-3" />
-                Scheduled
+                {schedulingEnabled ? 'Scheduled' : 'Schedule Off'}
               </span>
             )}
           </div>

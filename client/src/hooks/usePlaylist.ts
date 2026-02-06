@@ -12,6 +12,9 @@ interface PlaylistState {
 
 // Check if a screen is currently eligible based on scheduling
 function isScreenEligible(screen: Screen): boolean {
+  // If scheduling is not enabled, screen is always eligible (when active)
+  if (!screen.schedulingEnabled) return true;
+  
   const now = new Date();
   
   // Check date range

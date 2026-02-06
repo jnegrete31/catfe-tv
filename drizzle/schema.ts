@@ -65,6 +65,7 @@ export const screens = mysqlTable("screens", {
   durationSeconds: int("durationSeconds").notNull().default(10),
   sortOrder: int("sortOrder").notNull().default(0), // For drag-and-drop ordering
   isActive: boolean("isActive").notNull().default(true),
+  schedulingEnabled: boolean("schedulingEnabled").notNull().default(false), // When false, screen always shows (if active); when true, follows schedule rules
   isProtected: boolean("isProtected").notNull().default(false), // Prevent deletion of core screens
   isAdopted: boolean("isAdopted").notNull().default(false), // Mark adoption cats as adopted
   livestreamUrl: varchar("livestreamUrl", { length: 1024 }), // HLS stream URL for livestream screen type

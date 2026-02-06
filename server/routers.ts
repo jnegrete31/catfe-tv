@@ -145,6 +145,7 @@ const screenInput = z.object({
   durationSeconds: z.number().min(1).max(300).default(10),
   sortOrder: z.number().default(0),
   isActive: z.boolean().default(true),
+  schedulingEnabled: z.boolean().default(false),
   isProtected: z.boolean().default(false),
   isAdopted: z.boolean().default(false),
   livestreamUrl: z.string().url().max(1024).nullable().optional().or(z.literal("")),

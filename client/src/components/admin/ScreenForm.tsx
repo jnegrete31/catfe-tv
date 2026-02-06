@@ -43,6 +43,7 @@ const screenSchema = z.object({
   priority: z.number().min(1).max(10),
   durationSeconds: z.number().min(1).max(300),
   isActive: z.boolean(),
+  schedulingEnabled: z.boolean(),
   isAdopted: z.boolean(),
 });
 
@@ -126,6 +127,7 @@ export function ScreenForm({ screen, onSuccess, onCancel }: ScreenFormProps) {
       priority: screen?.priority || 1,
       durationSeconds: screen?.durationSeconds || 10,
       isActive: screen?.isActive ?? true,
+      schedulingEnabled: screen?.schedulingEnabled ?? false,
       isAdopted: (screen as any)?.isAdopted ?? false,
     },
   });
@@ -514,9 +516,26 @@ export function ScreenForm({ screen, onSuccess, onCancel }: ScreenFormProps) {
       {/* Scheduling */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Scheduling (Optional)</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base">Scheduling</CardTitle>
+            <div className="flex items-center gap-2">
+              <Label htmlFor="schedulingEnabled" className="text-sm font-normal text-muted-foreground">
+                {watch("schedulingEnabled") ? "Enabled" : "Disabled"}
+              </Label>
+              <Switch
+                id="schedulingEnabled"
+                checked={watch("schedulingEnabled")}
+                onCheckedChange={(checked) => setValue("schedulingEnabled", checked)}
+              />
+            </div>
+          </div>
+          {!watch("schedulingEnabled") && (
+            <p className="text-sm text-muted-foreground mt-1">
+              Screen will always show in the playlist (when active). Enable scheduling to restrict by date, day, or time.
+            </p>
+          )}
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className={cn("space-y-4", !watch("schedulingEnabled") && "opacity-50 pointer-events-none")}>
           {/* Date Range */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">

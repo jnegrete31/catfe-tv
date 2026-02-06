@@ -1,0 +1,1 @@
+ALTER TABLE `screens` ADD `schedulingEnabled` boolean DEFAULT false NOT NULL;
