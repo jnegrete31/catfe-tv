@@ -962,3 +962,42 @@
 - [x] Check API endpoints for guest session expiry data
 - [x] Implement guest session reminder overlay in tvOS (show when guests have 5 min left)
 - [x] Deliver updated Xcode files
+
+## Feature - Chime Sound for tvOS Guest Reminder Widget (Feb 6)
+- [x] Add AVFoundation audio playback to GuestReminderWidget (ChimeSoundManager)
+- [x] Generate chime via AVAudioEngine synthesis (no external file needed)
+- [x] Play chime once per new reminder (tracked by ID to avoid repeats)
+- [x] No asset registration needed — chime is synthesized at runtime
+- [x] Deliver updated Xcode files
+
+## Bug Fix - Web TV and Apple TV UI Slides Don't Match (Feb 6)
+- [x] Compare web ScreenRenderer designs with tvOS ScreenView designs for each screen type
+- [x] Identify specific layout, color, typography, and content differences
+- [x] Update tvOS screen views to match web TV designs
+- [x] Deliver updated Xcode files
+
+## Bug Fix - Chime Pauses Apple Music (Feb 6)
+- [x] Fix AVAudioEngine audio session to use .ambient category with .mixWithOthers
+- [x] Ensure chime plays over existing media without interrupting it
+- [x] Ensure resuming music doesn't pause the timer
+
+## Feature - Align All tvOS Screen Designs with Web TV Display (Feb 6)
+- [x] Rewrite AdoptionScreenView to match web design
+- [x] Rewrite EventsScreenView to match web design
+- [x] Rewrite TodayScreenView to match web design
+- [x] Rewrite MembershipScreenView to match web design
+- [x] Rewrite RemindersScreenView to match web design
+- [x] Rewrite SnapPurrScreenView to match web design
+- [x] Rewrite AdoptionShowcaseScreenView to match web design
+- [x] Rewrite ThankYouScreenView to match web design
+- [x] Add AdoptionCounterScreenView (new)
+- [x] Add HappyTailsScreenView (new)
+- [x] Add SnapPurrGalleryScreenView (new)
+- [x] Add HappyTailsQRScreenView (new)
+- [x] Add SnapPurrQRScreenView (new)
+- [x] Add LivestreamScreenView (new)
+- [x] Add CheckInScreenView (new)
+- [x] Add CosmicHelpers.swift shared components
+- [x] Update ScreenView routing for all 15 screen types
+- [x] Fix chime audio to use .ambient category (won't pause Apple Music)
+- [x] Update Xcode project file with all new files
