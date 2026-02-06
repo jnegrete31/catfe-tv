@@ -898,3 +898,7 @@
 - [x] Update gallery screens with new design
 - [x] Test tvOS app with new lounge-inspired design
 - [x] Push changes to GitHub repository
+
+## Bug Fix - iOS Admin App Screen Creation (Feb 5)
+- [ ] Fix Create button not working when creating new screen
+- [ ] Test screen creation flow in iOS Admin app
