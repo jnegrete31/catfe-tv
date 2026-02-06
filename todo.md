@@ -1001,3 +1001,18 @@
 - [x] Update ScreenView routing for all 15 screen types
 - [x] Fix chime audio to use .ambient category (won't pause Apple Music)
 - [x] Update Xcode project file with all new files
+
+## Bug Fix - Xcode Build Errors (Feb 6)
+- [x] Remove duplicate LightRaysView from ThankYouScreenView (already in CosmicHelpers)
+- [x] Remove duplicate AnimatedCirclesView from ThankYouScreenView (already in CosmicHelpers)
+- [x] Fix PollResultsWidget unused variable warning
+
+## Bug Fix - Xcode Build Errors Round 2 (Feb 6)
+- [x] Fix ThankYouScreenView Screen init: 'type' must precede 'title'
+- [x] Fix ContentView async expression missing 'await' (added @MainActor to Task)
+
+## Bug Fix - ALL Screen Layouts Empty/Cramped on Apple TV (Feb 6)
+- [x] Rewrite all 15 screen views with BaseScreenLayout for consistent full-screen layout
+- [x] Use GeometryReader for proportional sizing across all screens
+- [x] Content properly centered and spread across full 1920x1080 TV display
+- [x] Deliver updated Xcode files
