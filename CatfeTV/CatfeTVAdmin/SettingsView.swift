@@ -12,9 +12,9 @@ struct SettingsView: View {
     @EnvironmentObject var weatherService: WeatherService
     
     @State private var locationName: String = ""
-    @State private var defaultDuration: Int = 10
-    @State private var snapPurrFrequency: Int = 5
-    @State private var autoRefreshInterval: Int = 60
+    @State private var defaultDurationSeconds: Int = 10
+    @State private var snapAndPurrFrequency: Int = 5
+    @State private var refreshIntervalSeconds: Int = 60
     @State private var transitionDuration: Double = 1.0
     
     @State private var isSaving = false
@@ -40,9 +40,9 @@ struct SettingsView: View {
             
             // Display Settings
             Section {
-                Stepper("Default Duration: \(defaultDuration)s", value: $defaultDuration, in: 5...60, step: 5)
+                Stepper("Default Duration: \(defaultDurationSeconds)s", value: $defaultDurationSeconds, in: 5...60, step: 5)
                 
-                Stepper("Snap & Purr Frequency: Every \(snapPurrFrequency) screens", value: $snapPurrFrequency, in: 2...10)
+                Stepper("Snap & Purr Frequency: Every \(snapAndPurrFrequency) screens", value: $snapAndPurrFrequency, in: 2...10)
                 
                 VStack(alignment: .leading) {
                     Text("Transition Duration: \(transitionDuration, specifier: "%.1f")s")
@@ -56,7 +56,7 @@ struct SettingsView: View {
             
             // Refresh Settings
             Section {
-                Picker("Auto-Refresh Interval", selection: $autoRefreshInterval) {
+                Picker("Auto-Refresh Interval", selection: $refreshIntervalSeconds) {
                     Text("30 seconds").tag(30)
                     Text("1 minute").tag(60)
                     Text("2 minutes").tag(120)
@@ -181,10 +181,10 @@ struct SettingsView: View {
     // MARK: - Methods
     
     private func loadSettings() {
-        locationName = apiClient.settings.locationName
-        defaultDuration = apiClient.settings.defaultDuration
-        snapPurrFrequency = apiClient.settings.snapPurrFrequency
-        autoRefreshInterval = apiClient.settings.autoRefreshInterval
+        locationName = apiClient.settings.locationName ?? "Catfé Santa Clarita"
+        defaultDurationSeconds = apiClient.settings.defaultDurationSeconds
+        snapAndPurrFrequency = apiClient.settings.snapAndPurrFrequency
+        refreshIntervalSeconds = apiClient.settings.refreshIntervalSeconds
         transitionDuration = apiClient.settings.transitionDuration
     }
     
@@ -193,12 +193,14 @@ struct SettingsView: View {
         
         let newSettings = AppSettings(
             locationName: locationName,
-            defaultDuration: defaultDuration,
-            snapPurrFrequency: snapPurrFrequency,
+            defaultDurationSeconds: defaultDurationSeconds,
+            snapAndPurrFrequency: snapAndPurrFrequency,
             latitude: apiClient.settings.latitude,
             longitude: apiClient.settings.longitude,
-            autoRefreshInterval: autoRefreshInterval,
-            transitionDuration: transitionDuration
+            refreshIntervalSeconds: refreshIntervalSeconds,
+            transitionDuration: transitionDuration,
+            totalAdoptionCount: apiClient.settings.totalAdoptionCount,
+            logoUrl: apiClient.settings.logoUrl
         )
         
         Task {

@@ -53,6 +53,7 @@ enum ScreenType: String, Codable, CaseIterable, Identifiable {
 
 struct Screen: Identifiable, Codable, Equatable {
     var id: UUID
+    var numericId: Int? // Database ID for tRPC API calls
     var type: ScreenType
     var title: String
     var subtitle: String?
@@ -62,6 +63,7 @@ struct Screen: Identifiable, Codable, Equatable {
     var duration: Int // seconds
     var priority: Int
     var isActive: Bool
+    var isAdopted: Bool // For adoption screens
     var sortOrder: Int
     var schedule: ScreenSchedule?
     var createdAt: Date
@@ -81,6 +83,7 @@ struct Screen: Identifiable, Codable, Equatable {
     
     init(
         id: UUID = UUID(),
+        numericId: Int? = nil,
         type: ScreenType,
         title: String,
         subtitle: String? = nil,
@@ -90,6 +93,7 @@ struct Screen: Identifiable, Codable, Equatable {
         duration: Int = 10,
         priority: Int = 0,
         isActive: Bool = true,
+        isAdopted: Bool = false,
         sortOrder: Int = 0,
         schedule: ScreenSchedule? = nil,
         catName: String? = nil,
@@ -102,6 +106,7 @@ struct Screen: Identifiable, Codable, Equatable {
         eventLocation: String? = nil
     ) {
         self.id = id
+        self.numericId = numericId
         self.type = type
         self.title = title
         self.subtitle = subtitle
@@ -111,6 +116,7 @@ struct Screen: Identifiable, Codable, Equatable {
         self.duration = duration
         self.priority = priority
         self.isActive = isActive
+        self.isAdopted = isAdopted
         self.sortOrder = sortOrder
         self.schedule = schedule
         self.createdAt = Date()
@@ -183,23 +189,38 @@ struct ScreenSchedule: Codable, Equatable {
 // MARK: - Settings Model
 
 struct AppSettings: Codable {
-    var locationName: String
-    var defaultDuration: Int
-    var snapPurrFrequency: Int // Show every N screens
+    var locationName: String?
+    var defaultDurationSeconds: Int
+    var snapAndPurrFrequency: Int // Show every N screens
     var latitude: Double
     var longitude: Double
-    var autoRefreshInterval: Int // seconds
+    var refreshIntervalSeconds: Int // seconds
     var transitionDuration: Double // seconds
+    var totalAdoptionCount: Int
+    var logoUrl: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case locationName
+        case defaultDurationSeconds
+        case snapAndPurrFrequency
+        case latitude, longitude
+        case refreshIntervalSeconds
+        case transitionDuration
+        case totalAdoptionCount
+        case logoUrl
+    }
     
     static var `default`: AppSettings {
         AppSettings(
             locationName: "Catfé Santa Clarita",
-            defaultDuration: 10,
-            snapPurrFrequency: 5,
+            defaultDurationSeconds: 10,
+            snapAndPurrFrequency: 5,
             latitude: 34.3917,
             longitude: -118.5426,
-            autoRefreshInterval: 60,
-            transitionDuration: 1.0
+            refreshIntervalSeconds: 60,
+            transitionDuration: 1.0,
+            totalAdoptionCount: 0,
+            logoUrl: nil
         )
     }
 }
@@ -270,7 +291,7 @@ struct PollResponse: Codable {
         var data: PollData
         
         struct PollData: Codable {
-            var json: Poll
+            var json: Poll?
         }
     }
 }
@@ -307,23 +328,23 @@ extension Screen {
                 type: .adoption,
                 title: "Meet Scout",
                 subtitle: "Looking for a forever home",
+                imageURL: "https://raw.githubusercontent.com/jnegrete31/catfe-tv/main/assets/catfe-tv/2026/01/1769716107287-scout.jpg",
+                duration: 12,
                 catName: "Scout",
                 catAge: "6 months",
                 catGender: "Female",
                 catBreed: "Domestic Shorthair",
-                catDescription: "This sweet cat is looking for her forever home. Ask staff for details!",
-                imageURL: "https://raw.githubusercontent.com/jnegrete31/catfe-tv/main/assets/catfe-tv/2026/01/1769716107287-scout.jpg",
-                duration: 12
+                catDescription: "This sweet cat is looking for her forever home. Ask staff for details!"
             ),
             Screen(
                 type: .events,
                 title: "Valentine's Day Special",
                 subtitle: "February 14th",
                 bodyText: "Join us for a special Valentine's Day event with treats and love!",
+                duration: 10,
                 eventDate: Date().addingTimeInterval(86400 * 14),
                 eventTime: "2:00 PM - 6:00 PM",
-                eventLocation: "Catfé Santa Clarita",
-                duration: 10
+                eventLocation: "Catfé Santa Clarita"
             ),
             Screen(
                 type: .today,
@@ -355,5 +376,29 @@ extension Screen {
                 duration: 8
             )
         ]
+    }
+}
+
+// MARK: - Guest Session Model
+
+struct GuestSession: Codable, Identifiable {
+    var id: Int
+    var guestName: String?
+    var partySize: Int
+    var checkInTime: Date
+    var checkOutTime: Date?
+    var sessionDurationMinutes: Int
+    var status: String
+    var notes: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case guestName
+        case partySize
+        case checkInTime
+        case checkOutTime
+        case sessionDurationMinutes
+        case status
+        case notes
     }
 }

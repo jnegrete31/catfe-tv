@@ -84,7 +84,7 @@ class ScreenRotator: ObservableObject {
         
         // Check if we should insert a Snap & Purr screen
         snapPurrCounter += 1
-        if snapPurrCounter >= settings.snapPurrFrequency {
+        if snapPurrCounter >= settings.snapAndPurrFrequency {
             if let snapPurrIndex = screens.firstIndex(where: { $0.type == .snapPurr }) {
                 currentIndex = snapPurrIndex
                 snapPurrCounter = 0
@@ -153,7 +153,7 @@ class ScreenRotator: ObservableObject {
     private func scheduleNextScreen() {
         guard let screen = currentScreen else { return }
         
-        let duration = TimeInterval(screen.duration > 0 ? screen.duration : settings.defaultDuration)
+        let duration = TimeInterval(screen.duration > 0 ? screen.duration : settings.defaultDurationSeconds)
         
         timer = Timer.scheduledTimer(withTimeInterval: duration, repeats: false) { [weak self] _ in
             Task { @MainActor in
@@ -165,7 +165,7 @@ class ScreenRotator: ObservableObject {
     private func startProgressTimer() {
         guard let screen = currentScreen else { return }
         
-        let duration = TimeInterval(screen.duration > 0 ? screen.duration : settings.defaultDuration)
+        let duration = TimeInterval(screen.duration > 0 ? screen.duration : settings.defaultDurationSeconds)
         let updateInterval: TimeInterval = 0.1
         let progressIncrement = updateInterval / duration
         

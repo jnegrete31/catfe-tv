@@ -2,7 +2,7 @@
 //  APIClient.swift
 //  CatfeTV
 //
-//  API client for Supabase backend
+//  API client for Manus tRPC backend
 //
 
 import Foundation
@@ -13,12 +13,8 @@ import Foundation
 class APIClient: ObservableObject {
     static let shared = APIClient()
     
-    // Supabase configuration - Update these with your actual Supabase project details
-    private let supabaseURL = "https://your-project.supabase.co"
-    private let supabaseKey = "your-anon-key"
-    
-    // GitHub raw content base URL for images
-    private let githubRawURL = "https://raw.githubusercontent.com/jnegrete31/catfe-tv/main"
+    // Manus backend configuration
+    private let baseURL = "https://catfetv-amdmxcoq.manus.space"
     
     @Published var screens: [Screen] = []
     @Published var settings: AppSettings = .default
@@ -34,7 +30,58 @@ class APIClient: ObservableObject {
         encoder.dateEncodingStrategy = .iso8601
         
         decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
+        decoder.dateDecodingStrategy = .custom { decoder in
+            let container = try decoder.singleValueContainer()
+            let dateString = try container.decode(String.self)
+            
+            // Try ISO8601 with fractional seconds
+            let iso8601Formatter = ISO8601DateFormatter()
+            iso8601Formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            if let date = iso8601Formatter.date(from: dateString) {
+                return date
+            }
+            
+            // Try ISO8601 without fractional seconds
+            iso8601Formatter.formatOptions = [.withInternetDateTime]
+            if let date = iso8601Formatter.date(from: dateString) {
+                return date
+            }
+            
+            // Try simple date format
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd"
+            if let date = dateFormatter.date(from: dateString) {
+                return date
+            }
+            
+            throw DecodingError.dataCorruptedError(in: container, debugDescription: "Cannot decode date: \(dateString)")
+        }
+    }
+    
+    // MARK: - tRPC Response Wrappers
+    
+    struct TRPCResponse<T: Decodable>: Decodable {
+        let result: TRPCResult<T>
+    }
+    
+    struct TRPCResult<T: Decodable>: Decodable {
+        let data: TRPCData<T>
+    }
+    
+    struct TRPCData<T: Decodable>: Decodable {
+        let json: T
+    }
+    
+    struct TRPCMutationResponse<T: Decodable>: Decodable {
+        let result: TRPCMutationResult<T>
+    }
+    
+    struct TRPCMutationResult<T: Decodable>: Decodable {
+        let data: TRPCMutationData<T>
+    }
+    
+    struct TRPCMutationData<T: Decodable>: Decodable {
+        let json: T
     }
     
     // MARK: - Screens CRUD
@@ -44,21 +91,30 @@ class APIClient: ObservableObject {
         error = nil
         
         do {
-            // Try to fetch from Supabase
-            let url = URL(string: "\(supabaseURL)/rest/v1/screens?select=*&order=sort_order.asc")!
+            // Fetch all screens using tRPC
+            let url = URL(string: "\(baseURL)/api/trpc/screens.getAll")!
             var request = URLRequest(url: url)
-            request.setValue(supabaseKey, forHTTPHeaderField: "apikey")
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             
             let (data, response) = try await URLSession.shared.data(for: request)
             
+            if let httpResponse = response as? HTTPURLResponse {
+                print("Fetch screens response: \(httpResponse.statusCode)")
+                if let responseString = String(data: data, encoding: .utf8) {
+                    print("Response data: \(responseString.prefix(500))")
+                }
+            }
+            
             if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
-                screens = try decoder.decode([Screen].self, from: data)
+                let trpcResponse = try decoder.decode(TRPCResponse<[Screen]>.self, from: data)
+                screens = trpcResponse.result.data.json
+                saveToCache()
             } else {
                 // Fall back to local cache or sample data
                 loadFromCache()
             }
         } catch {
+            print("Fetch screens error: \(error)")
             // Fall back to local cache or sample data
             loadFromCache()
             self.error = error.localizedDescription
@@ -69,65 +125,96 @@ class APIClient: ObservableObject {
     }
     
     func createScreen(_ screen: Screen) async throws {
-        let url = URL(string: "\(supabaseURL)/rest/v1/screens")!
+        // Build the input for tRPC mutation
+        let input = buildScreenInput(from: screen)
+        
+        let url = URL(string: "\(baseURL)/api/trpc/screens.create")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        request.setValue(supabaseKey, forHTTPHeaderField: "apikey")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("return=representation", forHTTPHeaderField: "Prefer")
         
-        request.httpBody = try encoder.encode(screen)
+        let body = ["json": input]
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        if let httpResponse = response as? HTTPURLResponse {
+            print("Create screen response: \(httpResponse.statusCode)")
+            if let responseString = String(data: data, encoding: .utf8) {
+                print("Response data: \(responseString.prefix(500))")
+            }
+        }
+        
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200 else {
+            let errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
+            throw APIError(message: "Failed to create screen: \(errorMessage)")
+        }
+        
+        // Refresh screens list
+        await fetchScreens()
+    }
+    
+    func updateScreen(_ screen: Screen) async throws {
+        // Build the input for tRPC mutation
+        let input = buildScreenInput(from: screen)
+        
+        // Get the numeric ID from the screen
+        guard let numericId = screen.numericId else {
+            throw APIError(message: "Screen has no numeric ID")
+        }
+        
+        let url = URL(string: "\(baseURL)/api/trpc/screens.update")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let body: [String: Any] = [
+            "json": [
+                "id": numericId,
+                "data": input
+            ]
+        ]
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        if let httpResponse = response as? HTTPURLResponse {
+            print("Update screen response: \(httpResponse.statusCode)")
+            if let responseString = String(data: data, encoding: .utf8) {
+                print("Response data: \(responseString.prefix(500))")
+            }
+        }
+        
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200 else {
+            let errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
+            throw APIError(message: "Failed to update screen: \(errorMessage)")
+        }
+        
+        // Refresh screens list
+        await fetchScreens()
+    }
+    
+    func deleteScreen(_ screen: Screen) async throws {
+        guard let numericId = screen.numericId else {
+            throw APIError(message: "Screen has no numeric ID")
+        }
+        
+        let url = URL(string: "\(baseURL)/api/trpc/screens.delete")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let body: [String: Any] = ["json": ["id": numericId]]
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
         
         let (data, response) = try await URLSession.shared.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse,
-              httpResponse.statusCode == 201 else {
-            throw APIError(message: "Failed to create screen")
-        }
-        
-        if let newScreens = try? decoder.decode([Screen].self, from: data),
-           let newScreen = newScreens.first {
-            screens.append(newScreen)
-            saveToCache()
-        }
-    }
-    
-    func updateScreen(_ screen: Screen) async throws {
-        let url = URL(string: "\(supabaseURL)/rest/v1/screens?id=eq.\(screen.id.uuidString)")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "PATCH"
-        request.setValue(supabaseKey, forHTTPHeaderField: "apikey")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("return=representation", forHTTPHeaderField: "Prefer")
-        
-        var updatedScreen = screen
-        updatedScreen.updatedAt = Date()
-        request.httpBody = try encoder.encode(updatedScreen)
-        
-        let (_, response) = try await URLSession.shared.data(for: request)
-        
-        guard let httpResponse = response as? HTTPURLResponse,
               httpResponse.statusCode == 200 else {
-            throw APIError(message: "Failed to update screen")
-        }
-        
-        if let index = screens.firstIndex(where: { $0.id == screen.id }) {
-            screens[index] = updatedScreen
-            saveToCache()
-        }
-    }
-    
-    func deleteScreen(_ screen: Screen) async throws {
-        let url = URL(string: "\(supabaseURL)/rest/v1/screens?id=eq.\(screen.id.uuidString)")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "DELETE"
-        request.setValue(supabaseKey, forHTTPHeaderField: "apikey")
-        
-        let (_, response) = try await URLSession.shared.data(for: request)
-        
-        guard let httpResponse = response as? HTTPURLResponse,
-              httpResponse.statusCode == 204 else {
-            throw APIError(message: "Failed to delete screen")
+            let errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
+            throw APIError(message: "Failed to delete screen: \(errorMessage)")
         }
         
         screens.removeAll { $0.id == screen.id }
@@ -135,30 +222,73 @@ class APIClient: ObservableObject {
     }
     
     func reorderScreens(_ screens: [Screen]) async throws {
-        for (index, var screen) in screens.enumerated() {
-            screen.sortOrder = index
-            try await updateScreen(screen)
+        var orders: [[String: Any]] = []
+        for (index, screen) in screens.enumerated() {
+            if let numericId = screen.numericId {
+                orders.append(["id": numericId, "sortOrder": index])
+            }
         }
+        
+        let url = URL(string: "\(baseURL)/api/trpc/screens.updateOrder")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let body: [String: Any] = ["json": ["orders": orders]]
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        
+        let (_, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200 else {
+            throw APIError(message: "Failed to reorder screens")
+        }
+        
         self.screens = screens
         saveToCache()
+    }
+    
+    // MARK: - Helper to build screen input
+    
+    private func buildScreenInput(from screen: Screen) -> [String: Any] {
+        var input: [String: Any] = [
+            "type": screen.type.rawValue,
+            "title": screen.title,
+            "priority": screen.priority,
+            "durationSeconds": screen.duration,
+            "sortOrder": screen.sortOrder,
+            "isActive": screen.isActive,
+            "isAdopted": screen.isAdopted
+        ]
+        
+        if let subtitle = screen.subtitle { input["subtitle"] = subtitle }
+        if let body = screen.bodyText { input["body"] = body }
+        if let imagePath = screen.imageURL { input["imagePath"] = imagePath }
+        if let qrUrl = screen.qrCodeURL { input["qrUrl"] = qrUrl }
+        
+        // Event fields
+        if let eventDate = screen.eventDate {
+            let formatter = ISO8601DateFormatter()
+            input["startAt"] = formatter.string(from: eventDate)
+        }
+        
+        return input
     }
     
     // MARK: - Settings
     
     func fetchSettings() async {
         do {
-            let url = URL(string: "\(supabaseURL)/rest/v1/settings?select=*&limit=1")!
+            let url = URL(string: "\(baseURL)/api/trpc/settings.get")!
             var request = URLRequest(url: url)
-            request.setValue(supabaseKey, forHTTPHeaderField: "apikey")
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             
             let (data, response) = try await URLSession.shared.data(for: request)
             
             if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
-                if let settingsArray = try? decoder.decode([AppSettings].self, from: data),
-                   let fetchedSettings = settingsArray.first {
-                    settings = fetchedSettings
-                }
+                let trpcResponse = try decoder.decode(TRPCResponse<AppSettings>.self, from: data)
+                settings = trpcResponse.result.data.json
+                saveSettingsToCache()
             }
         } catch {
             // Use default settings
@@ -167,13 +297,19 @@ class APIClient: ObservableObject {
     }
     
     func updateSettings(_ newSettings: AppSettings) async throws {
-        let url = URL(string: "\(supabaseURL)/rest/v1/settings?id=eq.1")!
+        let url = URL(string: "\(baseURL)/api/trpc/settings.update")!
         var request = URLRequest(url: url)
-        request.httpMethod = "PATCH"
-        request.setValue(supabaseKey, forHTTPHeaderField: "apikey")
+        request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        request.httpBody = try encoder.encode(newSettings)
+        var input: [String: Any] = [:]
+        if let locationName = newSettings.locationName { input["locationName"] = locationName }
+        input["defaultDurationSeconds"] = newSettings.defaultDurationSeconds
+        if let logoUrl = newSettings.logoUrl { input["logoUrl"] = logoUrl }
+        input["totalAdoptionCount"] = newSettings.totalAdoptionCount
+        
+        let body: [String: Any] = ["json": input]
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
         
         let (_, response) = try await URLSession.shared.data(for: request)
         
@@ -184,6 +320,24 @@ class APIClient: ObservableObject {
         
         settings = newSettings
         saveSettingsToCache()
+    }
+    
+    // MARK: - Guest Sessions
+    
+    func fetchGuestSessions() async throws -> [GuestSession] {
+        let url = URL(string: "\(baseURL)/api/trpc/guests.getActive")!
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200 else {
+            throw APIError(message: "Failed to fetch guest sessions")
+        }
+        
+        let trpcResponse = try decoder.decode(TRPCResponse<[GuestSession]>.self, from: data)
+        return trpcResponse.result.data.json
     }
     
     // MARK: - Active Screens
@@ -249,22 +403,40 @@ class APIClient: ObservableObject {
         }
     }
     
-    // MARK: - GitHub Image Upload
+    // MARK: - Image Upload (via S3)
     
     func uploadImageToGitHub(imageData: Data, filename: String) async throws -> String {
-        // This would require GitHub API authentication
-        // For now, return a placeholder URL
-        // In production, implement proper GitHub API integration
+        // Upload to the backend's image upload endpoint
+        let url = URL(string: "\(baseURL)/api/upload/image")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
         
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy/MM"
-        let datePath = dateFormatter.string(from: Date())
+        let boundary = UUID().uuidString
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         
-        let timestamp = Int(Date().timeIntervalSince1970 * 1000)
-        let fullFilename = "\(timestamp)-\(filename)"
+        var body = Data()
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"\(filename)\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
+        body.append(imageData)
+        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
         
-        // Return the expected URL after upload
-        return "\(githubRawURL)/assets/catfe-tv/\(datePath)/\(fullFilename)"
+        request.httpBody = body
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200 else {
+            throw APIError(message: "Failed to upload image")
+        }
+        
+        // Parse the response to get the URL
+        if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+           let imageUrl = json["url"] as? String {
+            return imageUrl
+        }
+        
+        throw APIError(message: "Failed to parse upload response")
     }
     
     // MARK: - Image URL Helper
@@ -273,7 +445,7 @@ class APIClient: ObservableObject {
         if path.hasPrefix("http") {
             return URL(string: path)
         }
-        return URL(string: "\(githubRawURL)/\(path)")
+        return URL(string: "\(baseURL)/\(path)")
     }
 }
 
