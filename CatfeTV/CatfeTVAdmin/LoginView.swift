@@ -2,17 +2,15 @@
 //  LoginView.swift
 //  CatfeTVAdmin
 //
-//  Login screen for OAuth authentication
+//  Login screen that opens the web admin dashboard
 //
 
 import SwiftUI
-import AuthenticationServices
 
 struct LoginView: View {
-    @EnvironmentObject var authService: AuthService
-    @State private var isAuthenticating = false
-    @State private var showError = false
-    @State private var errorMessage = ""
+    @State private var showWebView = false
+    
+    private let adminURL = URL(string: "https://catfetv-amdmxcoq.manus.space/admin")!
     
     var body: some View {
         ZStack {
@@ -44,20 +42,16 @@ struct LoginView: View {
                 
                 Spacer()
                 
-                // Login button
+                // Action buttons
                 VStack(spacing: 16) {
+                    // Open in app button
                     Button {
-                        startAuthentication()
+                        showWebView = true
                     } label: {
                         HStack(spacing: 12) {
-                            if isAuthenticating {
-                                ProgressView()
-                                    .tint(.white)
-                            } else {
-                                Image(systemName: "person.crop.circle.badge.checkmark")
-                                    .font(.title2)
-                            }
-                            Text(isAuthenticating ? "Signing in..." : "Sign in with Manus")
+                            Image(systemName: "rectangle.stack.fill")
+                                .font(.title2)
+                            Text("Open Admin Dashboard")
                                 .font(.headline)
                         }
                         .foregroundColor(.white)
@@ -66,11 +60,42 @@ struct LoginView: View {
                         .background(Color.catfeTerracotta)
                         .cornerRadius(12)
                     }
-                    .disabled(isAuthenticating)
                     
-                    Text("Sign in to create and manage screens")
+                    // Open in Safari button
+                    Button {
+                        UIApplication.shared.open(adminURL)
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: "safari")
+                                .font(.title2)
+                            Text("Open in Safari")
+                                .font(.headline)
+                        }
+                        .foregroundColor(.catfeTerracotta)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(Color.white)
+                        .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.catfeTerracotta, lineWidth: 2)
+                        )
+                    }
+                    
+                    Text("Sign in with your Manus account to manage screens")
                         .font(.caption)
                         .foregroundColor(.catfeBrown.opacity(0.6))
+                        .multilineTextAlignment(.center)
+                    
+                    // Add to home screen tip
+                    HStack(spacing: 8) {
+                        Image(systemName: "square.and.arrow.up")
+                            .font(.caption)
+                        Text("Tip: Add to Home Screen from Safari for quick access")
+                            .font(.caption2)
+                    }
+                    .foregroundColor(.catfeBrown.opacity(0.5))
+                    .padding(.top, 8)
                 }
                 .padding(.horizontal, 40)
                 
@@ -89,89 +114,58 @@ struct LoginView: View {
                 .padding(.bottom, 20)
             }
         }
-        .alert("Sign In Error", isPresented: $showError) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text(errorMessage)
+        .fullScreenCover(isPresented: $showWebView) {
+            WebViewContainer(url: adminURL, isPresented: $showWebView)
         }
     }
+}
+
+// MARK: - Web View Container
+
+import WebKit
+
+struct WebViewContainer: View {
+    let url: URL
+    @Binding var isPresented: Bool
     
-    private func startAuthentication() {
-        isAuthenticating = true
-        
-        // Use ASWebAuthenticationSession for OAuth
-        let callbackScheme = "catfetv"
-        let authURL = buildAuthURL()
-        
-        print("Starting OAuth with URL: \(authURL.absoluteString)")
-        
-        let session = ASWebAuthenticationSession(
-            url: authURL,
-            callbackURLScheme: callbackScheme
-        ) { callbackURL, error in
-            isAuthenticating = false
-            
-            if let error = error {
-                if (error as NSError).code == ASWebAuthenticationSessionError.canceledLogin.rawValue {
-                    // User cancelled, no error to show
-                    print("User cancelled login")
-                    return
+    var body: some View {
+        NavigationView {
+            WebView(url: url)
+                .navigationTitle("Catfé TV Admin")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button("Done") {
+                            isPresented = false
+                        }
+                    }
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button {
+                            UIApplication.shared.open(url)
+                        } label: {
+                            Image(systemName: "safari")
+                        }
+                    }
                 }
-                print("OAuth session error: \(error)")
-                errorMessage = error.localizedDescription
-                showError = true
-                return
-            }
-            
-            guard let callbackURL = callbackURL else {
-                print("No callback URL received")
-                errorMessage = "No callback URL received"
-                showError = true
-                return
-            }
-            
-            print("Received callback URL: \(callbackURL.absoluteString)")
-            
-            // Handle the callback
-            Task {
-                let success = await authService.handleCallback(url: callbackURL)
-                if !success {
-                    errorMessage = authService.error ?? "Authentication failed"
-                    showError = true
-                }
-            }
-        }
-        
-        session.presentationContextProvider = WebAuthSessionHandler.shared
-        session.prefersEphemeralWebBrowserSession = false
-        
-        if !session.start() {
-            isAuthenticating = false
-            errorMessage = "Failed to start authentication"
-            showError = true
         }
     }
+}
+
+struct WebView: UIViewRepresentable {
+    let url: URL
     
-    private func buildAuthURL() -> URL {
-        // Use the direct Manus OAuth URL
-        // This matches the web app's OAuth flow exactly
-        let appId = "aMDMXCoQ2ycSYTjhkKKJzm"
-        let baseURL = "https://catfetv-amdmxcoq.manus.space"
-        let callbackPath = "/api/oauth/mobile-callback"
-        let redirectUri = "\(baseURL)\(callbackPath)"
+    func makeUIView(context: Context) -> WKWebView {
+        let configuration = WKWebViewConfiguration()
+        configuration.websiteDataStore = .default() // Persist cookies/login
         
-        // State is base64 encoded callback URL (same format as web)
-        let state = Data(redirectUri.utf8).base64EncodedString()
-        
-        var components = URLComponents(string: "https://manus.im/app-auth")!
-        components.queryItems = [
-            URLQueryItem(name: "appId", value: appId),
-            URLQueryItem(name: "redirectUri", value: redirectUri),
-            URLQueryItem(name: "state", value: state),
-            URLQueryItem(name: "type", value: "signIn")
-        ]
-        
-        return components.url!
+        let webView = WKWebView(frame: .zero, configuration: configuration)
+        webView.allowsBackForwardNavigationGestures = true
+        return webView
+    }
+    
+    func updateUIView(_ webView: WKWebView, context: Context) {
+        let request = URLRequest(url: url)
+        webView.load(request)
     }
 }
 
@@ -181,7 +175,6 @@ struct LoginView: View {
 struct LoginView_Previews: PreviewProvider {
     static var previews: some View {
         LoginView()
-            .environmentObject(AuthService.shared)
     }
 }
 #endif
