@@ -1889,26 +1889,127 @@ function CheckInScreen({ screen, settings }: ScreenRendererProps) {
   );
 }
 
-// Main renderer that selects the appropriate component
-export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendererProps) {
-  // Check if a custom template exists for this screen type
+// Lightweight overlay that renders only template elements on top of the default screen
+// This preserves the original screen design while allowing element additions from the Slide Editor
+function TemplateElementsOverlay({ screenType, screen, settings }: { screenType: string; screen: Screen; settings: Settings | null }) {
   const { data: template } = trpc.templates.getByScreenType.useQuery(
-    { screenType: screen.type },
+    { screenType },
     { staleTime: 60000 }
   );
   
-  // Check if template has custom elements (not just defaults)
-  let hasCustomTemplate = false;
+  // Check if there are saved template elements
+  let elements: any[] = [];
   try {
-    const elements = JSON.parse(template?.elements || "[]");
-    // Consider it custom if it has elements and was explicitly saved
-    hasCustomTemplate = !!(elements.length > 0 && template && 'id' in template && (template as any).id !== undefined);
+    const parsed = JSON.parse(template?.elements || "[]");
+    // Only use if template was explicitly saved (has an id in the database)
+    if (parsed.length > 0 && template && 'id' in template && (template as any).id !== undefined) {
+      elements = parsed;
+    }
   } catch {
-    hasCustomTemplate = false;
+    elements = [];
   }
   
-  // If custom template exists, use TemplateRenderer
-  if (hasCustomTemplate) {
+  if (elements.length === 0) return null;
+  
+  // Render each template element as an absolute-positioned overlay
+  return (
+    <div className="absolute inset-0 z-20 pointer-events-none">
+      {elements.map((el: any) => {
+        if (el.visible === false) return null;
+        
+        const style: React.CSSProperties = {
+          position: "absolute",
+          left: `${el.x}%`,
+          top: `${el.y}%`,
+          width: `${el.width}%`,
+          height: `${el.height}%`,
+          opacity: el.opacity || 1,
+          transform: el.rotation ? `rotate(${el.rotation}deg)` : undefined,
+          zIndex: el.zIndex || 1,
+          borderRadius: el.borderRadius || 0,
+          overflow: "hidden",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: el.textAlign === "left" ? "flex-start" : el.textAlign === "right" ? "flex-end" : "center",
+          padding: el.padding || 0,
+          backgroundColor: el.backgroundColor || "transparent",
+        };
+        
+        const textStyle: React.CSSProperties = {
+          fontSize: `${el.fontSize || 24}px`,
+          fontWeight: el.fontWeight || "normal",
+          fontFamily: el.fontFamily || "inherit",
+          color: el.color || "#ffffff",
+          textAlign: el.textAlign || "center",
+          width: "100%",
+          textShadow: "0 2px 4px rgba(0,0,0,0.5)",
+        };
+        
+        let content: React.ReactNode = null;
+        switch (el.type) {
+          case "title":
+            content = <span style={textStyle}>{screen.title}</span>;
+            break;
+          case "subtitle":
+            content = <span style={textStyle}>{screen.subtitle || ""}</span>;
+            break;
+          case "body":
+            content = <span style={textStyle}>{screen.body || ""}</span>;
+            break;
+          case "photo":
+            if (screen.imagePath) {
+              content = <img src={screen.imagePath} alt="" className="w-full h-full object-cover" />;
+            }
+            break;
+          case "qrCode":
+            if (screen.qrUrl) {
+              content = (
+                <div className="bg-white p-3 rounded-lg">
+                  <QRCodeSVG value={screen.qrUrl} size={Math.min(el.width, el.height) * 5} level="M" />
+                </div>
+              );
+            }
+            break;
+          default:
+            return null;
+        }
+        
+        if (!content) return null;
+        
+        return (
+          <div key={el.id} style={style}>
+            {content}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// Main renderer that selects the appropriate component
+export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendererProps) {
+  // For CUSTOM screen types, use TemplateRenderer directly (no default design exists)
+  const isCustomType = screen.type === "CUSTOM";
+  
+  // Only fetch full template for CUSTOM screens (other types use overlay)
+  const { data: customTemplate } = trpc.templates.getByScreenType.useQuery(
+    { screenType: screen.type },
+    { staleTime: 60000, enabled: isCustomType }
+  );
+  
+  // Check if CUSTOM screen has a saved template
+  let hasCustomTemplate = false;
+  if (isCustomType) {
+    try {
+      const elements = JSON.parse(customTemplate?.elements || "[]");
+      hasCustomTemplate = !!(elements.length > 0 && customTemplate && 'id' in customTemplate && (customTemplate as any).id !== undefined);
+    } catch {
+      hasCustomTemplate = false;
+    }
+  }
+  
+  // If CUSTOM screen has a template, use TemplateRenderer (full replacement is fine for CUSTOM)
+  if (isCustomType && hasCustomTemplate) {
     return (
       <AnimatePresence mode="wait">
         <motion.div
@@ -1929,7 +2030,7 @@ export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendere
     );
   }
   
-  // Otherwise use default hardcoded renderers
+  // For all standard screen types: use default renderers with optional template element overlay
   const renderers: Record<string, React.FC<ScreenRendererProps>> = {
     SNAP_AND_PURR: SnapAndPurrScreen,
     EVENT: EventScreen,
@@ -2000,9 +2101,12 @@ export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendere
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full h-full"
+        className="w-full h-full relative"
       >
+        {/* Default screen design */}
         <Renderer screen={screen} settings={settings} adoptionCats={adoptionCats} />
+        {/* Template elements overlay - renders on top of the default design */}
+        <TemplateElementsOverlay screenType={screen.type} screen={screen} settings={settings} />
       </motion.div>
     </AnimatePresence>
   );

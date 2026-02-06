@@ -902,3 +902,9 @@
 ## Bug Fix - iOS Admin App Screen Creation (Feb 5)
 - [ ] Fix Create button not working when creating new screen
 - [ ] Test screen creation flow in iOS Admin app
+
+## Bug Fix - Web App Screen Editor
+- [x] Fix: Slide Editor elements should overlay on top of original screen designs, not replace them
+
+## Bug Fix - Apple TV Screensaver
+- [x] Fix: Apple TV screensaver/wallpaper activates after idle time - need to keep screen awake
