@@ -915,3 +915,24 @@
 - [x] Add toggle switch in admin screen editor to enable/disable scheduling
 - [x] Update playlist logic: when scheduling is off, screen always shows (if active)
 - [x] Test scheduling toggle on/off behavior
+
+## Feature - Schedule Timeline Preview
+- [x] Create ScheduleTimeline component with 24-hour visual timeline
+- [x] Show each screen as a colored bar on the timeline based on its schedule rules
+- [x] Handle screens with no scheduling (always on) vs scheduled screens
+- [x] Show day-of-week filter to preview different days
+- [x] Add time window indicators for scheduled screens
+- [x] Integrate timeline into admin panel (Playlists tab)
+- [x] Write tests for timeline logic
+
+## Feature - Schedule Timeline & Playlist Scheduling
+- [x] Add scheduling fields to playlists table (schedulingEnabled, daysOfWeek, timeStart, timeEnd, color)
+- [x] Create backend API for playlist scheduling CRUD
+- [ ] Update TV display to auto-switch playlists based on time of day (future enhancement)
+- [x] Create ScheduleTimeline component with 24-hour visual timeline
+- [x] Show playlist schedule as colored blocks on the timeline
+- [x] Show individual screen schedules (toggle between playlist/screen views)
+- [x] Add day-of-week selector to preview different days
+- [ ] Add drag-to-create playlist time blocks on timeline (future enhancement)
+- [x] Integrate timeline into Playlists tab in admin panel
+- [x] Write tests for playlist scheduling logic (26 tests passing)

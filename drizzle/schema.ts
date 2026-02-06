@@ -335,6 +335,12 @@ export const playlists = mysqlTable("playlists", {
   description: varchar("description", { length: 500 }),
   isActive: boolean("isActive").notNull().default(false), // Only one playlist can be active at a time
   isDefault: boolean("isDefault").notNull().default(false), // Default playlist for fallback
+  // Scheduling fields for automatic playlist switching
+  schedulingEnabled: boolean("schedulingEnabled").notNull().default(false), // When true, playlist auto-activates based on schedule
+  daysOfWeek: json("playlistDaysOfWeek").$type<number[]>(), // 0-6 (Sunday-Saturday)
+  timeStart: varchar("playlistTimeStart", { length: 5 }), // HH:MM format
+  timeEnd: varchar("playlistTimeEnd", { length: 5 }), // HH:MM format
+  color: varchar("color", { length: 32 }).default("#C2884E"), // Color for timeline display
   sortOrder: int("sortOrder").notNull().default(0),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

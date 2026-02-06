@@ -1092,6 +1092,11 @@ export const appRouter = router({
       .input(z.object({
         name: z.string().min(1).max(255),
         description: z.string().max(500).optional(),
+        schedulingEnabled: z.boolean().optional(),
+        daysOfWeek: z.array(z.number().min(0).max(6)).optional(),
+        timeStart: z.string().max(5).optional(),
+        timeEnd: z.string().max(5).optional(),
+        color: z.string().max(32).optional(),
       }))
       .mutation(async ({ input }) => {
         return createPlaylist(input);
@@ -1103,6 +1108,11 @@ export const appRouter = router({
         id: z.number(),
         name: z.string().min(1).max(255).optional(),
         description: z.string().max(500).optional(),
+        schedulingEnabled: z.boolean().optional(),
+        daysOfWeek: z.array(z.number().min(0).max(6)).optional(),
+        timeStart: z.string().max(5).optional(),
+        timeEnd: z.string().max(5).optional(),
+        color: z.string().max(32).optional(),
       }))
       .mutation(async ({ input }) => {
         const { id, ...data } = input;

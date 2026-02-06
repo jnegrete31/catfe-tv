@@ -5,21 +5,242 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Play, Trash2, Edit, ListMusic, GripVertical, Check } from "lucide-react";
+import { Plus, Play, Trash2, Edit, ListMusic, Check, Clock, Calendar } from "lucide-react";
+import { DAYS_OF_WEEK } from "@shared/types";
+import { ScheduleTimeline } from "./ScheduleTimeline";
+
+const PLAYLIST_COLORS = [
+  { value: "#C2884E", label: "Catfé Brown" },
+  { value: "#8b5cf6", label: "Purple" },
+  { value: "#3b82f6", label: "Blue" },
+  { value: "#10b981", label: "Green" },
+  { value: "#f59e0b", label: "Amber" },
+  { value: "#ef4444", label: "Red" },
+  { value: "#ec4899", label: "Pink" },
+  { value: "#06b6d4", label: "Cyan" },
+  { value: "#f97316", label: "Orange" },
+  { value: "#6366f1", label: "Indigo" },
+];
+
+interface PlaylistFormData {
+  name: string;
+  description: string;
+  schedulingEnabled: boolean;
+  daysOfWeek: number[];
+  timeStart: string;
+  timeEnd: string;
+  color: string;
+}
+
+const defaultFormData: PlaylistFormData = {
+  name: "",
+  description: "",
+  schedulingEnabled: false,
+  daysOfWeek: [],
+  timeStart: "",
+  timeEnd: "",
+  color: "#C2884E",
+};
+
+function PlaylistFormFields({
+  data,
+  onChange,
+}: {
+  data: PlaylistFormData;
+  onChange: (data: PlaylistFormData) => void;
+}) {
+  const toggleDay = (day: number) => {
+    const newDays = data.daysOfWeek.includes(day)
+      ? data.daysOfWeek.filter((d) => d !== day)
+      : [...data.daysOfWeek, day].sort();
+    onChange({ ...data, daysOfWeek: newDays });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="pl-name">Name</Label>
+        <Input
+          id="pl-name"
+          placeholder="e.g., Volunteer Orientation"
+          value={data.name}
+          onChange={(e) => onChange({ ...data, name: e.target.value })}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="pl-desc">Description (optional)</Label>
+        <Textarea
+          id="pl-desc"
+          placeholder="What is this playlist for?"
+          value={data.description}
+          onChange={(e) => onChange({ ...data, description: e.target.value })}
+        />
+      </div>
+
+      {/* Color Picker */}
+      <div className="space-y-2">
+        <Label>Timeline Color</Label>
+        <div className="flex flex-wrap gap-2">
+          {PLAYLIST_COLORS.map((c) => (
+            <button
+              key={c.value}
+              type="button"
+              className={`w-8 h-8 rounded-full border-2 transition-all ${
+                data.color === c.value
+                  ? "border-foreground scale-110 shadow-md"
+                  : "border-transparent hover:scale-105"
+              }`}
+              style={{ backgroundColor: c.value }}
+              onClick={() => onChange({ ...data, color: c.value })}
+              title={c.label}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Scheduling Toggle */}
+      <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+        <div className="space-y-0.5">
+          <Label className="text-sm font-medium flex items-center gap-2">
+            <Clock className="w-4 h-4" />
+            Enable Auto-Scheduling
+          </Label>
+          <p className="text-xs text-muted-foreground">
+            Automatically activate this playlist at specific times
+          </p>
+        </div>
+        <Switch
+          checked={data.schedulingEnabled}
+          onCheckedChange={(checked) =>
+            onChange({ ...data, schedulingEnabled: checked })
+          }
+        />
+      </div>
+
+      {/* Schedule Fields */}
+      {data.schedulingEnabled && (
+        <div className="space-y-4 pl-2 border-l-2 border-primary/30">
+          {/* Days of Week */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
+              Days of Week
+            </Label>
+            <div className="flex flex-wrap gap-1.5">
+              {DAYS_OF_WEEK.map((day) => (
+                <Button
+                  key={day.value}
+                  type="button"
+                  size="sm"
+                  variant={
+                    data.daysOfWeek.includes(day.value) ? "default" : "outline"
+                  }
+                  className="h-8 w-12 text-xs"
+                  onClick={() => toggleDay(day.value)}
+                >
+                  {day.label}
+                </Button>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="h-6 text-xs"
+                onClick={() =>
+                  onChange({
+                    ...data,
+                    daysOfWeek: [1, 2, 3, 4, 5],
+                  })
+                }
+              >
+                Weekdays
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="h-6 text-xs"
+                onClick={() =>
+                  onChange({
+                    ...data,
+                    daysOfWeek: [0, 6],
+                  })
+                }
+              >
+                Weekends
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="h-6 text-xs"
+                onClick={() =>
+                  onChange({
+                    ...data,
+                    daysOfWeek: [0, 1, 2, 3, 4, 5, 6],
+                  })
+                }
+              >
+                Every Day
+              </Button>
+            </div>
+          </div>
+
+          {/* Time Window */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
+              <Clock className="w-4 h-4" />
+              Time Window
+            </Label>
+            <div className="flex items-center gap-2">
+              <Input
+                type="time"
+                value={data.timeStart}
+                onChange={(e) =>
+                  onChange({ ...data, timeStart: e.target.value })
+                }
+                className="w-32"
+              />
+              <span className="text-muted-foreground">to</span>
+              <Input
+                type="time"
+                value={data.timeEnd}
+                onChange={(e) =>
+                  onChange({ ...data, timeEnd: e.target.value })
+                }
+                className="w-32"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function PlaylistManager() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [editingPlaylist, setEditingPlaylist] = useState<{ id: number; name: string; description?: string } | null>(null);
-  const [newPlaylist, setNewPlaylist] = useState({ name: "", description: "" });
-  const [selectedPlaylistId, setSelectedPlaylistId] = useState<number | null>(null);
+  const [editingPlaylist, setEditingPlaylist] = useState<
+    (PlaylistFormData & { id: number }) | null
+  >(null);
+  const [newPlaylist, setNewPlaylist] = useState<PlaylistFormData>({
+    ...defaultFormData,
+  });
+  const [selectedPlaylistId, setSelectedPlaylistId] = useState<number | null>(
+    null
+  );
 
   const utils = trpc.useUtils();
-  const { data: playlists, isLoading } = trpc.playlists.getAll.useQuery(undefined, {
-    staleTime: 0,
-  });
+  const { data: playlists, isLoading } = trpc.playlists.getAll.useQuery(
+    undefined,
+    { staleTime: 0 }
+  );
   const { data: allScreens } = trpc.screens.getAll.useQuery(undefined, {
     staleTime: 0,
   });
@@ -33,7 +254,7 @@ export function PlaylistManager() {
       toast.success("Playlist created!");
       utils.playlists.getAll.invalidate();
       setIsCreateOpen(false);
-      setNewPlaylist({ name: "", description: "" });
+      setNewPlaylist({ ...defaultFormData });
     },
     onError: (err) => toast.error(err.message),
   });
@@ -85,7 +306,18 @@ export function PlaylistManager() {
       toast.error("Please enter a playlist name");
       return;
     }
-    createMutation.mutate(newPlaylist);
+    createMutation.mutate({
+      name: newPlaylist.name,
+      description: newPlaylist.description || undefined,
+      schedulingEnabled: newPlaylist.schedulingEnabled,
+      daysOfWeek:
+        newPlaylist.daysOfWeek.length > 0
+          ? newPlaylist.daysOfWeek
+          : undefined,
+      timeStart: newPlaylist.timeStart || undefined,
+      timeEnd: newPlaylist.timeEnd || undefined,
+      color: newPlaylist.color,
+    });
   };
 
   const handleUpdate = () => {
@@ -93,23 +325,44 @@ export function PlaylistManager() {
     updateMutation.mutate({
       id: editingPlaylist.id,
       name: editingPlaylist.name,
-      description: editingPlaylist.description,
+      description: editingPlaylist.description || undefined,
+      schedulingEnabled: editingPlaylist.schedulingEnabled,
+      daysOfWeek:
+        editingPlaylist.daysOfWeek.length > 0
+          ? editingPlaylist.daysOfWeek
+          : undefined,
+      timeStart: editingPlaylist.timeStart || undefined,
+      timeEnd: editingPlaylist.timeEnd || undefined,
+      color: editingPlaylist.color,
     });
   };
 
   const handleToggleScreen = (screenId: number) => {
     if (!selectedPlaylistId || !playlistScreens) return;
-    
-    const currentIds = playlistScreens.map(s => s.id);
+
+    const currentIds = playlistScreens.map((s) => s.id);
     const isInPlaylist = currentIds.includes(screenId);
-    
+
     const newIds = isInPlaylist
-      ? currentIds.filter(id => id !== screenId)
+      ? currentIds.filter((id) => id !== screenId)
       : [...currentIds, screenId];
-    
+
     setScreensMutation.mutate({
       playlistId: selectedPlaylistId,
       screenIds: newIds,
+    });
+  };
+
+  const handleEditPlaylist = (playlist: any) => {
+    setEditingPlaylist({
+      id: playlist.id,
+      name: playlist.name,
+      description: playlist.description || "",
+      schedulingEnabled: playlist.schedulingEnabled || false,
+      daysOfWeek: playlist.daysOfWeek || [],
+      timeStart: playlist.timeStart || "",
+      timeEnd: playlist.timeEnd || "",
+      color: playlist.color || "#C2884E",
     });
   };
 
@@ -119,6 +372,9 @@ export function PlaylistManager() {
 
   return (
     <div className="space-y-6">
+      {/* Schedule Timeline */}
+      <ScheduleTimeline />
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -145,38 +401,29 @@ export function PlaylistManager() {
                 New Playlist
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Create New Playlist</DialogTitle>
                 <DialogDescription>
-                  Create a playlist for a specific occasion like events or volunteer orientation.
+                  Create a playlist for a specific occasion. Optionally set a
+                  schedule to auto-activate it.
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Name</Label>
-                  <Input
-                    id="name"
-                    placeholder="e.g., Volunteer Orientation"
-                    value={newPlaylist.name}
-                    onChange={(e) => setNewPlaylist({ ...newPlaylist, name: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description (optional)</Label>
-                  <Textarea
-                    id="description"
-                    placeholder="What is this playlist for?"
-                    value={newPlaylist.description}
-                    onChange={(e) => setNewPlaylist({ ...newPlaylist, description: e.target.value })}
-                  />
-                </div>
-              </div>
+              <PlaylistFormFields
+                data={newPlaylist}
+                onChange={setNewPlaylist}
+              />
               <DialogFooter>
-                <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsCreateOpen(false)}
+                >
                   Cancel
                 </Button>
-                <Button onClick={handleCreate} disabled={createMutation.isPending}>
+                <Button
+                  onClick={handleCreate}
+                  disabled={createMutation.isPending}
+                >
                   Create
                 </Button>
               </DialogFooter>
@@ -201,6 +448,12 @@ export function PlaylistManager() {
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <CardTitle className="flex items-center gap-2">
+                    <div
+                      className="w-3 h-3 rounded-full shrink-0"
+                      style={{
+                        backgroundColor: playlist.color || "#C2884E",
+                      }}
+                    />
                     <ListMusic className="w-5 h-5" />
                     {playlist.name}
                   </CardTitle>
@@ -210,10 +463,42 @@ export function PlaylistManager() {
                     </CardDescription>
                   )}
                 </div>
-                {playlist.isActive && (
-                  <Badge className="bg-green-500">Active</Badge>
-                )}
+                <div className="flex gap-1">
+                  {playlist.isActive && (
+                    <Badge className="bg-green-500">Active</Badge>
+                  )}
+                  {playlist.schedulingEnabled && (
+                    <Badge variant="outline" className="text-xs">
+                      <Clock className="w-3 h-3 mr-1" />
+                      Scheduled
+                    </Badge>
+                  )}
+                </div>
               </div>
+              {/* Schedule summary */}
+              {playlist.schedulingEnabled &&
+                playlist.timeStart &&
+                playlist.timeEnd && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {playlist.timeStart} – {playlist.timeEnd}
+                    {playlist.daysOfWeek &&
+                      playlist.daysOfWeek.length > 0 &&
+                      playlist.daysOfWeek.length < 7 && (
+                        <>
+                          {" "}
+                          ·{" "}
+                          {playlist.daysOfWeek
+                            .map(
+                              (d: number) =>
+                                DAYS_OF_WEEK.find((dw) => dw.value === d)?.label
+                            )
+                            .join(", ")}
+                        </>
+                      )}
+                    {playlist.daysOfWeek &&
+                      playlist.daysOfWeek.length === 7 && <> · Every day</>}
+                  </p>
+                )}
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
@@ -237,11 +522,7 @@ export function PlaylistManager() {
                     variant="ghost"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setEditingPlaylist({
-                        id: playlist.id,
-                        name: playlist.name,
-                        description: playlist.description || "",
-                      });
+                      handleEditPlaylist(playlist);
                     }}
                   >
                     <Edit className="w-4 h-4" />
@@ -274,7 +555,8 @@ export function PlaylistManager() {
         <Card>
           <CardHeader>
             <CardTitle>
-              Screens in "{playlists?.find(p => p.id === selectedPlaylistId)?.name}"
+              Screens in "
+              {playlists?.find((p) => p.id === selectedPlaylistId)?.name}"
             </CardTitle>
             <CardDescription>
               Click screens to add or remove them from this playlist
@@ -283,7 +565,9 @@ export function PlaylistManager() {
           <CardContent>
             <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
               {allScreens?.map((screen) => {
-                const isInPlaylist = playlistScreens?.some(s => s.id === screen.id);
+                const isInPlaylist = playlistScreens?.some(
+                  (s) => s.id === screen.id
+                );
                 return (
                   <div
                     key={screen.id}
@@ -294,17 +578,25 @@ export function PlaylistManager() {
                     }`}
                     onClick={() => handleToggleScreen(screen.id)}
                   >
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                      isInPlaylist ? "bg-primary text-primary-foreground" : "bg-muted"
-                    }`}>
+                    <div
+                      className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                        isInPlaylist
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted"
+                      }`}
+                    >
                       {isInPlaylist && <Check className="w-4 h-4" />}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate">{screen.title}</p>
-                      <p className="text-xs text-muted-foreground">{screen.type}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {screen.type}
+                      </p>
                     </div>
                     {!screen.isActive && (
-                      <Badge variant="secondary" className="text-xs">Inactive</Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        Inactive
+                      </Badge>
                     )}
                   </div>
                 );
@@ -315,42 +607,33 @@ export function PlaylistManager() {
       )}
 
       {/* Edit Dialog */}
-      <Dialog open={!!editingPlaylist} onOpenChange={(open) => !open && setEditingPlaylist(null)}>
-        <DialogContent>
+      <Dialog
+        open={!!editingPlaylist}
+        onOpenChange={(open) => !open && setEditingPlaylist(null)}
+      >
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Playlist</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit-name">Name</Label>
-              <Input
-                id="edit-name"
-                value={editingPlaylist?.name || ""}
-                onChange={(e) =>
-                  setEditingPlaylist(prev =>
-                    prev ? { ...prev, name: e.target.value } : null
-                  )
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-description">Description</Label>
-              <Textarea
-                id="edit-description"
-                value={editingPlaylist?.description || ""}
-                onChange={(e) =>
-                  setEditingPlaylist(prev =>
-                    prev ? { ...prev, description: e.target.value } : null
-                  )
-                }
-              />
-            </div>
-          </div>
+          {editingPlaylist && (
+            <PlaylistFormFields
+              data={editingPlaylist}
+              onChange={(data) =>
+                setEditingPlaylist({ ...data, id: editingPlaylist.id })
+              }
+            />
+          )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingPlaylist(null)}>
+            <Button
+              variant="outline"
+              onClick={() => setEditingPlaylist(null)}
+            >
               Cancel
             </Button>
-            <Button onClick={handleUpdate} disabled={updateMutation.isPending}>
+            <Button
+              onClick={handleUpdate}
+              disabled={updateMutation.isPending}
+            >
               Save
             </Button>
           </DialogFooter>

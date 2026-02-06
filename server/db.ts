@@ -1493,7 +1493,15 @@ export async function getPlaylistById(id: number): Promise<Playlist | null> {
 /**
  * Create a new playlist
  */
-export async function createPlaylist(data: { name: string; description?: string }): Promise<{ id: number }> {
+export async function createPlaylist(data: {
+  name: string;
+  description?: string;
+  schedulingEnabled?: boolean;
+  daysOfWeek?: number[];
+  timeStart?: string;
+  timeEnd?: string;
+  color?: string;
+}): Promise<{ id: number }> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   
@@ -1504,6 +1512,11 @@ export async function createPlaylist(data: { name: string; description?: string 
   const result = await db.insert(playlists).values({
     name: data.name,
     description: data.description || null,
+    schedulingEnabled: data.schedulingEnabled || false,
+    daysOfWeek: data.daysOfWeek || null,
+    timeStart: data.timeStart || null,
+    timeEnd: data.timeEnd || null,
+    color: data.color || "#C2884E",
     sortOrder: maxOrder + 1,
     isActive: false,
     isDefault: false,
@@ -1515,13 +1528,26 @@ export async function createPlaylist(data: { name: string; description?: string 
 /**
  * Update a playlist
  */
-export async function updatePlaylist(id: number, data: { name?: string; description?: string }): Promise<void> {
+export async function updatePlaylist(id: number, data: {
+  name?: string;
+  description?: string;
+  schedulingEnabled?: boolean;
+  daysOfWeek?: number[];
+  timeStart?: string;
+  timeEnd?: string;
+  color?: string;
+}): Promise<void> {
   const db = await getDb();
   if (!db) return;
   
   const updateData: Partial<InsertPlaylist> = {};
   if (data.name !== undefined) updateData.name = data.name;
   if (data.description !== undefined) updateData.description = data.description;
+  if (data.schedulingEnabled !== undefined) updateData.schedulingEnabled = data.schedulingEnabled;
+  if (data.daysOfWeek !== undefined) updateData.daysOfWeek = data.daysOfWeek;
+  if (data.timeStart !== undefined) updateData.timeStart = data.timeStart;
+  if (data.timeEnd !== undefined) updateData.timeEnd = data.timeEnd;
+  if (data.color !== undefined) updateData.color = data.color;
   
   if (Object.keys(updateData).length > 0) {
     await db.update(playlists).set(updateData).where(eq(playlists.id, id));
@@ -1644,13 +1670,36 @@ export async function getActiveScreensForCurrentPlaylist(): Promise<Screen[]> {
   const db = await getDb();
   if (!db) return [];
   
-  // Get active playlist
+  // First check if any playlist has scheduling enabled and matches current time
+  const allPlaylists = await getAllPlaylists();
+  const now = new Date();
+  const currentDay = now.getDay();
+  const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  
+  // Find a scheduled playlist that matches the current time
+  const scheduledPlaylist = allPlaylists.find(p => {
+    if (!p.schedulingEnabled) return false;
+    // Check days of week
+    if (p.daysOfWeek && p.daysOfWeek.length > 0) {
+      if (!p.daysOfWeek.includes(currentDay)) return false;
+    }
+    // Check time window
+    if (p.timeStart && p.timeEnd) {
+      if (currentTime < p.timeStart || currentTime > p.timeEnd) return false;
+    }
+    return true;
+  });
+  
+  if (scheduledPlaylist) {
+    const playlistScreensList = await getScreensForPlaylist(scheduledPlaylist.id);
+    return playlistScreensList.filter(s => s.isActive);
+  }
+  
+  // Fall back to manually activated playlist
   const activePlaylist = await getActivePlaylist();
   
   if (activePlaylist) {
-    // Get screens for the active playlist
     const playlistScreensList = await getScreensForPlaylist(activePlaylist.id);
-    // Filter to only active screens
     return playlistScreensList.filter(s => s.isActive);
   }
   
