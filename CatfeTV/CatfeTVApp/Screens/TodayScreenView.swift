@@ -9,7 +9,7 @@ import SwiftUI
 
 struct TodayScreenView: View {
     let screen: Screen
-    let settings: AppSettings
+    var settings: AppSettings = .default
     
     @State private var appeared = false
     
