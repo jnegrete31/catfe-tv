@@ -341,6 +341,10 @@ class APIClient: ObservableObject {
         input["defaultDurationSeconds"] = newSettings.defaultDurationSeconds
         if let logoUrl = newSettings.logoUrl { input["logoUrl"] = logoUrl }
         input["totalAdoptionCount"] = newSettings.totalAdoptionCount
+        if let waiverUrl = newSettings.waiverUrl { input["waiverUrl"] = waiverUrl }
+        if let wifiName = newSettings.wifiName { input["wifiName"] = wifiName }
+        if let wifiPassword = newSettings.wifiPassword { input["wifiPassword"] = wifiPassword }
+        if let houseRules = newSettings.houseRules { input["houseRules"] = houseRules }
         
         let body: [String: Any] = ["json": input]
         request.httpBody = try JSONSerialization.data(withJSONObject: body)

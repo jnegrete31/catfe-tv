@@ -45,8 +45,14 @@ struct CheckInScreenView: View {
                                     .foregroundColor(.loungeCream.opacity(0.7))
                                     .multilineTextAlignment(.center)
                                 
-                                if let qrURL = screen.qrCodeURL, !qrURL.isEmpty {
+                                // Use waiverUrl from settings, fall back to screen qrCodeURL
+                                if let qrURL = settings.waiverUrl ?? screen.qrCodeURL, !qrURL.isEmpty {
                                     QRCodeView(url: qrURL, size: 180)
+                                } else {
+                                    Text("Ask staff for waiver")
+                                        .font(CatfeTypography.caption)
+                                        .foregroundColor(.loungeCream.opacity(0.5))
+                                        .italic()
                                 }
                             }
                         }
@@ -60,8 +66,9 @@ struct CheckInScreenView: View {
                                     .foregroundColor(.loungeCream)
                                 
                                 VStack(spacing: 16) {
-                                    WiFiInfoRow(label: "NETWORK", value: screen.subtitle ?? "Catfé WiFi")
-                                    WiFiInfoRow(label: "PASSWORD", value: screen.bodyText ?? "Ask staff")
+                                    // Use wifiName/wifiPassword from settings, fall back to screen fields
+                                    WiFiInfoRow(label: "NETWORK", value: settings.wifiName ?? screen.subtitle ?? "Catfé WiFi")
+                                    WiFiInfoRow(label: "PASSWORD", value: settings.wifiPassword ?? screen.bodyText ?? "Ask staff")
                                 }
                             }
                         }
@@ -82,7 +89,7 @@ struct CheckInScreenView: View {
                                     Spacer()
                                 }
                                 
-                                let rules = [
+                                let rules = settings.houseRules ?? [
                                     "Be gentle with all cats",
                                     "Wash hands before & after",
                                     "No flash photography",

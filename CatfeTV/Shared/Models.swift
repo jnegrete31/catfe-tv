@@ -197,6 +197,7 @@ struct APIScreen: Codable {
     var isActive: Bool
     var isProtected: Bool
     var isAdopted: Bool
+    var schedulingEnabled: Bool? // When false, screen always shows if active; when true, follows schedule rules
     var livestreamUrl: String?
     var templateOverlay: TemplateOverlay? // Template data from Slide Editor
     var createdAt: String
@@ -218,16 +219,19 @@ struct APIScreen: Codable {
             return isoFormatter.date(from: str) ?? isoFormatterNoFrac.date(from: str)
         }
         
-        // Build schedule if scheduling fields are present
+        // Build schedule only if schedulingEnabled is true
+        // When schedulingEnabled is false (or nil), the screen always shows if active
         var schedule: ScreenSchedule? = nil
-        if daysOfWeek != nil || timeStart != nil || timeEnd != nil || startAt != nil || endAt != nil {
-            schedule = ScreenSchedule(
-                startDate: parseDate(startAt),
-                endDate: parseDate(endAt),
-                daysOfWeek: daysOfWeek ?? [0, 1, 2, 3, 4, 5, 6],
-                startTime: timeStart,
-                endTime: timeEnd
-            )
+        if schedulingEnabled == true {
+            if daysOfWeek != nil || timeStart != nil || timeEnd != nil || startAt != nil || endAt != nil {
+                schedule = ScreenSchedule(
+                    startDate: parseDate(startAt),
+                    endDate: parseDate(endAt),
+                    daysOfWeek: daysOfWeek ?? [0, 1, 2, 3, 4, 5, 6],
+                    startTime: timeStart,
+                    endTime: timeEnd
+                )
+            }
         }
         
         return Screen(
@@ -406,6 +410,10 @@ struct AppSettings: Codable {
     var transitionDuration: Double // seconds
     var totalAdoptionCount: Int
     var logoUrl: String?
+    var waiverUrl: String? // URL for guest waiver form (displayed as QR on TV)
+    var wifiName: String? // WiFi network name for guests
+    var wifiPassword: String? // WiFi password for guests
+    var houseRules: [String]? // Array of house rules for check-in screen
     
     enum CodingKeys: String, CodingKey {
         case locationName
@@ -416,6 +424,10 @@ struct AppSettings: Codable {
         case transitionDuration
         case totalAdoptionCount
         case logoUrl
+        case waiverUrl
+        case wifiName
+        case wifiPassword
+        case houseRules
     }
     
     static var `default`: AppSettings {
@@ -428,7 +440,11 @@ struct AppSettings: Codable {
             refreshIntervalSeconds: 60,
             transitionDuration: 1.0,
             totalAdoptionCount: 0,
-            logoUrl: nil
+            logoUrl: nil,
+            waiverUrl: nil,
+            wifiName: nil,
+            wifiPassword: nil,
+            houseRules: nil
         )
     }
 }

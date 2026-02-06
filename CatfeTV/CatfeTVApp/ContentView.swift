@@ -70,6 +70,28 @@ struct ContentView: View {
                     Spacer()
                 }
                 
+                // Waiver QR Widget (top-left corner, below poll)
+                VStack {
+                    HStack {
+                        WaiverWidget()
+                            .padding(.top, 160) // Below poll widget
+                            .padding(.leading, 60)
+                        Spacer()
+                    }
+                    Spacer()
+                }
+                
+                // Logo Widget (bottom-right corner)
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        LogoWidget()
+                            .padding(.bottom, 40)
+                            .padding(.trailing, 60)
+                    }
+                }
+                
                 // Guest Session Reminder Widget (bottom-left corner)
                 VStack {
                     Spacer()
