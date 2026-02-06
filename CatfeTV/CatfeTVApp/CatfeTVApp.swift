@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 @main
 struct CatfeTVApp: App {
@@ -27,6 +28,10 @@ struct CatfeTVApp: App {
     }
     
     private func setupApp() {
+        // Prevent Apple TV screensaver from activating
+        // This keeps the digital signage display always on
+        UIApplication.shared.isIdleTimerDisabled = true
+        
         // Initial data load
         Task {
             await apiClient.fetchScreens()
