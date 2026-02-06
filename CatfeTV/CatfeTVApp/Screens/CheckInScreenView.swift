@@ -2,7 +2,7 @@
 //  CheckInScreenView.swift
 //  CatfeTVApp
 //
-//  Check-in screen - matches web CheckInScreen design
+//  Check-In screen - matches web design, fills full TV
 //
 
 import SwiftUI
@@ -11,178 +11,163 @@ struct CheckInScreenView: View {
     let screen: Screen
     var settings: AppSettings = .default
     
+    @State private var appeared = false
+    
     var body: some View {
-        ZStack {
-            // Dark cosmic background
-            LinearGradient(
-                colors: [Color(hex: "1a1a2e"), Color(hex: "16213e"), Color(hex: "0f3460")],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
-            
-            // Animated circles and light rays
-            AnimatedCirclesView(color: .cyan.opacity(0.1))
-            LightRaysView(color: .cyan)
-            
-            VStack(spacing: 40) {
-                // Header
-                HStack(spacing: 0) {
-                    Text("Welcome to ")
-                        .font(CatfeTypography.largeTitle)
-                        .foregroundColor(.white)
-                    Text(settings.locationName ?? "Catfé")
-                        .font(CatfeTypography.largeTitle)
-                        .foregroundColor(.cyan)
-                }
-                .padding(.top, 60)
-                
-                // Main content: 3 glass cards
-                HStack(alignment: .top, spacing: 50) {
-                    // Column 1: Sign Waiver
-                    VStack(spacing: 20) {
-                        HStack(spacing: 8) {
-                            Text("✍️")
-                                .font(.system(size: 30))
-                            Text("Sign Waiver")
-                                .font(CatfeTypography.subtitle)
-                                .foregroundColor(.white)
-                        }
-                        
-                        Text("Please sign our waiver before entering the cat lounge.")
-                            .font(CatfeTypography.body)
-                            .foregroundColor(.white.opacity(0.8))
-                            .multilineTextAlignment(.center)
-                        
-                        if let qrURL = screen.qrCodeURL, !qrURL.isEmpty {
-                            QRCodeView(url: qrURL, size: 220)
-                        }
+        BaseScreenLayout(screen: screen) {
+            GeometryReader { geo in
+                VStack(spacing: 30) {
+                    // Header
+                    HStack(spacing: 0) {
+                        Text("Welcome to ")
+                            .foregroundColor(.loungeCream)
+                        Text(settings.locationName ?? "Catfé")
+                            .foregroundColor(.loungeAmber)
                     }
-                    .padding(30)
-                    .frame(maxWidth: .infinity)
-                    .background(
-                        RoundedRectangle(cornerRadius: 24)
-                            .fill(Color.white.opacity(0.08))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 24)
-                                    .stroke(Color.cyan.opacity(0.2), lineWidth: 1)
-                            )
-                    )
+                    .font(.system(size: 52, weight: .bold, design: .serif))
+                    .opacity(appeared ? 1 : 0)
+                    .animation(.easeOut(duration: 0.6), value: appeared)
                     
-                    // Column 2: Free WiFi
-                    VStack(spacing: 20) {
-                        HStack(spacing: 8) {
-                            Text("📶")
-                                .font(.system(size: 30))
-                            Text("Free WiFi")
-                                .font(CatfeTypography.subtitle)
-                                .foregroundColor(.white)
-                        }
-                        
-                        Spacer().frame(height: 20)
-                        
-                        // WiFi info from screen subtitle/body
-                        VStack(spacing: 16) {
-                            VStack(spacing: 4) {
-                                Text("NETWORK")
-                                    .font(.system(size: 14, weight: .medium))
-                                    .foregroundColor(.cyan.opacity(0.8))
-                                    .tracking(1.5)
-                                Text(screen.subtitle ?? "Catfé WiFi")
-                                    .font(.system(size: 28, weight: .medium))
-                                    .foregroundColor(.white)
-                            }
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 12)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.white.opacity(0.1))
-                            )
-                            
-                            VStack(spacing: 4) {
-                                Text("PASSWORD")
-                                    .font(.system(size: 14, weight: .medium))
-                                    .foregroundColor(.cyan.opacity(0.8))
-                                    .tracking(1.5)
-                                Text(screen.bodyText ?? "Ask staff")
-                                    .font(.system(size: 28, weight: .medium))
-                                    .foregroundColor(.white)
-                            }
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 12)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.white.opacity(0.1))
-                            )
-                        }
-                        
-                        Spacer()
-                    }
-                    .padding(30)
-                    .frame(maxWidth: .infinity)
-                    .background(
-                        RoundedRectangle(cornerRadius: 24)
-                            .fill(Color.white.opacity(0.08))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 24)
-                                    .stroke(Color.cyan.opacity(0.2), lineWidth: 1)
-                            )
-                    )
+                    Spacer()
                     
-                    // Column 3: House Rules
-                    VStack(spacing: 20) {
-                        HStack(spacing: 8) {
-                            Text("📜")
-                                .font(.system(size: 30))
-                            Text("House Rules")
-                                .font(CatfeTypography.subtitle)
-                                .foregroundColor(.white)
-                        }
-                        
-                        VStack(alignment: .leading, spacing: 12) {
-                            let rules = [
-                                "Be gentle with all cats",
-                                "Wash hands before & after",
-                                "No flash photography",
-                                "Keep voices low",
-                                "Don't pick up sleeping cats",
-                                "Have fun & enjoy the purrs!"
-                            ]
-                            ForEach(Array(rules.enumerated()), id: \.offset) { index, rule in
-                                HStack(alignment: .top, spacing: 8) {
-                                    Text("\(index + 1).")
-                                        .font(CatfeTypography.body)
-                                        .foregroundColor(.cyan)
-                                        .bold()
-                                    Text(rule)
-                                        .font(CatfeTypography.body)
-                                        .foregroundColor(.white.opacity(0.9))
+                    // 3-column card layout
+                    HStack(alignment: .top, spacing: 30) {
+                        // Column 1: Sign Waiver
+                        CheckInCard {
+                            VStack(spacing: 20) {
+                                Text("✍️").font(.system(size: 36))
+                                Text("Sign Waiver")
+                                    .font(.system(size: 24, weight: .semibold, design: .serif))
+                                    .foregroundColor(.loungeCream)
+                                
+                                Text("Please sign our waiver before entering the cat lounge.")
+                                    .font(CatfeTypography.caption)
+                                    .foregroundColor(.loungeCream.opacity(0.7))
+                                    .multilineTextAlignment(.center)
+                                
+                                if let qrURL = screen.qrCodeURL, !qrURL.isEmpty {
+                                    QRCodeView(url: qrURL, size: 180)
                                 }
                             }
                         }
-                        .padding(.horizontal, 8)
+                        
+                        // Column 2: Free WiFi
+                        CheckInCard {
+                            VStack(spacing: 20) {
+                                Text("📶").font(.system(size: 36))
+                                Text("Free WiFi")
+                                    .font(.system(size: 24, weight: .semibold, design: .serif))
+                                    .foregroundColor(.loungeCream)
+                                
+                                VStack(spacing: 16) {
+                                    WiFiInfoRow(label: "NETWORK", value: screen.subtitle ?? "Catfé WiFi")
+                                    WiFiInfoRow(label: "PASSWORD", value: screen.bodyText ?? "Ask staff")
+                                }
+                            }
+                        }
+                        
+                        // Column 3: House Rules
+                        CheckInCard {
+                            VStack(alignment: .leading, spacing: 16) {
+                                HStack {
+                                    Spacer()
+                                    Text("📜").font(.system(size: 36))
+                                    Spacer()
+                                }
+                                HStack {
+                                    Spacer()
+                                    Text("House Rules")
+                                        .font(.system(size: 24, weight: .semibold, design: .serif))
+                                        .foregroundColor(.loungeCream)
+                                    Spacer()
+                                }
+                                
+                                let rules = [
+                                    "Be gentle with all cats",
+                                    "Wash hands before & after",
+                                    "No flash photography",
+                                    "Keep voices low",
+                                    "Don't pick up sleeping cats",
+                                    "Have fun & enjoy the purrs!"
+                                ]
+                                ForEach(Array(rules.enumerated()), id: \.offset) { index, rule in
+                                    HStack(alignment: .top, spacing: 8) {
+                                        Text("\(index + 1).")
+                                            .font(CatfeTypography.caption)
+                                            .foregroundColor(.loungeAmber)
+                                            .bold()
+                                        Text(rule)
+                                            .font(CatfeTypography.caption)
+                                            .foregroundColor(.loungeCream.opacity(0.8))
+                                    }
+                                }
+                            }
+                        }
                     }
-                    .padding(30)
-                    .frame(maxWidth: .infinity)
-                    .background(
-                        RoundedRectangle(cornerRadius: 24)
-                            .fill(Color.white.opacity(0.08))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 24)
-                                    .stroke(Color.cyan.opacity(0.2), lineWidth: 1)
-                            )
-                    )
+                    .opacity(appeared ? 1 : 0)
+                    .offset(y: appeared ? 0 : 30)
+                    .animation(.easeOut(duration: 0.6).delay(0.2), value: appeared)
+                    
+                    Spacer()
+                    
+                    // Footer
+                    Text("Enjoy your visit and all the purrs! ✨")
+                        .font(CatfeTypography.caption)
+                        .foregroundColor(.loungeCream.opacity(0.5))
+                        .opacity(appeared ? 1 : 0)
+                        .animation(.easeOut(duration: 0.5).delay(0.5), value: appeared)
                 }
-                .padding(.horizontal, 60)
-                
-                Spacer()
-                
-                // Footer
-                Text("Enjoy your visit and all the purrs! ✨")
-                    .font(CatfeTypography.subtitle)
-                    .foregroundColor(.white.opacity(0.7))
-                    .padding(.bottom, 40)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
+        .onAppear {
+            withAnimation { appeared = true }
+        }
+    }
+}
+
+private struct CheckInCard<Content: View>: View {
+    let content: Content
+    
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+    
+    var body: some View {
+        content
+            .padding(30)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(Color.white.opacity(0.06))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(Color.loungeAmber.opacity(0.15), lineWidth: 1)
+                    )
+            )
+    }
+}
+
+private struct WiFiInfoRow: View {
+    let label: String
+    let value: String
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            Text(label)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(.loungeAmber.opacity(0.8))
+                .tracking(1.5)
+            Text(value)
+                .font(.system(size: 22, weight: .medium))
+                .foregroundColor(.loungeCream)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+        .frame(maxWidth: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.white.opacity(0.08))
+        )
     }
 }

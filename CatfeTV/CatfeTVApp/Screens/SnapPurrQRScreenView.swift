@@ -2,7 +2,7 @@
 //  SnapPurrQRScreenView.swift
 //  CatfeTVApp
 //
-//  Snap & Purr QR screen - shows QR code for guests to upload photos
+//  Snap & Purr QR screen - matches web design, fills full TV
 //
 
 import SwiftUI
@@ -13,91 +13,69 @@ struct SnapPurrQRScreenView: View {
     @State private var appeared = false
     
     var body: some View {
-        ZStack {
-            // Dark cosmic background
-            LinearGradient(
-                colors: [Color(hex: "1a1a2e"), Color(hex: "16213e"), Color(hex: "0f3460")],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
-            
-            // Animated circles
-            AnimatedCirclesView(color: .orange.opacity(0.1))
-            
-            // Floating camera emojis
+        BaseScreenLayout(screen: screen) {
             GeometryReader { geo in
-                ForEach(0..<5, id: \.self) { i in
-                    Text(["📸", "😸", "✨", "📷", "🐱"][i % 5])
-                        .font(.system(size: 40))
-                        .opacity(0.15)
-                        .position(
-                            x: CGFloat.random(in: 50...geo.size.width - 50),
-                            y: CGFloat.random(in: 50...geo.size.height - 50)
-                        )
-                }
-            }
-            
-            VStack(spacing: 40) {
-                // Header
-                HStack(spacing: 0) {
-                    Text("📸 ")
-                        .font(.system(size: 50))
-                    Text("Snap")
-                        .foregroundColor(Color(hex: "E8913A"))
-                    Text(" & ")
-                        .foregroundColor(.white.opacity(0.7))
-                    Text("Purr!")
-                        .foregroundColor(Color.loungeMintGreen)
-                }
-                .font(.system(size: 56, weight: .bold, design: .serif))
-                .opacity(appeared ? 1 : 0)
-                .animation(.easeOut(duration: 0.6), value: appeared)
-                
-                // Subtitle
-                Text(screen.subtitle ?? "Share your moments with our cats and see them on the big screen!")
-                    .font(.system(size: 28, weight: .light))
-                    .foregroundColor(.white.opacity(0.8))
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: 900)
-                    .opacity(appeared ? 1 : 0)
-                    .animation(.easeOut(duration: 0.5).delay(0.2), value: appeared)
-                
-                Spacer().frame(height: 20)
-                
-                // QR Code
-                if let qrURL = screen.qrCodeURL, !qrURL.isEmpty {
-                    VStack(spacing: 24) {
-                        QRCodeView(url: qrURL, size: 350)
+                VStack(spacing: 0) {
+                    Spacer()
+                    
+                    // Camera icon
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 30)
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.loungeWarmOrange, Color.loungeAmber],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+                            .frame(width: 100, height: 100)
+                            .shadow(color: Color.loungeWarmOrange.opacity(0.4), radius: 15)
                         
-                        Text("Scan to Upload Your Photos")
-                            .font(.system(size: 24, weight: .medium))
-                            .foregroundColor(.white.opacity(0.7))
+                        Image(systemName: "camera.fill")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 40, height: 40)
+                            .foregroundColor(.white)
                     }
                     .opacity(appeared ? 1 : 0)
-                    .scaleEffect(appeared ? 1 : 0.85)
-                    .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.3), value: appeared)
-                }
-                
-                // Body text
-                if let body = screen.bodyText {
-                    Text(body)
-                        .font(.system(size: 22))
-                        .foregroundColor(.white.opacity(0.6))
+                    .scaleEffect(appeared ? 1 : 0.7)
+                    .animation(.spring(response: 0.6, dampingFraction: 0.7), value: appeared)
+                    
+                    Spacer().frame(height: 24)
+                    
+                    Text(screen.title)
+                        .font(.system(size: 52, weight: .bold, design: .serif))
+                        .foregroundColor(.loungeCream)
                         .multilineTextAlignment(.center)
-                        .frame(maxWidth: 800)
+                        .frame(maxWidth: geo.size.width * 0.7)
                         .opacity(appeared ? 1 : 0)
-                        .animation(.easeOut(duration: 0.5).delay(0.4), value: appeared)
+                        .animation(.easeOut(duration: 0.6).delay(0.1), value: appeared)
+                    
+                    if let subtitle = screen.subtitle {
+                        Spacer().frame(height: 16)
+                        Text(subtitle)
+                            .font(CatfeTypography.subtitle)
+                            .foregroundColor(.loungeCream.opacity(0.7))
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: geo.size.width * 0.6)
+                    }
+                    
+                    Spacer()
+                    
+                    if let qrURL = screen.qrCodeURL, !qrURL.isEmpty {
+                        QRCodeView(url: qrURL, size: 220)
+                            .opacity(appeared ? 1 : 0)
+                            .scaleEffect(appeared ? 1 : 0.8)
+                            .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.3), value: appeared)
+                    }
+                    
+                    Spacer()
                 }
-                
-                Spacer()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .padding(60)
         }
         .onAppear {
-            withAnimation {
-                appeared = true
-            }
+            withAnimation { appeared = true }
         }
     }
 }

@@ -1,115 +1,93 @@
+//
+//  ThankYouScreenView.swift
+//  CatfeTVApp
+//
+//  Thank You screen - matches web design, fills full TV
+//
 
 import SwiftUI
 
 struct ThankYouScreenView: View {
     let screen: Screen
-
+    
+    @State private var appeared = false
+    @State private var heartScale = 1.0
+    
     var body: some View {
         BaseScreenLayout(screen: screen) {
-            ZStack {
-                // Background Gradient
-                LinearGradient(
-                    gradient: Gradient(colors: [Color(hex: "1a1a2e"), Color(hex: "16213e"), Color(hex: "0f3460")]),
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .ignoresSafeArea()
-
-                // Animated decorative elements (from CosmicHelpers)
-                FloatingEmojisView(emojis: ["💜", "✨", "💖", "😻"])
-                LightRaysView(color: Color(hex: "8b5cf6").opacity(0.3))
-                AnimatedCirclesView()
-
-                // Main Content
-                VStack(spacing: 30) {
-                    ScreenBadge(text: "Thank You", color: Color(hex: "4f46e5"), emoji: "🙏")
-
-                    Text(screen.title)
-                        .font(.system(size: 96, weight: .bold, design: .serif))
-                        .foregroundColor(Color(hex: "818cf8"))
-                        .multilineTextAlignment(.center)
-
-                    if let subtitle = screen.subtitle {
-                        Text(subtitle)
-                            .font(CatfeTypography.subtitle)
-                            .foregroundColor(.white.opacity(0.8))
-                            .multilineTextAlignment(.center)
+            GeometryReader { geo in
+                HStack(alignment: .center, spacing: geo.size.width * 0.05) {
+                    // Left: Image in polaroid (if available)
+                    if screen.imageURL != nil {
+                        VStack(spacing: 0) {
+                            ScreenImage(url: screen.imageURL)
+                                .frame(width: geo.size.width * 0.35, height: geo.size.height * 0.55)
+                                .clipShape(RoundedRectangle(cornerRadius: 4))
+                            
+                            Text("Thank You! 💕")
+                                .font(.system(size: 20, weight: .medium, design: .serif))
+                                .foregroundColor(Color(hex: "3d3d3d"))
+                                .padding(.top, 16)
+                                .padding(.bottom, 8)
+                        }
+                        .padding(20)
+                        .padding(.bottom, 30)
+                        .background(Color(hex: "FFFEF9"))
+                        .cornerRadius(12)
+                        .shadow(color: .black.opacity(0.4), radius: 20, x: 0, y: 10)
+                        .rotationEffect(.degrees(-2))
+                        .opacity(appeared ? 1 : 0)
+                        .scaleEffect(appeared ? 1 : 0.85)
+                        .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.1), value: appeared)
                     }
-
-                    if let bodyText = screen.bodyText {
-                        Text(bodyText)
-                            .font(CatfeTypography.body)
-                            .foregroundColor(.white.opacity(0.7))
-                            .multilineTextAlignment(.center)
-                            .frame(maxWidth: 1200)
+                    
+                    // Right: Thank you message
+                    VStack(alignment: screen.imageURL != nil ? .leading : .center, spacing: 24) {
+                        Spacer()
+                        
+                        // Heart icon
+                        Text("❤️")
+                            .font(.system(size: 60))
+                            .scaleEffect(heartScale)
+                            .animation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true), value: heartScale)
+                        
+                        Text(screen.title)
+                            .font(.system(size: 52, weight: .bold, design: .serif))
+                            .foregroundColor(.loungeCream)
+                            .lineLimit(3)
+                        
+                        if let subtitle = screen.subtitle {
+                            Text(subtitle)
+                                .font(CatfeTypography.subtitle)
+                                .foregroundColor(.loungeAmber)
+                        }
+                        
+                        if let body = screen.bodyText {
+                            Text(body)
+                                .font(CatfeTypography.body)
+                                .foregroundColor(.loungeCream.opacity(0.7))
+                                .lineSpacing(6)
+                                .lineLimit(6)
+                        }
+                        
+                        Spacer()
+                        
+                        if let qrURL = screen.qrCodeURL, !qrURL.isEmpty {
+                            QRCodeView(url: qrURL, size: 140)
+                        }
+                        
+                        Spacer()
                     }
+                    .frame(maxWidth: .infinity, alignment: screen.imageURL != nil ? .leading : .center)
                 }
-                .padding()
-            }
-        }
-    }
-}
-
-// MARK: - Floating Emojis (unique to ThankYou screen)
-
-private struct FloatingEmojisView: View {
-    let emojis: [String]
-    @State private var particles: [Particle] = []
-
-    var body: some View {
-        TimelineView(.animation) { timeline in
-            Canvas {
-                context, size in
-                let now = timeline.date.timeIntervalSinceReferenceDate
-                for particle in particles {
-                    var context = context
-                    context.opacity = particle.opacity(at: now)
-                    context.draw(Text(particle.emoji), at: particle.position(at: now, in: size))
-                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .opacity(appeared ? 1 : 0)
+                .animation(.easeOut(duration: 0.6), value: appeared)
             }
         }
         .onAppear {
-            particles = emojis.flatMap { emoji in
-                (0..<10).map { _ in Particle(emoji: emoji) }
-            }
+            withAnimation { appeared = true }
+            heartScale = 1.15
         }
-    }
-
-    private struct Particle {
-        let emoji: String
-        let creationDate = Date.now.timeIntervalSinceReferenceDate
-        let initialPosition = CGPoint(x: .random(in: -0.1...1.1), y: 1.2)
-        let finalPosition = CGPoint(x: .random(in: -0.1...1.1), y: -0.2)
-        let duration = Double.random(in: 8...15)
-        let initialOpacity = Double.random(in: 0.1...0.5)
-
-        func position(at time: TimeInterval, in size: CGSize) -> CGPoint {
-            let timeAlive = time - creationDate
-            let progress = min(1, timeAlive / duration)
-
-            let x = initialPosition.x * size.width + (finalPosition.x - initialPosition.x) * size.width * progress
-            let y = initialPosition.y * size.height + (finalPosition.y - initialPosition.y) * size.height * progress
-            return CGPoint(x: x, y: y)
-        }
-
-        func opacity(at time: TimeInterval) -> Double {
-            let timeAlive = time - creationDate
-            if timeAlive > duration {
-                return 0
-            }
-            let progress = timeAlive / duration
-            return initialOpacity * (1 - progress)
-        }
-    }
-}
-
-struct ThankYouScreenView_Previews: PreviewProvider {
-    static var previews: some View {
-        ThankYouScreenView(screen: Screen(
-            type: .thankYou,
-            title: "Your Support Means the World",
-            subtitle: "Every contribution helps us care for these wonderful cats.",
-            bodyText: "From the bottom of our furry hearts, thank you for being a friend to the Catfé."
-        ))
     }
 }

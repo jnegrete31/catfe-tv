@@ -2,7 +2,7 @@
 //  MembershipScreenView.swift
 //  CatfeTVApp
 //
-//  Membership screen - matches web MembershipScreen design
+//  Membership screen - matches web design, fills full TV
 //
 
 import SwiftUI
@@ -13,91 +13,59 @@ struct MembershipScreenView: View {
     @State private var appeared = false
     
     var body: some View {
-        ZStack {
-            // Dark background with warm amber tones
-            LinearGradient(
-                colors: [Color(hex: "2d2d2d"), Color(hex: "1a1a1a")],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
-            
-            // Warm amber glow from top
+        BaseScreenLayout(screen: screen) {
             GeometryReader { geo in
-                Circle()
-                    .fill(RadialGradient(
-                        colors: [Color(hex: "DAA520").opacity(0.3), Color.clear],
-                        center: .center, startRadius: 0, endRadius: geo.size.width * 0.35
-                    ))
-                    .frame(width: geo.size.width * 0.7, height: geo.size.width * 0.7)
-                    .position(x: geo.size.width * 0.5, y: -geo.size.height * 0.1)
-            }
-            
-            // Mint green floor reflection
-            VStack {
-                Spacer()
-                LinearGradient(
-                    colors: [Color.clear, Color.loungeMintGreen.opacity(0.15)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: 300)
-            }
-            .ignoresSafeArea()
-            
-            VStack(spacing: 40) {
-                // Badge
-                ScreenBadge(text: "Membership", color: Color(hex: "DAA520"), emoji: "👑")
-                    .opacity(appeared ? 1 : 0)
-                    .animation(.easeOut(duration: 0.5), value: appeared)
-                
-                // Title
-                Text(screen.title)
-                    .font(.system(size: 64, weight: .bold, design: .serif))
-                    .foregroundColor(Color(hex: "DAA520"))
-                    .multilineTextAlignment(.center)
-                    .opacity(appeared ? 1 : 0)
-                    .offset(y: appeared ? 0 : -20)
-                    .animation(.easeOut(duration: 0.6).delay(0.1), value: appeared)
-                
-                // Subtitle
-                if let subtitle = screen.subtitle {
-                    Text(subtitle)
-                        .font(.system(size: 32, weight: .light))
-                        .foregroundColor(.white.opacity(0.8))
-                        .multilineTextAlignment(.center)
-                        .frame(maxWidth: 1000)
-                        .opacity(appeared ? 1 : 0)
-                        .animation(.easeOut(duration: 0.5).delay(0.2), value: appeared)
-                }
-                
-                Spacer().frame(height: 20)
-                
-                // Main content: Image + Info
-                HStack(alignment: .center, spacing: 60) {
-                    // Left: Image in a card
+                HStack(alignment: .center, spacing: geo.size.width * 0.05) {
+                    // Left: Image in polaroid
                     if screen.imageURL != nil {
-                        ScreenImage(url: screen.imageURL)
-                            .frame(width: 450, height: 350)
-                            .clipShape(RoundedRectangle(cornerRadius: 20))
-                            .shadow(color: Color(hex: "DAA520").opacity(0.3), radius: 20, x: 0, y: 10)
-                            .opacity(appeared ? 1 : 0)
-                            .scaleEffect(appeared ? 1 : 0.9)
-                            .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.3), value: appeared)
+                        VStack(spacing: 0) {
+                            ScreenImage(url: screen.imageURL)
+                                .frame(width: geo.size.width * 0.38, height: geo.size.height * 0.6)
+                                .clipShape(RoundedRectangle(cornerRadius: 4))
+                            
+                            Text("Join the Family")
+                                .font(.system(size: 20, weight: .medium, design: .serif))
+                                .foregroundColor(Color(hex: "3d3d3d"))
+                                .padding(.top, 16)
+                                .padding(.bottom, 8)
+                        }
+                        .padding(20)
+                        .padding(.bottom, 30)
+                        .background(Color(hex: "FFFEF9"))
+                        .cornerRadius(12)
+                        .shadow(color: .black.opacity(0.4), radius: 20, x: 0, y: 10)
+                        .rotationEffect(.degrees(-2))
+                        .opacity(appeared ? 1 : 0)
+                        .scaleEffect(appeared ? 1 : 0.85)
+                        .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.1), value: appeared)
                     }
                     
-                    // Right: Body text + QR
+                    // Right: Membership details
                     VStack(alignment: .leading, spacing: 24) {
-                        if let body = screen.bodyText {
-                            Text(body)
-                                .font(.system(size: 24, weight: .regular))
-                                .foregroundColor(.white.opacity(0.7))
-                                .lineSpacing(6)
-                                .opacity(appeared ? 1 : 0)
-                                .animation(.easeOut(duration: 0.5).delay(0.4), value: appeared)
+                        Spacer()
+                        
+                        ScreenBadge(text: "Membership", color: .loungeAmber, emoji: "👑")
+                        
+                        Text(screen.title)
+                            .font(.system(size: 52, weight: .bold, design: .serif))
+                            .foregroundColor(.loungeCream)
+                            .lineLimit(3)
+                        
+                        if let subtitle = screen.subtitle {
+                            Text(subtitle)
+                                .font(CatfeTypography.subtitle)
+                                .foregroundColor(.loungeAmber)
                         }
                         
-                        // Membership perks
+                        if let body = screen.bodyText {
+                            Text(body)
+                                .font(CatfeTypography.body)
+                                .foregroundColor(.loungeCream.opacity(0.7))
+                                .lineSpacing(6)
+                                .lineLimit(6)
+                        }
+                        
+                        // Perks
                         VStack(alignment: .leading, spacing: 12) {
                             MembershipPerk(icon: "🐱", text: "Unlimited cat lounge visits")
                             MembershipPerk(icon: "☕", text: "Free drinks every visit")
@@ -105,44 +73,29 @@ struct MembershipScreenView: View {
                             MembershipPerk(icon: "💝", text: "Priority adoption access")
                         }
                         .opacity(appeared ? 1 : 0)
-                        .animation(.easeOut(duration: 0.5).delay(0.5), value: appeared)
+                        .offset(x: appeared ? 0 : -20)
+                        .animation(.easeOut(duration: 0.5).delay(0.3), value: appeared)
                         
                         Spacer()
                         
-                        // QR Code
                         if let qrURL = screen.qrCodeURL, !qrURL.isEmpty {
-                            HStack(spacing: 20) {
-                                QRCodeView(url: qrURL, size: 160)
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text("Become a Member")
-                                        .font(.system(size: 22, weight: .semibold))
-                                        .foregroundColor(Color(hex: "DAA520"))
-                                    Text("Scan to learn more")
-                                        .font(.system(size: 16))
-                                        .foregroundColor(.white.opacity(0.5))
-                                }
-                            }
-                            .opacity(appeared ? 1 : 0)
-                            .animation(.easeOut(duration: 0.5).delay(0.6), value: appeared)
+                            QRCodeView(url: qrURL, size: 140)
                         }
+                        
+                        Spacer()
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .padding(.horizontal, 60)
-                
-                Spacer()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .opacity(appeared ? 1 : 0)
+                .animation(.easeOut(duration: 0.6), value: appeared)
             }
-            .padding(.top, 40)
         }
         .onAppear {
-            withAnimation {
-                appeared = true
-            }
+            withAnimation { appeared = true }
         }
     }
 }
-
-// MARK: - Membership Perk Row
 
 private struct MembershipPerk: View {
     let icon: String
@@ -150,11 +103,10 @@ private struct MembershipPerk: View {
     
     var body: some View {
         HStack(spacing: 12) {
-            Text(icon)
-                .font(.system(size: 24))
+            Text(icon).font(.system(size: 24))
             Text(text)
-                .font(.system(size: 22, weight: .medium))
-                .foregroundColor(.white.opacity(0.8))
+                .font(CatfeTypography.caption)
+                .foregroundColor(.loungeCream.opacity(0.8))
         }
     }
 }

@@ -2,7 +2,7 @@
 //  AdoptionCounterScreenView.swift
 //  CatfeTVApp
 //
-//  Adoption counter screen - matches web AdoptionCounterScreen design
+//  Adoption Counter screen - matches web design, fills full TV
 //
 
 import SwiftUI
@@ -11,65 +11,84 @@ struct AdoptionCounterScreenView: View {
     let screen: Screen
     var settings: AppSettings = .default
     
-    let emojis = ["🎉", "🎊", "❤️", "🐱", "⭐", "🌟"]
+    @State private var appeared = false
+    @State private var displayCount: Int = 0
     
-    var counterGradient: LinearGradient {
-        LinearGradient(
-            colors: [Color(hex: "4ade80"), Color(hex: "22c55e"), Color(hex: "16a34a")],
-            startPoint: .top,
-            endPoint: .bottom
-        )
+    private var targetCount: Int {
+        settings.totalAdoptionCount
     }
     
     var body: some View {
-        ZStack {
-            // Dark cosmic background
-            CosmicBackground()
-            
-            // Subtle green radial glow
-            RadialGradient(
-                colors: [Color.green.opacity(0.2), Color.clear],
-                center: .center,
-                startRadius: 5,
-                endRadius: 600
-            )
-            .offset(y: 200)
-            
-            // Floating emojis
-            ForEach(0..<15, id: \.self) { _ in
-                FloatingEmojiView(emoji: emojis.randomElement() ?? "✨")
-            }
-            
-            VStack(spacing: 30) {
-                // Badge
-                ScreenBadge(text: "Forever Homes Found", color: .green, emoji: "🏡")
-                
-                // Big counter number
-                Text("\(settings.totalAdoptionCount)")
-                    .font(.system(size: 180, weight: .bold))
-                    .foregroundStyle(counterGradient)
-                
-                VStack(spacing: 15) {
-                    Text("Cats Adopted")
-                        .font(.custom("Georgia", size: 72))
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
+        BaseScreenLayout(screen: screen) {
+            GeometryReader { geo in
+                VStack(spacing: 0) {
+                    Spacer()
                     
-                    Text("Every adoption makes a world of difference.")
-                        .font(CatfeTypography.body)
-                        .foregroundColor(.white.opacity(0.8))
+                    // Paw prints
+                    Text("🐾")
+                        .font(.system(size: 80))
+                        .opacity(appeared ? 1 : 0)
+                        .scaleEffect(appeared ? 1 : 0.5)
+                        .animation(.spring(response: 0.6, dampingFraction: 0.6), value: appeared)
+                    
+                    Spacer().frame(height: 30)
+                    
+                    // Counter number
+                    Text("\(displayCount)+")
+                        .font(.system(size: 140, weight: .bold, design: .serif))
+                        .foregroundColor(.loungeAmber)
+                    
+                    Spacer().frame(height: 16)
+                    
+                    // Title
+                    Text(screen.title)
+                        .font(.system(size: 48, weight: .bold, design: .serif))
+                        .foregroundColor(.loungeCream)
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: geo.size.width * 0.7)
+                        .opacity(appeared ? 1 : 0)
+                        .animation(.easeOut(duration: 0.6).delay(0.3), value: appeared)
+                    
+                    if let subtitle = screen.subtitle {
+                        Spacer().frame(height: 16)
+                        Text(subtitle)
+                            .font(CatfeTypography.subtitle)
+                            .foregroundColor(.loungeCream.opacity(0.7))
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: geo.size.width * 0.6)
+                            .opacity(appeared ? 1 : 0)
+                            .animation(.easeOut(duration: 0.5).delay(0.4), value: appeared)
+                    }
+                    
+                    Spacer()
+                    
+                    // QR Code
+                    if let qrURL = screen.qrCodeURL, !qrURL.isEmpty {
+                        QRCodeView(url: qrURL, size: 150)
+                            .opacity(appeared ? 1 : 0)
+                            .animation(.easeOut(duration: 0.5).delay(0.6), value: appeared)
+                    }
+                    
+                    Spacer()
                 }
-                
-                // Thank you capsule
-                Text("Thank you for your support!")
-                    .font(CatfeTypography.caption)
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 12)
-                    .background(Color.white.opacity(0.1))
-                    .clipShape(Capsule())
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
+        }
+        .onAppear {
+            withAnimation { appeared = true }
+            animateCounter()
+        }
+    }
+    
+    private func animateCounter() {
+        let steps = 40
+        let delay = 1.5 / Double(steps)
+        for i in 0...steps {
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * delay) {
+                withAnimation(.easeOut(duration: 0.05)) {
+                    displayCount = Int(Double(targetCount) * Double(i) / Double(steps))
+                }
+            }
         }
     }
 }
