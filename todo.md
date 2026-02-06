@@ -1016,3 +1016,16 @@
 - [x] Use GeometryReader for proportional sizing across all screens
 - [x] Content properly centered and spread across full 1920x1080 TV display
 - [x] Deliver updated Xcode files
+
+### Bug Fix - Waiver QR Widget Not Showing on Apple TV (Feb 6)
+- [x] Create WaiverWidget.swift - QR code overlay for guest waiver (top-left, below poll)
+- [x] Create LogoWidget.swift - cafe logo overlay (bottom-right)
+- [x] Add waiverUrl, wifiName, wifiPassword, houseRules to AppSettings model
+- [x] Add both widgets to ContentView as overlays
+- [x] Update CheckInScreenView to use settings for waiver/wifi/rules (with fallback)
+- [x] Update APIClient.updateSettings() with new fields
+- [x] Register new Swift files in Xcode project
+## Bug Fix - Event Slides Not Appearing on Apple TV (Feb 6)
+- [x] Root cause: APIScreen.toScreen() created ScreenSchedule from startAt/endAt even when schedulingEnabled=false
+- [x] Fix: Add schedulingEnabled to APIScreen, only create schedule when schedulingEnabled==true
+- [x] Events with future startAt dates now show correctly (schedule not applied when scheduling disabled)
