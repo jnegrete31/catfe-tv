@@ -12,10 +12,19 @@ struct ScreenView: View {
     var adoptionCats: [Screen] = [] // For adoption showcase grid
     var settings: AppSettings = .default
     
+    /// Check if this screen has a saved template overlay with elements
+    private var hasTemplateOverlay: Bool {
+        guard let overlay = screen.templateOverlay else { return false }
+        return !overlay.elements.isEmpty
+    }
+    
     var body: some View {
-        ZStack {
-            // Layer 1: Default native screen design
-            Group {
+        Group {
+            if hasTemplateOverlay {
+                // Template exists: use it as full replacement to prevent doubling
+                TemplateFullScreenView(screen: screen, settings: settings)
+            } else {
+                // No template: use default native screen design
                 switch screen.type {
                 case .snapPurr, .snapPurrGallery, .snapPurrQR:
                     SnapPurrScreenView(screen: screen)
@@ -33,24 +42,9 @@ struct ScreenView: View {
                     AdoptionShowcaseScreenView(screen: screen, adoptionCats: adoptionCats)
                 case .thankYou:
                     ThankYouScreenView(screen: screen)
-                case .custom:
-                    // For CUSTOM screens with template overlay, use template as full design
-                    if screen.templateOverlay != nil {
-                        // Template overlay will handle everything
-                        TemplateFullScreenView(screen: screen, settings: settings)
-                    } else {
-                        GenericScreenView(screen: screen)
-                    }
-                case .adoptionCounter, .livestream, .happyTails, .happyTailsQR, .poll, .pollQR, .checkIn:
-                    // Generic screen for types that don't have custom views yet
+                case .custom, .adoptionCounter, .livestream, .happyTails, .happyTailsQR, .poll, .pollQR, .checkIn:
                     GenericScreenView(screen: screen)
                 }
-            }
-            
-            // Layer 2: Template overlay elements (renders on top of default design)
-            // For CUSTOM screens, the overlay is already handled by TemplateFullScreenView
-            if screen.type != .custom {
-                TemplateOverlayView(screen: screen, settings: settings)
             }
         }
         .transition(.opacity)
