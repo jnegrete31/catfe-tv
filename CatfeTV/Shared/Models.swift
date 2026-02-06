@@ -96,6 +96,7 @@ struct Screen: Identifiable, Codable, Equatable {
     var sortOrder: Int
     var schedule: ScreenSchedule?
     var livestreamUrl: String?
+    var templateOverlay: TemplateOverlay? // Template overlay data from Slide Editor
     var createdAt: Date
     var updatedAt: Date
     
@@ -129,6 +130,7 @@ struct Screen: Identifiable, Codable, Equatable {
         sortOrder: Int = 0,
         schedule: ScreenSchedule? = nil,
         livestreamUrl: String? = nil,
+        templateOverlay: TemplateOverlay? = nil,
         catName: String? = nil,
         catAge: String? = nil,
         catGender: String? = nil,
@@ -155,6 +157,7 @@ struct Screen: Identifiable, Codable, Equatable {
         self.sortOrder = sortOrder
         self.schedule = schedule
         self.livestreamUrl = livestreamUrl
+        self.templateOverlay = templateOverlay
         self.createdAt = Date()
         self.updatedAt = Date()
         self.catName = catName
@@ -195,6 +198,7 @@ struct APIScreen: Codable {
     var isProtected: Bool
     var isAdopted: Bool
     var livestreamUrl: String?
+    var templateOverlay: TemplateOverlay? // Template data from Slide Editor
     var createdAt: String
     var updatedAt: String
     
@@ -244,8 +248,99 @@ struct APIScreen: Codable {
             sortOrder: sortOrder,
             schedule: schedule,
             livestreamUrl: livestreamUrl,
+            templateOverlay: templateOverlay,
             eventDate: parseDate(startAt)
         )
+    }
+}
+
+// MARK: - Template Overlay Models
+
+/// Represents a single element in a template overlay (text, image, shape, etc.)
+struct TemplateElement: Codable, Identifiable {
+    var id: String
+    var type: String // "title", "subtitle", "body", "photo", "qrCode", "logo", "clock", "weather", "counter", "galleryGrid", "adoptionGrid", "catPhoto"
+    // Position (percentage of canvas, 0-100)
+    var x: Double
+    var y: Double
+    // Size (percentage of canvas, 0-100)
+    var width: Double
+    var height: Double
+    // Typography
+    var fontSize: Double?
+    var fontWeight: String? // "normal", "bold", "100"-"900"
+    var fontFamily: String?
+    var textAlign: String? // "left", "center", "right"
+    // Styling
+    var color: String?
+    var backgroundColor: String?
+    var borderRadius: Double?
+    var opacity: Double?
+    var rotation: Double? // degrees
+    // Layout
+    var zIndex: Int?
+    var padding: Double?
+    // Photo-specific
+    var objectFit: String? // "cover", "contain", "fill"
+    // Visibility
+    var visible: Bool?
+    // Gallery-specific
+    var galleryType: String?
+    var photosToShow: Int?
+}
+
+/// Widget override settings for per-slide customization of overlay widgets
+struct WidgetOverride: Codable {
+    var visible: Bool?
+    var x: Double?
+    var y: Double?
+    var width: Double?
+    var height: Double?
+    var fontSize: Double?
+    var color: String?
+    var opacity: Double?
+    var size: Double?
+    var label: String?
+    var showDate: Bool?
+}
+
+struct WidgetOverrides: Codable {
+    var logo: WidgetOverride?
+    var weather: WidgetOverride?
+    var clock: WidgetOverride?
+    var waiverQr: WidgetOverride?
+}
+
+/// Template overlay data attached to each screen from the API
+struct TemplateOverlay: Codable {
+    var elements: String // JSON string of TemplateElement[]
+    var backgroundColor: String?
+    var backgroundGradient: String?
+    var backgroundImageUrl: String?
+    var defaultFontFamily: String?
+    var defaultFontColor: String?
+    var widgetOverrides: String? // JSON string of WidgetOverrides
+    
+    /// Parse the elements JSON string into an array of TemplateElement
+    func parsedElements() -> [TemplateElement] {
+        guard let data = elements.data(using: .utf8) else { return [] }
+        do {
+            return try JSONDecoder().decode([TemplateElement].self, from: data)
+        } catch {
+            print("Failed to parse template elements: \(error)")
+            return []
+        }
+    }
+    
+    /// Parse the widget overrides JSON string
+    func parsedWidgetOverrides() -> WidgetOverrides? {
+        guard let str = widgetOverrides, let data = str.data(using: .utf8) else { return nil }
+        do {
+            return try JSONDecoder().decode(WidgetOverrides.self, from: data)
+        } catch {
+            print("Failed to parse widget overrides: \(error)")
+            return nil
+        }
     }
 }
 

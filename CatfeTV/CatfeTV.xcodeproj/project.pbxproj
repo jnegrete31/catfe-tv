@@ -23,7 +23,8 @@
 		TV013 /* ThankYouScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF013 /* ThankYouScreenView.swift */; };
 		TV014 /* AdoptionShowcaseScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF015 /* AdoptionShowcaseScreenView.swift */; };
 		TV015 /* PollWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF016 /* PollWidget.swift */; };
-		TV016 /* PollResultsWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF017 /* PollResultsWidget.swift */; };
+			TV016 /* PollResultsWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF017 /* PollResultsWidget.swift */; };
+			TV017 /* TemplateOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF018 /* TemplateOverlayView.swift */; };
 		
 		/* iOS Admin App */
 		IOS001 /* CatfeTVAdminApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = IOSF001 /* CatfeTVAdminApp.swift */; };
@@ -71,7 +72,8 @@
 		TVF014 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		TVF015 /* AdoptionShowcaseScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdoptionShowcaseScreenView.swift; sourceTree = "<group>"; };
 		TVF016 /* PollWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PollWidget.swift; sourceTree = "<group>"; };
-		TVF017 /* PollResultsWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PollResultsWidget.swift; sourceTree = "<group>"; };
+			TVF017 /* PollResultsWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PollResultsWidget.swift; sourceTree = "<group>"; };
+			TVF018 /* TemplateOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateOverlayView.swift; sourceTree = "<group>"; };
 		
 		/* iOS Admin App Files */
 		IOSF001 /* CatfeTVAdminApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatfeTVAdminApp.swift; sourceTree = "<group>"; };
@@ -172,6 +174,7 @@
 			children = (
 				TVF016 /* PollWidget.swift */,
 				TVF017 /* PollResultsWidget.swift */,
+				TVF018 /* TemplateOverlayView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -319,8 +322,9 @@
 				TV012 /* TodayScreenView.swift in Sources */,
 				TV013 /* ThankYouScreenView.swift in Sources */,
 				TV015 /* PollWidget.swift in Sources */,
-				TV016 /* PollResultsWidget.swift in Sources */,
-				SH001 /* Models.swift in Sources */,
+					TV016 /* PollResultsWidget.swift in Sources */,
+					TV017 /* TemplateOverlayView.swift in Sources */,
+					SH001 /* Models.swift in Sources */,
 				SH003 /* APIClient.swift in Sources */,
 				SH005 /* WeatherService.swift in Sources */,
 				SH007 /* ImageCache.swift in Sources */,

@@ -107,10 +107,10 @@ class APIClient: ObservableObject {
         error = nil
         
         do {
-            // Use screens.getActive (public, no auth needed) for TV display
+            // Use screens.getActiveWithTemplates (public, includes template overlay data) for TV display
             // Use screens.getAll (protected) for admin
             #if os(tvOS)
-            let endpoint = "screens.getActive"
+            let endpoint = "screens.getActiveWithTemplates"
             #else
             let endpoint = getAuthToken() != nil ? "screens.getAll" : "screens.getActive"
             #endif

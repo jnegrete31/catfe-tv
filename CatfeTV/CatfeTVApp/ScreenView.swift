@@ -10,32 +10,126 @@ import SwiftUI
 struct ScreenView: View {
     let screen: Screen
     var adoptionCats: [Screen] = [] // For adoption showcase grid
+    var settings: AppSettings = .default
     
     var body: some View {
-        Group {
-            switch screen.type {
-            case .snapPurr, .snapPurrGallery, .snapPurrQR:
-                SnapPurrScreenView(screen: screen)
-            case .events:
-                EventsScreenView(screen: screen)
-            case .today:
-                TodayScreenView(screen: screen)
-            case .membership:
-                MembershipScreenView(screen: screen)
-            case .reminders:
-                RemindersScreenView(screen: screen)
-            case .adoption:
-                AdoptionScreenView(screen: screen)
-            case .adoptionShowcase:
-                AdoptionShowcaseScreenView(screen: screen, adoptionCats: adoptionCats)
-            case .thankYou:
-                ThankYouScreenView(screen: screen)
-            case .custom, .adoptionCounter, .livestream, .happyTails, .happyTailsQR, .poll, .pollQR, .checkIn:
-                // Generic screen for types that don't have custom views yet
-                GenericScreenView(screen: screen)
+        ZStack {
+            // Layer 1: Default native screen design
+            Group {
+                switch screen.type {
+                case .snapPurr, .snapPurrGallery, .snapPurrQR:
+                    SnapPurrScreenView(screen: screen)
+                case .events:
+                    EventsScreenView(screen: screen)
+                case .today:
+                    TodayScreenView(screen: screen)
+                case .membership:
+                    MembershipScreenView(screen: screen)
+                case .reminders:
+                    RemindersScreenView(screen: screen)
+                case .adoption:
+                    AdoptionScreenView(screen: screen)
+                case .adoptionShowcase:
+                    AdoptionShowcaseScreenView(screen: screen, adoptionCats: adoptionCats)
+                case .thankYou:
+                    ThankYouScreenView(screen: screen)
+                case .custom:
+                    // For CUSTOM screens with template overlay, use template as full design
+                    if screen.templateOverlay != nil {
+                        // Template overlay will handle everything
+                        TemplateFullScreenView(screen: screen, settings: settings)
+                    } else {
+                        GenericScreenView(screen: screen)
+                    }
+                case .adoptionCounter, .livestream, .happyTails, .happyTailsQR, .poll, .pollQR, .checkIn:
+                    // Generic screen for types that don't have custom views yet
+                    GenericScreenView(screen: screen)
+                }
+            }
+            
+            // Layer 2: Template overlay elements (renders on top of default design)
+            // For CUSTOM screens, the overlay is already handled by TemplateFullScreenView
+            if screen.type != .custom {
+                TemplateOverlayView(screen: screen, settings: settings)
             }
         }
         .transition(.opacity)
+    }
+}
+
+// MARK: - Template Full Screen View (for CUSTOM screen types)
+
+/// For CUSTOM screens, the template IS the full design (no default renderer underneath)
+struct TemplateFullScreenView: View {
+    let screen: Screen
+    let settings: AppSettings
+    
+    var body: some View {
+        ZStack {
+            // Background from template
+            if let overlay = screen.templateOverlay {
+                templateBackground(overlay)
+            } else {
+                LoungeBackground()
+            }
+            
+            // Template elements
+            TemplateOverlayView(screen: screen, settings: settings)
+        }
+    }
+    
+    @ViewBuilder
+    private func templateBackground(_ overlay: TemplateOverlay) -> some View {
+        let bgColor = overlay.backgroundColor ?? "#1a1a2e"
+        
+        ZStack {
+            Color(hex: bgColor.replacingOccurrences(of: "#", with: ""))
+                .ignoresSafeArea()
+            
+            // Check if dark background for lounge decorations
+            let isDark = bgColor.hasPrefix("#1") || bgColor.hasPrefix("#2") || bgColor.hasPrefix("#0")
+            
+            if isDark {
+                // Warm amber light glows
+                GeometryReader { geometry in
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [Color.loungeAmber.opacity(0.2), Color.clear],
+                                center: .center,
+                                startRadius: 0,
+                                endRadius: geometry.size.width * 0.35
+                            )
+                        )
+                        .frame(width: geometry.size.width * 0.7, height: geometry.size.width * 0.7)
+                        .position(x: geometry.size.width * 0.25, y: -geometry.size.height * 0.1)
+                    
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [Color.loungeWarmOrange.opacity(0.15), Color.clear],
+                                center: .center,
+                                startRadius: 0,
+                                endRadius: geometry.size.width * 0.3
+                            )
+                        )
+                        .frame(width: geometry.size.width * 0.6, height: geometry.size.width * 0.6)
+                        .position(x: geometry.size.width * 0.75, y: -geometry.size.height * 0.05)
+                }
+                
+                // Mint green floor reflection
+                VStack {
+                    Spacer()
+                    LinearGradient(
+                        colors: [Color.clear, Color.loungeMintGreen.opacity(0.2)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(height: 150)
+                }
+                .ignoresSafeArea()
+            }
+        }
     }
 }
 
