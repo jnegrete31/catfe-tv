@@ -15,7 +15,7 @@ struct ThankYouScreenView: View {
                 )
                 .ignoresSafeArea()
 
-                // Animated decorative elements
+                // Animated decorative elements (from CosmicHelpers)
                 FloatingEmojisView(emojis: ["💜", "✨", "💖", "😻"])
                 LightRaysView(color: Color(hex: "8b5cf6").opacity(0.3))
                 AnimatedCirclesView()
@@ -50,7 +50,7 @@ struct ThankYouScreenView: View {
     }
 }
 
-// MARK: - Reusable Decorative Views
+// MARK: - Floating Emojis (unique to ThankYou screen)
 
 private struct FloatingEmojisView: View {
     let emojis: [String]
@@ -99,51 +99,6 @@ private struct FloatingEmojisView: View {
             }
             let progress = timeAlive / duration
             return initialOpacity * (1 - progress)
-        }
-    }
-}
-
-private struct LightRaysView: View {
-    let color: Color
-    @State private var isAnimating = false
-
-    var body: some View {
-        ZStack {
-            ForEach(0..<5) { i in
-                RadialGradient(
-                    gradient: Gradient(colors: [color, .clear]),
-                    center: .center,
-                    startRadius: 50,
-                    endRadius: 600
-                )
-                .rotationEffect(.degrees(Double(i) * 72 + (isAnimating ? 360 : 0)))
-                .opacity(isAnimating ? 0.8 : 0.4)
-            }
-        }
-        .onAppear {
-            withAnimation(Animation.linear(duration: 60).repeatForever(autoreverses: false)) {
-                isAnimating = true
-            }
-        }
-    }
-}
-
-private struct AnimatedCirclesView: View {
-    @State private var scale: CGFloat = 1.0
-
-    var body: some View {
-        ZStack {
-            ForEach(0..<10) { i in
-                Circle()
-                    .stroke(lineWidth: 1)
-                    .foregroundColor(.white.opacity(0.1))
-                    .frame(width: CGFloat(i * 200), height: CGFloat(i * 200))
-                    .scaleEffect(scale)
-                    .animation(Animation.easeInOut(duration: Double(i) * 2 + 5).repeatForever(autoreverses: true), value: scale)
-            }
-        }
-        .onAppear {
-            scale = 1.2
         }
     }
 }

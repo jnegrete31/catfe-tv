@@ -124,7 +124,7 @@ struct PollResultsWidget: View {
         let minuteInQuarter = minutes % 15
         let isResultsTime = minuteInQuarter >= 12 && minuteInQuarter < 15
         
-        let wasShowingWidget = showWidget
+        let _ = showWidget // previous state
         showWidget = isResultsTime && pollService.currentPoll != nil
         
         // Refresh poll data when entering results time to get final vote counts
