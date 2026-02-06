@@ -146,15 +146,22 @@ struct LoginView: View {
     }
     
     private func buildAuthURL() -> URL {
-        // Build the Manus OAuth URL
-        // The backend will handle the OAuth flow and redirect back with a token
+        // Use the direct Manus OAuth URL
+        // This matches the web app's OAuth flow exactly
+        let appId = "aMDMXCoQ2ycSYTjhkKKJzm"
         let baseURL = "https://catfetv-amdmxcoq.manus.space"
-        let redirectURI = "catfetv://oauth/callback"
+        let callbackPath = "/api/oauth/mobile-callback"
+        let redirectUri = "\(baseURL)\(callbackPath)"
         
-        var components = URLComponents(string: "\(baseURL)/api/oauth/login")!
+        // State is base64 encoded callback URL (same format as web)
+        let state = Data(redirectUri.utf8).base64EncodedString()
+        
+        var components = URLComponents(string: "https://manus.im/app-auth")!
         components.queryItems = [
-            URLQueryItem(name: "redirect_uri", value: redirectURI),
-            URLQueryItem(name: "platform", value: "ios")
+            URLQueryItem(name: "appId", value: appId),
+            URLQueryItem(name: "redirectUri", value: redirectUri),
+            URLQueryItem(name: "state", value: state),
+            URLQueryItem(name: "type", value: "signIn")
         ]
         
         return components.url!
