@@ -165,7 +165,7 @@ struct ContentView: View {
     
     private func startAutoRefresh() {
         Timer.scheduledTimer(withTimeInterval: TimeInterval(apiClient.settings.refreshIntervalSeconds), repeats: true) { _ in
-            Task {
+            Task { @MainActor in
                 await apiClient.fetchScreens()
                 await weatherService.fetchWeather()
                 

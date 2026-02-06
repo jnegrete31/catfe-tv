@@ -106,11 +106,10 @@ private struct FloatingEmojisView: View {
 struct ThankYouScreenView_Previews: PreviewProvider {
     static var previews: some View {
         ThankYouScreenView(screen: Screen(
-            id: "1",
+            type: .thankYou,
             title: "Your Support Means the World",
             subtitle: "Every contribution helps us care for these wonderful cats.",
-            bodyText: "From the bottom of our furry hearts, thank you for being a friend to the Catfé.",
-            type: .thankYou
+            bodyText: "From the bottom of our furry hearts, thank you for being a friend to the Catfé."
         ))
     }
 }
