@@ -943,3 +943,12 @@
 - [x] Update PlaylistManager UI to add/remove multiple time windows
 - [x] Update ScheduleTimeline to render multiple blocks per playlist
 - [x] Update tests for multiple time slots (33 tests passing)
+
+## Feature - Template Overlay Data in API for tvOS
+- [ ] Include template elements in screens.getActive API response
+- [ ] Add template data to screen model (overlay elements with position, size, color, text)
+- [ ] Update tvOS Models.swift with TemplateElement model
+- [ ] Update tvOS APIClient to parse template overlay data
+- [ ] Create TemplateOverlayView in tvOS to render custom elements on top of native screens
+- [ ] Integrate overlay into tvOS ScreenView
+- [ ] Test template changes appearing on Apple TV

@@ -209,6 +209,35 @@ export const appRouter = router({
       return getActiveScreens();
     }),
 
+    // Public: Get active screens with template overlay data (for tvOS app)
+    getActiveWithTemplates: publicProcedure.query(async () => {
+      const screens = await getActiveScreens();
+      const templates = await getAllSlideTemplates();
+      
+      // Build a map of screenType -> template
+      const templateMap = new Map<string, any>();
+      for (const t of templates) {
+        templateMap.set(t.screenType, t);
+      }
+      
+      // Attach template overlay data to each screen
+      return screens.map(screen => {
+        const template = templateMap.get(screen.type);
+        return {
+          ...screen,
+          templateOverlay: template ? {
+            elements: template.elements, // JSON string of TemplateElement[]
+            backgroundColor: template.backgroundColor,
+            backgroundGradient: template.backgroundGradient,
+            backgroundImageUrl: template.backgroundImageUrl,
+            defaultFontFamily: template.defaultFontFamily,
+            defaultFontColor: template.defaultFontColor,
+            widgetOverrides: template.widgetOverrides,
+          } : null,
+        };
+      });
+    }),
+
     // Public: Get all screens (for admin)
     getAll: protectedProcedure.query(async () => {
       return getAllScreens();
