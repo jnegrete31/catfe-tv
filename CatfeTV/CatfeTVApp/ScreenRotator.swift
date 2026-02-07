@@ -29,7 +29,7 @@ class ScreenRotator: ObservableObject {
     // MARK: - Configuration
     
     func configure(screens: [Screen], settings: AppSettings) {
-        self.screens = screens
+        self.screens = screens.shuffled()
         self.settings = settings
         self.currentIndex = 0
         self.snapPurrCounter = 0
@@ -38,7 +38,7 @@ class ScreenRotator: ObservableObject {
     func updateScreens(_ newScreens: [Screen]) {
         // Preserve current position if possible
         let currentId = currentScreen?.id
-        self.screens = newScreens
+        self.screens = newScreens.shuffled()
         
         if let id = currentId, let newIndex = screens.firstIndex(where: { $0.id == id }) {
             currentIndex = newIndex
@@ -145,6 +145,16 @@ class ScreenRotator: ObservableObject {
         while screens[nextIndex].type == .snapPurr && attempts < screens.count {
             nextIndex = (nextIndex + 1) % screens.count
             attempts += 1
+        }
+        
+        // If we've completed a full cycle, reshuffle for variety
+        if nextIndex == 0 {
+            let currentScreenObj = screens[currentIndex]
+            screens.shuffle()
+            // Make sure we don't repeat the same screen after shuffle
+            if let first = screens.first, first.id == currentScreenObj.id, screens.count > 1 {
+                screens.swapAt(0, Int.random(in: 1..<screens.count))
+            }
         }
         
         currentIndex = nextIndex
