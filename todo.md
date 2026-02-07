@@ -1075,3 +1075,6 @@
 
 ## Fix - Remove Poll Widgets from tvOS Overlay (Feb 6)
 - [x] Remove PollWidget and PollResultsWidget from ContentView.swift overlay
+
+## Feature - Skip Image Cropping Option (Feb 6)
+- [x] Add "Use Original" button to image cropper dialog to bypass cropping

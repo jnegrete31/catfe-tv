@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
-import { Crop as CropIcon, RotateCcw, ZoomIn, Check, X } from "lucide-react";
+import { Crop as CropIcon, RotateCcw, ZoomIn, Check, X, ImageIcon } from "lucide-react";
 
 interface ImageCropperProps {
   imageUrl: string;
@@ -233,15 +233,21 @@ export function ImageCropper({
           </div>
         </div>
 
-        <DialogFooter className="gap-2">
+        <DialogFooter className="gap-2 sm:justify-between">
           <Button type="button" variant="outline" onClick={onCancel}>
             <X className="w-4 h-4 mr-2" />
             Cancel
           </Button>
-          <Button type="button" onClick={getCroppedImage}>
-            <Check className="w-4 h-4 mr-2" />
-            Apply Crop
-          </Button>
+          <div className="flex gap-2">
+            <Button type="button" variant="secondary" onClick={() => onCropComplete(imageUrl)}>
+              <ImageIcon className="w-4 h-4 mr-2" />
+              Use Original
+            </Button>
+            <Button type="button" onClick={getCroppedImage}>
+              <Check className="w-4 h-4 mr-2" />
+              Apply Crop
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
