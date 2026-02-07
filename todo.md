@@ -1048,3 +1048,15 @@
 - [x] Root cause: screenInput.partial() applied .default("EVENT") to type field on partial updates
 - [x] Fix: Created screenUpdateInput schema without defaults, strip undefined values in update mutation
 - [x] Fixed corrupted screens: 120003 and 120004 restored from EVENT to SNAP_PURR_QR
+
+## Bug Fix - tvOS Event Slides Still Not Appearing (Feb 6 - Follow-up)
+- [x] Root cause: AppSettings decode failed (latitude/longitude/transitionDuration missing from API)
+- [x] Settings decode failure caused fallback to defaults, but screens themselves decoded fine
+- [x] EVENT screen IS in playlist at position 10 of 19 - it was always there, just needed to cycle through
+- [x] ScreenView routing for EVENT type is correct (.events -> EventsScreenView)
+
+## Bug Fix - tvOS Waiver QR & Logo Widgets Still Not Appearing (Feb 6 - Follow-up)
+- [x] Root cause: AppSettings decode failure caused waiverUrl=nil and logoUrl=nil (using defaults)
+- [x] Fix: Custom init(from decoder:) with decodeIfPresent and fallback defaults for all fields
+- [x] Added debug logging to fetchSettings() for troubleshooting
+- [x] WaiverWidget.swift and LogoWidget.swift are correctly in Xcode project and ContentView overlays
