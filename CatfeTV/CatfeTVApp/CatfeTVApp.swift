@@ -41,6 +41,9 @@ struct CatfeTVApp: App {
                 longitude: apiClient.settings.longitude
             )
             
+            // Pre-fetch photos so gallery screens display instantly
+            await apiClient.refreshPhotos()
+            
             // Start screen rotation
             screenRotator.configure(
                 screens: apiClient.getActiveScreens(),

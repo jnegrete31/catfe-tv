@@ -123,6 +123,10 @@ struct ContentView: View {
         .onAppear {
             isFocused = true
             startAutoRefresh()
+            // Pre-fetch photos at startup so gallery screens display instantly
+            Task { @MainActor in
+                await apiClient.refreshPhotos()
+            }
         }
     }
     
@@ -171,6 +175,13 @@ struct ContentView: View {
                 
                 // Update rotator with new screens
                 screenRotator.updateScreens(apiClient.getActiveScreens())
+            }
+        }
+        
+        // Refresh photos every 60 seconds (separate from screen refresh)
+        Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { _ in
+            Task { @MainActor in
+                await apiClient.refreshPhotos()
             }
         }
     }

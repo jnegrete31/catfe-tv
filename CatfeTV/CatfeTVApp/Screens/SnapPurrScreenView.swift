@@ -3,26 +3,28 @@
 //  CatfeTVApp
 //
 //  Snap & Purr screen - shows uploaded photo gallery if photos exist,
-//  otherwise shows the static "Tag Us" screen
+//  otherwise shows the static "Tag Us" screen.
+//  Uses pre-cached photos from APIClient for instant display.
 //
-
 import SwiftUI
-
 struct SnapPurrScreenView: View {
     let screen: Screen
     
-    @State private var photos: [PhotoSubmission] = []
+    @EnvironmentObject var apiClient: APIClient
     @State private var currentIndex = 0
     @State private var appeared = false
-    @State private var isLoading = true
     
-    private let apiClient = APIClient.shared
     private let photoTimer = Timer.publish(every: 6, on: .main, in: .common).autoconnect()
+    
+    /// Use cached photos from APIClient (pre-fetched at startup)
+    private var photos: [PhotoSubmission] {
+        apiClient.cachedSnapPurrPhotos
+    }
     
     var body: some View {
         BaseScreenLayout(screen: screen) {
             GeometryReader { geo in
-                if isLoading || photos.isEmpty {
+                if photos.isEmpty {
                     // No uploaded photos - show original static screen
                     staticContent(geo: geo)
                 } else {
@@ -33,7 +35,10 @@ struct SnapPurrScreenView: View {
         }
         .onAppear {
             withAnimation { appeared = true }
-            loadPhotos()
+            // Reset index if out of bounds
+            if currentIndex >= photos.count && !photos.isEmpty {
+                currentIndex = currentIndex % photos.count
+            }
         }
         .onReceive(photoTimer) { _ in
             if !photos.isEmpty {
@@ -126,7 +131,8 @@ struct SnapPurrScreenView: View {
     
     @ViewBuilder
     private func galleryContent(geo: GeometryProxy) -> some View {
-        let photo = photos[currentIndex]
+        let safeIndex = min(currentIndex, photos.count - 1)
+        let photo = photos[max(0, safeIndex)]
         
         HStack(alignment: .center, spacing: geo.size.width * 0.05) {
             // Left: Polaroid-style photo
@@ -185,7 +191,7 @@ struct SnapPurrScreenView: View {
                     .font(CatfeTypography.subtitle)
                     .foregroundColor(.loungeCream.opacity(0.7))
                 
-                Text("\(currentIndex + 1) of \(photos.count)")
+                Text("\(safeIndex + 1) of \(photos.count)")
                     .font(CatfeTypography.caption)
                     .foregroundColor(.loungeCream.opacity(0.5))
                 
@@ -202,24 +208,5 @@ struct SnapPurrScreenView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .opacity(appeared ? 1 : 0)
         .animation(.easeOut(duration: 0.6), value: appeared)
-    }
-    
-    // MARK: - Data Loading
-    
-    private func loadPhotos() {
-        Task {
-            do {
-                let fetched = try await apiClient.fetchApprovedPhotos(type: "snap_purr")
-                await MainActor.run {
-                    photos = fetched.shuffled()
-                    isLoading = false
-                }
-            } catch {
-                print("[SnapPurr] Failed to load photos: \(error)")
-                await MainActor.run {
-                    isLoading = false
-                }
-            }
-        }
     }
 }

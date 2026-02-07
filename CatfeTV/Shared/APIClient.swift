@@ -22,6 +22,11 @@ class APIClient: ObservableObject {
     @Published var error: String?
     @Published var lastRefresh: Date?
     
+    // Cached photos for gallery screens (pre-fetched at startup)
+    @Published var cachedSnapPurrPhotos: [PhotoSubmission] = []
+    @Published var cachedHappyTailsPhotos: [PhotoSubmission] = []
+    private var photosLastFetched: Date?
+    
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
     
@@ -451,6 +456,28 @@ class APIClient: ObservableObject {
         let trpcResponse = try JSONDecoder().decode(TRPCResponse<[PhotoSubmission]>.self, from: data)
         print("[Photos] Fetched \(trpcResponse.result.data.json.count) approved \(type) photos")
         return trpcResponse.result.data.json
+    }
+    
+    /// Pre-fetch and cache photos for gallery screens.
+    /// Called at startup and during periodic refresh so photos are instantly available.
+    func refreshPhotos() async {
+        do {
+            let snapPurr = try await fetchApprovedPhotos(type: "snap_purr")
+            cachedSnapPurrPhotos = snapPurr.shuffled()
+            print("[Photos] Cached \(cachedSnapPurrPhotos.count) snap_purr photos")
+        } catch {
+            print("[Photos] Failed to refresh snap_purr: \(error)")
+        }
+        
+        do {
+            let happyTails = try await fetchApprovedPhotos(type: "happy_tails")
+            cachedHappyTailsPhotos = happyTails.shuffled()
+            print("[Photos] Cached \(cachedHappyTailsPhotos.count) happy_tails photos")
+        } catch {
+            print("[Photos] Failed to refresh happy_tails: \(error)")
+        }
+        
+        photosLastFetched = Date()
     }
     
     // MARK: - Active Screens

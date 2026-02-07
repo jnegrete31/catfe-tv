@@ -2,39 +2,28 @@
 //  HappyTailsScreenView.swift
 //  CatfeTVApp
 //
-//  Happy Tails screen - cycles through uploaded adoption photos
+//  Happy Tails screen - cycles through uploaded adoption photos.
+//  Uses pre-cached photos from APIClient for instant display.
 //
-
 import SwiftUI
-
 struct HappyTailsScreenView: View {
     let screen: Screen
     
-    @State private var photos: [PhotoSubmission] = []
+    @EnvironmentObject var apiClient: APIClient
     @State private var currentIndex = 0
     @State private var appeared = false
-    @State private var isLoading = true
     
-    private let apiClient = APIClient.shared
     private let photoTimer = Timer.publish(every: 8, on: .main, in: .common).autoconnect()
+    
+    /// Use cached photos from APIClient (pre-fetched at startup)
+    private var photos: [PhotoSubmission] {
+        apiClient.cachedHappyTailsPhotos
+    }
     
     var body: some View {
         BaseScreenLayout(screen: screen) {
             GeometryReader { geo in
-                if isLoading {
-                    VStack {
-                        Spacer()
-                        ProgressView()
-                            .tint(.loungeAmber)
-                            .scaleEffect(2)
-                        Spacer().frame(height: 20)
-                        Text("Loading happy tails...")
-                            .font(CatfeTypography.caption)
-                            .foregroundColor(.loungeCream.opacity(0.6))
-                        Spacer()
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if photos.isEmpty {
+                if photos.isEmpty {
                     // No uploaded photos - show screen's default image
                     HStack(alignment: .center, spacing: geo.size.width * 0.05) {
                         if screen.imageURL != nil {
@@ -67,7 +56,8 @@ struct HappyTailsScreenView: View {
                     .animation(.easeOut(duration: 0.6), value: appeared)
                 } else {
                     // Photo gallery - cycle through uploaded happy tails photos
-                    let photo = photos[currentIndex]
+                    let safeIndex = min(currentIndex, photos.count - 1)
+                    let photo = photos[max(0, safeIndex)]
                     
                     HStack(alignment: .center, spacing: geo.size.width * 0.05) {
                         // Left: Polaroid-style photo
@@ -140,7 +130,7 @@ struct HappyTailsScreenView: View {
                             )
                             
                             // Photo counter
-                            Text("\(currentIndex + 1) of \(photos.count)")
+                            Text("\(safeIndex + 1) of \(photos.count)")
                                 .font(CatfeTypography.caption)
                                 .foregroundColor(.loungeCream.opacity(0.5))
                             
@@ -162,7 +152,9 @@ struct HappyTailsScreenView: View {
         }
         .onAppear {
             withAnimation { appeared = true }
-            loadPhotos()
+            if currentIndex >= photos.count && !photos.isEmpty {
+                currentIndex = currentIndex % photos.count
+            }
         }
         .onReceive(photoTimer) { _ in
             if !photos.isEmpty {
@@ -221,22 +213,5 @@ struct HappyTailsScreenView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-    }
-    
-    private func loadPhotos() {
-        Task {
-            do {
-                let fetched = try await apiClient.fetchApprovedPhotos(type: "happy_tails")
-                await MainActor.run {
-                    photos = fetched.shuffled()
-                    isLoading = false
-                }
-            } catch {
-                print("[HappyTails] Failed to load photos: \(error)")
-                await MainActor.run {
-                    isLoading = false
-                }
-            }
-        }
     }
 }
