@@ -162,7 +162,8 @@ struct HappyTailsScreenView: View {
         }
         .onAppear {
             withAnimation { appeared = true }
-            currentIndex = 0
+            // Start at a random photo so it's different each time the screen appears
+            currentIndex = photos.isEmpty ? 0 : Int.random(in: 0..<photos.count)
             startCycling()
         }
         .onDisappear {
