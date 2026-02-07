@@ -266,6 +266,10 @@ struct GuestReminderWidget: View {
     private func fetchReminders() async {
         do {
             let sessions = try await apiClient.fetchSessionsNeedingReminder()
+            print("[GuestReminder] Fetched \(sessions.count) sessions needing reminder")
+            for s in sessions {
+                print("[GuestReminder]   - \(s.guestName) (id=\(s.id)) expires=\(s.expiresAt) remaining=\(s.expiresAt.timeIntervalSinceNow)s")
+            }
             await MainActor.run {
                 // Check for new sessions that weren't in the previous list
                 let newSessionIds = Set(sessions.map { $0.id })

@@ -393,11 +393,24 @@ class APIClient: ObservableObject {
         
         guard let httpResponse = response as? HTTPURLResponse,
               httpResponse.statusCode == 200 else {
+            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
+            print("[APIClient] fetchSessionsNeedingReminder failed with status: \(statusCode)")
             throw APIError(message: "Failed to fetch sessions needing reminder")
         }
         
-        let trpcResponse = try decoder.decode(TRPCResponse<[GuestSession]>.self, from: data)
-        return trpcResponse.result.data.json
+        // Debug: print raw response
+        if let rawString = String(data: data, encoding: .utf8) {
+            print("[APIClient] getNeedingReminder raw response: \(rawString.prefix(500))")
+        }
+        
+        do {
+            let trpcResponse = try decoder.decode(TRPCResponse<[GuestSession]>.self, from: data)
+            print("[APIClient] getNeedingReminder decoded \(trpcResponse.result.data.json.count) sessions")
+            return trpcResponse.result.data.json
+        } catch {
+            print("[APIClient] getNeedingReminder DECODE ERROR: \(error)")
+            throw error
+        }
     }
     
     // MARK: - Active Screens
