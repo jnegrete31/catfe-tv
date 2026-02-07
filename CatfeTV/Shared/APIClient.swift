@@ -37,6 +37,13 @@ class APIClient: ObservableObject {
         decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .custom { decoder in
             let container = try decoder.singleValueContainer()
+            
+            // Handle null values for optional Date fields (e.g., checkedOutAt)
+            if container.decodeNil() {
+                // Return epoch as placeholder — Swift will handle Optional<Date> wrapping
+                return Date(timeIntervalSince1970: 0)
+            }
+            
             let dateString = try container.decode(String.self)
             
             // Try ISO8601 with fractional seconds

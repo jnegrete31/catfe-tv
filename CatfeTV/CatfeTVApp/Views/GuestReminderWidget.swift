@@ -208,12 +208,17 @@ struct GuestReminderWidget: View {
     @State private var previousSessionIds: Set<Int> = []
     @State private var previousScheduledIds: Set<String> = []
     @State private var welcomedGuestIds: Set<Int> = []
-    @State private var debugMessage: String = "Initializing..."
     @State private var fetchCount: Int = 0
+    
+    // Track when each expired session was first detected as expired
+    @State private var expiredDetectedAt: [Int: Date] = [:]
     
     let fetchTimer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
     
     private let chimeManager = ChimeSoundManager.shared
+    
+    // How long to show "Session ended!" before hiding (30 seconds)
+    private let expiredDisplayDuration: TimeInterval = 30
     
     // Active scheduled reminders based on current time
     private func activeScheduledReminders(at time: Date) -> [ScheduledReminder] {
@@ -221,6 +226,25 @@ struct GuestReminderWidget: View {
         return scheduledReminders.filter { reminder in
             let diff = currentMinute - reminder.minute
             return diff >= 0 && diff < 5
+        }
+    }
+    
+    // Filter sessions: show active ones + recently expired (within expiredDisplayDuration)
+    private func visibleSessions(at now: Date) -> [GuestSession] {
+        return sessionsNeedingReminder.filter { session in
+            let remaining = session.expiresAt.timeIntervalSince(now)
+            if remaining > 0 {
+                // Still active — always show
+                return true
+            } else {
+                // Expired — show only for expiredDisplayDuration after we detected it
+                if let detectedAt = expiredDetectedAt[session.id] {
+                    return now.timeIntervalSince(detectedAt) < expiredDisplayDuration
+                } else {
+                    // Just detected as expired — record it
+                    return true
+                }
+            }
         }
     }
     
@@ -233,10 +257,12 @@ struct GuestReminderWidget: View {
             // Filter out welcome guests that have been showing for more than 10 seconds
             let activeWelcomes = welcomeGuests.filter { now.timeIntervalSince($0.appearedAt) < 10 }
             
-            let hasContent = !activeReminders.isEmpty || !sessionsNeedingReminder.isEmpty || !activeWelcomes.isEmpty
+            // Filter sessions to hide expired ones after 30 seconds
+            let visibleSessionList = visibleSessions(at: now)
+            
+            let hasContent = !activeReminders.isEmpty || !visibleSessionList.isEmpty || !activeWelcomes.isEmpty
             
             VStack(alignment: .leading, spacing: 16) {
-                // Always show content when available
                 if hasContent {
                     // Welcome messages for newly checked-in guests
                     ForEach(activeWelcomes) { welcome in
@@ -251,25 +277,14 @@ struct GuestReminderWidget: View {
                     }
                     
                     // Individual guest session reminders
-                    ForEach(sessionsNeedingReminder) { session in
+                    ForEach(visibleSessionList) { session in
                         SessionReminderCard(session: session, now: now)
                             .transition(.move(edge: .leading).combined(with: .opacity))
                     }
                 }
-                
-                // DEBUG: Temporary visible indicator - REMOVE after debugging
-                #if DEBUG
-                Text(debugMessage)
-                    .font(.system(size: 14))
-                    .foregroundColor(.white.opacity(0.6))
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(Color.black.opacity(0.4))
-                    .cornerRadius(8)
-                #endif
             }
             .animation(.easeInOut(duration: 0.5), value: sessionsNeedingReminder.count)
-            .animation(.easeInOut(duration: 0.5), value: activeReminders.count)
+            .animation(.easeInOut(duration: 0.5), value: activeReminders.map(\.id))
             .animation(.easeInOut(duration: 0.5), value: activeWelcomes.count)
             .onChange(of: activeReminders.map(\.id)) { _, newIds in
                 checkForNewScheduledReminders(activeIds: Set(newIds), at: now)
@@ -280,11 +295,11 @@ struct GuestReminderWidget: View {
                 await fetchReminders()
                 await fetchRecentCheckIns()
                 cleanUpExpiredWelcomes()
+                trackExpiredSessions()
             }
         }
         .task {
             print("[GuestReminder] Widget appeared, starting initial fetch...")
-            debugMessage = "Widget loaded, fetching..."
             await fetchReminders()
             await fetchRecentCheckIns()
         }
@@ -303,6 +318,23 @@ struct GuestReminderWidget: View {
         }
         
         previousScheduledIds = currentScheduledIds
+    }
+    
+    /// Track when sessions first expire so we can auto-hide them after 30 seconds
+    private func trackExpiredSessions() {
+        let now = Date()
+        for session in sessionsNeedingReminder {
+            let remaining = session.expiresAt.timeIntervalSince(now)
+            if remaining <= 0 && expiredDetectedAt[session.id] == nil {
+                expiredDetectedAt[session.id] = now
+            }
+        }
+        
+        // Clean up old entries that are way past the display duration
+        let staleThreshold = expiredDisplayDuration * 2
+        expiredDetectedAt = expiredDetectedAt.filter { _, detectedAt in
+            now.timeIntervalSince(detectedAt) < staleThreshold
+        }
     }
     
     private func fetchReminders() async {
@@ -325,18 +357,9 @@ struct GuestReminderWidget: View {
                 
                 previousSessionIds = newSessionIds
                 self.sessionsNeedingReminder = sessions
-                
-                if sessions.isEmpty {
-                    debugMessage = "Fetch #\(fetchCount): No reminders"
-                } else {
-                    debugMessage = "Fetch #\(fetchCount): \(sessions.count) reminder(s) - \(sessions.map { $0.guestName }.joined(separator: ", "))"
-                }
             }
         } catch {
             print("[GuestReminder] FETCH ERROR: \(error)")
-            await MainActor.run {
-                debugMessage = "Fetch #\(fetchCount) ERROR: \(error.localizedDescription)"
-            }
         }
     }
     
@@ -398,23 +421,22 @@ struct WelcomeCard: View {
                 .foregroundColor(.white)
             
             VStack(alignment: .leading, spacing: 6) {
-                Text("Welcome, \(welcome.guestName)! 🐱")
-                    .font(.system(size: 28, weight: .bold))
+                Text("Welcome, \(welcome.guestName)!")
+                    .font(.system(size: 26, weight: .bold))
                     .foregroundColor(.white)
-                    .lineLimit(1)
                 
                 Text("\(welcome.guestCount) guest\(welcome.guestCount != 1 ? "s" : "") \u{2022} \(welcome.duration) min session")
-                    .font(.system(size: 22))
+                    .font(.system(size: 20))
                     .foregroundColor(.white.opacity(0.9))
             }
             
             Spacer()
         }
-        .padding(.horizontal, 28)
+        .padding(.horizontal, 24)
         .padding(.vertical, 20)
         .background(
             LinearGradient(
-                colors: [Color.green.opacity(0.9), Color.teal.opacity(0.9)],
+                colors: [Color.green, Color.green.opacity(0.8)],
                 startPoint: .leading,
                 endPoint: .trailing
             )
@@ -434,10 +456,9 @@ struct ScheduledReminderCard: View {
     private var timeRemaining: (minutes: Int, seconds: Int) {
         let currentMinute = Calendar.current.component(.minute, from: now)
         let currentSecond = Calendar.current.component(.second, from: now)
-        let minutesIntoWindow = currentMinute - reminder.minute
-        let minutesLeft = max(0, 4 - minutesIntoWindow)
-        let secondsLeft = 59 - currentSecond
-        return (minutesLeft, secondsLeft)
+        let endMinute = reminder.minute + 5
+        let totalSecondsLeft = max(0, (endMinute - currentMinute) * 60 - currentSecond)
+        return (totalSecondsLeft / 60, totalSecondsLeft % 60)
     }
     
     private var progress: Double {
@@ -526,10 +547,10 @@ struct SessionReminderCard: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 16) {
-                Image(systemName: isUrgent ? "exclamationmark.triangle.fill" : "bell.fill")
+                Image(systemName: isExpired ? "checkmark.circle.fill" : (isUrgent ? "exclamationmark.triangle.fill" : "bell.fill"))
                     .font(.system(size: 28, weight: .semibold))
                     .foregroundColor(.white)
-                    .symbolEffect(.pulse, isActive: isUrgent)
+                    .symbolEffect(.pulse, isActive: isUrgent && !isExpired)
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(session.guestName)
@@ -538,7 +559,7 @@ struct SessionReminderCard: View {
                         .lineLimit(1)
                     
                     if isExpired {
-                        Text("Session ended!")
+                        Text("Session ended! Thank you for visiting!")
                             .font(.system(size: 20))
                             .foregroundColor(.white.opacity(0.9))
                     } else {
@@ -553,24 +574,28 @@ struct SessionReminderCard: View {
             .padding(.horizontal, 24)
             .padding(.vertical, 16)
             
-            // Progress bar
-            GeometryReader { geometry in
-                ZStack(alignment: .leading) {
-                    Rectangle()
-                        .fill(Color.white.opacity(0.3))
-                    
-                    Rectangle()
-                        .fill(isUrgent ? Color.white : Color.white.opacity(0.8))
-                        .frame(width: geometry.size.width * progress)
+            // Progress bar (hidden when expired)
+            if !isExpired {
+                GeometryReader { geometry in
+                    ZStack(alignment: .leading) {
+                        Rectangle()
+                            .fill(Color.white.opacity(0.3))
+                        
+                        Rectangle()
+                            .fill(isUrgent ? Color.white : Color.white.opacity(0.8))
+                            .frame(width: geometry.size.width * progress)
+                    }
                 }
+                .frame(height: 6)
             }
-            .frame(height: 6)
         }
         .background(
             LinearGradient(
-                colors: isUrgent
-                    ? [Color.red, Color.red.opacity(0.8)]
-                    : [Color.orange, Color.orange.opacity(0.8)],
+                colors: isExpired
+                    ? [Color.gray, Color.gray.opacity(0.7)]
+                    : (isUrgent
+                        ? [Color.red, Color.red.opacity(0.8)]
+                        : [Color.orange, Color.orange.opacity(0.8)]),
                 startPoint: .leading,
                 endPoint: .trailing
             )
