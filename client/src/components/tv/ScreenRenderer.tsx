@@ -349,7 +349,7 @@ function EventScreen({ screen, settings }: ScreenRendererProps) {
                 style={{ background: '#FFFEF9' }}
               >
                 <div className="text-center mb-2">
-                  <p className="text-lg font-semibold" style={{ color: '#3d3d3d' }}>Learn More</p>
+                  <p className="text-lg font-semibold" style={{ color: '#3d3d3d' }}>Scan to Book</p>
                 </div>
                 <QRCodeSVG value={screen.qrUrl} size={150} level="M" fgColor="#2d2d2d" />
               </motion.div>
