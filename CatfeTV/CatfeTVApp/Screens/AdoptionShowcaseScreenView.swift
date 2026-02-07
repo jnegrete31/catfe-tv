@@ -2,7 +2,8 @@
 //  AdoptionShowcaseScreenView.swift
 //  CatfeTVApp
 //
-//  Grid of adoptable cats - matches web design, fills full TV screen
+//  Grid of adoptable cats - pages through all cats in groups,
+//  cycling every 6 seconds so every cat gets screen time.
 //
 
 import SwiftUI
@@ -12,9 +13,33 @@ struct AdoptionShowcaseScreenView: View {
     var adoptionCats: [Screen] = []
     
     @State private var appeared = false
+    @State private var currentPage = 0
     
+    /// Timer to cycle through pages of cats
+    private let pageTimer = Timer.publish(every: 6, on: .main, in: .common).autoconnect()
+    
+    /// Filter to only available (non-adopted) cats, shuffled
     private var availableCats: [Screen] {
         adoptionCats.filter { !$0.isAdopted }
+    }
+    
+    /// How many cats to show per page (max 8, in a 4-column grid)
+    private let catsPerPage = 8
+    
+    /// Split available cats into pages
+    private var pages: [[Screen]] {
+        guard !availableCats.isEmpty else { return [] }
+        return stride(from: 0, to: availableCats.count, by: catsPerPage).map { startIndex in
+            let endIndex = min(startIndex + catsPerPage, availableCats.count)
+            return Array(availableCats[startIndex..<endIndex])
+        }
+    }
+    
+    /// Current page of cats to display
+    private var currentCats: [Screen] {
+        guard !pages.isEmpty else { return [] }
+        let safeIndex = currentPage % pages.count
+        return pages[safeIndex]
     }
     
     private let rotations: [Double] = [-2, 3, -3, 2]
@@ -36,6 +61,19 @@ struct AdoptionShowcaseScreenView: View {
                         Text(screen.subtitle ?? "Each one is looking for their forever home")
                             .font(CatfeTypography.caption)
                             .foregroundColor(.loungeCream.opacity(0.6))
+                        
+                        // Page indicator (if more than one page)
+                        if pages.count > 1 {
+                            HStack(spacing: 8) {
+                                ForEach(0..<pages.count, id: \.self) { index in
+                                    Circle()
+                                        .fill(index == (currentPage % pages.count) ? Color.loungeWarmOrange : Color.loungeCream.opacity(0.3))
+                                        .frame(width: 8, height: 8)
+                                        .animation(.easeInOut(duration: 0.3), value: currentPage)
+                                }
+                            }
+                            .padding(.top, 4)
+                        }
                     }
                     .opacity(appeared ? 1 : 0)
                     .offset(y: appeared ? 0 : -20)
@@ -55,15 +93,16 @@ struct AdoptionShowcaseScreenView: View {
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else {
-                        let columns = min(availableCats.count, 4)
+                        let columns = min(currentCats.count, 4)
                         let gridColumns = Array(repeating: GridItem(.flexible(), spacing: 24), count: columns)
                         
                         LazyVGrid(columns: gridColumns, spacing: 24) {
-                            ForEach(Array(availableCats.prefix(8).enumerated()), id: \.element.id) { index, cat in
+                            ForEach(Array(currentCats.enumerated()), id: \.element.id) { index, cat in
                                 CatShowcaseCard(cat: cat, index: index, appeared: appeared)
                             }
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .animation(.easeInOut(duration: 0.5), value: currentPage)
                     }
                     
                     // Bottom QR
@@ -80,6 +119,12 @@ struct AdoptionShowcaseScreenView: View {
         }
         .onAppear {
             withAnimation { appeared = true }
+        }
+        .onReceive(pageTimer) { _ in
+            guard pages.count > 1 else { return }
+            withAnimation(.easeInOut(duration: 0.5)) {
+                currentPage += 1
+            }
         }
     }
 }
