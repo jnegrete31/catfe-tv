@@ -151,6 +151,30 @@ const screenInput = z.object({
   livestreamUrl: z.string().url().max(1024).nullable().optional().or(z.literal("")),
 });
 
+// Update schema: same fields but NO defaults, so partial updates don't overwrite existing values
+const screenUpdateInput = z.object({
+  type: z.enum(screenTypes).optional(),
+  title: z.string().min(1).max(255).optional(),
+  subtitle: z.string().max(255).nullable().optional(),
+  body: z.string().nullable().optional(),
+  imagePath: z.string().max(1024).nullable().optional(),
+  imageDisplayMode: z.enum(["cover", "contain"]).nullable().optional(),
+  qrUrl: z.string().url().max(1024).nullable().optional().or(z.literal("")),
+  startAt: z.date().nullable().optional(),
+  endAt: z.date().nullable().optional(),
+  daysOfWeek: z.array(z.number().min(0).max(6)).nullable().optional(),
+  timeStart: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/).nullable().optional().or(z.literal("")),
+  timeEnd: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/).nullable().optional().or(z.literal("")),
+  priority: z.number().min(1).max(10).optional(),
+  durationSeconds: z.number().min(1).max(300).optional(),
+  sortOrder: z.number().optional(),
+  isActive: z.boolean().optional(),
+  schedulingEnabled: z.boolean().optional(),
+  isProtected: z.boolean().optional(),
+  isAdopted: z.boolean().optional(),
+  livestreamUrl: z.string().url().max(1024).nullable().optional().or(z.literal("")),
+});
+
 const timeSlotInput = z.object({
   name: z.string().min(1).max(255),
   timeStart: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
@@ -270,19 +294,27 @@ export const appRouter = router({
     update: adminProcedure
       .input(z.object({
         id: z.number(),
-        data: screenInput.partial(),
+        data: screenUpdateInput,
       }))
       .mutation(async ({ input }) => {
         const screen = await getScreenById(input.id);
         if (!screen) {
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Screen not found' });
         }
-        // Clean up empty qrUrl
-        const data = {
-          ...input.data,
-          qrUrl: input.data.qrUrl === "" ? null : input.data.qrUrl,
-        };
-        return updateScreen(input.id, data);
+        // Strip undefined values so only explicitly provided fields are updated
+        // This prevents defaults from overwriting existing values (e.g., type becoming EVENT)
+        const cleanData: Record<string, any> = {};
+        for (const [key, value] of Object.entries(input.data)) {
+          if (value !== undefined) {
+            cleanData[key] = value;
+          }
+        }
+        // Clean up empty qrUrl and livestreamUrl
+        if (cleanData.qrUrl === "") cleanData.qrUrl = null;
+        if (cleanData.livestreamUrl === "") cleanData.livestreamUrl = null;
+        if (cleanData.timeStart === "") cleanData.timeStart = null;
+        if (cleanData.timeEnd === "") cleanData.timeEnd = null;
+        return updateScreen(input.id, cleanData);
       }),
 
     // Delete screen
@@ -1114,6 +1146,35 @@ export const appRouter = router({
     // Public: Get active screens for current playlist (for TV display)
     getActiveScreens: publicProcedure.query(async () => {
       return getActiveScreensForCurrentPlaylist();
+    }),
+
+    // Public: Get active screens for current playlist WITH template overlay data (for tvOS app)
+    getActiveScreensWithTemplates: publicProcedure.query(async () => {
+      const screens = await getActiveScreensForCurrentPlaylist();
+      const templates = await getAllSlideTemplates();
+      
+      // Build a map of screenType -> template
+      const templateMap = new Map<string, any>();
+      for (const t of templates) {
+        templateMap.set(t.screenType, t);
+      }
+      
+      // Attach template overlay data to each screen
+      return screens.map(screen => {
+        const template = templateMap.get(screen.type);
+        return {
+          ...screen,
+          templateOverlay: template ? {
+            elements: template.elements,
+            backgroundColor: template.backgroundColor,
+            backgroundGradient: template.backgroundGradient,
+            backgroundImageUrl: template.backgroundImageUrl,
+            defaultFontFamily: template.defaultFontFamily,
+            defaultFontColor: template.defaultFontColor,
+            widgetOverrides: template.widgetOverrides,
+          } : null,
+        };
+      });
     }),
 
     // Admin: Create playlist

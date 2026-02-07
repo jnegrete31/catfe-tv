@@ -1029,3 +1029,22 @@
 - [x] Root cause: APIScreen.toScreen() created ScreenSchedule from startAt/endAt even when schedulingEnabled=false
 - [x] Fix: Add schedulingEnabled to APIScreen, only create schedule when schedulingEnabled==true
 - [x] Events with future startAt dates now show correctly (schedule not applied when scheduling disabled)
+
+## Bug Fix - tvOS Countdown Timers Not Counting Down (Feb 6)
+- [x] Root cause: Timer.publish + @State currentTime wasn't reliably propagating to child views
+- [x] Fix: Replaced with TimelineView(.periodic) for guaranteed per-second re-renders
+## Bug Fix - Events Still Not Showing on Apple TV (Feb 6)
+- [x] Root cause: tvOS used screens.getActiveWithTemplates (all screens) instead of playlist endpoint
+- [x] Fix: Switched to playlists.getActiveScreensWithTemplates (playlist-filtered + template data)
+## Bug Fix - Event Using "Gentle Reminder" Text (Feb 6)
+- [x] Root cause: "Gentle Reminder" (id=6) was typed as EVENT in DB, and tvOS showed all screens not just playlist
+- [x] Fix: Screen type corrected to REMINDER, and tvOS now uses playlist endpoint (Gentle Reminder not in active playlist)
+## Feature - Playlist Scheduling on tvOS App (Feb 6)
+- [x] tvOS now uses playlists.getActiveScreensWithTemplates endpoint
+- [x] Backend handles playlist time slot scheduling (scheduled playlists checked first, then active playlist)
+- [x] Created new backend endpoint playlists.getActiveScreensWithTemplates
+
+## Bug Fix - Toggling Slide Active Changes Type to EVENT (Feb 6)
+- [x] Root cause: screenInput.partial() applied .default("EVENT") to type field on partial updates
+- [x] Fix: Created screenUpdateInput schema without defaults, strip undefined values in update mutation
+- [x] Fixed corrupted screens: 120003 and 120004 restored from EVENT to SNAP_PURR_QR
