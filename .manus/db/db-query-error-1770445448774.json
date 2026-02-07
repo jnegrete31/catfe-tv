@@ -1,0 +1,8 @@
+{
+  "query": "\nUPDATE screens SET qr_url = 'https://catfetv-amdmxcoq.manus.space/upload/snap-purr' WHERE id IN (120003, 120004) AND screen_type = 'SNAP_PURR_QR';\nUPDATE screens SET qr_url = 'https://catfetv-amdmxcoq.manus.space/upload/happy-tails' WHERE id = 120006 AND screen_type = 'HAPPY_TAILS_QR';\nSELECT id, screen_type, title, qr_url FROM screens WHERE id IN (120003, 120004, 120006);\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2KjT5kGWaGHMws6.75433b4e530a --database aMDMXCoQ2ycSYTjhkKKJzm --execute \nUPDATE screens SET qr_url = 'https://catfetv-amdmxcoq.manus.space/upload/snap-purr' WHERE id IN (120003, 120004) AND screen_type = 'SNAP_PURR_QR';\nUPDATE screens SET qr_url = 'https://catfetv-amdmxcoq.manus.space/upload/happy-tails' WHERE id = 120006 AND screen_type = 'HAPPY_TAILS_QR';\nSELECT id, screen_type, title, qr_url FROM screens WHERE id IN (120003, 120004, 120006);\n",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 2: Unknown column 'screen_type' in 'where clause'"
+  ]
+}

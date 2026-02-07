@@ -439,7 +439,7 @@ export function SettingsForm({ settings, onSuccess }: SettingsFormProps) {
           
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="defaultDurationSeconds">Default Duration (s)</Label>
+              <Label htmlFor="defaultDurationSeconds">Fallback Slide Duration (s)</Label>
               <Input
                 id="defaultDurationSeconds"
                 type="number"
@@ -447,6 +447,7 @@ export function SettingsForm({ settings, onSuccess }: SettingsFormProps) {
                 max={300}
                 {...register("defaultDurationSeconds", { valueAsNumber: true })}
               />
+              <p className="text-xs text-muted-foreground">Used when a slide doesn't have its own duration set</p>
             </div>
             
             <div className="space-y-2">

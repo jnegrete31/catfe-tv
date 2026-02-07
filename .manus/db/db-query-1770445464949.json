@@ -1,0 +1,85 @@
+{
+  "query": "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'screens' ORDER BY ORDINAL_POSITION;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2KjT5kGWaGHMws6.75433b4e530a --database aMDMXCoQ2ycSYTjhkKKJzm --execute SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'screens' ORDER BY ORDINAL_POSITION;",
+  "rows": [
+    {
+      "COLUMN_NAME": "id"
+    },
+    {
+      "COLUMN_NAME": "screenType"
+    },
+    {
+      "COLUMN_NAME": "title"
+    },
+    {
+      "COLUMN_NAME": "subtitle"
+    },
+    {
+      "COLUMN_NAME": "body"
+    },
+    {
+      "COLUMN_NAME": "imagePath"
+    },
+    {
+      "COLUMN_NAME": "qrUrl"
+    },
+    {
+      "COLUMN_NAME": "startAt"
+    },
+    {
+      "COLUMN_NAME": "endAt"
+    },
+    {
+      "COLUMN_NAME": "daysOfWeek"
+    },
+    {
+      "COLUMN_NAME": "timeStart"
+    },
+    {
+      "COLUMN_NAME": "timeEnd"
+    },
+    {
+      "COLUMN_NAME": "priority"
+    },
+    {
+      "COLUMN_NAME": "durationSeconds"
+    },
+    {
+      "COLUMN_NAME": "sortOrder"
+    },
+    {
+      "COLUMN_NAME": "isActive"
+    },
+    {
+      "COLUMN_NAME": "isProtected"
+    },
+    {
+      "COLUMN_NAME": "createdAt"
+    },
+    {
+      "COLUMN_NAME": "updatedAt"
+    },
+    {
+      "COLUMN_NAME": "imageDisplayMode"
+    },
+    {
+      "COLUMN_NAME": "isAdopted"
+    },
+    {
+      "COLUMN_NAME": "livestreamUrl"
+    },
+    {
+      "COLUMN_NAME": "schedulingEnabled"
+    },
+    {
+      "COLUMN_NAME": "eventTime"
+    },
+    {
+      "COLUMN_NAME": "eventLocation"
+    }
+  ],
+  "messages": [],
+  "stdout": "COLUMN_NAME\nid\nscreenType\ntitle\nsubtitle\nbody\nimagePath\nqrUrl\nstartAt\nendAt\ndaysOfWeek\ntimeStart\ntimeEnd\npriority\ndurationSeconds\nsortOrder\nisActive\nisProtected\ncreatedAt\nupdatedAt\nimageDisplayMode\nisAdopted\nlivestreamUrl\nschedulingEnabled\neventTime\neventLocation\n",
+  "stderr": "",
+  "execution_time_ms": 55
+}

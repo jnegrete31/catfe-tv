@@ -1,0 +1,28 @@
+{
+  "query": "UPDATE screens SET qrUrl = 'https://catfetv-amdmxcoq.manus.space/upload/snap-purr' WHERE id IN (120003, 120004) AND screenType = 'SNAP_PURR_QR';\nUPDATE screens SET qrUrl = 'https://catfetv-amdmxcoq.manus.space/upload/happy-tails' WHERE id = 120006 AND screenType = 'HAPPY_TAILS_QR';\nSELECT id, screenType, title, qrUrl FROM screens WHERE id IN (120003, 120004, 120006);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2KjT5kGWaGHMws6.75433b4e530a --database aMDMXCoQ2ycSYTjhkKKJzm --execute UPDATE screens SET qrUrl = 'https://catfetv-amdmxcoq.manus.space/upload/snap-purr' WHERE id IN (120003, 120004) AND screenType = 'SNAP_PURR_QR';\nUPDATE screens SET qrUrl = 'https://catfetv-amdmxcoq.manus.space/upload/happy-tails' WHERE id = 120006 AND screenType = 'HAPPY_TAILS_QR';\nSELECT id, screenType, title, qrUrl FROM screens WHERE id IN (120003, 120004, 120006);",
+  "rows": [
+    {
+      "id": "120003",
+      "screenType": "SNAP_PURR_QR",
+      "title": "Share your Cat Lounge Moments ",
+      "qrUrl": "https://catfetv-amdmxcoq.manus.space/upload/snap-purr"
+    },
+    {
+      "id": "120004",
+      "screenType": "SNAP_PURR_QR",
+      "title": "Your Catfe Moments",
+      "qrUrl": "https://catfetv-amdmxcoq.manus.space/upload/snap-purr"
+    },
+    {
+      "id": "120006",
+      "screenType": "HAPPY_TAILS_QR",
+      "title": "Happy Tails",
+      "qrUrl": "https://catfetv-amdmxcoq.manus.space/upload/happy-tails"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tscreenType\ttitle\tqrUrl\n120003\tSNAP_PURR_QR\tShare your Cat Lounge Moments \thttps://catfetv-amdmxcoq.manus.space/upload/snap-purr\n120004\tSNAP_PURR_QR\tYour Catfe Moments\thttps://catfetv-amdmxcoq.manus.space/upload/snap-purr\n120006\tHAPPY_TAILS_QR\tHappy Tails\thttps://catfetv-amdmxcoq.manus.space/upload/happy-tails\n",
+  "stderr": "",
+  "execution_time_ms": 77
+}

@@ -1062,16 +1062,16 @@
 - [x] WaiverWidget.swift and LogoWidget.swift are correctly in Xcode project and ContentView overlays
 
 ## Feature - Add eventTime and eventLocation Fields to Screen Editor (Feb 6)
-- [ ] Add eventTime and eventLocation columns to screens table schema
-- [ ] Add fields to screenInput and screenUpdateInput schemas in routers
-- [ ] Add fields to admin screen editor UI (show when type is EVENT)
-- [ ] Update tvOS APIScreen model to include eventTime and eventLocation
-- [ ] Update toScreen() to map eventTime and eventLocation from API
+- [x] Add eventTime and eventLocation columns to screens table schema
+- [x] Add fields to screenInput and screenUpdateInput schemas in routers
+- [x] Add fields to admin screen editor UI (show when type is EVENT)
+- [x] Update tvOS APIScreen model to include eventTime and eventLocation
+- [x] Update toScreen() to map eventTime and eventLocation from API
 
 ## Feature - Adjust Widget Z-Ordering and Overlap Prevention (Feb 6)
-- [ ] Review widget positioning in ContentView.swift
-- [ ] Adjust waiver QR widget padding to prevent overlap with poll widget
-- [ ] Ensure proper layering of all overlay widgets
+- [x] Review widget positioning in ContentView.swift
+- [x] Removed poll widgets entirely (no longer needed)
+- [x] Waiver QR widget positioned at top-left with proper spacing
 
 ## Fix - Remove Poll Widgets from tvOS Overlay (Feb 6)
 - [x] Remove PollWidget and PollResultsWidget from ContentView.swift overlay
@@ -1087,3 +1087,16 @@
 - [x] Add backend endpoint for recently checked-in guests (within last 30 seconds)
 - [x] Add welcome banner to GuestReminderWidget that shows guest name on check-in
 - [x] Keep existing 5-minute countdown warning
+
+## Bug Fix - Snap & Purr, Happy Tails, and QR Screens Not Showing on Apple TV (Feb 6)
+- [x] Screen views exist and route correctly for all types
+- [x] Root cause: SNAP_PURR_QR and HAPPY_TAILS_QR screens had null qrUrl in database
+- [x] Set QR URLs to point to upload pages (/upload/snap-purr and /upload/happy-tails)
+- [x] Updated SnapPurrScreenView to fetch and cycle through uploaded photos as gallery
+- [x] Updated HappyTailsScreenView to fetch and cycle through uploaded photos as gallery
+- [x] Updated SnapPurrGalleryScreenView with photo fetching and cycling
+- [x] Added fetchApprovedPhotos to APIClient and PhotoSubmission model
+- [x] Falls back to static screen when no uploaded photos exist
+
+## Settings Label Improvement
+- [x] Rename "Default Duration (s)" to "Fallback Slide Duration (s)" with helper text
