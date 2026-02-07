@@ -2,9 +2,10 @@
 //  GuestReminderWidget.swift
 //  CatfeTVApp
 //
-//  Overlay widget that shows countdown timers for guest sessions
-//  nearing expiry (within 5 minutes). Matches the web GuestReminderOverlay.
-//  Plays a gentle chime when new reminders appear.
+//  Overlay widget that shows:
+//  1. Welcome messages when guests check in
+//  2. Countdown timers for guest sessions nearing expiry (within 5 minutes)
+//  Plays a gentle chime when new reminders/welcomes appear.
 //
 
 import SwiftUI
@@ -37,6 +38,16 @@ let scheduledReminders: [ScheduledReminder] = [
         message: "Sessions ending soon!"
     ),
 ]
+
+// MARK: - Welcome Guest Model
+
+struct WelcomeGuest: Identifiable {
+    let id: Int
+    let guestName: String
+    let guestCount: Int
+    let duration: String
+    let appearedAt: Date
+}
 
 // MARK: - Chime Sound Manager
 
@@ -193,9 +204,10 @@ struct GuestReminderWidget: View {
     @EnvironmentObject var apiClient: APIClient
     
     @State private var sessionsNeedingReminder: [GuestSession] = []
+    @State private var welcomeGuests: [WelcomeGuest] = []
     @State private var previousSessionIds: Set<Int> = []
     @State private var previousScheduledIds: Set<String> = []
-    @State private var tickCount: Int = 0 // Force re-render every second
+    @State private var welcomedGuestIds: Set<Int> = []
     
     let fetchTimer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
     
@@ -215,10 +227,20 @@ struct GuestReminderWidget: View {
         TimelineView(.periodic(from: .now, by: 1.0)) { timeline in
             let now = timeline.date
             let activeReminders = activeScheduledReminders(at: now)
-            let hasContent = !activeReminders.isEmpty || !sessionsNeedingReminder.isEmpty
+            
+            // Filter out welcome guests that have been showing for more than 10 seconds
+            let activeWelcomes = welcomeGuests.filter { now.timeIntervalSince($0.appearedAt) < 10 }
+            
+            let hasContent = !activeReminders.isEmpty || !sessionsNeedingReminder.isEmpty || !activeWelcomes.isEmpty
             
             if hasContent {
                 VStack(alignment: .leading, spacing: 16) {
+                    // Welcome messages for newly checked-in guests
+                    ForEach(activeWelcomes) { welcome in
+                        WelcomeCard(welcome: welcome, now: now)
+                            .transition(.move(edge: .leading).combined(with: .opacity))
+                    }
+                    
                     // Scheduled time-based reminders
                     ForEach(activeReminders) { reminder in
                         ScheduledReminderCard(reminder: reminder, now: now)
@@ -233,6 +255,7 @@ struct GuestReminderWidget: View {
                 }
                 .animation(.easeInOut(duration: 0.5), value: sessionsNeedingReminder.count)
                 .animation(.easeInOut(duration: 0.5), value: activeReminders.count)
+                .animation(.easeInOut(duration: 0.5), value: activeWelcomes.count)
                 .onChange(of: activeReminders.map(\.id)) { newIds in
                     checkForNewScheduledReminders(activeIds: Set(newIds), at: now)
                 }
@@ -241,10 +264,13 @@ struct GuestReminderWidget: View {
         .onReceive(fetchTimer) { _ in
             Task {
                 await fetchReminders()
+                await fetchRecentCheckIns()
+                cleanUpExpiredWelcomes()
             }
         }
         .task {
             await fetchReminders()
+            await fetchRecentCheckIns()
         }
     }
     
@@ -287,6 +313,91 @@ struct GuestReminderWidget: View {
             // Silently fail - will retry on next fetch cycle
             print("Failed to fetch session reminders: \(error)")
         }
+    }
+    
+    private func fetchRecentCheckIns() async {
+        do {
+            let recentSessions = try await apiClient.fetchRecentlyCheckedIn()
+            print("[GuestReminder] Fetched \(recentSessions.count) recently checked-in guests")
+            
+            await MainActor.run {
+                for session in recentSessions {
+                    // Only show welcome if we haven't already welcomed this guest
+                    if !welcomedGuestIds.contains(session.id) {
+                        welcomedGuestIds.insert(session.id)
+                        
+                        let welcome = WelcomeGuest(
+                            id: session.id,
+                            guestName: session.guestName,
+                            guestCount: session.guestCount,
+                            duration: session.duration,
+                            appearedAt: Date()
+                        )
+                        welcomeGuests.append(welcome)
+                        
+                        // Play a welcome chime
+                        chimeManager.playChime(for: "welcome-\(session.id)")
+                        
+                        print("[GuestReminder] Welcome! \(session.guestName) just checked in")
+                    }
+                }
+            }
+        } catch {
+            print("Failed to fetch recently checked in: \(error)")
+        }
+    }
+    
+    private func cleanUpExpiredWelcomes() {
+        let now = Date()
+        welcomeGuests.removeAll { now.timeIntervalSince($0.appearedAt) >= 12 }
+    }
+}
+
+// MARK: - Welcome Card
+
+struct WelcomeCard: View {
+    let welcome: WelcomeGuest
+    let now: Date
+    
+    private var opacity: Double {
+        let elapsed = now.timeIntervalSince(welcome.appearedAt)
+        if elapsed < 1 { return elapsed } // Fade in
+        if elapsed > 8 { return max(0, 1 - (elapsed - 8) / 2) } // Fade out
+        return 1
+    }
+    
+    var body: some View {
+        HStack(spacing: 20) {
+            Image(systemName: "pawprint.fill")
+                .font(.system(size: 36, weight: .semibold))
+                .foregroundColor(.white)
+                .symbolEffect(.bounce, options: .repeating)
+            
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Welcome, \(welcome.guestName)! 🐱")
+                    .font(.system(size: 28, weight: .bold))
+                    .foregroundColor(.white)
+                    .lineLimit(1)
+                
+                Text("\(welcome.guestCount) guest\(welcome.guestCount != 1 ? "s" : "") \u{2022} \(welcome.duration) min session")
+                    .font(.system(size: 22))
+                    .foregroundColor(.white.opacity(0.9))
+            }
+            
+            Spacer()
+        }
+        .padding(.horizontal, 28)
+        .padding(.vertical, 20)
+        .background(
+            LinearGradient(
+                colors: [Color.green.opacity(0.9), Color.teal.opacity(0.9)],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+        )
+        .cornerRadius(20)
+        .shadow(color: .black.opacity(0.3), radius: 12, y: 4)
+        .opacity(opacity)
     }
 }
 
