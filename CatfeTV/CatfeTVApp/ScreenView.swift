@@ -296,6 +296,7 @@ struct BaseScreenLayout<Content: View>: View {
 struct QRCodeView: View {
     let url: String
     let size: CGFloat
+    var label: String = "Scan to learn more"
     
     @State private var qrImage: UIImage?
     
@@ -308,7 +309,7 @@ struct QRCodeView: View {
                         .resizable()
                         .frame(width: size, height: size)
                     
-                    Text("Scan to learn more")
+                    Text(label)
                         .font(CatfeTypography.caption)
                         .foregroundColor(.loungeCharcoal)
                 }
