@@ -62,7 +62,7 @@ struct WaiverWidget: View {
                 .onAppear {
                     generateQRCode(from: url)
                 }
-                .onChange(of: apiClient.settings.waiverUrl) { newUrl in
+                .onChange(of: apiClient.settings.waiverUrl) { _, newUrl in
                     if let newUrl = newUrl, !newUrl.isEmpty {
                         generateQRCode(from: newUrl)
                     }

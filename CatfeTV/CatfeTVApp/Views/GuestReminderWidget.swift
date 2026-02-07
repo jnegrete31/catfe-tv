@@ -208,6 +208,8 @@ struct GuestReminderWidget: View {
     @State private var previousSessionIds: Set<Int> = []
     @State private var previousScheduledIds: Set<String> = []
     @State private var welcomedGuestIds: Set<Int> = []
+    @State private var debugMessage: String = "Initializing..."
+    @State private var fetchCount: Int = 0
     
     let fetchTimer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
     
@@ -233,8 +235,9 @@ struct GuestReminderWidget: View {
             
             let hasContent = !activeReminders.isEmpty || !sessionsNeedingReminder.isEmpty || !activeWelcomes.isEmpty
             
-            if hasContent {
-                VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 16) {
+                // Always show content when available
+                if hasContent {
                     // Welcome messages for newly checked-in guests
                     ForEach(activeWelcomes) { welcome in
                         WelcomeCard(welcome: welcome, now: now)
@@ -253,12 +256,23 @@ struct GuestReminderWidget: View {
                             .transition(.move(edge: .leading).combined(with: .opacity))
                     }
                 }
-                .animation(.easeInOut(duration: 0.5), value: sessionsNeedingReminder.count)
-                .animation(.easeInOut(duration: 0.5), value: activeReminders.count)
-                .animation(.easeInOut(duration: 0.5), value: activeWelcomes.count)
-                .onChange(of: activeReminders.map(\.id)) { newIds in
-                    checkForNewScheduledReminders(activeIds: Set(newIds), at: now)
-                }
+                
+                // DEBUG: Temporary visible indicator - REMOVE after debugging
+                #if DEBUG
+                Text(debugMessage)
+                    .font(.system(size: 14))
+                    .foregroundColor(.white.opacity(0.6))
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Color.black.opacity(0.4))
+                    .cornerRadius(8)
+                #endif
+            }
+            .animation(.easeInOut(duration: 0.5), value: sessionsNeedingReminder.count)
+            .animation(.easeInOut(duration: 0.5), value: activeReminders.count)
+            .animation(.easeInOut(duration: 0.5), value: activeWelcomes.count)
+            .onChange(of: activeReminders.map(\.id)) { _, newIds in
+                checkForNewScheduledReminders(activeIds: Set(newIds), at: now)
             }
         }
         .onReceive(fetchTimer) { _ in
@@ -269,6 +283,8 @@ struct GuestReminderWidget: View {
             }
         }
         .task {
+            print("[GuestReminder] Widget appeared, starting initial fetch...")
+            debugMessage = "Widget loaded, fetching..."
             await fetchReminders()
             await fetchRecentCheckIns()
         }
@@ -290,9 +306,10 @@ struct GuestReminderWidget: View {
     }
     
     private func fetchReminders() async {
+        fetchCount += 1
         do {
             let sessions = try await apiClient.fetchSessionsNeedingReminder()
-            print("[GuestReminder] Fetched \(sessions.count) sessions needing reminder")
+            print("[GuestReminder] Fetch #\(fetchCount): Got \(sessions.count) sessions needing reminder")
             for s in sessions {
                 print("[GuestReminder]   - \(s.guestName) (id=\(s.id)) expires=\(s.expiresAt) remaining=\(s.expiresAt.timeIntervalSinceNow)s")
             }
@@ -308,10 +325,18 @@ struct GuestReminderWidget: View {
                 
                 previousSessionIds = newSessionIds
                 self.sessionsNeedingReminder = sessions
+                
+                if sessions.isEmpty {
+                    debugMessage = "Fetch #\(fetchCount): No reminders"
+                } else {
+                    debugMessage = "Fetch #\(fetchCount): \(sessions.count) reminder(s) - \(sessions.map { $0.guestName }.joined(separator: ", "))"
+                }
             }
         } catch {
-            // Silently fail - will retry on next fetch cycle
-            print("Failed to fetch session reminders: \(error)")
+            print("[GuestReminder] FETCH ERROR: \(error)")
+            await MainActor.run {
+                debugMessage = "Fetch #\(fetchCount) ERROR: \(error.localizedDescription)"
+            }
         }
     }
     
@@ -343,7 +368,7 @@ struct GuestReminderWidget: View {
                 }
             }
         } catch {
-            print("Failed to fetch recently checked in: \(error)")
+            print("[GuestReminder] Recent check-in FETCH ERROR: \(error)")
         }
     }
     
@@ -371,7 +396,6 @@ struct WelcomeCard: View {
             Image(systemName: "pawprint.fill")
                 .font(.system(size: 36, weight: .semibold))
                 .foregroundColor(.white)
-                .symbolEffect(.bounce, options: .repeating)
             
             VStack(alignment: .leading, spacing: 6) {
                 Text("Welcome, \(welcome.guestName)! 🐱")
