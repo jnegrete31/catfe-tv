@@ -1134,7 +1134,16 @@ function ThankYouScreen({ screen, settings }: ScreenRendererProps) {
 // HAPPY_TAILS - Slideshow of adopted cats in their new homes
 function HappyTailsScreen({ screen, settings }: ScreenRendererProps) {
   const { data: photos } = trpc.photos.getApproved.useQuery({ type: "happy_tails" });
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(() => 
+    photos && photos.length > 0 ? Math.floor(Math.random() * photos.length) : 0
+  );
+  
+  // Set random start index when photos first load
+  useEffect(() => {
+    if (photos && photos.length > 0) {
+      setCurrentIndex(Math.floor(Math.random() * photos.length));
+    }
+  }, [photos?.length]);
   
   // Auto-rotate through photos every 8 seconds
   useEffect(() => {

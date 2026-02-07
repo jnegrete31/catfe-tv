@@ -259,13 +259,26 @@ export function usePlaylist() {
   // Current screen
   const currentScreen = playlist[state.currentIndex] || null;
   
-  // Advance to next screen
+  // Advance to next screen, reshuffle when a full cycle completes
   const nextScreen = useCallback(() => {
     setState(prev => {
       const nextIndex = (prev.currentIndex + 1) % Math.max(1, playlist.length);
+      
+      // If we've looped back to the start, reshuffle the playlist for variety
+      if (nextIndex === 0 && playlist.length > 1) {
+        const lastScreen = playlist[prev.currentIndex];
+        const newPlaylist = buildPlaylist(prev.screens, settings?.snapAndPurrFrequency || 5);
+        // Avoid starting with the same screen that just played
+        if (newPlaylist.length > 1 && newPlaylist[0]?.id === lastScreen?.id) {
+          const swapIdx = 1 + Math.floor(Math.random() * (newPlaylist.length - 1));
+          [newPlaylist[0], newPlaylist[swapIdx]] = [newPlaylist[swapIdx], newPlaylist[0]];
+        }
+        setPlaylist(newPlaylist);
+      }
+      
       return { ...prev, currentIndex: nextIndex };
     });
-  }, [playlist.length]);
+  }, [playlist, settings?.snapAndPurrFrequency]);
   
   // Go to previous screen
   const prevScreen = useCallback(() => {

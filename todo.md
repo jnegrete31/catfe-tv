@@ -1106,3 +1106,8 @@
 
 ## Bug Fix - New Slides Not Showing on TV
 - [x] Auto-add new slides to the active playlist when created
+
+## Feature - Shuffle Slides
+- [x] Randomize slide order on tvOS app each cycle
+- [x] Randomize slide order on web TV display each cycle
+- [x] Shuffle photo order in gallery screens (tvOS and web) so they start with different photos each time
