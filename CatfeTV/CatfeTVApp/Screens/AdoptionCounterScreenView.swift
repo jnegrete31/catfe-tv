@@ -34,7 +34,7 @@ struct AdoptionCounterScreenView: View {
                     Spacer().frame(height: 30)
                     
                     // Counter number
-                    Text("\(displayCount)+")
+                    Text("\(displayCount)")
                         .font(.system(size: 140, weight: .bold, design: .serif))
                         .foregroundColor(.loungeAmber)
                     
