@@ -45,7 +45,7 @@ struct ScreenView: View {
                 case .adoptionShowcase:
                     AdoptionShowcaseScreenView(screen: screen, adoptionCats: adoptionCats)
                 case .adoptionCounter:
-                    AdoptionCounterScreenView(screen: screen, settings: settings)
+                    AdoptionCounterScreenView(screen: screen, settings: settings, adoptionCats: adoptionCats)
                 case .thankYou:
                     ThankYouScreenView(screen: screen)
                 case .happyTails:
