@@ -1060,3 +1060,18 @@
 - [x] Fix: Custom init(from decoder:) with decodeIfPresent and fallback defaults for all fields
 - [x] Added debug logging to fetchSettings() for troubleshooting
 - [x] WaiverWidget.swift and LogoWidget.swift are correctly in Xcode project and ContentView overlays
+
+## Feature - Add eventTime and eventLocation Fields to Screen Editor (Feb 6)
+- [ ] Add eventTime and eventLocation columns to screens table schema
+- [ ] Add fields to screenInput and screenUpdateInput schemas in routers
+- [ ] Add fields to admin screen editor UI (show when type is EVENT)
+- [ ] Update tvOS APIScreen model to include eventTime and eventLocation
+- [ ] Update toScreen() to map eventTime and eventLocation from API
+
+## Feature - Adjust Widget Z-Ordering and Overlap Prevention (Feb 6)
+- [ ] Review widget positioning in ContentView.swift
+- [ ] Adjust waiver QR widget padding to prevent overlap with poll widget
+- [ ] Ensure proper layering of all overlay widgets
+
+## Fix - Remove Poll Widgets from tvOS Overlay (Feb 6)
+- [x] Remove PollWidget and PollResultsWidget from ContentView.swift overlay
