@@ -722,3 +722,24 @@ struct GuestSession: Codable, Identifiable {
         }
     }
 }
+
+
+// MARK: - Photo Submissions
+
+struct PhotoSubmission: Codable, Identifiable {
+    let id: Int
+    let type: String // "snap_purr" or "happy_tails"
+    let status: String
+    let submitterName: String
+    let submitterEmail: String?
+    let photoUrl: String
+    let caption: String?
+    let catName: String?
+    let adoptionDate: String?
+    let backgroundStyle: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case id, type, status, submitterName, submitterEmail
+        case photoUrl, caption, catName, adoptionDate, backgroundStyle
+    }
+}

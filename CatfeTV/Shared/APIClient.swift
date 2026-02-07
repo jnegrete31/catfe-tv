@@ -429,6 +429,30 @@ class APIClient: ObservableObject {
         return trpcResponse.result.data.json
     }
     
+    // MARK: - Photos
+    
+    func fetchApprovedPhotos(type: String) async throws -> [PhotoSubmission] {
+        // URL encode the input parameter for tRPC query
+        let inputJSON = "{\"json\":{\"type\":\"\(type)\"}}"
+        let encodedInput = inputJSON.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? inputJSON
+        let url = URL(string: "\(baseURL)/api/trpc/photos.getApproved?input=\(encodedInput)")!
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200 else {
+            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
+            print("[Photos] HTTP \(statusCode) fetching \(type) photos")
+            throw APIError(message: "Failed to fetch \(type) photos")
+        }
+        
+        let trpcResponse = try JSONDecoder().decode(TRPCResponse<[PhotoSubmission]>.self, from: data)
+        print("[Photos] Fetched \(trpcResponse.result.data.json.count) approved \(type) photos")
+        return trpcResponse.result.data.json
+    }
+    
     // MARK: - Active Screens
     
     func getActiveScreens() -> [Screen] {
