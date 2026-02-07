@@ -17,6 +17,34 @@ struct AdoptionScreenView: View {
         screen.catName ?? screen.title.replacingOccurrences(of: "Meet ", with: "")
     }
     
+    /// Randomized "Looking for ___" sayings for non-adopted cats
+    private static let lookingForSayings = [
+        "Looking for Love",
+        "Looking for a Forever Home",
+        "Looking for Cuddles",
+        "Looking for My Human",
+        "Looking for a Lap to Sit On",
+        "Looking for Chin Scratches",
+        "Looking for a Cozy Couch",
+        "Looking for My Purrson",
+        "Looking for a Warm Bed",
+        "Looking for Belly Rubs",
+        "Looking for a Best Friend",
+        "Looking for Treats & Snuggles",
+        "Looking for a Window to Watch",
+        "Looking for My Fur-ever Family",
+        "Looking for Someone to Purr With",
+        "Looking for a New Adventure",
+        "Looking for Head Boops",
+        "Looking for a Sunny Spot"
+    ]
+    
+    /// Pick a saying based on the screen's numeric ID so it stays consistent per cat
+    private var lookingForText: String {
+        let index = (screen.numericId ?? 0) % Self.lookingForSayings.count
+        return Self.lookingForSayings[abs(index)]
+    }
+    
     var body: some View {
         BaseScreenLayout(screen: screen) {
             GeometryReader { geo in
@@ -89,7 +117,7 @@ struct AdoptionScreenView: View {
                         VStack(alignment: .leading, spacing: 24) {
                             // Status badge
                             ScreenBadge(
-                                text: screen.isAdopted ? "Found a Forever Home!" : "Looking for Love",
+                                text: screen.isAdopted ? "Found a Forever Home!" : lookingForText,
                                 color: screen.isAdopted ? Color(hex: "86C5A9") : .loungeWarmOrange,
                                 emoji: screen.isAdopted ? "🎉" : "🐱"
                             )
