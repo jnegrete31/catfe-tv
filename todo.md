@@ -1111,3 +1111,7 @@
 - [x] Randomize slide order on tvOS app each cycle
 - [x] Randomize slide order on web TV display each cycle
 - [x] Shuffle photo order in gallery screens (tvOS and web) so they start with different photos each time
+
+## Bug Fix - Guest Check-in on Apple TV
+- [ ] Fix checked-in guests not appearing on Apple TV app
+- [ ] Fix Xcode warnings: deprecated onChange(of:perform:) in GuestReminderWidget and WaiverWidget, BounceSymbolEffect availability

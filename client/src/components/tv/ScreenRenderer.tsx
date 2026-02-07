@@ -732,7 +732,7 @@ function AdoptionScreen({ screen, settings }: ScreenRendererProps) {
                 style={{ background: 'linear-gradient(135deg, #F5E6D3 0%, #EDE0D4 100%)' }}
               >
                 <div className="text-center mb-3">
-                  <p className="text-base font-semibold" style={{ color: '#3d3d3d' }}>Learn More</p>
+                  <p className="text-base font-semibold" style={{ color: '#3d3d3d' }}>Scan to Adopt Me</p>
                 </div>
                 <QRCodeSVG value={screen.qrUrl} size={150} level="M" fgColor="#2d2d2d" />
               </motion.div>
