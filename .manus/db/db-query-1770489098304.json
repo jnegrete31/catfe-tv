@@ -1,0 +1,20 @@
+{
+  "query": "SELECT id, title, isActive, sortOrder, durationSeconds, schedulingEnabled, startAt, endAt FROM screens WHERE title LIKE '%ilates%' OR title LIKE '%ilat%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2KjT5kGWaGHMws6.75433b4e530a --database aMDMXCoQ2ycSYTjhkKKJzm --execute SELECT id, title, isActive, sortOrder, durationSeconds, schedulingEnabled, startAt, endAt FROM screens WHERE title LIKE '%ilates%' OR title LIKE '%ilat%';",
+  "rows": [
+    {
+      "id": "270001",
+      "title": "Pilates with Cats",
+      "isActive": "1",
+      "sortOrder": "0",
+      "durationSeconds": "25",
+      "schedulingEnabled": "0",
+      "startAt": "NULL",
+      "endAt": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\ttitle\tisActive\tsortOrder\tdurationSeconds\tschedulingEnabled\tstartAt\tendAt\n270001\tPilates with Cats\t1\t0\t25\t0\tNULL\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 52
+}

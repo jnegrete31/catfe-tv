@@ -1,0 +1,8 @@
+{
+  "query": "INSERT INTO playlist_screens (playlistId, screenId, sortOrder) SELECT 1, 270001, COALESCE(MAX(sortOrder), 0) + 1 FROM playlist_screens WHERE playlistId = 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2KjT5kGWaGHMws6.75433b4e530a --database aMDMXCoQ2ycSYTjhkKKJzm --execute INSERT INTO playlist_screens (playlistId, screenId, sortOrder) SELECT 1, 270001, COALESCE(MAX(sortOrder), 0) + 1 FROM playlist_screens WHERE playlistId = 1;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1146 (42S02) at line 1: Table 'amdmxcoq2ycsytjhkkkjzm.playlist_screens' doesn't exist"
+  ]
+}

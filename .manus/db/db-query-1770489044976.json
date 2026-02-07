@@ -1,0 +1,130 @@
+{
+  "query": "SELECT id, title, isActive, sortOrder, durationSeconds, DATE_FORMAT(createdAt, '%Y-%m-%d %H:%i') as created FROM screens ORDER BY createdAt DESC LIMIT 15;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2KjT5kGWaGHMws6.75433b4e530a --database aMDMXCoQ2ycSYTjhkKKJzm --execute SELECT id, title, isActive, sortOrder, durationSeconds, DATE_FORMAT(createdAt, '%Y-%m-%d %H:%i') as created FROM screens ORDER BY createdAt DESC LIMIT 15;",
+  "rows": [
+    {
+      "id": "270001",
+      "title": "Pilates with Cats",
+      "isActive": "1",
+      "sortOrder": "0",
+      "durationSeconds": "25",
+      "created": "2026-02-07 18:21"
+    },
+    {
+      "id": "240001",
+      "title": "Celia",
+      "isActive": "1",
+      "sortOrder": "16",
+      "durationSeconds": "10",
+      "created": "2026-02-06 07:55"
+    },
+    {
+      "id": "180001",
+      "title": "Judy",
+      "isActive": "1",
+      "sortOrder": "18",
+      "durationSeconds": "10",
+      "created": "2026-02-04 19:01"
+    },
+    {
+      "id": "150002",
+      "title": "Welcome!",
+      "isActive": "0",
+      "sortOrder": "26",
+      "durationSeconds": "10",
+      "created": "2026-02-03 00:46"
+    },
+    {
+      "id": "120006",
+      "title": "Happy Tails",
+      "isActive": "1",
+      "sortOrder": "25",
+      "durationSeconds": "10",
+      "created": "2026-02-02 05:17"
+    },
+    {
+      "id": "120005",
+      "title": "Happy Tails",
+      "isActive": "1",
+      "sortOrder": "24",
+      "durationSeconds": "10",
+      "created": "2026-02-02 05:16"
+    },
+    {
+      "id": "120003",
+      "title": "Share your Cat Lounge Moments ",
+      "isActive": "1",
+      "sortOrder": "22",
+      "durationSeconds": "60",
+      "created": "2026-02-02 00:50"
+    },
+    {
+      "id": "120002",
+      "title": "Strawberry 🍓",
+      "isActive": "1",
+      "sortOrder": "21",
+      "durationSeconds": "10",
+      "created": "2026-02-01 19:34"
+    },
+    {
+      "id": "120001",
+      "title": "Lemon",
+      "isActive": "1",
+      "sortOrder": "20",
+      "durationSeconds": "10",
+      "created": "2026-02-01 18:21"
+    },
+    {
+      "id": "60001",
+      "title": "Cats Adopted at Catfé",
+      "isActive": "1",
+      "sortOrder": "19",
+      "durationSeconds": "20",
+      "created": "2026-01-31 04:26"
+    },
+    {
+      "id": "30001",
+      "title": "Find Your Purrfect Match",
+      "isActive": "1",
+      "sortOrder": "27",
+      "durationSeconds": "30",
+      "created": "2026-01-30 18:31"
+    },
+    {
+      "id": "18",
+      "title": "Laurie-Strode",
+      "isActive": "1",
+      "sortOrder": "17",
+      "durationSeconds": "10",
+      "created": "2026-01-29 23:57"
+    },
+    {
+      "id": "17",
+      "title": "Elvira",
+      "isActive": "1",
+      "sortOrder": "5",
+      "durationSeconds": "10",
+      "created": "2026-01-29 23:55"
+    },
+    {
+      "id": "16",
+      "title": "Chun-Li",
+      "isActive": "1",
+      "sortOrder": "15",
+      "durationSeconds": "10",
+      "created": "2026-01-29 23:51"
+    },
+    {
+      "id": "15",
+      "title": "Bruce",
+      "isActive": "1",
+      "sortOrder": "3",
+      "durationSeconds": "10",
+      "created": "2026-01-29 23:42"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\ttitle\tisActive\tsortOrder\tdurationSeconds\tcreated\n270001\tPilates with Cats\t1\t0\t25\t2026-02-07 18:21\n240001\tCelia\t1\t16\t10\t2026-02-06 07:55\n180001\tJudy\t1\t18\t10\t2026-02-04 19:01\n150002\tWelcome!\t0\t26\t10\t2026-02-03 00:46\n120006\tHappy Tails\t1\t25\t10\t2026-02-02 05:17\n120005\tHappy Tails\t1\t24\t10\t2026-02-02 05:16\n120003\tShare your Cat Lounge Moments \t1\t22\t60\t2026-02-02 00:50\n120002\tStrawberry 🍓\t1\t21\t10\t2026-02-01 19:34\n120001\tLemon\t1\t20\t10\t2026-02-01 18:21\n60001\tCats Adopted at Catfé\t1\t19\t20\t2026-01-31 04:26\n30001\tFind Your Purrfect Match\t1\t27\t30\t2026-01-30 18:31\n18\tLaurie-Strode\t1\t17\t10\t2026-01-29 23:57\n17\tElvira\t1\t5\t10\t2026-01-29 23:55\n16\tChun-Li\t1\t15\t10\t2026-01-29 23:51\n15\tBruce\t1\t3\t10\t2026-01-29 23:42\n",
+  "stderr": "",
+  "execution_time_ms": 58
+}

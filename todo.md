@@ -1100,3 +1100,9 @@
 
 ## Settings Label Improvement
 - [x] Rename "Default Duration (s)" to "Fallback Slide Duration (s)" with helper text
+
+## Bug Fix - Adoption Counter
+- [x] Remove the plus sign (+) after the number on the adoption counter (tvOS)
+
+## Bug Fix - New Slides Not Showing on TV
+- [x] Auto-add new slides to the active playlist when created

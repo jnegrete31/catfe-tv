@@ -292,7 +292,20 @@ export const appRouter = router({
           ...input,
           qrUrl: input.qrUrl === "" ? null : input.qrUrl,
         };
-        return createScreen(data);
+        const result = await createScreen(data);
+        
+        // Auto-add new screen to the active playlist so it shows on TV immediately
+        try {
+          const activePlaylist = await getActivePlaylist();
+          if (activePlaylist && result.id) {
+            await addScreenToPlaylist(activePlaylist.id, result.id);
+          }
+        } catch (e) {
+          // Non-critical: screen is created even if playlist add fails
+          console.warn('[Screens] Failed to auto-add screen to playlist:', e);
+        }
+        
+        return result;
       }),
 
     // Update screen

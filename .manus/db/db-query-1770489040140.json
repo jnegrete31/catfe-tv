@@ -1,0 +1,90 @@
+{
+  "query": "SELECT id, title, isActive, sortOrder, durationSeconds, createdAt FROM screens ORDER BY id DESC LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2KjT5kGWaGHMws6.75433b4e530a --database aMDMXCoQ2ycSYTjhkKKJzm --execute SELECT id, title, isActive, sortOrder, durationSeconds, createdAt FROM screens ORDER BY id DESC LIMIT 10;",
+  "rows": [
+    {
+      "id": "270001",
+      "title": "Pilates with Cats",
+      "isActive": "1",
+      "sortOrder": "0",
+      "durationSeconds": "25",
+      "createdAt": "2026-02-07 18:21:37"
+    },
+    {
+      "id": "240001",
+      "title": "Celia",
+      "isActive": "1",
+      "sortOrder": "16",
+      "durationSeconds": "10",
+      "createdAt": "2026-02-06 07:55:43"
+    },
+    {
+      "id": "180001",
+      "title": "Judy",
+      "isActive": "1",
+      "sortOrder": "18",
+      "durationSeconds": "10",
+      "createdAt": "2026-02-04 19:01:27"
+    },
+    {
+      "id": "150002",
+      "title": "Welcome!",
+      "isActive": "0",
+      "sortOrder": "26",
+      "durationSeconds": "10",
+      "createdAt": "2026-02-03 00:46:11"
+    },
+    {
+      "id": "120006",
+      "title": "Happy Tails",
+      "isActive": "1",
+      "sortOrder": "25",
+      "durationSeconds": "10",
+      "createdAt": "2026-02-02 05:17:20"
+    },
+    {
+      "id": "120005",
+      "title": "Happy Tails",
+      "isActive": "1",
+      "sortOrder": "24",
+      "durationSeconds": "10",
+      "createdAt": "2026-02-02 05:16:57"
+    },
+    {
+      "id": "120003",
+      "title": "Share your Cat Lounge Moments ",
+      "isActive": "1",
+      "sortOrder": "22",
+      "durationSeconds": "60",
+      "createdAt": "2026-02-02 00:50:42"
+    },
+    {
+      "id": "120002",
+      "title": "Strawberry 🍓",
+      "isActive": "1",
+      "sortOrder": "21",
+      "durationSeconds": "10",
+      "createdAt": "2026-02-01 19:34:36"
+    },
+    {
+      "id": "120001",
+      "title": "Lemon",
+      "isActive": "1",
+      "sortOrder": "20",
+      "durationSeconds": "10",
+      "createdAt": "2026-02-01 18:21:34"
+    },
+    {
+      "id": "60001",
+      "title": "Cats Adopted at Catfé",
+      "isActive": "1",
+      "sortOrder": "19",
+      "durationSeconds": "20",
+      "createdAt": "2026-01-31 04:26:06"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\ttitle\tisActive\tsortOrder\tdurationSeconds\tcreatedAt\n270001\tPilates with Cats\t1\t0\t25\t2026-02-07 18:21:37\n240001\tCelia\t1\t16\t10\t2026-02-06 07:55:43\n180001\tJudy\t1\t18\t10\t2026-02-04 19:01:27\n150002\tWelcome!\t0\t26\t10\t2026-02-03 00:46:11\n120006\tHappy Tails\t1\t25\t10\t2026-02-02 05:17:20\n120005\tHappy Tails\t1\t24\t10\t2026-02-02 05:16:57\n120003\tShare your Cat Lounge Moments \t1\t22\t60\t2026-02-02 00:50:42\n120002\tStrawberry 🍓\t1\t21\t10\t2026-02-01 19:34:36\n120001\tLemon\t1\t20\t10\t2026-02-01 18:21:34\n60001\tCats Adopted at Catfé\t1\t19\t20\t2026-01-31 04:26:06\n",
+  "stderr": "",
+  "execution_time_ms": 55
+}

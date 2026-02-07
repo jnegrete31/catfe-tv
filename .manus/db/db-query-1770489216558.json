@@ -1,0 +1,17 @@
+{
+  "query": "SELECT id, title FROM screens WHERE title LIKE '%ilates%'; SELECT id, name, isActive FROM playlists WHERE isActive = 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2KjT5kGWaGHMws6.75433b4e530a --database aMDMXCoQ2ycSYTjhkKKJzm --execute SELECT id, title FROM screens WHERE title LIKE '%ilates%'; SELECT id, name, isActive FROM playlists WHERE isActive = 1;",
+  "rows": [
+    {
+      "id": "270001",
+      "title": "Pilates with Cats"
+    }
+  ],
+  "messages": [
+    "id\tname\tisActive",
+    "1\tLounge\t1"
+  ],
+  "stdout": "id\ttitle\n270001\tPilates with Cats\nid\tname\tisActive\n1\tLounge\t1\n",
+  "stderr": "",
+  "execution_time_ms": 60
+}

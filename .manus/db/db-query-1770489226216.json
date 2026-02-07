@@ -1,0 +1,13 @@
+{
+  "query": "SELECT id FROM screens WHERE title LIKE '%ilates%' LIMIT 1;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2KjT5kGWaGHMws6.75433b4e530a --database aMDMXCoQ2ycSYTjhkKKJzm --execute SELECT id FROM screens WHERE title LIKE '%ilates%' LIMIT 1;",
+  "rows": [
+    {
+      "id": "270001"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\n270001\n",
+  "stderr": "",
+  "execution_time_ms": 50
+}

@@ -1,0 +1,37 @@
+{
+  "query": "SELECT * FROM screens WHERE title LIKE '%ilates%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2KjT5kGWaGHMws6.75433b4e530a --database aMDMXCoQ2ycSYTjhkKKJzm --execute SELECT * FROM screens WHERE title LIKE '%ilates%';",
+  "rows": [
+    {
+      "id": "270001",
+      "screenType": "EVENT",
+      "title": "Pilates with Cats",
+      "subtitle": "February 28",
+      "body": "NULL",
+      "imagePath": "https://raw.githubusercontent.com/jnegrete31/catfe-tv/main/assets/catfe-tv/2026/02/1770488383437-cropped.jpg",
+      "qrUrl": "http://catfe.la/events",
+      "startAt": "NULL",
+      "endAt": "NULL",
+      "daysOfWeek": "NULL",
+      "timeStart": "NULL",
+      "timeEnd": "NULL",
+      "priority": "1",
+      "durationSeconds": "25",
+      "sortOrder": "0",
+      "isActive": "1",
+      "isProtected": "0",
+      "createdAt": "2026-02-07 18:21:37",
+      "updatedAt": "2026-02-07 18:22:09",
+      "imageDisplayMode": "contain",
+      "isAdopted": "0",
+      "livestreamUrl": "NULL",
+      "schedulingEnabled": "0",
+      "eventTime": "8:00am - 9:30am",
+      "eventLocation": "Catfé"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tscreenType\ttitle\tsubtitle\tbody\timagePath\tqrUrl\tstartAt\tendAt\tdaysOfWeek\ttimeStart\ttimeEnd\tpriority\tdurationSeconds\tsortOrder\tisActive\tisProtected\tcreatedAt\tupdatedAt\timageDisplayMode\tisAdopted\tlivestreamUrl\tschedulingEnabled\teventTime\teventLocation\n270001\tEVENT\tPilates with Cats\tFebruary 28\tNULL\thttps://raw.githubusercontent.com/jnegrete31/catfe-tv/main/assets/catfe-tv/2026/02/1770488383437-cropped.jpg\thttp://catfe.la/events\tNULL\tNULL\tNULL\tNULL\tNULL\t1\t25\t0\t1\t0\t2026-02-07 18:21:37\t2026-02-07 18:22:09\tcontain\t0\tNULL\t0\t8:00am - 9:30am\tCatfé\n",
+  "stderr": "",
+  "execution_time_ms": 51
+}
