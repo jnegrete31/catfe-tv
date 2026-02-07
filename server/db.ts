@@ -439,6 +439,27 @@ export async function getSessionsNeedingReminder() {
     .orderBy(asc(guestSessions.expiresAt));
 }
 
+export async function getRecentlyCheckedIn() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const now = new Date();
+  const thirtySecondsAgo = new Date(now.getTime() - 30 * 1000);
+  
+  // Get sessions checked in within the last 30 seconds
+  return db.select().from(guestSessions)
+    .where(
+      and(
+        or(
+          eq(guestSessions.status, "active"),
+          eq(guestSessions.status, "extended")
+        ),
+        gte(guestSessions.checkInAt, thirtySecondsAgo)
+      )
+    )
+    .orderBy(desc(guestSessions.checkInAt));
+}
+
 export async function markReminderShown(id: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");

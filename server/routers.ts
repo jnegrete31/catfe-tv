@@ -32,6 +32,7 @@ import {
   checkOutGuestSession,
   extendGuestSession,
   getSessionsNeedingReminder,
+  getRecentlyCheckedIn,
   markReminderShown,
   getTodayGuestStats,
   getAllPhotoSubmissions,
@@ -551,6 +552,10 @@ export const appRouter = router({
     // Get sessions needing reminder (for TV display)
     getNeedingReminder: publicProcedure.query(async () => {
       return getSessionsNeedingReminder();
+    }),
+
+    getRecentlyCheckedIn: publicProcedure.query(async () => {
+      return getRecentlyCheckedIn();
     }),
 
     // Mark reminder as shown

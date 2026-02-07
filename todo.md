@@ -1078,3 +1078,12 @@
 
 ## Feature - Skip Image Cropping Option (Feb 6)
 - [x] Add "Use Original" button to image cropper dialog to bypass cropping
+
+## Bug Fix - Guest Name Not Showing on Apple TV Countdown (Feb 6)
+- [x] Confirmed: guest name DOES show, but only during the 5-min window before session expiry
+- [x] Added welcome message on check-in so guest name appears immediately too
+
+## Feature - Welcome Guest Message on Apple TV (Feb 6)
+- [x] Add backend endpoint for recently checked-in guests (within last 30 seconds)
+- [x] Add welcome banner to GuestReminderWidget that shows guest name on check-in
+- [x] Keep existing 5-minute countdown warning
