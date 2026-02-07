@@ -321,10 +321,16 @@ class APIClient: ObservableObject {
             if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
                 let trpcResponse = try decoder.decode(TRPCResponse<AppSettings>.self, from: data)
                 settings = trpcResponse.result.data.json
+                print("[Settings] Decoded OK - waiverUrl: \(settings.waiverUrl ?? "nil"), logoUrl: \(settings.logoUrl ?? "nil"), refresh: \(settings.refreshIntervalSeconds)s")
                 saveSettingsToCache()
+            } else {
+                let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
+                print("[Settings] HTTP \(statusCode) - falling back to cache")
+                loadSettingsFromCache()
             }
         } catch {
-            // Use default settings
+            print("[Settings] Decode FAILED: \(error)")
+            // Use cached or default settings
             loadSettingsFromCache()
         }
     }

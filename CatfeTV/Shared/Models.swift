@@ -430,6 +430,56 @@ struct AppSettings: Codable {
         case houseRules
     }
     
+    // Custom decoder: use defaults for any missing/null fields so decode never fails
+    // The API may not return latitude, longitude, transitionDuration, etc.
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        locationName = try container.decodeIfPresent(String.self, forKey: .locationName)
+        defaultDurationSeconds = (try? container.decode(Int.self, forKey: .defaultDurationSeconds)) ?? 10
+        snapAndPurrFrequency = (try? container.decode(Int.self, forKey: .snapAndPurrFrequency)) ?? 5
+        latitude = (try? container.decode(Double.self, forKey: .latitude)) ?? 34.3917
+        longitude = (try? container.decode(Double.self, forKey: .longitude)) ?? -118.5426
+        refreshIntervalSeconds = (try? container.decode(Int.self, forKey: .refreshIntervalSeconds)) ?? 60
+        transitionDuration = (try? container.decode(Double.self, forKey: .transitionDuration)) ?? 1.0
+        totalAdoptionCount = (try? container.decode(Int.self, forKey: .totalAdoptionCount)) ?? 0
+        logoUrl = try container.decodeIfPresent(String.self, forKey: .logoUrl)
+        waiverUrl = try container.decodeIfPresent(String.self, forKey: .waiverUrl)
+        wifiName = try container.decodeIfPresent(String.self, forKey: .wifiName)
+        wifiPassword = try container.decodeIfPresent(String.self, forKey: .wifiPassword)
+        houseRules = try container.decodeIfPresent([String].self, forKey: .houseRules)
+    }
+    
+    // Memberwise init for programmatic construction
+    init(
+        locationName: String? = nil,
+        defaultDurationSeconds: Int = 10,
+        snapAndPurrFrequency: Int = 5,
+        latitude: Double = 34.3917,
+        longitude: Double = -118.5426,
+        refreshIntervalSeconds: Int = 60,
+        transitionDuration: Double = 1.0,
+        totalAdoptionCount: Int = 0,
+        logoUrl: String? = nil,
+        waiverUrl: String? = nil,
+        wifiName: String? = nil,
+        wifiPassword: String? = nil,
+        houseRules: [String]? = nil
+    ) {
+        self.locationName = locationName
+        self.defaultDurationSeconds = defaultDurationSeconds
+        self.snapAndPurrFrequency = snapAndPurrFrequency
+        self.latitude = latitude
+        self.longitude = longitude
+        self.refreshIntervalSeconds = refreshIntervalSeconds
+        self.transitionDuration = transitionDuration
+        self.totalAdoptionCount = totalAdoptionCount
+        self.logoUrl = logoUrl
+        self.waiverUrl = waiverUrl
+        self.wifiName = wifiName
+        self.wifiPassword = wifiPassword
+        self.houseRules = houseRules
+    }
+    
     static var `default`: AppSettings {
         AppSettings(
             locationName: "Catfé Santa Clarita",
