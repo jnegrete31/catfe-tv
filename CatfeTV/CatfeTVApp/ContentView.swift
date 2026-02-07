@@ -48,33 +48,11 @@ struct ContentView: View {
                     Spacer()
                 }
                 
-                // Poll Widget Overlay (top-left corner)
-                VStack {
-                    HStack {
-                        PollWidget()
-                            .padding(.top, 40)
-                            .padding(.leading, 60)
-                        Spacer()
-                    }
-                    Spacer()
-                }
-                
-                // Poll Results Widget Overlay (top-left corner, shows during results time)
-                VStack {
-                    HStack {
-                        PollResultsWidget()
-                            .padding(.top, 40)
-                            .padding(.leading, 60)
-                        Spacer()
-                    }
-                    Spacer()
-                }
-                
-                // Waiver QR Widget (top-left corner, below poll)
+                // Top-left overlay: Waiver QR widget
                 VStack {
                     HStack {
                         WaiverWidget()
-                            .padding(.top, 160) // Below poll widget
+                            .padding(.top, 40)
                             .padding(.leading, 60)
                         Spacer()
                     }

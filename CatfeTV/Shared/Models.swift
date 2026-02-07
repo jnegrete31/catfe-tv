@@ -199,6 +199,8 @@ struct APIScreen: Codable {
     var isAdopted: Bool
     var schedulingEnabled: Bool? // When false, screen always shows if active; when true, follows schedule rules
     var livestreamUrl: String?
+    var eventTime: String? // e.g., "5:30pm - 7:30pm"
+    var eventLocation: String? // e.g., "Catfé Santa Clarita"
     var templateOverlay: TemplateOverlay? // Template data from Slide Editor
     var createdAt: String
     var updatedAt: String
@@ -253,7 +255,9 @@ struct APIScreen: Codable {
             schedule: schedule,
             livestreamUrl: livestreamUrl,
             templateOverlay: templateOverlay,
-            eventDate: parseDate(startAt)
+            eventDate: parseDate(startAt),
+            eventTime: eventTime,
+            eventLocation: eventLocation
         )
     }
 }
