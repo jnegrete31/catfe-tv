@@ -4,20 +4,30 @@
 //
 //  Happy Tails screen - cycles through uploaded adoption photos.
 //  Uses pre-cached photos from APIClient for instant display.
+//  Dynamically adjusts cycling speed to show all photos within the screen duration.
 //
 import SwiftUI
+
 struct HappyTailsScreenView: View {
     let screen: Screen
     
     @EnvironmentObject var apiClient: APIClient
     @State private var currentIndex = 0
     @State private var appeared = false
-    
-    private let photoTimer = Timer.publish(every: 8, on: .main, in: .common).autoconnect()
+    @State private var cycleTimer: Timer? = nil
     
     /// Use cached photos from APIClient (pre-fetched at startup)
     private var photos: [PhotoSubmission] {
         apiClient.cachedHappyTailsPhotos
+    }
+    
+    /// Calculate how many seconds per photo to fit all within the screen duration.
+    /// Minimum 3 seconds per photo so they're readable, maximum 8 seconds.
+    private var secondsPerPhoto: Double {
+        guard photos.count > 1 else { return 8.0 }
+        let duration = Double(screen.duration)
+        let idealInterval = duration / Double(photos.count)
+        return min(max(idealInterval, 3.0), 8.0)
     }
     
     var body: some View {
@@ -152,15 +162,22 @@ struct HappyTailsScreenView: View {
         }
         .onAppear {
             withAnimation { appeared = true }
-            if currentIndex >= photos.count && !photos.isEmpty {
-                currentIndex = currentIndex % photos.count
-            }
+            currentIndex = 0
+            startCycling()
         }
-        .onReceive(photoTimer) { _ in
-            if !photos.isEmpty {
-                withAnimation(.easeInOut(duration: 0.5)) {
-                    currentIndex = (currentIndex + 1) % photos.count
-                }
+        .onDisappear {
+            cycleTimer?.invalidate()
+            cycleTimer = nil
+        }
+    }
+    
+    /// Start a timer that cycles through photos at the calculated speed
+    private func startCycling() {
+        cycleTimer?.invalidate()
+        guard photos.count > 1 else { return }
+        cycleTimer = Timer.scheduledTimer(withTimeInterval: secondsPerPhoto, repeats: true) { _ in
+            withAnimation(.easeInOut(duration: 0.5)) {
+                currentIndex = (currentIndex + 1) % photos.count
             }
         }
     }
