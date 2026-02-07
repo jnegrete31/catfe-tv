@@ -107,10 +107,10 @@ class APIClient: ObservableObject {
         error = nil
         
         do {
-            // Use screens.getActiveWithTemplates (public, includes template overlay data) for TV display
+            // Use playlists.getActiveScreensWithTemplates (public, playlist-ordered + template overlay) for TV display
             // Use screens.getAll (protected) for admin
             #if os(tvOS)
-            let endpoint = "screens.getActiveWithTemplates"
+            let endpoint = "playlists.getActiveScreensWithTemplates"
             #else
             let endpoint = getAuthToken() != nil ? "screens.getAll" : "screens.getActive"
             #endif
@@ -397,13 +397,9 @@ class APIClient: ObservableObject {
     // MARK: - Active Screens
     
     func getActiveScreens() -> [Screen] {
-        screens.filter { screen in
-            guard screen.isActive else { return false }
-            if let schedule = screen.schedule {
-                return schedule.isActiveNow()
-            }
-            return true
-        }.sorted { $0.sortOrder < $1.sortOrder }
+        // Backend now handles playlist filtering and scheduling via playlists.getActiveScreensWithTemplates
+        // Just return all screens as-is (already filtered and ordered by backend)
+        screens.filter { $0.isActive }
     }
     
     // MARK: - Local Cache

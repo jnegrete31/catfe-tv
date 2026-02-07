@@ -195,17 +195,15 @@ struct GuestReminderWidget: View {
     @State private var sessionsNeedingReminder: [GuestSession] = []
     @State private var previousSessionIds: Set<Int> = []
     @State private var previousScheduledIds: Set<String> = []
-    @State private var currentTime = Date()
-    @State private var isVisible = false
+    @State private var tickCount: Int = 0 // Force re-render every second
     
-    let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     let fetchTimer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
     
     private let chimeManager = ChimeSoundManager.shared
     
     // Active scheduled reminders based on current time
-    private var activeScheduledReminders: [ScheduledReminder] {
-        let currentMinute = Calendar.current.component(.minute, from: currentTime)
+    private func activeScheduledReminders(at time: Date) -> [ScheduledReminder] {
+        let currentMinute = Calendar.current.component(.minute, from: time)
         return scheduledReminders.filter { reminder in
             let diff = currentMinute - reminder.minute
             return diff >= 0 && diff < 5
@@ -213,24 +211,32 @@ struct GuestReminderWidget: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            // Scheduled time-based reminders
-            ForEach(activeScheduledReminders) { reminder in
-                ScheduledReminderCard(reminder: reminder, currentTime: currentTime)
-                    .transition(.move(edge: .leading).combined(with: .opacity))
-            }
+        // Use TimelineView for guaranteed per-second updates
+        TimelineView(.periodic(from: .now, by: 1.0)) { timeline in
+            let now = timeline.date
+            let activeReminders = activeScheduledReminders(at: now)
+            let hasContent = !activeReminders.isEmpty || !sessionsNeedingReminder.isEmpty
             
-            // Individual guest session reminders
-            ForEach(sessionsNeedingReminder) { session in
-                SessionReminderCard(session: session, currentTime: currentTime)
-                    .transition(.move(edge: .leading).combined(with: .opacity))
+            if hasContent {
+                VStack(alignment: .leading, spacing: 16) {
+                    // Scheduled time-based reminders
+                    ForEach(activeReminders) { reminder in
+                        ScheduledReminderCard(reminder: reminder, now: now)
+                            .transition(.move(edge: .leading).combined(with: .opacity))
+                    }
+                    
+                    // Individual guest session reminders
+                    ForEach(sessionsNeedingReminder) { session in
+                        SessionReminderCard(session: session, now: now)
+                            .transition(.move(edge: .leading).combined(with: .opacity))
+                    }
+                }
+                .animation(.easeInOut(duration: 0.5), value: sessionsNeedingReminder.count)
+                .animation(.easeInOut(duration: 0.5), value: activeReminders.count)
+                .onChange(of: activeReminders.map(\.id)) { newIds in
+                    checkForNewScheduledReminders(activeIds: Set(newIds), at: now)
+                }
             }
-        }
-        .animation(.easeInOut(duration: 0.5), value: sessionsNeedingReminder.count)
-        .animation(.easeInOut(duration: 0.5), value: activeScheduledReminders.count)
-        .onReceive(timer) { time in
-            currentTime = time
-            checkForNewScheduledReminders()
         }
         .onReceive(fetchTimer) { _ in
             Task {
@@ -243,19 +249,15 @@ struct GuestReminderWidget: View {
     }
     
     /// Check if any new scheduled reminders appeared and play chime
-    private func checkForNewScheduledReminders() {
-        let currentScheduledIds = Set(activeScheduledReminders.map { "\($0.id)-\(Calendar.current.component(.hour, from: currentTime))" })
+    private func checkForNewScheduledReminders(activeIds: Set<String>, at time: Date) {
+        let hourKey = Calendar.current.component(.hour, from: time)
+        let currentScheduledIds = Set(activeIds.map { "\($0)-\(hourKey)" })
         
         // Play chime for any newly appeared scheduled reminders
         for id in currentScheduledIds {
             if !previousScheduledIds.contains(id) {
                 chimeManager.playChime(for: "scheduled-\(id)")
             }
-        }
-        
-        // Reset chime tracking when no scheduled reminders are active
-        if currentScheduledIds.isEmpty && !previousScheduledIds.isEmpty {
-            // Window ended, reset for next cycle
         }
         
         previousScheduledIds = currentScheduledIds
@@ -288,13 +290,13 @@ struct GuestReminderWidget: View {
 
 struct ScheduledReminderCard: View {
     let reminder: ScheduledReminder
-    let currentTime: Date
+    let now: Date
     
     private var timeRemaining: (minutes: Int, seconds: Int) {
-        let currentMinute = Calendar.current.component(.minute, from: currentTime)
-        let currentSecond = Calendar.current.component(.second, from: currentTime)
+        let currentMinute = Calendar.current.component(.minute, from: now)
+        let currentSecond = Calendar.current.component(.second, from: now)
         let minutesIntoWindow = currentMinute - reminder.minute
-        let minutesLeft = 4 - minutesIntoWindow
+        let minutesLeft = max(0, 4 - minutesIntoWindow)
         let secondsLeft = 59 - currentSecond
         return (minutesLeft, secondsLeft)
     }
@@ -317,7 +319,7 @@ struct ScheduledReminderCard: View {
                         .font(.system(size: 24, weight: .bold))
                         .foregroundColor(.white)
                     
-                    Text("Ending soon • \(timeRemaining.minutes):\(String(format: "%02d", timeRemaining.seconds))")
+                    Text("Ending soon \u{2022} \(timeRemaining.minutes):\(String(format: "%02d", timeRemaining.seconds))")
                         .font(.system(size: 20))
                         .foregroundColor(.white.opacity(0.9))
                 }
@@ -336,7 +338,6 @@ struct ScheduledReminderCard: View {
                     Rectangle()
                         .fill(Color.white.opacity(0.8))
                         .frame(width: geometry.size.width * progress)
-                        .animation(.linear(duration: 1), value: progress)
                 }
             }
             .frame(height: 6)
@@ -357,10 +358,10 @@ struct ScheduledReminderCard: View {
 
 struct SessionReminderCard: View {
     let session: GuestSession
-    let currentTime: Date
+    let now: Date
     
     private var timeRemaining: TimeInterval {
-        return session.expiresAt.timeIntervalSince(currentTime)
+        return session.expiresAt.timeIntervalSince(now)
     }
     
     private var isUrgent: Bool {
@@ -402,7 +403,7 @@ struct SessionReminderCard: View {
                             .font(.system(size: 20))
                             .foregroundColor(.white.opacity(0.9))
                     } else {
-                        Text("\(formattedTime) left • \(session.guestCount) guest\(session.guestCount != 1 ? "s" : "") • \(session.sessionTypeLabel)")
+                        Text("\(formattedTime) left \u{2022} \(session.guestCount) guest\(session.guestCount != 1 ? "s" : "") \u{2022} \(session.sessionTypeLabel)")
                             .font(.system(size: 20))
                             .foregroundColor(.white.opacity(0.9))
                     }
@@ -422,7 +423,6 @@ struct SessionReminderCard: View {
                     Rectangle()
                         .fill(isUrgent ? Color.white : Color.white.opacity(0.8))
                         .frame(width: geometry.size.width * progress)
-                        .animation(.linear(duration: 1), value: progress)
                 }
             }
             .frame(height: 6)
