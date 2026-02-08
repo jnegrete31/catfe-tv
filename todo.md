@@ -1115,3 +1115,9 @@
 ## Bug Fix - Guest Check-in on Apple TV
 - [ ] Fix checked-in guests not appearing on Apple TV app
 - [ ] Fix Xcode warnings: deprecated onChange(of:perform:) in GuestReminderWidget and WaiverWidget, BounceSymbolEffect availability
+
+## Feature - Homepage Redesign
+- [x] Redesign homepage with all admin features showcase
+- [x] Add How-To guide section for new staff onboarding
+- [x] Feature sections: TV Display, Guest Sessions, Adoption Screens, Events, Photos, Playlists, Settings
+- [x] Include step-by-step instructions for each admin feature
