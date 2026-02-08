@@ -434,11 +434,24 @@ class APIClient: ObservableObject {
         
         guard let httpResponse = response as? HTTPURLResponse,
               httpResponse.statusCode == 200 else {
+            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
+            print("[APIClient] fetchRecentlyCheckedIn failed with status: \(statusCode)")
             throw APIError(message: "Failed to fetch recently checked in")
         }
         
-        let trpcResponse = try decoder.decode(TRPCResponse<[GuestSession]>.self, from: data)
-        return trpcResponse.result.data.json
+        // Debug: print raw response
+        if let rawString = String(data: data, encoding: .utf8) {
+            print("[APIClient] getRecentlyCheckedIn raw response: \(rawString.prefix(500))")
+        }
+        
+        do {
+            let trpcResponse = try decoder.decode(TRPCResponse<[GuestSession]>.self, from: data)
+            print("[APIClient] getRecentlyCheckedIn decoded \(trpcResponse.result.data.json.count) sessions")
+            return trpcResponse.result.data.json
+        } catch {
+            print("[APIClient] getRecentlyCheckedIn DECODE ERROR: \(error)")
+            throw error
+        }
     }
     
     // MARK: - Photos

@@ -267,8 +267,8 @@ struct GuestReminderWidget: View {
             let now = timeline.date
             let activeReminders = activeScheduledReminders(at: now)
             
-            // Filter out welcome guests that have been showing for more than 10 seconds
-            let activeWelcomes = welcomeGuests.filter { now.timeIntervalSince($0.appearedAt) < 10 }
+            // Filter out welcome guests that have been showing for more than 20 seconds
+            let activeWelcomes = welcomeGuests.filter { now.timeIntervalSince($0.appearedAt) < 20 }
             
             // Filter sessions to hide expired ones after 30 seconds
             let visibleSessionList = visibleSessions(at: now)
@@ -379,7 +379,12 @@ struct GuestReminderWidget: View {
     private func fetchRecentCheckIns() async {
         do {
             let recentSessions = try await apiClient.fetchRecentlyCheckedIn()
-            print("[GuestReminder] Fetched \(recentSessions.count) recently checked-in guests")
+            print("[GuestReminder] Fetched \(recentSessions.count) recently checked-in guests, welcomedIds count: \(welcomedGuestIds.count)")
+            
+            for session in recentSessions {
+                let alreadyWelcomed = welcomedGuestIds.contains(session.id)
+                print("[GuestReminder]   - \(session.guestName) (id=\(session.id)) alreadyWelcomed=\(alreadyWelcomed) checkInAt=\(session.checkInAt)")
+            }
             
             await MainActor.run {
                 for session in recentSessions {
@@ -399,18 +404,24 @@ struct GuestReminderWidget: View {
                         // Play a welcome chime
                         chimeManager.playChime(for: "welcome-\(session.id)")
                         
-                        print("[GuestReminder] Welcome! \(session.guestName) just checked in")
+                        print("[GuestReminder] ✅ Welcome! \(session.guestName) just checked in (id=\(session.id))")
+                    } else {
+                        print("[GuestReminder] ⏭️ Skipping \(session.guestName) (id=\(session.id)) — already welcomed")
                     }
                 }
             }
         } catch {
-            print("[GuestReminder] Recent check-in FETCH ERROR: \(error)")
+            print("[GuestReminder] ❌ Recent check-in FETCH ERROR: \(error)")
         }
     }
     
     private func cleanUpExpiredWelcomes() {
         let now = Date()
-        welcomeGuests.removeAll { now.timeIntervalSince($0.appearedAt) >= 12 }
+        let before = welcomeGuests.count
+        welcomeGuests.removeAll { now.timeIntervalSince($0.appearedAt) >= 25 }
+        if before != welcomeGuests.count {
+            print("[GuestReminder] Cleaned up \(before - welcomeGuests.count) expired welcomes")
+        }
     }
 }
 
@@ -422,8 +433,8 @@ struct WelcomeCard: View {
     
     private var opacity: Double {
         let elapsed = now.timeIntervalSince(welcome.appearedAt)
-        if elapsed < 1 { return elapsed } // Fade in
-        if elapsed > 8 { return max(0, 1 - (elapsed - 8) / 2) } // Fade out
+        if elapsed < 1 { return elapsed } // Fade in over 1s
+        if elapsed > 17 { return max(0, 1 - (elapsed - 17) / 3) } // Fade out over 3s starting at 17s
         return 1
     }
     
