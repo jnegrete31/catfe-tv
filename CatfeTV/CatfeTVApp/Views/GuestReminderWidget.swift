@@ -51,45 +51,69 @@ struct WelcomeGuest: Identifiable {
 
 // MARK: - Chime Sound Manager
 
-/// Generates and plays a gentle two-tone chime using AVFoundation.
-/// No external audio file needed — the chime is synthesized at runtime.
+/// Generates and plays a gentle two-tone chime using AVAudioPlayer.
+/// No external audio file needed — the chime is synthesized as a WAV buffer at runtime.
+/// Uses .ambient category with .mixWithOthers so it never pauses Apple Music or other media.
 class ChimeSoundManager {
     static let shared = ChimeSoundManager()
     
-    private var audioEngine: AVAudioEngine?
-    private var playerNode: AVAudioPlayerNode?
-    private var isPlaying = false
+    /// Keep a strong reference to the player so it doesn't get deallocated mid-playback
+    private var audioPlayer: AVAudioPlayer?
+    
+    /// Pre-generated WAV data for the chime (created once, reused)
+    private var chimeWavData: Data?
     
     /// IDs of reminders that have already triggered a chime (to avoid repeats)
     private var playedChimeIds = Set<String>()
     
     private init() {
         configureAudioSession()
+        // Pre-generate the chime WAV data once at init
+        chimeWavData = generateChimeWavData()
+        print("[Chime] Initialized, WAV data size: \(chimeWavData?.count ?? 0) bytes")
     }
     
     /// Configure audio session to mix with other audio (Apple Music, etc.)
-    /// This prevents the chime from pausing any currently playing media.
+    /// .ambient category automatically mixes and doesn't interrupt other audio.
     private func configureAudioSession() {
         do {
             let audioSession = AVAudioSession.sharedInstance()
             try audioSession.setCategory(.ambient, mode: .default, options: [.mixWithOthers])
-            try audioSession.setActive(true, options: [.notifyOthersOnDeactivation])
+            try audioSession.setActive(true)
+            print("[Chime] Audio session configured: ambient + mixWithOthers")
         } catch {
-            print("Failed to configure audio session: \(error)")
+            print("[Chime] Failed to configure audio session: \(error)")
         }
     }
     
     /// Play a gentle two-tone chime if this reminder ID hasn't played yet.
-    /// The chime consists of two soft sine wave tones (C5 → E5) for a pleasant notification.
     func playChime(for reminderId: String) {
-        guard !playedChimeIds.contains(reminderId) else { return }
-        guard !isPlaying else { return }
+        guard !playedChimeIds.contains(reminderId) else {
+            print("[Chime] Already played for \(reminderId), skipping")
+            return
+        }
         
         playedChimeIds.insert(reminderId)
-        isPlaying = true
+        print("[Chime] Playing chime for: \(reminderId)")
         
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            self?.generateAndPlayChime()
+        // Ensure audio session is active before playing
+        configureAudioSession()
+        
+        guard let wavData = chimeWavData else {
+            print("[Chime] No WAV data available")
+            return
+        }
+        
+        do {
+            let player = try AVAudioPlayer(data: wavData)
+            player.volume = 0.4 // Gentle but audible volume
+            player.prepareToPlay()
+            player.play()
+            // Keep strong reference until playback completes
+            self.audioPlayer = player
+            print("[Chime] Playback started successfully (duration: \(player.duration)s)")
+        } catch {
+            print("[Chime] Failed to play: \(error)")
         }
     }
     
@@ -103,98 +127,87 @@ class ChimeSoundManager {
         return playedChimeIds.contains(reminderId)
     }
     
-    private func generateAndPlayChime() {
-        let sampleRate: Double = 44100
-        let duration: Double = 1.2 // Total chime duration in seconds
-        let frameCount = AVAudioFrameCount(sampleRate * duration)
+    // MARK: - WAV Generation
+    
+    /// Generate a complete WAV file in memory with a gentle two-tone chime.
+    /// Returns Data containing a valid WAV file that AVAudioPlayer can play directly.
+    private func generateChimeWavData() -> Data? {
+        let sampleRate: Int = 44100
+        let duration: Double = 1.2
+        let numSamples = Int(Double(sampleRate) * duration)
         
-        guard let format = AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 1),
-              let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount) else {
-            isPlaying = false
-            return
-        }
+        // Generate PCM samples as 16-bit integers
+        var samples = [Int16](repeating: 0, count: numSamples)
         
-        buffer.frameLength = frameCount
+        let tone1Freq: Double = 523.25  // C5
+        let tone2Freq: Double = 659.25  // E5
+        let shimmerFreq: Double = 1046.5 // C6
+        let amplitude: Double = 4000.0   // ~12% of Int16.max for gentle volume
         
-        guard let channelData = buffer.floatChannelData?[0] else {
-            isPlaying = false
-            return
-        }
-        
-        // Generate a gentle two-tone chime:
-        // Tone 1: C5 (523 Hz) for 0.0-0.6s
-        // Tone 2: E5 (659 Hz) for 0.3-0.9s (overlapping for richness)
-        // Both tones fade in and out smoothly
-        
-        let tone1Freq: Float = 523.25  // C5
-        let tone2Freq: Float = 659.25  // E5
-        let tone1Start: Float = 0.0
-        let tone1End: Float = 0.6
-        let tone2Start: Float = 0.3
-        let tone2End: Float = 0.9
-        let volume: Float = 0.15 // Gentle volume
-        
-        for i in 0..<Int(frameCount) {
-            let time = Float(i) / Float(sampleRate)
-            var sample: Float = 0
+        for i in 0..<numSamples {
+            let time = Double(i) / Double(sampleRate)
+            var sample: Double = 0
             
-            // Tone 1: C5 with envelope
-            if time >= tone1Start && time <= tone1End {
-                let t1Progress = (time - tone1Start) / (tone1End - tone1Start)
-                // Smooth envelope: quick attack, gentle decay
-                let envelope1 = sin(t1Progress * .pi) // Bell-shaped envelope
-                let sine1 = sin(2.0 * .pi * tone1Freq * time)
-                sample += sine1 * envelope1 * volume
+            // Tone 1: C5, 0.0s - 0.6s with bell envelope
+            if time <= 0.6 {
+                let progress = time / 0.6
+                let envelope = sin(progress * .pi)
+                sample += sin(2.0 * .pi * tone1Freq * time) * envelope * amplitude
             }
             
-            // Tone 2: E5 with envelope
-            if time >= tone2Start && time <= tone2End {
-                let t2Progress = (time - tone2Start) / (tone2End - tone2Start)
-                let envelope2 = sin(t2Progress * .pi)
-                let sine2 = sin(2.0 * .pi * tone2Freq * time)
-                sample += sine2 * envelope2 * volume
+            // Tone 2: E5, 0.3s - 0.9s with bell envelope
+            if time >= 0.3 && time <= 0.9 {
+                let progress = (time - 0.3) / 0.6
+                let envelope = sin(progress * .pi)
+                sample += sin(2.0 * .pi * tone2Freq * time) * envelope * amplitude
             }
             
-            // Add a subtle high harmonic for shimmer
-            if time >= 0.0 && time <= 0.8 {
-                let shimmerProgress = time / 0.8
-                let shimmerEnvelope = sin(shimmerProgress * .pi) * 0.3
-                let shimmer = sin(2.0 * .pi * 1046.5 * time) // C6 (octave above)
-                sample += shimmer * shimmerEnvelope * volume * 0.2
+            // Shimmer: C6, 0.0s - 0.8s, subtle
+            if time <= 0.8 {
+                let progress = time / 0.8
+                let envelope = sin(progress * .pi) * 0.25
+                sample += sin(2.0 * .pi * shimmerFreq * time) * envelope * amplitude * 0.3
             }
             
-            channelData[i] = sample
+            // Clamp to Int16 range
+            samples[i] = Int16(max(-32767, min(32767, sample)))
         }
         
-        // Ensure audio session is configured for mixing before each play
-        configureAudioSession()
+        // Build WAV file in memory
+        let numChannels: Int = 1
+        let bitsPerSample: Int = 16
+        let byteRate = sampleRate * numChannels * (bitsPerSample / 8)
+        let blockAlign = numChannels * (bitsPerSample / 8)
+        let dataSize = numSamples * blockAlign
+        let fileSize = 36 + dataSize
         
-        // Play using AVAudioEngine
-        let engine = AVAudioEngine()
-        let player = AVAudioPlayerNode()
+        var wavData = Data()
         
-        engine.attach(player)
-        engine.connect(player, to: engine.mainMixerNode, format: format)
+        // RIFF header
+        wavData.append(contentsOf: "RIFF".utf8)
+        wavData.append(contentsOf: withUnsafeBytes(of: UInt32(fileSize).littleEndian) { Array($0) })
+        wavData.append(contentsOf: "WAVE".utf8)
         
-        do {
-            try engine.start()
-            player.play()
-            player.scheduleBuffer(buffer, completionHandler: { [weak self] in
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    engine.stop()
-                    // Deactivate our audio session gently so other audio continues
-                    try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
-                    self?.isPlaying = false
-                }
-            })
-            
-            // Keep references alive during playback
-            self.audioEngine = engine
-            self.playerNode = player
-        } catch {
-            print("Failed to play chime: \(error)")
-            isPlaying = false
+        // fmt sub-chunk
+        wavData.append(contentsOf: "fmt ".utf8)
+        wavData.append(contentsOf: withUnsafeBytes(of: UInt32(16).littleEndian) { Array($0) })  // Sub-chunk size
+        wavData.append(contentsOf: withUnsafeBytes(of: UInt16(1).littleEndian) { Array($0) })   // PCM format
+        wavData.append(contentsOf: withUnsafeBytes(of: UInt16(numChannels).littleEndian) { Array($0) })
+        wavData.append(contentsOf: withUnsafeBytes(of: UInt32(sampleRate).littleEndian) { Array($0) })
+        wavData.append(contentsOf: withUnsafeBytes(of: UInt32(byteRate).littleEndian) { Array($0) })
+        wavData.append(contentsOf: withUnsafeBytes(of: UInt16(blockAlign).littleEndian) { Array($0) })
+        wavData.append(contentsOf: withUnsafeBytes(of: UInt16(bitsPerSample).littleEndian) { Array($0) })
+        
+        // data sub-chunk
+        wavData.append(contentsOf: "data".utf8)
+        wavData.append(contentsOf: withUnsafeBytes(of: UInt32(dataSize).littleEndian) { Array($0) })
+        
+        // Append PCM samples
+        for sample in samples {
+            wavData.append(contentsOf: withUnsafeBytes(of: sample.littleEndian) { Array($0) })
         }
+        
+        return wavData
     }
 }
 
