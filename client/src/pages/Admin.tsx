@@ -28,11 +28,13 @@ import {
   ExternalLink,
   Users,
   Image,
-
+  Heart,
   MessageSquare,
   Vote,
   ListMusic,
   Palette,
+  EyeOff,
+  Filter,
 } from "lucide-react";
 import { IOSInstallPrompt } from "@/components/IOSInstallPrompt";
 
@@ -41,6 +43,7 @@ export default function Admin() {
   const [activeTab, setActiveTab] = useState("screens");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingScreen, setEditingScreen] = useState<Screen | null>(null);
+  const [screenFilter, setScreenFilter] = useState<"active" | "all" | "inactive" | "adopted">("active");
   
   // Fetch data
   const screensQuery = trpc.screens.getAll.useQuery(undefined, {
@@ -130,6 +133,13 @@ export default function Admin() {
   
   const screens = screensQuery.data || [];
   const activeScreens = screens.filter(s => s.isActive);
+  const inactiveScreens = screens.filter(s => !s.isActive);
+  const adoptedScreens = screens.filter(s => (s as any).isAdopted === true);
+  
+  const filteredScreens = screenFilter === "active" ? activeScreens
+    : screenFilter === "inactive" ? inactiveScreens
+    : screenFilter === "adopted" ? adoptedScreens
+    : screens;
   
   return (
     <div className="min-h-screen bg-background">
@@ -216,19 +226,54 @@ export default function Admin() {
           {/* Screens Tab */}
           <TabsContent value="screens" className="space-y-4">
             {/* Stats */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-card rounded-lg p-4 border">
-                <p className="text-2xl font-bold">{screens.length}</p>
-                <p className="text-sm text-muted-foreground">Total Screens</p>
-              </div>
-              <div className="bg-card rounded-lg p-4 border">
-                <p className="text-2xl font-bold">{activeScreens.length}</p>
-                <p className="text-sm text-muted-foreground">Active</p>
-              </div>
+            <div className="grid grid-cols-4 gap-2">
+              <button
+                type="button"
+                onClick={() => setScreenFilter("active")}
+                className={`rounded-lg p-3 border text-left transition-colors ${
+                  screenFilter === "active" ? "bg-primary/10 border-primary ring-1 ring-primary" : "bg-card hover:bg-accent/50"
+                }`}
+              >
+                <p className="text-xl font-bold">{activeScreens.length}</p>
+                <p className="text-xs text-muted-foreground">Active</p>
+              </button>
+              <button
+                type="button"
+                onClick={() => setScreenFilter("all")}
+                className={`rounded-lg p-3 border text-left transition-colors ${
+                  screenFilter === "all" ? "bg-primary/10 border-primary ring-1 ring-primary" : "bg-card hover:bg-accent/50"
+                }`}
+              >
+                <p className="text-xl font-bold">{screens.length}</p>
+                <p className="text-xs text-muted-foreground">All</p>
+              </button>
+              <button
+                type="button"
+                onClick={() => setScreenFilter("inactive")}
+                className={`rounded-lg p-3 border text-left transition-colors ${
+                  screenFilter === "inactive" ? "bg-primary/10 border-primary ring-1 ring-primary" : "bg-card hover:bg-accent/50"
+                }`}
+              >
+                <p className="text-xl font-bold">{inactiveScreens.length}</p>
+                <p className="text-xs text-muted-foreground">Inactive</p>
+              </button>
+              <button
+                type="button"
+                onClick={() => setScreenFilter("adopted")}
+                className={`rounded-lg p-3 border text-left transition-colors ${
+                  screenFilter === "adopted" ? "bg-pink-50 border-pink-400 ring-1 ring-pink-400" : "bg-card hover:bg-accent/50"
+                }`}
+              >
+                <p className="text-xl font-bold flex items-center gap-1">
+                  {adoptedScreens.length}
+                  <Heart className="w-4 h-4 text-pink-500" />
+                </p>
+                <p className="text-xs text-muted-foreground">Adopted</p>
+              </button>
             </div>
             
             {/* Playlist Preview */}
-            {activeScreens.length > 0 && (
+            {activeScreens.length > 0 && screenFilter === "active" && (
               <PlaylistPreview 
                 screens={activeScreens} 
                 settings={settingsQuery.data || null} 
@@ -240,8 +285,28 @@ export default function Admin() {
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
               </div>
+            ) : filteredScreens.length === 0 ? (
+              <div className="text-center py-12">
+                {screenFilter === "inactive" ? (
+                  <>
+                    <EyeOff className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
+                    <p className="text-muted-foreground">No inactive screens</p>
+                  </>
+                ) : screenFilter === "adopted" ? (
+                  <>
+                    <Heart className="w-10 h-10 mx-auto text-pink-300 mb-3" />
+                    <p className="text-muted-foreground">No adopted cats yet</p>
+                    <p className="text-xs text-muted-foreground mt-1">Mark adoption slides as adopted when a cat finds their forever home</p>
+                  </>
+                ) : (
+                  <>
+                    <Filter className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
+                    <p className="text-muted-foreground">No screens found</p>
+                  </>
+                )}
+              </div>
             ) : (
-              <ScreenList screens={screens} onEdit={handleEdit} />
+              <ScreenList screens={filteredScreens} onEdit={handleEdit} />
             )}
           </TabsContent>
           

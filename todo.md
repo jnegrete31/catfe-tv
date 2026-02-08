@@ -1121,3 +1121,9 @@
 - [x] Add How-To guide section for new staff onboarding
 - [x] Feature sections: TV Display, Guest Sessions, Adoption Screens, Events, Photos, Playlists, Settings
 - [x] Include step-by-step instructions for each admin feature
+
+## Feature - Screens Page Filter Tabs
+- [x] Add filter tabs to Screens page: Active Only (default), All, Adopted
+- [x] Default to "Active Only" so deactivated slides are hidden
+- [x] "Adopted" tab shows only adoption slides marked as adopted
+- [x] "All" tab shows everything including inactive slides
