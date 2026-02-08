@@ -171,9 +171,11 @@ struct ContentView: View {
         Timer.scheduledTimer(withTimeInterval: TimeInterval(apiClient.settings.refreshIntervalSeconds), repeats: true) { _ in
             Task { @MainActor in
                 await apiClient.fetchScreens()
+                await apiClient.fetchSettings()
                 await weatherService.fetchWeather()
                 
-                // Update rotator with new screens
+                // Update rotator with new screens and latest settings
+                screenRotator.updateSettings(apiClient.settings)
                 screenRotator.updateScreens(apiClient.getActiveScreens())
             }
         }

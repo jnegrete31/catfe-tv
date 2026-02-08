@@ -26,6 +26,16 @@ class ScreenRotator: ObservableObject {
         return screens[currentIndex]
     }
     
+    /// The effective duration for the current screen in seconds
+    private var currentDuration: TimeInterval {
+        guard let screen = currentScreen else {
+            return TimeInterval(settings.defaultDurationSeconds)
+        }
+        let dur = screen.duration > 0 ? screen.duration : settings.defaultDurationSeconds
+        print("[ScreenRotator] Screen '\(screen.title)' (type: \(screen.type.rawValue)) duration: \(dur)s (screen.duration=\(screen.duration), default=\(settings.defaultDurationSeconds))")
+        return TimeInterval(dur)
+    }
+    
     // MARK: - Configuration
     
     func configure(screens: [Screen], settings: AppSettings) {
@@ -33,10 +43,11 @@ class ScreenRotator: ObservableObject {
         self.settings = settings
         self.currentIndex = 0
         self.snapPurrCounter = 0
+        print("[ScreenRotator] Configured with \(screens.count) screens, defaultDuration=\(settings.defaultDurationSeconds)s")
     }
     
     func updateScreens(_ newScreens: [Screen]) {
-        // Preserve current position if possible
+        // Preserve current screen if possible
         let currentId = currentScreen?.id
         self.screens = newScreens.shuffled()
         
@@ -45,6 +56,13 @@ class ScreenRotator: ObservableObject {
         } else if currentIndex >= screens.count {
             currentIndex = 0
         }
+        // Note: Don't restart timers here — the existing timer for the current screen
+        // should continue running with its original duration
+    }
+    
+    /// Update settings (e.g., when admin changes default duration)
+    func updateSettings(_ newSettings: AppSettings) {
+        self.settings = newSettings
     }
     
     // MARK: - Playback Control
@@ -52,16 +70,12 @@ class ScreenRotator: ObservableObject {
     func start() {
         guard !screens.isEmpty else { return }
         isAutoAdvancing = true
-        scheduleNextScreen()
-        startProgressTimer()
+        startTimersForCurrentScreen()
     }
     
     func stop() {
         isAutoAdvancing = false
-        timer?.invalidate()
-        timer = nil
-        progressTimer?.invalidate()
-        progressTimer = nil
+        cancelTimers()
     }
     
     func toggleAutoAdvance() {
@@ -77,10 +91,8 @@ class ScreenRotator: ObservableObject {
     func nextScreen() {
         guard !screens.isEmpty else { return }
         
-        // Reset timers
-        timer?.invalidate()
-        progressTimer?.invalidate()
-        progress = 0
+        // Cancel existing timers
+        cancelTimers()
         
         // Check if we should insert a Snap & Purr screen
         snapPurrCounter += 1
@@ -95,43 +107,35 @@ class ScreenRotator: ObservableObject {
             advanceIndex()
         }
         
-        // Restart timers if auto-advancing
+        // Restart timers for the NEW current screen
         if isAutoAdvancing {
-            scheduleNextScreen()
-            startProgressTimer()
+            startTimersForCurrentScreen()
         }
     }
     
     func previousScreen() {
         guard !screens.isEmpty else { return }
         
-        // Reset timers
-        timer?.invalidate()
-        progressTimer?.invalidate()
-        progress = 0
+        // Cancel existing timers
+        cancelTimers()
         
         // Go to previous screen
         currentIndex = (currentIndex - 1 + screens.count) % screens.count
         
-        // Restart timers if auto-advancing
+        // Restart timers for the NEW current screen
         if isAutoAdvancing {
-            scheduleNextScreen()
-            startProgressTimer()
+            startTimersForCurrentScreen()
         }
     }
     
     func goToScreen(at index: Int) {
         guard index >= 0, index < screens.count else { return }
         
-        timer?.invalidate()
-        progressTimer?.invalidate()
-        progress = 0
-        
+        cancelTimers()
         currentIndex = index
         
         if isAutoAdvancing {
-            scheduleNextScreen()
-            startProgressTimer()
+            startTimersForCurrentScreen()
         }
     }
     
@@ -160,25 +164,29 @@ class ScreenRotator: ObservableObject {
         currentIndex = nextIndex
     }
     
-    private func scheduleNextScreen() {
-        guard let screen = currentScreen else { return }
+    /// Cancel all active timers
+    private func cancelTimers() {
+        timer?.invalidate()
+        timer = nil
+        progressTimer?.invalidate()
+        progressTimer = nil
+        progress = 0
+    }
+    
+    /// Start both the advance timer and progress timer for the current screen
+    private func startTimersForCurrentScreen() {
+        let duration = currentDuration
         
-        let duration = TimeInterval(screen.duration > 0 ? screen.duration : settings.defaultDurationSeconds)
-        
+        // Schedule the advance timer
         timer = Timer.scheduledTimer(withTimeInterval: duration, repeats: false) { [weak self] _ in
             Task { @MainActor in
                 self?.nextScreen()
             }
         }
-    }
-    
-    private func startProgressTimer() {
-        guard let screen = currentScreen else { return }
         
-        let duration = TimeInterval(screen.duration > 0 ? screen.duration : settings.defaultDurationSeconds)
+        // Schedule the progress timer
         let updateInterval: TimeInterval = 0.1
         let progressIncrement = updateInterval / duration
-        
         progress = 0
         
         progressTimer = Timer.scheduledTimer(withTimeInterval: updateInterval, repeats: true) { [weak self] _ in
