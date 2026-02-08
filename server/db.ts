@@ -444,9 +444,9 @@ export async function getRecentlyCheckedIn() {
   if (!db) return [];
   
   const now = new Date();
-  const thirtySecondsAgo = new Date(now.getTime() - 30 * 1000);
+  const sixtySecondsAgo = new Date(now.getTime() - 60 * 1000);
   
-  // Get sessions checked in within the last 30 seconds
+  // Get sessions checked in within the last 60 seconds (wider window for tvOS polling)
   return db.select().from(guestSessions)
     .where(
       and(
@@ -454,7 +454,7 @@ export async function getRecentlyCheckedIn() {
           eq(guestSessions.status, "active"),
           eq(guestSessions.status, "extended")
         ),
-        gte(guestSessions.checkInAt, thirtySecondsAgo)
+        gte(guestSessions.checkInAt, sixtySecondsAgo)
       )
     )
     .orderBy(desc(guestSessions.checkInAt));
