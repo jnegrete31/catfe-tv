@@ -1150,3 +1150,8 @@
 - [x] Show guest name, party size, and session type
 - [x] Auto-dismiss after display period (12 seconds)
 - [x] Integrate into TVDisplay page
+
+## Feature - Admin Panel Session Expiry Chime
+- [x] Add reminder chime to admin panel when guest sessions hit 5-minute warning
+- [x] Use distinct tone from check-in chime so they're distinguishable
+- [x] Track which sessions have already triggered the chime to avoid repeats

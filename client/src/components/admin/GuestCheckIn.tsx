@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { playWelcomeChime } from "@/lib/chime";
+import { playWelcomeChime, playReminderChime } from "@/lib/chime";
 import { 
   UserPlus, 
   Clock, 
@@ -83,6 +83,8 @@ export function GuestCheckIn() {
   const [duration, setDuration] = useState<"15" | "30" | "60">("30");
   const [notes, setNotes] = useState("");
   const [, setTick] = useState(0);
+  const warnedSessionIds = useRef<Set<number>>(new Set());
+  const expiredSessionIds = useRef<Set<number>>(new Set());
   
   const utils = trpc.useUtils();
   
@@ -127,12 +129,52 @@ export function GuestCheckIn() {
     },
   });
   
+  // Tick every second to update countdown timers
   useEffect(() => {
     const interval = setInterval(() => {
       setTick(t => t + 1);
     }, 1000);
     return () => clearInterval(interval);
   }, []);
+
+  // Play chime when sessions hit 5-minute warning or expire
+  useEffect(() => {
+    if (!activeSessions.length) return;
+    const now = Date.now();
+    
+    for (const session of activeSessions) {
+      const msLeft = new Date(session.expiresAt).getTime() - now;
+      
+      // 5-minute warning chime
+      if (msLeft > 0 && msLeft <= 5 * 60 * 1000 && !warnedSessionIds.current.has(session.id)) {
+        warnedSessionIds.current.add(session.id);
+        playReminderChime(0.35);
+        toast.warning(`${session.guestName}'s session ends in ${Math.ceil(msLeft / 60000)} minutes!`, {
+          duration: 8000,
+          icon: "⏰",
+        });
+      }
+      
+      // Expired chime
+      if (msLeft <= 0 && !expiredSessionIds.current.has(session.id)) {
+        expiredSessionIds.current.add(session.id);
+        playReminderChime(0.4);
+        toast.error(`${session.guestName}'s session has expired!`, {
+          duration: 10000,
+          icon: "🔔",
+        });
+      }
+    }
+    
+    // Clean up IDs for sessions no longer in the list
+    const activeIds = new Set(activeSessions.map((s: GuestSession) => s.id));
+    Array.from(warnedSessionIds.current).forEach(id => {
+      if (!activeIds.has(id)) warnedSessionIds.current.delete(id);
+    });
+    Array.from(expiredSessionIds.current).forEach(id => {
+      if (!activeIds.has(id)) expiredSessionIds.current.delete(id);
+    });
+  });
   
   const resetForm = () => {
     setGuestName("");
@@ -163,7 +205,7 @@ export function GuestCheckIn() {
     extendMutation.mutate({ id, additionalMinutes: minutes });
   };
   
-  const activeSessions = (activeSessionsQuery.data || []) as GuestSession[];
+  const activeSessions = useMemo(() => (activeSessionsQuery.data || []) as GuestSession[], [activeSessionsQuery.data]);
   const stats = todayStatsQuery.data || { totalGuests: 0, activeSessions: 0, completedSessions: 0 };
   
   return (
@@ -312,7 +354,7 @@ export function GuestCheckIn() {
           </Card>
         ) : (
           <div className="space-y-2">
-            {activeSessions.map((session) => {
+            {activeSessions.map((session: GuestSession) => {
               const timeRemaining = formatTimeRemaining(new Date(session.expiresAt));
               const isExpired = new Date(session.expiresAt).getTime() <= Date.now();
               const isWarning = !isExpired && new Date(session.expiresAt).getTime() - Date.now() <= 5 * 60 * 1000;
