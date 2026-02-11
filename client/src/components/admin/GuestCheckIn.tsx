@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { playWelcomeChime } from "@/lib/chime";
 import { 
   UserPlus, 
   Clock, 
@@ -93,6 +94,7 @@ export function GuestCheckIn() {
   
   const checkInMutation = trpc.guestSessions.checkIn.useMutation({
     onSuccess: () => {
+      playWelcomeChime(0.4);
       toast.success("Guest checked in successfully!");
       setIsCheckInOpen(false);
       resetForm();

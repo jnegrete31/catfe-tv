@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
 import { Clock, Bell, Users, AlertTriangle, Timer, Volume2, VolumeX } from "lucide-react";
+import { playReminderChime } from "@/lib/chime";
 
 type GuestSession = {
   id: number;
@@ -42,9 +43,6 @@ const SCHEDULED_REMINDERS: ScheduledReminder[] = [
 
 // Check if we're within the reminder window (5 minutes before the scheduled time)
 function isInReminderWindow(currentMinute: number, targetMinute: number): boolean {
-  // Show reminder from targetMinute to targetMinute + 5
-  // e.g., for :55, show from :55 to :59 (and :00 for the next hour)
-  // e.g., for :25, show from :25 to :29
   const diff = currentMinute - targetMinute;
   return diff >= 0 && diff < 5;
 }
@@ -58,27 +56,13 @@ function getActiveScheduledReminders(currentTime: Date): ScheduledReminder[] {
   );
 }
 
-// Custom hook for audio chime
-function useAudioChime() {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+// Custom hook for chime with Web Audio API
+function useChime() {
   const [isMuted, setIsMuted] = useState(() => {
-    // Check localStorage for mute preference
     const saved = localStorage.getItem('catfe-chime-muted');
     return saved === 'true';
   });
   const playedRemindersRef = useRef<Set<string>>(new Set());
-  
-  // Initialize audio element
-  useEffect(() => {
-    audioRef.current = new Audio('/chime.mp3');
-    audioRef.current.volume = 0.7;
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-    };
-  }, []);
   
   // Save mute preference
   useEffect(() => {
@@ -86,13 +70,9 @@ function useAudioChime() {
   }, [isMuted]);
   
   const playChime = useCallback((reminderId: string) => {
-    // Only play if not muted and hasn't played for this reminder yet
-    if (!isMuted && audioRef.current && !playedRemindersRef.current.has(reminderId)) {
+    if (!isMuted && !playedRemindersRef.current.has(reminderId)) {
       playedRemindersRef.current.add(reminderId);
-      audioRef.current.currentTime = 0;
-      audioRef.current.play().catch(() => {
-        // Ignore autoplay errors - user interaction required
-      });
+      playReminderChime(0.3);
     }
   }, [isMuted]);
   
@@ -111,7 +91,7 @@ export function GuestReminderOverlay() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const markedIds = useRef<Set<number>>(new Set());
   const [dismissedScheduled, setDismissedScheduled] = useState<Set<string>>(new Set());
-  const { playChime, resetPlayedReminders, isMuted, toggleMute } = useAudioChime();
+  const { playChime, resetPlayedReminders, isMuted, toggleMute } = useChime();
   
   // Query for sessions needing reminder - poll every 5 seconds for responsiveness
   const { data: sessionsNeedingReminder } = trpc.guestSessions.getNeedingReminder.useQuery(undefined, {
@@ -133,7 +113,6 @@ export function GuestReminderOverlay() {
   useEffect(() => {
     const currentMinute = currentTime.getMinutes();
     
-    // Reset at the start of each new reminder window
     if (currentMinute === 25 || currentMinute === 55) {
       setDismissedScheduled(new Set());
       resetPlayedReminders();
@@ -204,7 +183,6 @@ export function GuestReminderOverlay() {
         const currentMinute = currentTime.getMinutes();
         const currentSecond = currentTime.getSeconds();
         
-        // Calculate time remaining until the 5-minute window ends
         const minutesIntoWindow = currentMinute - targetMinute;
         const minutesLeft = 4 - minutesIntoWindow;
         const secondsLeft = 59 - currentSecond;

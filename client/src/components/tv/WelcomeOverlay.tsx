@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { trpc } from "@/lib/trpc";
 import { Cat, Heart, Sparkles } from "lucide-react";
+import { playWelcomeChime } from "@/lib/chime";
 
 interface UpcomingGuest {
   id: number;
@@ -14,6 +15,7 @@ export function WelcomeOverlay() {
   const [isVisible, setIsVisible] = useState(false);
   const [currentGuest, setCurrentGuest] = useState<UpcomingGuest | null>(null);
   const [animationPhase, setAnimationPhase] = useState<"enter" | "display" | "exit">("enter");
+  const chimedGuestIds = useRef<Set<number>>(new Set());
 
   // Fetch upcoming guests (arriving within 15 minutes)
   const { data: upcomingGuests } = trpc.guestSessions.getUpcomingArrivals.useQuery(
@@ -45,6 +47,12 @@ export function WelcomeOverlay() {
       setAnimationPhase("enter");
       setIsVisible(true);
 
+      // Play chime when showing a new guest (only once per guest)
+      if (!chimedGuestIds.current.has(guest.id)) {
+        chimedGuestIds.current.add(guest.id);
+        playWelcomeChime(0.35);
+      }
+
       // Animation timeline
       setTimeout(() => setAnimationPhase("display"), 500);
       setTimeout(() => setAnimationPhase("exit"), 8000);
@@ -66,6 +74,14 @@ export function WelcomeOverlay() {
 
     return () => clearInterval(interval);
   }, [upcomingGuests]);
+
+  // Clean up old chimed IDs periodically (every 30 minutes)
+  useEffect(() => {
+    const cleanup = setInterval(() => {
+      chimedGuestIds.current.clear();
+    }, 30 * 60 * 1000);
+    return () => clearInterval(cleanup);
+  }, []);
 
   if (!isVisible || !currentGuest) {
     return null;

@@ -1127,3 +1127,8 @@
 - [x] Default to "Active Only" so deactivated slides are hidden
 - [x] "Adopted" tab shows only adoption slides marked as adopted
 - [x] "All" tab shows everything including inactive slides
+
+## Feature - Web TV Display Chime on Guest Check-in
+- [x] Add browser-based chime sound when guest checks in on web TV display
+- [x] Chime should not interrupt any other audio playing
+- [x] Generate chime using Web Audio API (no external audio file needed)
