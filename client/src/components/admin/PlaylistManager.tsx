@@ -431,14 +431,14 @@ export function PlaylistManager() {
       <ScheduleTimeline />
 
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold">Playlists</h2>
-          <p className="text-muted-foreground">
-            Create and manage playlists for different occasions
+          <h2 className="text-xl sm:text-2xl font-bold">Playlists</h2>
+          <p className="text-sm text-muted-foreground">
+            Create and manage playlists
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 shrink-0">
           {(!playlists || playlists.length === 0) && (
             <Button
               variant="outline"
@@ -456,7 +456,7 @@ export function PlaylistManager() {
                 New Playlist
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+            <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto sm:max-w-lg">
               <DialogHeader>
                 <DialogTitle>Create New Playlist</DialogTitle>
                 <DialogDescription>
@@ -488,7 +488,7 @@ export function PlaylistManager() {
       </div>
 
       {/* Playlist List */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {playlists?.map((playlist) => {
           const timeSummary = formatTimeSlots(playlist);
           const slotCount = (playlist as any).timeSlots?.length || (playlist.timeStart && playlist.timeEnd ? 1 : 0);
@@ -620,7 +620,7 @@ export function PlaylistManager() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {allScreens?.map((screen) => {
                 const isInPlaylist = playlistScreens?.some(
                   (s) => s.id === screen.id
@@ -628,7 +628,7 @@ export function PlaylistManager() {
                 return (
                   <div
                     key={screen.id}
-                    className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
+                    className={`flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-lg border cursor-pointer transition-all ${
                       isInPlaylist
                         ? "bg-primary/10 border-primary"
                         : "hover:bg-muted"

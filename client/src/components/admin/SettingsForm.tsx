@@ -372,7 +372,7 @@ export function SettingsForm({ settings, onSuccess }: SettingsFormProps) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div className="space-y-2">
               <Label htmlFor="wifiName">Network Name (SSID)</Label>
               <Input
@@ -437,7 +437,7 @@ export function SettingsForm({ settings, onSuccess }: SettingsFormProps) {
             )}
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div className="space-y-2">
               <Label htmlFor="defaultDurationSeconds">Fallback Slide Duration (s)</Label>
               <Input

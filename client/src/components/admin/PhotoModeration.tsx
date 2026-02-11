@@ -163,16 +163,16 @@ export default function PhotoModeration() {
           </div>
         )}
       </div>
-      <CardContent className="p-4 space-y-3">
+      <CardContent className="p-3 sm:p-4 space-y-2 sm:space-y-3">
         {/* Submitter Info */}
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <User className="w-4 h-4" />
-          <span>{photo.submitterName}</span>
+        <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-600 flex-wrap">
+          <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          <span className="truncate">{photo.submitterName}</span>
           {photo.submitterEmail && (
-            <>
-              <Mail className="w-4 h-4 ml-2" />
+            <span className="hidden sm:flex items-center gap-1 truncate">
+              <Mail className="w-4 h-4" />
               <span className="truncate">{photo.submitterEmail}</span>
-            </>
+            </span>
           )}
         </div>
 
@@ -207,27 +207,27 @@ export default function PhotoModeration() {
 
         {/* Actions */}
         {showActions && (
-          <div className="flex gap-2 pt-2 border-t">
+          <div className="flex flex-wrap gap-1.5 sm:gap-2 pt-2 border-t">
             {photo.status === "pending" && (
               <>
                 <Button
                   size="sm"
-                  className="flex-1 bg-green-600 hover:bg-green-700"
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-xs sm:text-sm h-8 sm:h-9"
                   onClick={() => handleApprove(photo)}
                   disabled={approveMutation.isPending}
                 >
-                  <Check className="w-4 h-4 mr-1" /> Approve
+                  <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" /> Approve
                 </Button>
                 <Button
                   size="sm"
                   variant="destructive"
-                  className="flex-1"
+                  className="flex-1 text-xs sm:text-sm h-8 sm:h-9"
                   onClick={() => {
                     setSelectedPhoto(photo);
                     setRejectDialogOpen(true);
                   }}
                 >
-                  <X className="w-4 h-4 mr-1" /> Reject
+                  <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" /> Reject
                 </Button>
               </>
             )}
@@ -236,23 +236,24 @@ export default function PhotoModeration() {
                 <Button
                   size="sm"
                   variant="outline"
-                  className="flex-1"
+                  className="flex-1 text-xs sm:text-sm h-8 sm:h-9"
                   onClick={() => handleToggleVisibility(photo)}
                 >
                   {photo.showOnTv ? (
-                    <><EyeOff className="w-4 h-4 mr-1" /> Hide from TV</>
+                    <><EyeOff className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" /> <span className="hidden sm:inline">Hide from </span>TV</>
                   ) : (
-                    <><Eye className="w-4 h-4 mr-1" /> Show on TV</>
+                    <><Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" /> <span className="hidden sm:inline">Show on </span>TV</>
                   )}
                 </Button>
                 <Button
                   size="sm"
                   variant={photo.isFeatured ? "default" : "outline"}
-                  className={photo.isFeatured ? "bg-yellow-500 hover:bg-yellow-600 text-yellow-900" : ""}
+                  className={`text-xs sm:text-sm h-8 sm:h-9 ${photo.isFeatured ? "bg-yellow-500 hover:bg-yellow-600 text-yellow-900" : ""}`}
                   onClick={() => handleToggleFeatured(photo)}
                 >
-                  <Star className={`w-4 h-4 mr-1 ${photo.isFeatured ? "fill-current" : ""}`} />
-                  {photo.isFeatured ? "Featured" : "Feature"}
+                  <Star className={`w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 ${photo.isFeatured ? "fill-current" : ""}`} />
+                  <span className="hidden sm:inline">{photo.isFeatured ? "Featured" : "Feature"}</span>
+                  <Star className={`w-3.5 h-3.5 sm:hidden ${photo.isFeatured ? "fill-current" : ""}`} />
                 </Button>
                 <Button
                   size="sm"
@@ -289,35 +290,35 @@ export default function PhotoModeration() {
   return (
     <div className="space-y-6">
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-4">
         <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-yellow-600">{stats?.pending || 0}</div>
-            <div className="text-sm text-gray-500">Pending Review</div>
+          <CardContent className="p-3 sm:p-4 text-center">
+            <div className="text-xl sm:text-2xl font-bold text-yellow-600">{stats?.pending || 0}</div>
+            <div className="text-[10px] sm:text-sm text-gray-500">Pending</div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-green-600">{stats?.approved || 0}</div>
-            <div className="text-sm text-gray-500">Approved</div>
+          <CardContent className="p-3 sm:p-4 text-center">
+            <div className="text-xl sm:text-2xl font-bold text-green-600">{stats?.approved || 0}</div>
+            <div className="text-[10px] sm:text-sm text-gray-500">Approved</div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-red-600">{stats?.rejected || 0}</div>
-            <div className="text-sm text-gray-500">Rejected</div>
+          <CardContent className="p-3 sm:p-4 text-center">
+            <div className="text-xl sm:text-2xl font-bold text-red-600">{stats?.rejected || 0}</div>
+            <div className="text-[10px] sm:text-sm text-gray-500">Rejected</div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-amber-600">{stats?.happyTails || 0}</div>
-            <div className="text-sm text-gray-500">Happy Tails</div>
+          <CardContent className="p-3 sm:p-4 text-center">
+            <div className="text-xl sm:text-2xl font-bold text-amber-600">{stats?.happyTails || 0}</div>
+            <div className="text-[10px] sm:text-sm text-gray-500">Happy Tails</div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-blue-600">{stats?.snapPurr || 0}</div>
-            <div className="text-sm text-gray-500">Snap & Purr</div>
+          <CardContent className="p-3 sm:p-4 text-center">
+            <div className="text-xl sm:text-2xl font-bold text-blue-600">{stats?.snapPurr || 0}</div>
+            <div className="text-[10px] sm:text-sm text-gray-500">Snap & Purr</div>
           </CardContent>
         </Card>
       </div>

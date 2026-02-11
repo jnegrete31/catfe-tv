@@ -33,6 +33,8 @@ import {
   Palette,
   EyeOff,
   Filter,
+  Menu,
+  X,
 } from "lucide-react";
 import { IOSInstallPrompt } from "@/components/IOSInstallPrompt";
 
@@ -42,12 +44,13 @@ export default function Admin() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingScreen, setEditingScreen] = useState<Screen | null>(null);
   const [screenFilter, setScreenFilter] = useState<"active" | "all" | "inactive" | "adopted">("active");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   // Fetch data
   const screensQuery = trpc.screens.getAll.useQuery(undefined, {
     enabled: isAuthenticated,
     refetchOnMount: true,
-    staleTime: 0, // Always consider data stale to ensure fresh data
+    staleTime: 0,
   });
   
   const settingsQuery = trpc.settings.get.useQuery(undefined, {
@@ -138,93 +141,134 @@ export default function Admin() {
     : screenFilter === "inactive" ? inactiveScreens
     : screenFilter === "adopted" ? adoptedScreens
     : screens;
+
+  // Tab configuration for rendering
+  const tabs = [
+    { value: "screens", icon: LayoutGrid, label: "Screens" },
+    { value: "guests", icon: Users, label: "Guests" },
+    { value: "photos", icon: Image, label: "Photos" },
+    { value: "captions", icon: MessageSquare, label: "Captions" },
+    { value: "polls", icon: Vote, label: "Polls" },
+    { value: "playlists", icon: ListMusic, label: "Playlists" },
+    { value: "settings", icon: Settings, label: "Settings" },
+  ];
   
   return (
     <div className="min-h-screen bg-background">
       {/* iOS Install Prompt */}
       <IOSInstallPrompt />
+
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b">
-        <div className="container flex items-center justify-between h-14">
-          <div className="flex items-center gap-2">
+        <div className="container flex items-center justify-between h-14 gap-2">
+          {/* Logo - always visible */}
+          <div className="flex items-center gap-2 shrink-0">
             <Tv className="w-5 h-5 text-primary" />
             <span className="font-semibold" style={{ fontFamily: "var(--font-display)" }}>
               Catfé TV
             </span>
           </div>
           
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              asChild
-            >
+          {/* Desktop actions */}
+          <div className="hidden sm:flex items-center gap-1">
+            <Button variant="ghost" size="sm" asChild>
               <a href="/tv" target="_blank" rel="noopener noreferrer">
                 <ExternalLink className="w-4 h-4 mr-1" />
                 TV View
               </a>
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              asChild
-            >
+            <Button variant="ghost" size="sm" asChild>
               <a href="/admin/slide-editor">
                 <Palette className="w-4 h-4 mr-1" />
                 Editor
               </a>
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleLogout}
-            >
+            <Button variant="ghost" size="icon" onClick={handleLogout}>
               <LogOut className="w-4 h-4" />
             </Button>
           </div>
+
+          {/* Mobile menu button */}
+          <div className="flex sm:hidden items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </Button>
+          </div>
         </div>
+
+        {/* Mobile dropdown menu */}
+        {mobileMenuOpen && (
+          <div className="sm:hidden border-t bg-background/95 backdrop-blur">
+            <div className="container py-2 flex flex-col gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="justify-start h-10"
+                asChild
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <a href="/tv" target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  TV View
+                </a>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="justify-start h-10"
+                asChild
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <a href="/admin/slide-editor">
+                  <Palette className="w-4 h-4 mr-2" />
+                  Slide Editor
+                </a>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="justify-start h-10 text-destructive hover:text-destructive"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  handleLogout();
+                }}
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign Out
+              </Button>
+            </div>
+          </div>
+        )}
       </header>
       
       {/* Main Content */}
       <main className="container py-4 pb-24">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full grid grid-cols-9 mb-4">
-            <TabsTrigger value="screens" className="flex items-center gap-1 text-xs sm:text-sm">
-              <LayoutGrid className="w-4 h-4" />
-              <span className="hidden sm:inline">Screens</span>
-            </TabsTrigger>
-            <TabsTrigger value="guests" className="flex items-center gap-1 text-xs sm:text-sm">
-              <Users className="w-4 h-4" />
-              <span className="hidden sm:inline">Guests</span>
-            </TabsTrigger>
-
-            <TabsTrigger value="photos" className="flex items-center gap-1 text-xs sm:text-sm">
-              <Image className="w-4 h-4" />
-              <span className="hidden sm:inline">Photos</span>
-            </TabsTrigger>
-            <TabsTrigger value="captions" className="flex items-center gap-1 text-xs sm:text-sm">
-              <MessageSquare className="w-4 h-4" />
-              <span className="hidden sm:inline">Captions</span>
-            </TabsTrigger>
-            <TabsTrigger value="polls" className="flex items-center gap-1 text-xs sm:text-sm">
-              <Vote className="w-4 h-4" />
-              <span className="hidden sm:inline">Polls</span>
-            </TabsTrigger>
-
-            <TabsTrigger value="playlists" className="flex items-center gap-1 text-xs sm:text-sm">
-              <ListMusic className="w-4 h-4" />
-              <span className="hidden sm:inline">Playlists</span>
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-1 text-xs sm:text-sm">
-              <Settings className="w-4 h-4" />
-              <span className="hidden sm:inline">Settings</span>
-            </TabsTrigger>
-          </TabsList>
+          {/* Horizontally scrollable tab bar for mobile */}
+          <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 mb-4">
+            <TabsList className="inline-flex w-auto min-w-full sm:grid sm:grid-cols-7 sm:w-full h-10">
+              {tabs.map((tab) => (
+                <TabsTrigger
+                  key={tab.value}
+                  value={tab.value}
+                  className="flex items-center gap-1.5 px-3 sm:px-2 text-xs sm:text-sm whitespace-nowrap min-h-[36px]"
+                >
+                  <tab.icon className="w-4 h-4 shrink-0" />
+                  <span className="sm:inline">{tab.label}</span>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
           
           {/* Screens Tab */}
           <TabsContent value="screens" className="space-y-4">
-            {/* Stats */}
-            <div className="grid grid-cols-4 gap-2">
+            {/* Stats - 2 cols on mobile, 4 cols on sm+ */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <button
                 type="button"
                 onClick={() => setScreenFilter("active")}
@@ -313,8 +357,6 @@ export default function Admin() {
             <GuestCheckIn />
           </TabsContent>
           
-
-          
           {/* Photos Tab */}
           <TabsContent value="photos">
             <PhotoModeration />
@@ -324,8 +366,6 @@ export default function Admin() {
           <TabsContent value="captions">
             <CaptionManager />
           </TabsContent>
-          
-
           
           {/* Polls Tab */}
           <TabsContent value="polls">

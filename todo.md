@@ -1163,3 +1163,18 @@
 - [x] Send desktop notification when guest session expires
 - [x] Send desktop notification when a new guest checks in
 - [x] Include guest name, session type, and time info in notifications
+
+## Feature - Mobile-Friendly Admin Panel
+- [ ] Fix header: logo/title overlapping with system clock on mobile
+- [ ] Fix tab navigation: icons too cramped on small screens, make scrollable or use bottom nav
+- [ ] Fix Guests tab: stat cards, check-in form, and session cards responsive
+- [ ] Fix Screens tab: screen list cards and edit forms responsive
+- [ ] Fix Photos tab: photo grids and upload forms responsive
+- [ ] Fix Events tab: event cards and forms responsive
+- [ ] Fix Playlists tab: playlist management responsive
+- [ ] Fix Settings tab: settings forms responsive
+- [ ] General: ensure all modals/dialogs are mobile-friendly
+- [ ] General: ensure touch targets are large enough (44px minimum)
+
+## Bug Fix - WelcomeOverlay Import
+- [x] Fix: WelcomeOverlay.tsx missing React import (useState, useEffect, etc.) causing Vite pre-transform error

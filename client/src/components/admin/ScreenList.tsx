@@ -84,20 +84,20 @@ function SortableScreenItem({ screen, onEdit, onDelete, onToggleActive }: Sortab
     <Card
       ref={setNodeRef}
       style={style}
-      className={`p-4 ${!screen.isActive ? "opacity-60" : ""}`}
+      className={`p-3 sm:p-4 ${!screen.isActive ? "opacity-60" : ""}`}
     >
-      <div className="flex items-start gap-3">
+      <div className="flex items-start gap-2 sm:gap-3">
         {/* Drag Handle */}
         <button
           {...attributes}
           {...listeners}
-          className="touch-none p-1 -ml-1 text-muted-foreground hover:text-foreground"
+          className="touch-none p-1 -ml-1 text-muted-foreground hover:text-foreground shrink-0 mt-1"
         >
-          <GripVertical className="w-5 h-5" />
+          <GripVertical className="w-4 h-4 sm:w-5 sm:h-5" />
         </button>
         
         {/* Image Thumbnail */}
-        <div className="w-16 h-12 flex-shrink-0 rounded overflow-hidden bg-muted">
+        <div className="w-12 h-9 sm:w-16 sm:h-12 shrink-0 rounded overflow-hidden bg-muted">
           {screen.imagePath ? (
             <img 
               src={screen.imagePath} 
@@ -106,16 +106,17 @@ function SortableScreenItem({ screen, onEdit, onDelete, onToggleActive }: Sortab
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <ImageIcon className="w-6 h-6 text-muted-foreground" />
+              <ImageIcon className="w-4 h-4 sm:w-6 sm:h-6 text-muted-foreground" />
             </div>
           )}
         </div>
         
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
             <Badge 
               variant="secondary"
+              className="text-[10px] sm:text-xs"
               style={{ 
                 backgroundColor: typeConfig?.bgColor,
                 color: typeConfig?.color,
@@ -124,54 +125,58 @@ function SortableScreenItem({ screen, onEdit, onDelete, onToggleActive }: Sortab
               {typeConfig?.label || screen.type}
             </Badge>
             {screen.isProtected && (
-              <Shield className="w-4 h-4 text-amber-500" />
+              <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500 shrink-0" />
             )}
           </div>
           
-          <h3 className="font-medium truncate">{screen.title}</h3>
+          <h3 className="font-medium text-sm sm:text-base truncate">{screen.title}</h3>
           
           {screen.subtitle && (
-            <p className="text-sm text-muted-foreground truncate">
+            <p className="text-xs sm:text-sm text-muted-foreground truncate">
               {screen.subtitle}
             </p>
           )}
           
-          <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1">
+          <div className="flex items-center gap-2 sm:gap-3 mt-1 text-[10px] sm:text-xs text-muted-foreground flex-wrap">
+            <span className="flex items-center gap-0.5 sm:gap-1">
               <Clock className="w-3 h-3" />
               {screen.durationSeconds}s
             </span>
-            <span>Priority: {screen.priority}</span>
+            <span className="hidden sm:inline">Priority: {screen.priority}</span>
             {hasScheduleRules && (
-              <span className={`flex items-center gap-1 ${schedulingEnabled ? 'text-blue-600' : 'text-muted-foreground'}`}>
+              <span className={`flex items-center gap-0.5 sm:gap-1 ${schedulingEnabled ? 'text-blue-600' : 'text-muted-foreground'}`}>
                 <Calendar className="w-3 h-3" />
-                {schedulingEnabled ? 'Scheduled' : 'Schedule Off'}
+                {schedulingEnabled ? 'Sched' : 'Off'}
               </span>
             )}
           </div>
         </div>
         
-        {/* Actions */}
-        <div className="flex items-center gap-2">
+        {/* Actions - vertical on mobile, horizontal on desktop */}
+        <div className="flex flex-col sm:flex-row items-center gap-1.5 sm:gap-2 shrink-0">
           <Switch
             checked={screen.isActive}
             onCheckedChange={(checked) => onToggleActive(screen, checked)}
           />
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onEdit(screen)}
-          >
-            <Edit2 className="w-4 h-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onDelete(screen)}
-            disabled={screen.isProtected}
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
+          <div className="flex items-center gap-0.5 sm:gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 sm:h-9 sm:w-9"
+              onClick={() => onEdit(screen)}
+            >
+              <Edit2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 sm:h-9 sm:w-9"
+              onClick={() => onDelete(screen)}
+              disabled={screen.isProtected}
+            >
+              <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </Card>
@@ -297,7 +302,7 @@ export function ScreenList({ screens, onEdit }: ScreenListProps) {
         onDragEnd={handleDragEnd}
       >
         <SortableContext items={items.map(s => s.id)} strategy={verticalListSortingStrategy}>
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             {items.map((screen) => (
               <SortableScreenItem
                 key={screen.id}

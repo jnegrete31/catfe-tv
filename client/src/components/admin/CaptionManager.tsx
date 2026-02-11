@@ -86,13 +86,13 @@ export default function CaptionManager() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">Suggested Captions</h2>
-          <p className="text-gray-600">Manage the quick-tap caption suggestions for photo uploads</p>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Suggested Captions</h2>
+          <p className="text-sm text-gray-600">Manage caption suggestions for photo uploads</p>
         </div>
         {captions.length === 0 && (
-          <Button onClick={handleSeedDefaults} variant="outline">
+          <Button onClick={handleSeedDefaults} variant="outline" className="w-full sm:w-auto">
             <Sparkles className="w-4 h-4 mr-2" />
             Add Default Captions
           </Button>
@@ -139,17 +139,19 @@ export default function CaptionManager() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <Input
               value={newCaptionText}
               onChange={(e) => setNewCaptionText(e.target.value)}
-              placeholder="Enter caption text (max 100 characters)"
+              placeholder="Enter caption text (max 100 chars)"
               maxLength={100}
               onKeyDown={(e) => e.key === "Enter" && handleAddCaption()}
+              className="h-11"
             />
             <Button 
               onClick={handleAddCaption}
               disabled={!newCaptionText.trim() || createMutation.isPending}
+              className="h-11 shrink-0"
             >
               <Plus className="w-4 h-4 mr-2" />
               Add
@@ -193,36 +195,31 @@ function CaptionList({
           {captions.map((caption) => (
             <div
               key={caption.id}
-              className={`flex items-center gap-4 p-4 ${
+              className={`flex items-center gap-2 sm:gap-4 p-3 sm:p-4 ${
                 !caption.isActive ? "opacity-50 bg-gray-50" : ""
               }`}
             >
-              <GripVertical className="w-5 h-5 text-gray-300 cursor-grab" />
+              <GripVertical className="w-4 h-4 sm:w-5 sm:h-5 text-gray-300 cursor-grab shrink-0" />
               
-              <div className="flex-1">
-                <span className={`text-sm ${!caption.isActive ? "line-through" : ""}`}>
+              <div className="flex-1 min-w-0">
+                <span className={`text-xs sm:text-sm ${!caption.isActive ? "line-through" : ""}`}>
                   {caption.text}
                 </span>
               </div>
 
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500">
-                    {caption.isActive ? "Active" : "Hidden"}
-                  </span>
-                  <Switch
-                    checked={caption.isActive}
-                    onCheckedChange={(checked) => onToggleActive(caption.id, checked)}
-                  />
-                </div>
+              <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+                <Switch
+                  checked={caption.isActive}
+                  onCheckedChange={(checked) => onToggleActive(caption.id, checked)}
+                />
 
                 <Button
                   variant="ghost"
-                  size="sm"
+                  size="icon"
                   onClick={() => onDelete(caption.id)}
-                  className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                  className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 w-8"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </Button>
               </div>
             </div>

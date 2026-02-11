@@ -150,6 +150,9 @@ export function GuestCheckIn() {
     return () => clearInterval(interval);
   }, []);
 
+  const activeSessions = useMemo(() => (activeSessionsQuery.data || []) as GuestSession[], [activeSessionsQuery.data]);
+  const stats = todayStatsQuery.data || { totalGuests: 0, activeSessions: 0, completedSessions: 0 };
+
   // Play chime when sessions hit 5-minute warning or expire
   useEffect(() => {
     if (!activeSessions.length) return;
@@ -220,44 +223,43 @@ export function GuestCheckIn() {
     extendMutation.mutate({ id, additionalMinutes: minutes });
   };
   
-  const activeSessions = useMemo(() => (activeSessionsQuery.data || []) as GuestSession[], [activeSessionsQuery.data]);
-  const stats = todayStatsQuery.data || { totalGuests: 0, activeSessions: 0, completedSessions: 0 };
-  
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-3 gap-3">
+      {/* Stats - responsive grid */}
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Users className="w-4 h-4 text-primary" />
-              <span className="text-sm text-muted-foreground">Today</span>
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary shrink-0" />
+              <span className="text-xs sm:text-sm text-muted-foreground truncate">Today</span>
             </div>
-            <p className="text-2xl font-bold mt-1">{stats.totalGuests}</p>
-            <p className="text-xs text-muted-foreground">guests</p>
+            <p className="text-xl sm:text-2xl font-bold mt-1">{stats.totalGuests}</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">guests</p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Timer className="w-4 h-4 text-green-600" />
-              <span className="text-sm text-muted-foreground">Active</span>
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <Timer className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-600 shrink-0" />
+              <span className="text-xs sm:text-sm text-muted-foreground truncate">Active</span>
             </div>
-            <p className="text-2xl font-bold mt-1">{stats.activeSessions}</p>
-            <p className="text-xs text-muted-foreground">sessions</p>
+            <p className="text-xl sm:text-2xl font-bold mt-1">{stats.activeSessions}</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">sessions</p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-blue-600" />
-              <span className="text-sm text-muted-foreground">Done</span>
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600 shrink-0" />
+              <span className="text-xs sm:text-sm text-muted-foreground truncate">Done</span>
             </div>
-            <p className="text-2xl font-bold mt-1">{stats.completedSessions}</p>
-            <p className="text-xs text-muted-foreground">sessions</p>
+            <p className="text-xl sm:text-2xl font-bold mt-1">{stats.completedSessions}</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">sessions</p>
           </CardContent>
         </Card>
       </div>
       
+      {/* Check In Button */}
       <Dialog open={isCheckInOpen} onOpenChange={setIsCheckInOpen}>
         <DialogTrigger asChild>
           <Button className="w-full" size="lg">
@@ -265,7 +267,7 @@ export function GuestCheckIn() {
             Check In Guest
           </Button>
         </DialogTrigger>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Check In Guest</DialogTitle>
           </DialogHeader>
@@ -278,14 +280,15 @@ export function GuestCheckIn() {
                 value={guestName}
                 onChange={(e) => setGuestName(e.target.value)}
                 autoFocus
+                className="h-11"
               />
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="guestCount">Party Size</Label>
                 <Select value={guestCount} onValueChange={setGuestCount}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-11">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -301,7 +304,7 @@ export function GuestCheckIn() {
               <div className="space-y-2">
                 <Label htmlFor="duration">Duration</Label>
                 <Select value={duration} onValueChange={(v) => setDuration(v as "15" | "30" | "60")}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-11">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -324,13 +327,14 @@ export function GuestCheckIn() {
               />
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="gap-2 sm:gap-0">
             <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
+              <Button variant="outline" className="h-11">Cancel</Button>
             </DialogClose>
             <Button 
               onClick={handleCheckIn}
               disabled={checkInMutation.isPending}
+              className="h-11"
             >
               {checkInMutation.isPending ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -343,12 +347,14 @@ export function GuestCheckIn() {
         </DialogContent>
       </Dialog>
       
+      {/* Active Sessions */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold">Active Sessions</h3>
+          <h3 className="font-semibold text-sm sm:text-base">Active Sessions</h3>
           <Button 
             variant="ghost" 
             size="sm"
+            className="h-8 w-8 p-0"
             onClick={() => utils.guestSessions.getActive.invalidate()}
           >
             <RefreshCw className="w-4 h-4" />
@@ -376,35 +382,36 @@ export function GuestCheckIn() {
               
               return (
                 <Card key={session.id} className={isExpired ? "border-red-300" : isWarning ? "border-amber-300" : ""}>
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-semibold">{session.guestName}</h4>
-                          <Badge variant="secondary" className="text-xs">
+                  <CardContent className="p-3 sm:p-4">
+                    {/* Top row: name + timer */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <h4 className="font-semibold text-sm sm:text-base truncate">{session.guestName}</h4>
+                          <Badge variant="secondary" className="text-[10px] sm:text-xs shrink-0">
                             {session.guestCount} {session.guestCount === 1 ? "guest" : "guests"}
                           </Badge>
                           {session.status === "extended" && (
-                            <Badge variant="outline" className="text-xs text-blue-600">
+                            <Badge variant="outline" className="text-[10px] sm:text-xs text-blue-600 shrink-0">
                               Extended
                             </Badge>
                           )}
                         </div>
-                        <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2 sm:gap-4 mt-1 text-xs sm:text-sm text-muted-foreground">
                           <span className="flex items-center gap-1">
                             <Clock className="w-3 h-3" />
-                            {session.duration} min session
+                            {session.duration} min
                           </span>
                         </div>
                         {session.notes && (
-                          <p className="text-sm text-muted-foreground mt-1 italic">
+                          <p className="text-xs sm:text-sm text-muted-foreground mt-1 italic line-clamp-1">
                             {session.notes}
                           </p>
                         )}
                       </div>
                       
-                      <div className="text-right">
-                        <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-sm font-medium ${getStatusColor(session)}`}>
+                      <div className="shrink-0">
+                        <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs sm:text-sm font-medium ${getStatusColor(session)}`}>
                           {isExpired ? (
                             <AlertCircle className="w-3 h-3" />
                           ) : (
@@ -415,36 +422,37 @@ export function GuestCheckIn() {
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-2 mt-3">
+                    {/* Action buttons - responsive grid */}
+                    <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mt-3">
                       <Button
                         variant="outline"
                         size="sm"
-                        className="flex-1"
+                        className="h-9 text-xs sm:text-sm px-2 sm:px-3"
                         onClick={() => handleExtend(session.id, 15)}
                         disabled={extendMutation.isPending}
                       >
-                        <Plus className="w-3 h-3 mr-1" />
-                        +15 min
+                        <Plus className="w-3 h-3 mr-0.5 sm:mr-1 shrink-0" />
+                        15m
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
-                        className="flex-1"
+                        className="h-9 text-xs sm:text-sm px-2 sm:px-3"
                         onClick={() => handleExtend(session.id, 30)}
                         disabled={extendMutation.isPending}
                       >
-                        <Plus className="w-3 h-3 mr-1" />
-                        +30 min
+                        <Plus className="w-3 h-3 mr-0.5 sm:mr-1 shrink-0" />
+                        30m
                       </Button>
                       <Button
                         variant="default"
                         size="sm"
-                        className="flex-1"
+                        className="h-9 text-xs sm:text-sm px-2 sm:px-3"
                         onClick={() => handleCheckOut(session.id)}
                         disabled={checkOutMutation.isPending}
                       >
-                        <LogOut className="w-3 h-3 mr-1" />
-                        Check Out
+                        <LogOut className="w-3 h-3 mr-0.5 sm:mr-1 shrink-0" />
+                        Out
                       </Button>
                     </div>
                   </CardContent>

@@ -95,26 +95,28 @@ export function PollManager() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold">Cat Polls</h2>
-          <p className="text-muted-foreground">
-            Create fun polls about adoptable cats for guests to vote on
+          <h2 className="text-xl sm:text-2xl font-bold">Cat Polls</h2>
+          <p className="text-sm text-muted-foreground">
+            Create fun polls for guests to vote on
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 shrink-0">
           <Button
             variant="outline"
+            size="sm"
             onClick={() => seedPollsMutation.mutate()}
             disabled={seedPollsMutation.isPending}
+            className="text-xs sm:text-sm"
           >
-            {seedPollsMutation.isPending ? "Seeding..." : "Seed Default Polls"}
+            {seedPollsMutation.isPending ? "Seeding..." : "Seed Defaults"}
           </Button>
           <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
             <DialogTrigger asChild>
-              <Button>
-                <Plus className="w-4 h-4 mr-2" />
-                Create Poll
+              <Button size="sm">
+                <Plus className="w-4 h-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Create </span>Poll
               </Button>
             </DialogTrigger>
           <DialogContent className="max-w-lg">
@@ -168,21 +170,21 @@ export function PollManager() {
           }
           return (
             <Card key={poll.id}>
-              <CardHeader className="pb-2">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <CardTitle className="text-lg">{poll.question}</CardTitle>
-                    <div className="flex items-center gap-2">
+              <CardHeader className="p-3 sm:p-6 pb-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="space-y-1 min-w-0">
+                    <CardTitle className="text-base sm:text-lg leading-tight">{poll.question}</CardTitle>
+                    <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                       {getStatusBadge(poll.status)}
                       {poll.isRecurring && (
-                        <Badge variant="outline">Recurring</Badge>
+                        <Badge variant="outline" className="text-xs">Recurring</Badge>
                       )}
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-xs sm:text-sm text-muted-foreground">
                         {poll.totalVotes} votes
                       </span>
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1 sm:gap-2 shrink-0">
                     <Button
                       variant="ghost"
                       size="icon"
@@ -211,15 +213,15 @@ export function PollManager() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2 mb-4">
+              <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0">
+                <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-3 sm:mb-4">
                   {options.map((opt) => (
-                    <Badge key={opt.id} variant="secondary">
+                    <Badge key={opt.id} variant="secondary" className="text-xs sm:text-sm">
                       {opt.text}
                     </Badge>
                   ))}
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-1.5 sm:gap-2">
                   {poll.status === "draft" && (
                     <Button
                       size="sm"
