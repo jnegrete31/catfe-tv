@@ -3,6 +3,7 @@ import { usePlaylist } from "@/hooks/usePlaylist";
 import { ScreenRenderer, FallbackScreen } from "@/components/tv/ScreenRenderer";
 import { WeatherClockOverlay } from "@/components/tv/WeatherClockOverlay";
 import { GuestReminderOverlay } from "@/components/tv/GuestReminderOverlay";
+import { WelcomeOverlay } from "@/components/tv/WelcomeOverlay";
 import { PollWidget } from "@/components/tv/PollWidget";
 // PollResultsWidget removed - results shown on guests' devices only
 import { WaiverWidget } from "@/components/tv/WaiverWidget";
@@ -318,6 +319,9 @@ export default function TVDisplay() {
       
       {/* Guest Session Reminder Overlay */}
       <GuestReminderOverlay />
+      
+      {/* Welcome Overlay for newly checked-in guests */}
+      <WelcomeOverlay />
       
       {/* Poll Widget - DISABLED for now
       <PollWidget />

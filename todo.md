@@ -1142,3 +1142,11 @@
 - [x] Remove Wix-related types and constants
 - [x] Remove WelcomeOverlay (upcoming arrivals from Wix)
 - [x] Clean up environment variables references to Wix
+
+## Feature - New Welcome Screen (Manual Check-in)
+- [x] Add backend endpoint to get recently checked-in guests (last 60 seconds) — already existed
+- [x] Build WelcomeOverlay component for TV display with full-screen greeting
+- [x] Play welcome chime when greeting appears
+- [x] Show guest name, party size, and session type
+- [x] Auto-dismiss after display period (12 seconds)
+- [x] Integrate into TVDisplay page
