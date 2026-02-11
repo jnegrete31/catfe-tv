@@ -1178,3 +1178,9 @@
 
 ## Bug Fix - WelcomeOverlay Import
 - [x] Fix: WelcomeOverlay.tsx missing React import (useState, useEffect, etc.) causing Vite pre-transform error
+
+## Feature - Mobile Bottom Navigation Bar
+- [x] Add fixed bottom nav bar visible only on mobile (sm and below)
+- [x] Include icons and labels for Guests, Screens, and Photos tabs
+- [x] Sync bottom nav selection with the main tab state
+- [x] Add padding to main content so bottom nav doesn't overlap last items

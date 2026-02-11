@@ -247,7 +247,7 @@ export default function Admin() {
       </header>
       
       {/* Main Content */}
-      <main className="container py-4 pb-24">
+      <main className="container py-4 pb-24 sm:pb-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           {/* Horizontally scrollable tab bar for mobile */}
           <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 mb-4">
@@ -390,9 +390,42 @@ export default function Admin() {
         </Tabs>
       </main>
       
+      {/* Mobile Bottom Navigation Bar */}
+      <nav className="fixed bottom-0 left-0 right-0 z-40 sm:hidden bg-background/95 backdrop-blur border-t safe-area-bottom">
+        <div className="grid grid-cols-3 h-16">
+          {[
+            { value: "guests", icon: Users, label: "Guests" },
+            { value: "screens", icon: LayoutGrid, label: "Screens" },
+            { value: "photos", icon: Image, label: "Photos" },
+          ].map((item) => {
+            const isActive = activeTab === item.value;
+            return (
+              <button
+                key={item.value}
+                type="button"
+                onClick={() => setActiveTab(item.value)}
+                className={`flex flex-col items-center justify-center gap-0.5 transition-colors ${
+                  isActive
+                    ? "text-primary"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <item.icon className={`w-5 h-5 ${isActive ? "stroke-[2.5]" : ""}`} />
+                <span className={`text-[10px] leading-tight ${isActive ? "font-semibold" : "font-medium"}`}>
+                  {item.label}
+                </span>
+                {isActive && (
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary rounded-full" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </nav>
+
       {/* Floating Action Button */}
       {activeTab === "screens" && (
-        <div className="fixed bottom-6 right-6 z-50">
+        <div className="fixed bottom-20 sm:bottom-6 right-6 z-50">
           <Button
             size="lg"
             className="rounded-full w-14 h-14 shadow-lg"

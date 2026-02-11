@@ -325,3 +325,8 @@
   width: clamp(3rem, 5vw, 6rem);
   height: clamp(3rem, 5vw, 6rem);
 }
+
+/* iOS safe area for bottom navigation */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
