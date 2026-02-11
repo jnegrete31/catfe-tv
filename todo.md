@@ -1132,3 +1132,13 @@
 - [x] Add browser-based chime sound when guest checks in on web TV display
 - [x] Chime should not interrupt any other audio playing
 - [x] Generate chime using Web Audio API (no external audio file needed)
+
+## Feature - Remove Wix Booking Integration
+- [x] Remove Wix-related columns from database schema
+- [x] Remove Wix-related functions from server/db.ts
+- [x] Remove Wix-related procedures from server/routers.ts
+- [x] Remove Wix-related frontend components and references
+- [x] Remove Wix-related tests
+- [x] Remove Wix-related types and constants
+- [x] Remove WelcomeOverlay (upcoming arrivals from Wix)
+- [x] Clean up environment variables references to Wix

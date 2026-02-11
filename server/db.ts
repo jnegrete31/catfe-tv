@@ -197,26 +197,6 @@ export async function upsertSettings(data: Partial<InsertSettings>) {
   }
 }
 
-export async function updateWixSyncTime(syncTime: Date) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  
-  const existing = await getSettings();
-  if (existing) {
-    await db.update(settings).set({ wixLastSyncAt: syncTime }).where(eq(settings.id, existing.id));
-  }
-}
-
-export async function updateWixAutoSyncEnabled(enabled: boolean) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  
-  const existing = await getSettings();
-  if (existing) {
-    await db.update(settings).set({ wixAutoSyncEnabled: enabled }).where(eq(settings.id, existing.id));
-  }
-}
-
 // ============ TIME SLOT QUERIES ============
 
 export async function getAllTimeSlots() {
@@ -766,96 +746,6 @@ export async function getSessionAnalytics(startDate?: Date, endDate?: Date): Pro
     peakHours,
     averageSessionLength: Math.round(averageSessionLength),
   };
-}
-
-
-// ============ WIX BOOKINGS SYNC ============
-
-export async function getGuestSessionByWixBookingId(wixBookingId: string) {
-  const db = await getDb();
-  if (!db) return null;
-  
-  const result = await db.select().from(guestSessions)
-    .where(eq(guestSessions.wixBookingId, wixBookingId))
-    .limit(1);
-  return result[0] || null;
-}
-
-export async function createGuestSessionFromWixBooking(data: {
-  wixBookingId: string;
-  guestName: string;
-  guestCount: number;
-  duration: "15" | "30" | "60";
-  checkInAt: Date;
-  expiresAt: Date;
-  status: "active" | "completed" | "extended";
-}) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  
-  const result = await db.insert(guestSessions).values({
-    wixBookingId: data.wixBookingId,
-    guestName: data.guestName,
-    guestCount: data.guestCount,
-    duration: data.duration,
-    checkInAt: data.checkInAt,
-    expiresAt: data.expiresAt,
-    status: data.status,
-    reminderShown: false,
-  });
-  
-  return { id: result[0].insertId };
-}
-
-export async function getWixSyncedSessionsToday() {
-  const db = await getDb();
-  if (!db) return [];
-  
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  
-  return db.select().from(guestSessions)
-    .where(
-      and(
-        gte(guestSessions.checkInAt, today),
-        sql`${guestSessions.wixBookingId} IS NOT NULL`
-      )
-    )
-    .orderBy(asc(guestSessions.checkInAt));
-}
-
-
-// ============ WELCOME SCREEN - UPCOMING ARRIVALS ============
-
-export async function getUpcomingArrivals(minutesAhead: number = 15) {
-  const db = await getDb();
-  if (!db) return [];
-  
-  const now = new Date();
-  const futureTime = new Date(now.getTime() + minutesAhead * 60 * 1000);
-  
-  // Get sessions that:
-  // 1. Have a check-in time in the future (haven't started yet)
-  // 2. Check-in time is within the specified minutes ahead
-  // 3. Are not yet completed
-  const sessions = await db.select().from(guestSessions)
-    .where(
-      and(
-        gt(guestSessions.checkInAt, now),
-        lte(guestSessions.checkInAt, futureTime),
-        or(
-          eq(guestSessions.status, "active"),
-          eq(guestSessions.status, "extended")
-        )
-      )
-    )
-    .orderBy(asc(guestSessions.checkInAt));
-  
-  // Calculate minutes until arrival for each session
-  return sessions.map(session => ({
-    ...session,
-    minutesUntilArrival: Math.ceil((new Date(session.checkInAt).getTime() - now.getTime()) / (60 * 1000)),
-  }));
 }
 
 

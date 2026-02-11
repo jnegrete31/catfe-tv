@@ -11,8 +11,6 @@ import { SettingsForm } from "@/components/admin/SettingsForm";
 import { PlaylistPreview } from "@/components/admin/ScreenPreview";
 import { GuestCheckIn } from "@/components/admin/GuestCheckIn";
 import PhotoModeration from "@/components/admin/PhotoModeration";
-// SessionHistory removed
-// WixSync removed
 import CaptionManager from "@/components/admin/CaptionManager";
 import { PollManager } from "@/components/admin/PollManager";
 import { PlaylistManager } from "@/components/admin/PlaylistManager";

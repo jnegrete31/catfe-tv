@@ -106,8 +106,6 @@ export const settings = mysqlTable("settings", {
   githubRepo: varchar("githubRepo", { length: 255 }), // e.g., "username/repo"
   githubBranch: varchar("githubBranch", { length: 64 }).default("main"),
   refreshIntervalSeconds: int("refreshIntervalSeconds").notNull().default(60),
-  wixAutoSyncEnabled: boolean("wixAutoSyncEnabled").notNull().default(true), // Auto-sync Wix bookings
-  wixLastSyncAt: timestamp("wixLastSyncAt"), // Last Wix sync timestamp
   waiverUrl: varchar("waiverUrl", { length: 1024 }), // URL for guest waiver form (displayed as QR on TV)
   wifiName: varchar("wifiName", { length: 255 }), // WiFi network name for guests
   wifiPassword: varchar("wifiPassword", { length: 255 }), // WiFi password for guests
@@ -186,7 +184,6 @@ export const guestSessions = mysqlTable("guestSessions", {
   checkedOutAt: timestamp("checkedOutAt"),
   notes: text("notes"),
   reminderShown: boolean("reminderShown").notNull().default(false), // Track if 5-min reminder was shown
-  wixBookingId: varchar("wixBookingId", { length: 64 }), // Wix booking ID for synced sessions
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

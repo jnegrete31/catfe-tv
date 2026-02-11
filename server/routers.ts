@@ -49,10 +49,6 @@ import {
   getPhotoSubmissionStats,
   getSessionHistory,
   getSessionAnalytics,
-  getGuestSessionByWixBookingId,
-  createGuestSessionFromWixBooking,
-  getWixSyncedSessionsToday,
-  getUpcomingArrivals,
   getSuggestedCaptions,
   getAllSuggestedCaptions,
   createSuggestedCaption,
@@ -102,7 +98,6 @@ import {
   getPhotosByLikes,
   getUserLikedPhotos,
 } from "./db";
-// Wix integration removed
 import { storagePut } from "./storage";
 import { notifyOwner } from "./_core/notification";
 
@@ -614,14 +609,6 @@ export const appRouter = router({
         return getSessionAnalytics(input?.startDate, input?.endDate);
       }),
 
-    // Get upcoming arrivals (for welcome screen)
-    getUpcomingArrivals: publicProcedure
-      .input(z.object({
-        minutesAhead: z.number().min(5).max(60).default(15),
-      }))
-      .query(async ({ input }) => {
-        return getUpcomingArrivals(input.minutesAhead);
-      }),
   }),
 
   // ============ PHOTO SUBMISSIONS ============
@@ -941,7 +928,6 @@ export const appRouter = router({
       }),
   }),
 
-  // Wix integration removed
 
   // ============ SUGGESTED CAPTIONS ============
   captions: router({
