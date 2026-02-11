@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { playWelcomeChime, playReminderChime } from "@/lib/chime";
+import { requestNotificationPermission, notifySessionWarning, notifySessionExpired, notifyGuestCheckIn } from "@/lib/notifications";
 import { 
   UserPlus, 
   Clock, 
@@ -85,8 +86,19 @@ export function GuestCheckIn() {
   const [, setTick] = useState(0);
   const warnedSessionIds = useRef<Set<number>>(new Set());
   const expiredSessionIds = useRef<Set<number>>(new Set());
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   
   const utils = trpc.useUtils();
+
+  // Request notification permission on mount
+  useEffect(() => {
+    requestNotificationPermission().then(granted => {
+      setNotificationsEnabled(granted);
+      if (granted) {
+        console.log("[Notifications] Desktop notifications enabled");
+      }
+    });
+  }, []);
   
   const activeSessionsQuery = trpc.guestSessions.getActive.useQuery(undefined, {
     refetchInterval: 10000,
@@ -95,8 +107,9 @@ export function GuestCheckIn() {
   const todayStatsQuery = trpc.guestSessions.getTodayStats.useQuery();
   
   const checkInMutation = trpc.guestSessions.checkIn.useMutation({
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       playWelcomeChime(0.4);
+      notifyGuestCheckIn(variables.guestName, variables.guestCount ?? 1, variables.duration);
       toast.success("Guest checked in successfully!");
       setIsCheckInOpen(false);
       resetForm();
@@ -145,20 +158,22 @@ export function GuestCheckIn() {
     for (const session of activeSessions) {
       const msLeft = new Date(session.expiresAt).getTime() - now;
       
-      // 5-minute warning chime
+      // 5-minute warning chime + desktop notification
       if (msLeft > 0 && msLeft <= 5 * 60 * 1000 && !warnedSessionIds.current.has(session.id)) {
         warnedSessionIds.current.add(session.id);
         playReminderChime(0.35);
+        notifySessionWarning(session.guestName, Math.ceil(msLeft / 60000));
         toast.warning(`${session.guestName}'s session ends in ${Math.ceil(msLeft / 60000)} minutes!`, {
           duration: 8000,
           icon: "⏰",
         });
       }
       
-      // Expired chime
+      // Expired chime + desktop notification
       if (msLeft <= 0 && !expiredSessionIds.current.has(session.id)) {
         expiredSessionIds.current.add(session.id);
         playReminderChime(0.4);
+        notifySessionExpired(session.guestName);
         toast.error(`${session.guestName}'s session has expired!`, {
           duration: 10000,
           icon: "🔔",

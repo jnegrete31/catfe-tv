@@ -1155,3 +1155,11 @@
 - [x] Add reminder chime to admin panel when guest sessions hit 5-minute warning
 - [x] Use distinct tone from check-in chime so they're distinguishable
 - [x] Track which sessions have already triggered the chime to avoid repeats
+
+## Feature - Browser Desktop Notifications
+- [x] Create notification utility with permission request
+- [x] Request notification permission on admin page load
+- [x] Send desktop notification when guest session hits 5-minute warning
+- [x] Send desktop notification when guest session expires
+- [x] Send desktop notification when a new guest checks in
+- [x] Include guest name, session type, and time info in notifications
