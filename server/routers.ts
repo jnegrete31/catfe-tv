@@ -120,6 +120,7 @@ const screenTypes = [
   "POLL",
   "POLL_QR",
   "CHECK_IN",
+  "GUEST_STATUS_BOARD",
   "CUSTOM",
 ] as const;
 

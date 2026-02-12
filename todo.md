@@ -1196,3 +1196,17 @@
 - [x] Add "Now Serving" banner in ScheduleTimeline showing which playlist the TV is using
 - [x] Write tests for scheduling resolution logic (13 new tests)
 - [x] All 130 tests passing
+
+## Feature - Guest Status Board TV Slide
+- [x] Add GUEST_STATUS_BOARD to screen type enum in database schema
+- [x] Add backend endpoint/procedure to serve active guest sessions for TV display
+- [x] Create GuestStatusBoard TV display renderer showing all checked-in guests
+- [x] Show guest name, session type (Full Purr / Mini Meow), and remaining time
+- [x] Live countdown timers for each guest
+- [x] Color-code by session type and urgency (teal/amber/purple + red urgent)
+- [x] Add GUEST_STATUS_BOARD to admin screen type selector
+- [x] Responsive grid layout (2/3/4 cols based on guest count)
+- [x] Empty state with "Waiting for guests..." message
+- [x] Session type legend in footer
+- [x] 18 unit tests for session labels, time status, grid layout, sorting, colors
+- [x] All 135 tests passing

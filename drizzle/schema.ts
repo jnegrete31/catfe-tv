@@ -39,6 +39,7 @@ export const screenTypeEnum = mysqlEnum("screenType", [
   "POLL",
   "POLL_QR",
   "CHECK_IN",
+  "GUEST_STATUS_BOARD",
   "CUSTOM"
 ]);
 

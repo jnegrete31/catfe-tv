@@ -25,6 +25,7 @@ export const SCREEN_TYPES = [
   "POLL",
   "POLL_QR",
   "CHECK_IN",
+  "GUEST_STATUS_BOARD",
   "CUSTOM",
 ] as const;
 
@@ -49,6 +50,7 @@ export const SCREEN_TYPE_CONFIG: Record<ScreenType, { label: string; color: stri
   POLL: { label: "Cat Poll", color: "#7c3aed", bgColor: "#ede9fe" },
   POLL_QR: { label: "Poll QR", color: "#8b5cf6", bgColor: "#f3e8ff" },
   CHECK_IN: { label: "Guest Check-in", color: "#0891b2", bgColor: "#cffafe" },
+  GUEST_STATUS_BOARD: { label: "Guest Status Board", color: "#0d9488", bgColor: "#ccfbf1" },
   CUSTOM: { label: "Custom Slide", color: "#6b7280", bgColor: "#f3f4f6" },
 };
 
@@ -87,4 +89,5 @@ export const SCREEN_TYPE_DURATIONS: Partial<Record<ScreenType, number>> = {
   SNAP_PURR_GALLERY: 60,
   ADOPTION_SHOWCASE: 30,
   LIVESTREAM: 60,
+  GUEST_STATUS_BOARD: 15,
 };

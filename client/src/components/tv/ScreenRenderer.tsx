@@ -1898,6 +1898,225 @@ function CheckInScreen({ screen, settings }: ScreenRendererProps) {
   );
 }
 
+// Guest Status Board - shows all currently checked-in guests with remaining time
+function GuestStatusBoardScreen({ screen, settings }: ScreenRendererProps) {
+  const { data: activeSessions } = trpc.guestSessions.getActive.useQuery(undefined, {
+    refetchInterval: 5000, // Refresh every 5 seconds for live countdowns
+  });
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const locationName = settings?.locationName || "Catfé";
+
+  // Update current time every second for live countdowns
+  useEffect(() => {
+    const interval = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const sessions = (activeSessions || []) as Array<{
+    id: number;
+    guestName: string;
+    guestCount: number;
+    duration: "15" | "30" | "60";
+    status: string;
+    checkInAt: Date;
+    expiresAt: Date;
+  }>;
+
+  // Sort by expiry time (soonest first)
+  const sortedSessions = [...sessions].sort((a, b) => {
+    const aExp = new Date(a.expiresAt).getTime();
+    const bExp = new Date(b.expiresAt).getTime();
+    return aExp - bExp;
+  });
+
+  const getSessionLabel = (duration: string) => {
+    switch (duration) {
+      case "60": return "Full Purr";
+      case "30": return "Mini Meow";
+      case "15": return "Quick Peek";
+      default: return `${duration} min`;
+    }
+  };
+
+  const getSessionIcon = (duration: string) => {
+    switch (duration) {
+      case "60": return "\uD83D\uDC31"; // 🐱
+      case "30": return "\uD83D\uDE3A"; // 😺
+      case "15": return "\uD83D\uDC3E"; // 🐾
+      default: return "\uD83D\uDC08"; // 🐈
+    }
+  };
+
+  const getSessionColor = (duration: string) => {
+    switch (duration) {
+      case "60": return { bg: "from-teal-500/30 to-teal-600/20", border: "border-teal-400/40", text: "text-teal-300", badge: "bg-teal-500/30 text-teal-200" };
+      case "30": return { bg: "from-amber-500/30 to-amber-600/20", border: "border-amber-400/40", text: "text-amber-300", badge: "bg-amber-500/30 text-amber-200" };
+      case "15": return { bg: "from-purple-500/30 to-purple-600/20", border: "border-purple-400/40", text: "text-purple-300", badge: "bg-purple-500/30 text-purple-200" };
+      default: return { bg: "from-gray-500/30 to-gray-600/20", border: "border-gray-400/40", text: "text-gray-300", badge: "bg-gray-500/30 text-gray-200" };
+    }
+  };
+
+  const getTimeStatus = (expiresAt: Date) => {
+    const msLeft = new Date(expiresAt).getTime() - currentTime.getTime();
+    if (msLeft <= 0) return { label: "Ended", minutes: 0, seconds: 0, isExpired: true, isUrgent: true, percent: 0 };
+    const totalSeconds = Math.floor(msLeft / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    const isUrgent = minutes < 5;
+    return { label: `${minutes}:${seconds.toString().padStart(2, "0")}`, minutes, seconds, isExpired: false, isUrgent, percent: Math.min(100, (msLeft / (60 * 60 * 1000)) * 100) };
+  };
+
+  // Determine grid layout based on number of guests
+  const getGridClass = () => {
+    const count = sortedSessions.length;
+    if (count <= 4) return "grid-cols-2";
+    if (count <= 6) return "grid-cols-3";
+    if (count <= 9) return "grid-cols-3";
+    return "grid-cols-4";
+  };
+
+  return (
+    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)' }}>
+      {/* Subtle animated background */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-10 right-10 w-40 h-40 border-2 border-teal-400/30 rounded-full animate-pulse" />
+        <div className="absolute bottom-20 left-20 w-32 h-32 border-2 border-amber-400/30 rounded-full" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-1/3 left-1/4 w-24 h-24 border-2 border-purple-400/20 rounded-full" />
+      </div>
+
+      {/* Radial glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] h-[60%] opacity-5"
+           style={{ background: 'radial-gradient(ellipse at center top, rgba(94,234,212,0.4) 0%, transparent 60%)' }} />
+
+      <div className="absolute inset-0 p-8 flex flex-col">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-6 flex-shrink-0"
+        >
+          <h1 className="text-5xl font-light tracking-wider text-white mb-1" style={{ fontFamily: 'Georgia, serif' }}>
+            {screen.title || `${locationName} Guest Board`}
+          </h1>
+          <p className="text-xl text-white/50">
+            {sortedSessions.length > 0
+              ? `${sortedSessions.length} active session${sortedSessions.length !== 1 ? 's' : ''} • ${sortedSessions.reduce((sum, s) => sum + s.guestCount, 0)} guests in the lounge`
+              : "No active sessions right now"}
+          </p>
+        </motion.div>
+
+        {/* Guest Grid */}
+        {sortedSessions.length > 0 ? (
+          <div className={`flex-1 grid ${getGridClass()} gap-4 auto-rows-fr overflow-hidden`}>
+            {sortedSessions.map((session, index) => {
+              const colors = getSessionColor(session.duration);
+              const timeStatus = getTimeStatus(session.expiresAt);
+              const sessionLabel = getSessionLabel(session.duration);
+              const icon = getSessionIcon(session.duration);
+
+              return (
+                <motion.div
+                  key={session.id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: index * 0.05 }}
+                  className={`
+                    relative rounded-2xl border backdrop-blur-sm overflow-hidden
+                    bg-gradient-to-br ${colors.bg} ${colors.border}
+                    ${timeStatus.isExpired ? 'opacity-50' : ''}
+                    ${timeStatus.isUrgent && !timeStatus.isExpired ? 'ring-2 ring-red-400/50' : ''}
+                    flex flex-col
+                  `}
+                >
+                  {/* Progress bar at top */}
+                  <div className="h-1 bg-white/10 flex-shrink-0">
+                    <div
+                      className={`h-full transition-all duration-1000 ${
+                        timeStatus.isExpired ? 'bg-red-500' :
+                        timeStatus.isUrgent ? 'bg-red-400' : 'bg-teal-400/80'
+                      }`}
+                      style={{ width: `${timeStatus.percent}%` }}
+                    />
+                  </div>
+
+                  <div className="flex-1 p-4 flex flex-col justify-center items-center text-center">
+                    {/* Session type badge */}
+                    <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium mb-2 ${colors.badge}`}>
+                      <span>{icon}</span>
+                      <span>{sessionLabel}</span>
+                    </div>
+
+                    {/* Guest name */}
+                    <h3 className="text-2xl font-semibold text-white truncate w-full mb-1">
+                      {session.guestName}
+                    </h3>
+
+                    {/* Party size */}
+                    {session.guestCount > 1 && (
+                      <p className="text-sm text-white/50 mb-2">
+                        Party of {session.guestCount}
+                      </p>
+                    )}
+
+                    {/* Countdown */}
+                    <div className={`text-3xl font-mono font-bold ${
+                      timeStatus.isExpired ? 'text-red-400' :
+                      timeStatus.isUrgent ? 'text-red-300 animate-pulse' : 'text-white'
+                    }`}>
+                      {timeStatus.isExpired ? 'TIME UP' : timeStatus.label}
+                    </div>
+                    <p className="text-xs text-white/40 mt-1">
+                      {timeStatus.isExpired ? 'Session ended' : 'remaining'}
+                    </p>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        ) : (
+          /* Empty state */
+          <div className="flex-1 flex flex-col items-center justify-center">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center"
+            >
+              <div className="text-8xl mb-6">\uD83D\uDC3E</div>
+              <h2 className="text-3xl font-light text-white/60 mb-2" style={{ fontFamily: 'Georgia, serif' }}>
+                Waiting for guests...
+              </h2>
+              <p className="text-lg text-white/30">
+                Check in at the front desk to start your session
+              </p>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Footer with session type legend */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="mt-4 flex items-center justify-center gap-8 flex-shrink-0"
+        >
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full bg-teal-400"></span>
+            <span className="text-sm text-white/40">Full Purr (60 min)</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full bg-amber-400"></span>
+            <span className="text-sm text-white/40">Mini Meow (30 min)</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full bg-purple-400"></span>
+            <span className="text-sm text-white/40">Quick Peek (15 min)</span>
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
 // Lightweight overlay that renders only template elements on top of the default screen
 // This preserves the original screen design while allowing element additions from the Slide Editor
 function TemplateElementsOverlay({ screenType, screen, settings }: { screenType: string; screen: Screen; settings: Settings | null }) {
@@ -2054,6 +2273,7 @@ export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendere
     SNAP_PURR_QR: SnapPurrQRScreen,
     POLL: () => <PollScreen />,
     CHECK_IN: CheckInScreen,
+    GUEST_STATUS_BOARD: GuestStatusBoardScreen,
     // Custom slides always use TemplateRenderer with their saved template
     CUSTOM: ({ screen }) => {
       // For CUSTOM screens, render with dark elegant theme
