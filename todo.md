@@ -1210,3 +1210,9 @@
 - [x] Session type legend in footer
 - [x] 18 unit tests for session labels, time status, grid layout, sorting, colors
 - [x] All 135 tests passing
+
+## Bug Fix - Guest Status Board Issues
+- [x] Fix: Guests not showing on Apple TV Guest Status Board (reduced refetch interval, need to publish)
+- [x] Add general session timers for online reservations (Full Purr countdown to :00, Mini Meow countdown to :30)
+- [x] Fix: Slide not advancing after duration (stabilized nextScreen callback with refs to prevent timer resets)
+- [x] Increased default duration from 15s to 20s

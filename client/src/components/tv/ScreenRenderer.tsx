@@ -1899,12 +1899,13 @@ function CheckInScreen({ screen, settings }: ScreenRendererProps) {
 }
 
 // Guest Status Board - shows all currently checked-in guests with remaining time
+// Also shows general session window timers for online reservation guests
 function GuestStatusBoardScreen({ screen, settings }: ScreenRendererProps) {
   const { data: activeSessions } = trpc.guestSessions.getActive.useQuery(undefined, {
-    refetchInterval: 5000, // Refresh every 5 seconds for live countdowns
+    refetchInterval: 10000, // Refresh every 10 seconds (reduced from 5s to avoid excess re-renders)
   });
   const [currentTime, setCurrentTime] = useState(new Date());
-  const locationName = settings?.locationName || "Catfé";
+  const locationName = settings?.locationName || "Catf\u00e9";
 
   // Update current time every second for live countdowns
   useEffect(() => {
@@ -1940,10 +1941,10 @@ function GuestStatusBoardScreen({ screen, settings }: ScreenRendererProps) {
 
   const getSessionIcon = (duration: string) => {
     switch (duration) {
-      case "60": return "\uD83D\uDC31"; // 🐱
-      case "30": return "\uD83D\uDE3A"; // 😺
-      case "15": return "\uD83D\uDC3E"; // 🐾
-      default: return "\uD83D\uDC08"; // 🐈
+      case "60": return "\uD83D\uDC31";
+      case "30": return "\uD83D\uDE3A";
+      case "15": return "\uD83D\uDC3E";
+      default: return "\uD83D\uDC08";
     }
   };
 
@@ -1966,7 +1967,65 @@ function GuestStatusBoardScreen({ screen, settings }: ScreenRendererProps) {
     return { label: `${minutes}:${seconds.toString().padStart(2, "0")}`, minutes, seconds, isExpired: false, isUrgent, percent: Math.min(100, (msLeft / (60 * 60 * 1000)) * 100) };
   };
 
-  // Determine grid layout based on number of guests
+  // Calculate general session window timers
+  // Sessions start on the hour: Full Purr (60 min) ends at :00, Mini Meow (30 min) ends at :30
+  const getSessionWindows = () => {
+    const now = currentTime;
+    const currentMinute = now.getMinutes();
+    const currentSecond = now.getSeconds();
+    const windows: Array<{ type: string; icon: string; label: string; endsAt: string; minutesLeft: number; secondsLeft: number; color: string; bgColor: string }> = [];
+
+    // Full Purr (60 min) - ends at the top of the next hour
+    const fullPurrMinutesLeft = 59 - currentMinute;
+    const fullPurrSecondsLeft = 59 - currentSecond;
+    const nextHour = new Date(now);
+    nextHour.setHours(nextHour.getHours() + 1, 0, 0, 0);
+    const fullPurrEnds = nextHour.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    windows.push({
+      type: "Full Purr",
+      icon: "\uD83D\uDC31",
+      label: "60 min session",
+      endsAt: fullPurrEnds,
+      minutesLeft: fullPurrMinutesLeft,
+      secondsLeft: fullPurrSecondsLeft,
+      color: "text-teal-300",
+      bgColor: "from-teal-500/20 to-teal-600/10 border-teal-400/30",
+    });
+
+    // Mini Meow (30 min) - ends at :30 or :00
+    let miniMeowMinutesLeft: number;
+    let miniMeowSecondsLeft: number;
+    let miniMeowEndsAt: string;
+    if (currentMinute < 30) {
+      // Current session ends at :30
+      miniMeowMinutesLeft = 29 - currentMinute;
+      miniMeowSecondsLeft = 59 - currentSecond;
+      const endsAt = new Date(now);
+      endsAt.setMinutes(30, 0, 0);
+      miniMeowEndsAt = endsAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    } else {
+      // Current session ends at :00 (next hour)
+      miniMeowMinutesLeft = 59 - currentMinute;
+      miniMeowSecondsLeft = 59 - currentSecond;
+      miniMeowEndsAt = fullPurrEnds;
+    }
+    windows.push({
+      type: "Mini Meow",
+      icon: "\uD83D\uDE3A",
+      label: "30 min session",
+      endsAt: miniMeowEndsAt,
+      minutesLeft: miniMeowMinutesLeft,
+      secondsLeft: miniMeowSecondsLeft,
+      color: "text-amber-300",
+      bgColor: "from-amber-500/20 to-amber-600/10 border-amber-400/30",
+    });
+
+    return windows;
+  };
+
+  const sessionWindows = getSessionWindows();
+
+  // Determine grid layout based on number of checked-in guests
   const getGridClass = () => {
     const count = sortedSessions.length;
     if (count <= 4) return "grid-cols-2";
@@ -1993,100 +2052,132 @@ function GuestStatusBoardScreen({ screen, settings }: ScreenRendererProps) {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-6 flex-shrink-0"
+          className="text-center mb-4 flex-shrink-0"
         >
           <h1 className="text-5xl font-light tracking-wider text-white mb-1" style={{ fontFamily: 'Georgia, serif' }}>
-            {screen.title || `${locationName} Guest Board`}
+            {screen.title || `${locationName} Session Times`}
           </h1>
           <p className="text-xl text-white/50">
             {sortedSessions.length > 0
-              ? `${sortedSessions.length} active session${sortedSessions.length !== 1 ? 's' : ''} • ${sortedSessions.reduce((sum, s) => sum + s.guestCount, 0)} guests in the lounge`
-              : "No active sessions right now"}
+              ? `${sortedSessions.length} checked-in session${sortedSessions.length !== 1 ? 's' : ''} \u2022 ${sortedSessions.reduce((sum, s) => sum + s.guestCount, 0)} guests in the lounge`
+              : "Current session countdown"}
           </p>
         </motion.div>
 
-        {/* Guest Grid */}
+        {/* Session Window Timers - always visible for online reservation guests */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="flex gap-4 mb-4 flex-shrink-0"
+        >
+          {sessionWindows.map((win) => {
+            const isUrgent = win.minutesLeft < 5;
+            return (
+              <div
+                key={win.type}
+                className={`flex-1 rounded-xl border backdrop-blur-sm bg-gradient-to-br ${win.bgColor} p-4 flex items-center gap-4`}
+              >
+                <div className="text-4xl">{win.icon}</div>
+                <div className="flex-1">
+                  <div className="flex items-baseline gap-2">
+                    <span className={`text-xl font-semibold ${win.color}`}>{win.type}</span>
+                    <span className="text-sm text-white/40">{win.label}</span>
+                  </div>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <span className={`text-3xl font-mono font-bold ${isUrgent ? 'text-red-300 animate-pulse' : 'text-white'}`}>
+                      {win.minutesLeft}:{win.secondsLeft.toString().padStart(2, '0')}
+                    </span>
+                    <span className="text-sm text-white/40">remaining \u2022 ends at {win.endsAt}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </motion.div>
+
+        {/* Checked-in Guest Grid */}
         {sortedSessions.length > 0 ? (
-          <div className={`flex-1 grid ${getGridClass()} gap-4 auto-rows-fr overflow-hidden`}>
-            {sortedSessions.map((session, index) => {
-              const colors = getSessionColor(session.duration);
-              const timeStatus = getTimeStatus(session.expiresAt);
-              const sessionLabel = getSessionLabel(session.duration);
-              const icon = getSessionIcon(session.duration);
+          <>
+            <div className="text-sm text-white/30 mb-2 flex-shrink-0">Checked-in Guests</div>
+            <div className={`flex-1 grid ${getGridClass()} gap-3 auto-rows-fr overflow-hidden`}>
+              {sortedSessions.map((session, index) => {
+                const colors = getSessionColor(session.duration);
+                const timeStatus = getTimeStatus(session.expiresAt);
+                const sessionLabel = getSessionLabel(session.duration);
+                const icon = getSessionIcon(session.duration);
 
-              return (
-                <motion.div
-                  key={session.id}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.05 }}
-                  className={`
-                    relative rounded-2xl border backdrop-blur-sm overflow-hidden
-                    bg-gradient-to-br ${colors.bg} ${colors.border}
-                    ${timeStatus.isExpired ? 'opacity-50' : ''}
-                    ${timeStatus.isUrgent && !timeStatus.isExpired ? 'ring-2 ring-red-400/50' : ''}
-                    flex flex-col
-                  `}
-                >
-                  {/* Progress bar at top */}
-                  <div className="h-1 bg-white/10 flex-shrink-0">
-                    <div
-                      className={`h-full transition-all duration-1000 ${
-                        timeStatus.isExpired ? 'bg-red-500' :
-                        timeStatus.isUrgent ? 'bg-red-400' : 'bg-teal-400/80'
-                      }`}
-                      style={{ width: `${timeStatus.percent}%` }}
-                    />
-                  </div>
-
-                  <div className="flex-1 p-4 flex flex-col justify-center items-center text-center">
-                    {/* Session type badge */}
-                    <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium mb-2 ${colors.badge}`}>
-                      <span>{icon}</span>
-                      <span>{sessionLabel}</span>
+                return (
+                  <motion.div
+                    key={session.id}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: index * 0.05 }}
+                    className={`
+                      relative rounded-xl border backdrop-blur-sm overflow-hidden
+                      bg-gradient-to-br ${colors.bg} ${colors.border}
+                      ${timeStatus.isExpired ? 'opacity-50' : ''}
+                      ${timeStatus.isUrgent && !timeStatus.isExpired ? 'ring-2 ring-red-400/50' : ''}
+                      flex flex-col
+                    `}
+                  >
+                    {/* Progress bar at top */}
+                    <div className="h-1 bg-white/10 flex-shrink-0">
+                      <div
+                        className={`h-full transition-all duration-1000 ${
+                          timeStatus.isExpired ? 'bg-red-500' :
+                          timeStatus.isUrgent ? 'bg-red-400' : 'bg-teal-400/80'
+                        }`}
+                        style={{ width: `${timeStatus.percent}%` }}
+                      />
                     </div>
 
-                    {/* Guest name */}
-                    <h3 className="text-2xl font-semibold text-white truncate w-full mb-1">
-                      {session.guestName}
-                    </h3>
+                    <div className="flex-1 p-3 flex flex-col justify-center items-center text-center">
+                      {/* Session type badge */}
+                      <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium mb-1 ${colors.badge}`}>
+                        <span>{icon}</span>
+                        <span>{sessionLabel}</span>
+                      </div>
 
-                    {/* Party size */}
-                    {session.guestCount > 1 && (
-                      <p className="text-sm text-white/50 mb-2">
-                        Party of {session.guestCount}
-                      </p>
-                    )}
+                      {/* Guest name */}
+                      <h3 className="text-xl font-semibold text-white truncate w-full mb-0.5">
+                        {session.guestName}
+                      </h3>
 
-                    {/* Countdown */}
-                    <div className={`text-3xl font-mono font-bold ${
-                      timeStatus.isExpired ? 'text-red-400' :
-                      timeStatus.isUrgent ? 'text-red-300 animate-pulse' : 'text-white'
-                    }`}>
-                      {timeStatus.isExpired ? 'TIME UP' : timeStatus.label}
+                      {/* Party size */}
+                      {session.guestCount > 1 && (
+                        <p className="text-xs text-white/50 mb-1">
+                          Party of {session.guestCount}
+                        </p>
+                      )}
+
+                      {/* Countdown */}
+                      <div className={`text-2xl font-mono font-bold ${
+                        timeStatus.isExpired ? 'text-red-400' :
+                        timeStatus.isUrgent ? 'text-red-300 animate-pulse' : 'text-white'
+                      }`}>
+                        {timeStatus.isExpired ? 'TIME UP' : timeStatus.label}
+                      </div>
                     </div>
-                    <p className="text-xs text-white/40 mt-1">
-                      {timeStatus.isExpired ? 'Session ended' : 'remaining'}
-                    </p>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </>
         ) : (
-          /* Empty state */
+          /* When no checked-in guests, show a friendly message below the timers */
           <div className="flex-1 flex flex-col items-center justify-center">
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               className="text-center"
             >
-              <div className="text-8xl mb-6">\uD83D\uDC3E</div>
-              <h2 className="text-3xl font-light text-white/60 mb-2" style={{ fontFamily: 'Georgia, serif' }}>
-                Waiting for guests...
+              <div className="text-6xl mb-4">\uD83D\uDC3E</div>
+              <h2 className="text-2xl font-light text-white/50 mb-2" style={{ fontFamily: 'Georgia, serif' }}>
+                Enjoy your time with our cats!
               </h2>
               <p className="text-lg text-white/30">
-                Check in at the front desk to start your session
+                Session timers shown above
               </p>
             </motion.div>
           </div>
@@ -2097,7 +2188,7 @@ function GuestStatusBoardScreen({ screen, settings }: ScreenRendererProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="mt-4 flex items-center justify-center gap-8 flex-shrink-0"
+          className="mt-3 flex items-center justify-center gap-8 flex-shrink-0"
         >
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-teal-400"></span>

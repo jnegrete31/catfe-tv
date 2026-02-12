@@ -126,6 +126,8 @@ export function usePlaylist() {
   const [pollTimeWindow, setPollTimeWindow] = useState(isPollTime());
   const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
   const lastScreenIdsRef = useRef<string>(""); // Track screen IDs to avoid unnecessary rebuilds
+  const playlistRef = useRef<Screen[]>([]); // Stable ref for nextScreen callback
+  const settingsRef = useRef<Settings | null>(null); // Stable ref for settings
   
   // Check poll time window every 30 seconds
   useEffect(() => {
@@ -256,18 +258,26 @@ export function usePlaylist() {
     }
   }, [screensQuery.data, screensQuery.error, settings, cacheData, loadCachedData, pollTimeWindow]);
   
+  // Keep refs in sync for stable callbacks
+  useEffect(() => { playlistRef.current = playlist; }, [playlist]);
+  useEffect(() => { settingsRef.current = settings; }, [settings]);
+
   // Current screen
   const currentScreen = playlist[state.currentIndex] || null;
   
   // Advance to next screen, reshuffle when a full cycle completes
+  // Uses refs to avoid re-creating the callback when playlist/settings change,
+  // which would reset the auto-advance timer in TVDisplay.tsx
   const nextScreen = useCallback(() => {
     setState(prev => {
-      const nextIndex = (prev.currentIndex + 1) % Math.max(1, playlist.length);
+      const pl = playlistRef.current;
+      const nextIndex = (prev.currentIndex + 1) % Math.max(1, pl.length);
       
       // If we've looped back to the start, reshuffle the playlist for variety
-      if (nextIndex === 0 && playlist.length > 1) {
-        const lastScreen = playlist[prev.currentIndex];
-        const newPlaylist = buildPlaylist(prev.screens, settings?.snapAndPurrFrequency || 5);
+      if (nextIndex === 0 && pl.length > 1) {
+        const lastScreen = pl[prev.currentIndex];
+        const freq = settingsRef.current?.snapAndPurrFrequency || 5;
+        const newPlaylist = buildPlaylist(prev.screens, freq);
         // Avoid starting with the same screen that just played
         if (newPlaylist.length > 1 && newPlaylist[0]?.id === lastScreen?.id) {
           const swapIdx = 1 + Math.floor(Math.random() * (newPlaylist.length - 1));
@@ -278,15 +288,16 @@ export function usePlaylist() {
       
       return { ...prev, currentIndex: nextIndex };
     });
-  }, [playlist, settings?.snapAndPurrFrequency]);
+  }, []); // Stable - never recreated
   
   // Go to previous screen
   const prevScreen = useCallback(() => {
     setState(prev => {
-      const prevIndex = prev.currentIndex === 0 ? playlist.length - 1 : prev.currentIndex - 1;
+      const pl = playlistRef.current;
+      const prevIndex = prev.currentIndex === 0 ? pl.length - 1 : prev.currentIndex - 1;
       return { ...prev, currentIndex: prevIndex };
     });
-  }, [playlist.length]);
+  }, []); // Stable - never recreated
   
   // Note: Auto-advance timer is handled in TVDisplay.tsx to support pause functionality
   // Log view when screen changes
