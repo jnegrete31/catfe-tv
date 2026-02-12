@@ -1184,3 +1184,15 @@
 - [x] Include icons and labels for Guests, Screens, and Photos tabs
 - [x] Sync bottom nav selection with the main tab state
 - [x] Add padding to main content so bottom nav doesn't overlap last items
+
+## Bug Fix - Playlist Scheduling (Multiple Active Playlists)
+- [x] Investigate current playlist schema and activation logic
+- [x] Fix backend to check timeSlots array (not just legacy timeStart/timeEnd)
+- [x] Decouple isActive from scheduling (scheduled playlists don't need isActive)
+- [x] Support multiple scheduled playlists (first match by sortOrder wins)
+- [x] Add fallback chain: scheduled → manual → default → all screens
+- [x] Handle overnight time windows (e.g., 22:00 – 02:00)
+- [x] Add getCurrentlyServing tRPC endpoint for admin visibility
+- [x] Add "Now Serving" banner in ScheduleTimeline showing which playlist the TV is using
+- [x] Write tests for scheduling resolution logic (13 new tests)
+- [x] All 130 tests passing

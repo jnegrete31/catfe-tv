@@ -391,3 +391,213 @@ describe("Playlist Scheduling", () => {
     });
   });
 });
+
+describe("Backend Scheduling Resolution Logic", () => {
+  // Test the isPlaylistScheduledNow logic as pure functions
+  // (mirrors the logic in db.ts without needing DB mocks)
+
+  interface PlaylistLike {
+    schedulingEnabled: boolean;
+    daysOfWeek: number[] | null;
+    timeSlots: Array<{ timeStart: string; timeEnd: string }> | null;
+    timeStart: string | null;
+    timeEnd: string | null;
+  }
+
+  function isPlaylistScheduledAt(
+    p: PlaylistLike,
+    currentDay: number,
+    currentTime: string
+  ): boolean {
+    if (!p.schedulingEnabled) return false;
+
+    // Check days of week
+    if (p.daysOfWeek && p.daysOfWeek.length > 0) {
+      if (!p.daysOfWeek.includes(currentDay)) return false;
+    }
+
+    // Build time windows
+    const windows: Array<{ timeStart: string; timeEnd: string }> = [];
+    if (p.timeSlots && Array.isArray(p.timeSlots) && p.timeSlots.length > 0) {
+      for (const slot of p.timeSlots) {
+        if (slot.timeStart && slot.timeEnd) windows.push(slot);
+      }
+    }
+    if (windows.length === 0 && p.timeStart && p.timeEnd) {
+      windows.push({ timeStart: p.timeStart, timeEnd: p.timeEnd });
+    }
+
+    // No time windows = always on for those days
+    if (windows.length === 0) return true;
+
+    return windows.some((w) => {
+      // Handle overnight windows (e.g., 22:00 – 02:00)
+      if (w.timeEnd < w.timeStart) {
+        return currentTime >= w.timeStart || currentTime <= w.timeEnd;
+      }
+      return currentTime >= w.timeStart && currentTime <= w.timeEnd;
+    });
+  }
+
+  it("should not match when schedulingEnabled is false", () => {
+    expect(
+      isPlaylistScheduledAt(
+        { schedulingEnabled: false, daysOfWeek: null, timeSlots: null, timeStart: null, timeEnd: null },
+        1,
+        "10:00"
+      )
+    ).toBe(false);
+  });
+
+  it("should match when scheduling enabled, all days, within timeSlots window", () => {
+    expect(
+      isPlaylistScheduledAt(
+        {
+          schedulingEnabled: true,
+          daysOfWeek: [0, 1, 2, 3, 4, 5, 6],
+          timeSlots: [{ timeStart: "09:00", timeEnd: "17:00" }],
+          timeStart: null,
+          timeEnd: null,
+        },
+        3, // Wednesday
+        "12:00"
+      )
+    ).toBe(true);
+  });
+
+  it("should not match when current time is outside all timeSlots", () => {
+    expect(
+      isPlaylistScheduledAt(
+        {
+          schedulingEnabled: true,
+          daysOfWeek: [0, 1, 2, 3, 4, 5, 6],
+          timeSlots: [
+            { timeStart: "09:00", timeEnd: "12:00" },
+            { timeStart: "14:00", timeEnd: "17:00" },
+          ],
+          timeStart: null,
+          timeEnd: null,
+        },
+        3,
+        "13:00" // between the two windows
+      )
+    ).toBe(false);
+  });
+
+  it("should match when current time is in second timeSlot", () => {
+    expect(
+      isPlaylistScheduledAt(
+        {
+          schedulingEnabled: true,
+          daysOfWeek: [0, 1, 2, 3, 4, 5, 6],
+          timeSlots: [
+            { timeStart: "09:00", timeEnd: "12:00" },
+            { timeStart: "14:00", timeEnd: "17:00" },
+          ],
+          timeStart: null,
+          timeEnd: null,
+        },
+        3,
+        "15:30"
+      )
+    ).toBe(true);
+  });
+
+  it("should use legacy timeStart/timeEnd when timeSlots is null", () => {
+    expect(
+      isPlaylistScheduledAt(
+        {
+          schedulingEnabled: true,
+          daysOfWeek: null,
+          timeSlots: null,
+          timeStart: "08:00",
+          timeEnd: "20:00",
+        },
+        1,
+        "10:00"
+      )
+    ).toBe(true);
+  });
+
+  it("should use legacy timeStart/timeEnd when timeSlots is empty array", () => {
+    expect(
+      isPlaylistScheduledAt(
+        {
+          schedulingEnabled: true,
+          daysOfWeek: null,
+          timeSlots: [],
+          timeStart: "08:00",
+          timeEnd: "20:00",
+        },
+        1,
+        "10:00"
+      )
+    ).toBe(true);
+  });
+
+  it("should be always-on when scheduling enabled but no time windows defined", () => {
+    expect(
+      isPlaylistScheduledAt(
+        {
+          schedulingEnabled: true,
+          daysOfWeek: [1, 2, 3, 4, 5],
+          timeSlots: null,
+          timeStart: null,
+          timeEnd: null,
+        },
+        3, // Wednesday
+        "23:59"
+      )
+    ).toBe(true);
+  });
+
+  it("should not match on wrong day even with no time windows", () => {
+    expect(
+      isPlaylistScheduledAt(
+        {
+          schedulingEnabled: true,
+          daysOfWeek: [1, 2, 3, 4, 5], // weekdays only
+          timeSlots: null,
+          timeStart: null,
+          timeEnd: null,
+        },
+        0, // Sunday
+        "12:00"
+      )
+    ).toBe(false);
+  });
+
+  it("should handle overnight time windows (e.g., 22:00 – 02:00)", () => {
+    const playlist: PlaylistLike = {
+      schedulingEnabled: true,
+      daysOfWeek: null,
+      timeSlots: [{ timeStart: "22:00", timeEnd: "02:00" }],
+      timeStart: null,
+      timeEnd: null,
+    };
+
+    // 23:00 should match (after start)
+    expect(isPlaylistScheduledAt(playlist, 1, "23:00")).toBe(true);
+    // 01:00 should match (before end, next day)
+    expect(isPlaylistScheduledAt(playlist, 1, "01:00")).toBe(true);
+    // 12:00 should NOT match
+    expect(isPlaylistScheduledAt(playlist, 1, "12:00")).toBe(false);
+    // 03:00 should NOT match (after end)
+    expect(isPlaylistScheduledAt(playlist, 1, "03:00")).toBe(false);
+  });
+
+  it("should match at exact boundary times", () => {
+    const playlist: PlaylistLike = {
+      schedulingEnabled: true,
+      daysOfWeek: null,
+      timeSlots: [{ timeStart: "09:00", timeEnd: "17:00" }],
+      timeStart: null,
+      timeEnd: null,
+    };
+
+    expect(isPlaylistScheduledAt(playlist, 1, "09:00")).toBe(true); // exact start
+    expect(isPlaylistScheduledAt(playlist, 1, "17:00")).toBe(true); // exact end
+    expect(isPlaylistScheduledAt(playlist, 1, "08:59")).toBe(false); // 1 min before
+    expect(isPlaylistScheduledAt(playlist, 1, "17:01")).toBe(false); // 1 min after
+  });
+});

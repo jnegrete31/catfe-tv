@@ -1151,6 +1151,45 @@ export const appRouter = router({
         return getScreensForPlaylist(input.playlistId);
       }),
 
+    // Public: Get which playlist is currently being served to the TV
+    getCurrentlyServing: publicProcedure.query(async () => {
+      const allPlaylistsList = await getAllPlaylists();
+      const now = new Date();
+      const currentDay = now.getDay();
+      const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+
+      // Check scheduled playlists (same logic as getActiveScreensForCurrentPlaylist)
+      for (const p of allPlaylistsList) {
+        if (!p.schedulingEnabled) continue;
+        // Check days
+        if (p.daysOfWeek && p.daysOfWeek.length > 0 && !p.daysOfWeek.includes(currentDay)) continue;
+        // Build time windows
+        const windows: Array<{ timeStart: string; timeEnd: string }> = [];
+        if (p.timeSlots && Array.isArray(p.timeSlots) && p.timeSlots.length > 0) {
+          for (const slot of p.timeSlots) {
+            if (slot.timeStart && slot.timeEnd) windows.push(slot);
+          }
+        }
+        if (windows.length === 0 && p.timeStart && p.timeEnd) {
+          windows.push({ timeStart: p.timeStart, timeEnd: p.timeEnd });
+        }
+        const inWindow = windows.length === 0 || windows.some(w => {
+          if (w.timeEnd < w.timeStart) return currentTime >= w.timeStart || currentTime <= w.timeEnd;
+          return currentTime >= w.timeStart && currentTime <= w.timeEnd;
+        });
+        if (inWindow) {
+          return { id: p.id, name: p.name, reason: "scheduled" as const };
+        }
+      }
+      // Manually active
+      const active = allPlaylistsList.find(p => p.isActive);
+      if (active) return { id: active.id, name: active.name, reason: "manual" as const };
+      // Default
+      const def = allPlaylistsList.find(p => p.isDefault);
+      if (def) return { id: def.id, name: def.name, reason: "default" as const };
+      return { id: null, name: "All Active Screens", reason: "fallback" as const };
+    }),
+
     // Public: Get active screens for current playlist (for TV display)
     getActiveScreens: publicProcedure.query(async () => {
       return getActiveScreensForCurrentPlaylist();

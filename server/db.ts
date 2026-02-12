@@ -1578,47 +1578,96 @@ export async function removeScreenFromPlaylist(playlistId: number, screenId: num
 }
 
 /**
- * Get active screens for the current active playlist
- * Falls back to all active screens if no playlist is active
+ * Check if a playlist matches the current time based on its schedule.
+ * Supports both the legacy timeStart/timeEnd fields and the newer timeSlots array.
+ */
+function isPlaylistScheduledNow(p: Playlist): boolean {
+  if (!p.schedulingEnabled) return false;
+
+  const now = new Date();
+  const currentDay = now.getDay();
+  const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+
+  // Check days of week (if specified)
+  if (p.daysOfWeek && p.daysOfWeek.length > 0) {
+    if (!p.daysOfWeek.includes(currentDay)) return false;
+  }
+
+  // Build the list of time windows to check
+  const windows: Array<{ timeStart: string; timeEnd: string }> = [];
+
+  // Prefer the timeSlots JSON array (set by the admin UI)
+  if (p.timeSlots && Array.isArray(p.timeSlots) && p.timeSlots.length > 0) {
+    for (const slot of p.timeSlots) {
+      if (slot.timeStart && slot.timeEnd) {
+        windows.push(slot);
+      }
+    }
+  }
+
+  // Fallback to legacy single-window fields
+  if (windows.length === 0 && p.timeStart && p.timeEnd) {
+    windows.push({ timeStart: p.timeStart, timeEnd: p.timeEnd });
+  }
+
+  // If no time windows are defined at all, the playlist is "always on" for its scheduled days
+  if (windows.length === 0) return true;
+
+  // Match if the current time falls inside ANY window
+  return windows.some(w => {
+    // Handle overnight windows (e.g., 22:00 – 02:00)
+    if (w.timeEnd < w.timeStart) {
+      return currentTime >= w.timeStart || currentTime <= w.timeEnd;
+    }
+    return currentTime >= w.timeStart && currentTime <= w.timeEnd;
+  });
+}
+
+/**
+ * Get active screens for the current playlist.
+ *
+ * Resolution order:
+ *   1. Any playlist with schedulingEnabled that matches the current day + time.
+ *      If multiple match, the first one (by sortOrder) wins.
+ *   2. The manually-activated playlist (isActive = true).
+ *   3. The default playlist (isDefault = true).
+ *   4. All active screens (no playlist filtering).
  */
 export async function getActiveScreensForCurrentPlaylist(): Promise<Screen[]> {
   const db = await getDb();
   if (!db) return [];
-  
-  // First check if any playlist has scheduling enabled and matches current time
-  const allPlaylists = await getAllPlaylists();
-  const now = new Date();
-  const currentDay = now.getDay();
-  const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-  
-  // Find a scheduled playlist that matches the current time
-  const scheduledPlaylist = allPlaylists.find(p => {
-    if (!p.schedulingEnabled) return false;
-    // Check days of week
-    if (p.daysOfWeek && p.daysOfWeek.length > 0) {
-      if (!p.daysOfWeek.includes(currentDay)) return false;
-    }
-    // Check time window
-    if (p.timeStart && p.timeEnd) {
-      if (currentTime < p.timeStart || currentTime > p.timeEnd) return false;
-    }
-    return true;
-  });
-  
+
+  const allPlaylists = await getAllPlaylists(); // already sorted by sortOrder
+
+  // 1. Find the first scheduled playlist that matches right now
+  const scheduledPlaylist = allPlaylists.find(isPlaylistScheduledNow);
+
   if (scheduledPlaylist) {
     const playlistScreensList = await getScreensForPlaylist(scheduledPlaylist.id);
-    return playlistScreensList.filter(s => s.isActive);
+    const active = playlistScreensList.filter(s => s.isActive);
+    if (active.length > 0) return active;
+    // If the scheduled playlist has no active screens, fall through
   }
-  
-  // Fall back to manually activated playlist
-  const activePlaylist = await getActivePlaylist();
-  
+
+  // 2. Fall back to manually activated playlist
+  const activePlaylist = allPlaylists.find(p => p.isActive);
+
   if (activePlaylist) {
     const playlistScreensList = await getScreensForPlaylist(activePlaylist.id);
-    return playlistScreensList.filter(s => s.isActive);
+    const active = playlistScreensList.filter(s => s.isActive);
+    if (active.length > 0) return active;
   }
-  
-  // Fallback: return all active screens
+
+  // 3. Fall back to default playlist
+  const defaultPlaylist = allPlaylists.find(p => p.isDefault);
+
+  if (defaultPlaylist) {
+    const playlistScreensList = await getScreensForPlaylist(defaultPlaylist.id);
+    const active = playlistScreensList.filter(s => s.isActive);
+    if (active.length > 0) return active;
+  }
+
+  // 4. Ultimate fallback: return all active screens
   return getActiveScreens();
 }
 

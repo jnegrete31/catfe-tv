@@ -201,6 +201,37 @@ function AlwaysOnItems({
   );
 }
 
+function CurrentlyServingBanner() {
+  const { data: serving } = trpc.playlists.getCurrentlyServing.useQuery(undefined, {
+    refetchInterval: 30_000, // refresh every 30s
+  });
+
+  if (!serving) return null;
+
+  const reasonLabel =
+    serving.reason === "scheduled"
+      ? "Scheduled"
+      : serving.reason === "manual"
+        ? "Manually Activated"
+        : serving.reason === "default"
+          ? "Default Playlist"
+          : "Fallback";
+
+  return (
+    <div className="mb-4 p-3 rounded-lg border-2 border-primary/60 bg-primary/5 flex items-center gap-3">
+      <div className="w-3 h-3 rounded-full animate-pulse bg-primary" />
+      <div>
+        <p className="text-sm font-medium">
+          Now Serving: {serving.name}
+        </p>
+        <p className="text-xs text-muted-foreground">
+          {reasonLabel}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export function ScheduleTimeline() {
   const [selectedDay, setSelectedDay] = useState(new Date().getDay());
   const [view, setView] = useState<"playlists" | "screens">("playlists");
@@ -310,29 +341,8 @@ export function ScheduleTimeline() {
           </Button>
         </div>
 
-        {/* Currently Active */}
-        {isToday && currentlyActive && (
-          <div
-            className="mb-4 p-3 rounded-lg border-2 flex items-center gap-3"
-            style={{
-              borderColor: currentlyActive.color,
-              backgroundColor: `${currentlyActive.color}10`,
-            }}
-          >
-            <div
-              className="w-3 h-3 rounded-full animate-pulse"
-              style={{ backgroundColor: currentlyActive.color }}
-            />
-            <div>
-              <p className="text-sm font-medium">
-                Now Playing: {currentlyActive.name}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {currentlyActive.timeStart} – {currentlyActive.timeEnd}
-              </p>
-            </div>
-          </div>
-        )}
+        {/* Currently Serving indicator from backend */}
+        {isToday && <CurrentlyServingBanner />}
 
         {/* Timeline */}
         <div className="relative">
