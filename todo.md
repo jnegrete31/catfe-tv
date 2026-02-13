@@ -1363,3 +1363,11 @@
 - [x] Updated getActiveScreensWithTemplates to also inject cat slides via generateCatSlides + interleaveScreens
 - [x] Endpoint now returns 26 screens (16 ADOPTION + 10 regular) instead of just 10
 - [x] All 160 tests passing
+
+## Feature - Event Date Field
+- [x] Add eventDate field to screens schema
+- [x] Update backend routers to handle eventDate
+- [x] Add date input to admin screen editor for EVENT type
+- [x] Update TV display to show event date with calendar emoji
+- [x] Update tvOS Swift models to include eventDate
+- [ ] Push to GitHub

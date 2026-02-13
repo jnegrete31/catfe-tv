@@ -158,6 +158,7 @@ const screenInput = z.object({
   isProtected: z.boolean().default(false),
   isAdopted: z.boolean().default(false),
   livestreamUrl: z.string().url().max(1024).nullable().optional().or(z.literal("")),
+  eventDate: z.string().max(100).nullable().optional(),
   eventTime: z.string().max(100).nullable().optional(),
   eventLocation: z.string().max(255).nullable().optional(),
 });
@@ -184,6 +185,7 @@ const screenUpdateInput = z.object({
   isProtected: z.boolean().optional(),
   isAdopted: z.boolean().optional(),
   livestreamUrl: z.string().url().max(1024).nullable().optional().or(z.literal("")),
+  eventDate: z.string().max(100).nullable().optional(),
   eventTime: z.string().max(100).nullable().optional(),
   eventLocation: z.string().max(255).nullable().optional(),
 });
@@ -259,7 +261,7 @@ async function generateCatSlides() {
       startAt: null, endAt: null, daysOfWeek: null, timeStart: null, timeEnd: null,
       priority: 1, durationSeconds: 10, sortOrder: 0,
       isActive: true, schedulingEnabled: false, isProtected: false, isAdopted: false,
-      livestreamUrl: null, eventTime: null, eventLocation: null,
+      livestreamUrl: null, eventDate: null, eventTime: null, eventLocation: null,
       createdAt: new Date(), updatedAt: new Date(),
     };
   });

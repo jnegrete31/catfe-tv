@@ -45,6 +45,7 @@ const screenSchema = z.object({
   isActive: z.boolean(),
   schedulingEnabled: z.boolean(),
   isAdopted: z.boolean(),
+  eventDate: z.string().max(100).optional().nullable(),
   eventTime: z.string().max(100).optional().nullable(),
   eventLocation: z.string().max(255).optional().nullable(),
 });
@@ -131,6 +132,7 @@ export function ScreenForm({ screen, onSuccess, onCancel }: ScreenFormProps) {
       isActive: screen?.isActive ?? true,
       schedulingEnabled: screen?.schedulingEnabled ?? false,
       isAdopted: (screen as any)?.isAdopted ?? false,
+      eventDate: (screen as any)?.eventDate || "",
       eventTime: (screen as any)?.eventTime || "",
       eventLocation: (screen as any)?.eventLocation || "",
     },
@@ -264,6 +266,7 @@ export function ScreenForm({ screen, onSuccess, onCancel }: ScreenFormProps) {
       timeStart: data.timeStart || null,
       timeEnd: data.timeEnd || null,
       daysOfWeek: data.daysOfWeek?.length ? data.daysOfWeek : null,
+      eventDate: data.eventDate || null,
       eventTime: data.eventTime || null,
       eventLocation: data.eventLocation || null,
     };
@@ -486,6 +489,14 @@ export function ScreenForm({ screen, onSuccess, onCancel }: ScreenFormProps) {
             <p className="text-sm text-muted-foreground">These fields are displayed on the event slide with icons</p>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="eventDate">Event Date</Label>
+              <Input
+                id="eventDate"
+                {...register("eventDate")}
+                placeholder="e.g., Saturday, Feb 15"
+              />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="eventTime">Event Time</Label>
               <Input

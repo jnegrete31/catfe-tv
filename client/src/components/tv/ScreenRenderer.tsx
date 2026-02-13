@@ -341,6 +341,29 @@ function EventScreen({ screen, settings }: ScreenRendererProps) {
                 {screen.body}
               </p>
             )}
+            {/* Event details: date, time, location */}
+            {((screen as any).eventDate || (screen as any).eventTime || (screen as any).eventLocation) && (
+              <div className="mt-6 space-y-3">
+                {(screen as any).eventDate && (
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">📅</span>
+                    <span className="text-2xl" style={{ color: '#4a4a4a' }}>{(screen as any).eventDate}</span>
+                  </div>
+                )}
+                {(screen as any).eventTime && (
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">🕐</span>
+                    <span className="text-2xl" style={{ color: '#4a4a4a' }}>{(screen as any).eventTime}</span>
+                  </div>
+                )}
+                {(screen as any).eventLocation && (
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">📍</span>
+                    <span className="text-2xl" style={{ color: '#4a4a4a' }}>{(screen as any).eventLocation}</span>
+                  </div>
+                )}
+              </div>
+            )}
             {screen.qrUrl && (
               <motion.div 
                 initial={{ scale: 0.9, opacity: 0 }}

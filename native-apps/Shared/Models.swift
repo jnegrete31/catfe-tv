@@ -94,6 +94,7 @@ struct Screen: Codable, Identifiable {
     let isProtected: Bool?
     let isAdopted: Bool?
     let livestreamUrl: String?
+    let eventDate: String?
     let eventTime: String?
     let eventLocation: String?
     let createdAt: String

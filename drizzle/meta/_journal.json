@@ -295,6 +295,13 @@
       "when": 1770947721997,
       "tag": "0041_curved_thunderbolts",
       "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "5",
+      "when": 1771003401805,
+      "tag": "0042_skinny_the_executioner",
+      "breakpoints": true
     }
   ]
 }

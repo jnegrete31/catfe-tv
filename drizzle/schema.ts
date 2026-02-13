@@ -71,6 +71,7 @@ export const screens = mysqlTable("screens", {
   isAdopted: boolean("isAdopted").notNull().default(false), // Mark adoption cats as adopted
   livestreamUrl: varchar("livestreamUrl", { length: 1024 }), // HLS stream URL for livestream screen type
   // Event-specific fields
+  eventDate: varchar("eventDate", { length: 100 }), // e.g., "Saturday, Feb 15" for event screens
   eventTime: varchar("eventTime", { length: 100 }), // e.g., "5:30pm - 7:30pm" for event screens
   eventLocation: varchar("eventLocation", { length: 255 }), // e.g., "Catfé Santa Clarita" for event screens
   // Timestamps

@@ -593,6 +593,7 @@ struct FlowLayout: Layout {
             isProtected: false,
             isAdopted: false,
             livestreamUrl: nil,
+            eventDate: nil,
             eventTime: nil,
             eventLocation: nil,
             createdAt: "2026-02-13T00:00:00.000Z",
