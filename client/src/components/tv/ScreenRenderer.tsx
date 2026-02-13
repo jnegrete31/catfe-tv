@@ -2049,10 +2049,8 @@ function GuestStatusBoardScreen({ screen, settings }: ScreenRendererProps) {
 
       <div className="absolute inset-0 p-8 flex flex-col">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-4 flex-shrink-0"
+        <div
+          className="text-center mb-4 flex-shrink-0 animate-fade-in"
         >
           <h1 className="text-5xl font-light tracking-wider text-white mb-1" style={{ fontFamily: 'Georgia, serif' }}>
             {screen.title || `${locationName} Session Times`}
@@ -2062,14 +2060,12 @@ function GuestStatusBoardScreen({ screen, settings }: ScreenRendererProps) {
               ? `${sortedSessions.length} checked-in session${sortedSessions.length !== 1 ? 's' : ''} \u2022 ${sortedSessions.reduce((sum, s) => sum + s.guestCount, 0)} guests in the lounge`
               : "Current session countdown"}
           </p>
-        </motion.div>
+        </div>
 
         {/* Session Window Timers - always visible for online reservation guests */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="flex gap-4 mb-4 flex-shrink-0"
+        <div
+          className="flex gap-4 mb-4 flex-shrink-0 animate-fade-in"
+          style={{ animationDelay: '0.1s' }}
         >
           {sessionWindows.map((win) => {
             const isUrgent = win.minutesLeft < 5;
@@ -2094,7 +2090,7 @@ function GuestStatusBoardScreen({ screen, settings }: ScreenRendererProps) {
               </div>
             );
           })}
-        </motion.div>
+        </div>
 
         {/* Checked-in Guest Grid */}
         {sortedSessions.length > 0 ? (
@@ -2108,18 +2104,16 @@ function GuestStatusBoardScreen({ screen, settings }: ScreenRendererProps) {
                 const icon = getSessionIcon(session.duration);
 
                 return (
-                  <motion.div
+                  <div
                     key={session.id}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: index * 0.05 }}
                     className={`
-                      relative rounded-xl border backdrop-blur-sm overflow-hidden
+                      relative rounded-xl border backdrop-blur-sm overflow-hidden animate-fade-in
                       bg-gradient-to-br ${colors.bg} ${colors.border}
                       ${timeStatus.isExpired ? 'opacity-50' : ''}
                       ${timeStatus.isUrgent && !timeStatus.isExpired ? 'ring-2 ring-red-400/50' : ''}
                       flex flex-col
                     `}
+                    style={{ animationDelay: `${index * 0.05}s` }}
                   >
                     {/* Progress bar at top */}
                     <div className="h-1 bg-white/10 flex-shrink-0">
@@ -2159,7 +2153,7 @@ function GuestStatusBoardScreen({ screen, settings }: ScreenRendererProps) {
                         {timeStatus.isExpired ? 'TIME UP' : timeStatus.label}
                       </div>
                     </div>
-                  </motion.div>
+                  </div>
                 );
               })}
             </div>
@@ -2167,11 +2161,7 @@ function GuestStatusBoardScreen({ screen, settings }: ScreenRendererProps) {
         ) : (
           /* When no checked-in guests, show a friendly message below the timers */
           <div className="flex-1 flex flex-col items-center justify-center">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="text-center"
-            >
+            <div className="text-center animate-fade-in">
               <div className="text-6xl mb-4">\uD83D\uDC3E</div>
               <h2 className="text-2xl font-light text-white/50 mb-2" style={{ fontFamily: 'Georgia, serif' }}>
                 Enjoy your time with our cats!
@@ -2179,16 +2169,14 @@ function GuestStatusBoardScreen({ screen, settings }: ScreenRendererProps) {
               <p className="text-lg text-white/30">
                 Session timers shown above
               </p>
-            </motion.div>
+            </div>
           </div>
         )}
 
         {/* Footer with session type legend */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="mt-3 flex items-center justify-center gap-8 flex-shrink-0"
+        <div
+          className="mt-3 flex items-center justify-center gap-8 flex-shrink-0 animate-fade-in"
+          style={{ animationDelay: '0.5s' }}
         >
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-teal-400"></span>
@@ -2202,7 +2190,7 @@ function GuestStatusBoardScreen({ screen, settings }: ScreenRendererProps) {
             <span className="w-3 h-3 rounded-full bg-purple-400"></span>
             <span className="text-sm text-white/40">Quick Peek (15 min)</span>
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );

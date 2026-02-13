@@ -39,6 +39,16 @@ export default function TVDisplay() {
   const controlsTimeout = useRef<NodeJS.Timeout | null>(null);
   const autoAdvanceTimeout = useRef<NodeJS.Timeout | null>(null);
   const shuffleTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const nextScreenRef = useRef(nextScreen);
+  const currentScreenRef = useRef(currentScreen);
+  const settingsRef = useRef(settings);
+  const isPausedRef = useRef(isPaused);
+  
+  // Keep refs in sync
+  useEffect(() => { nextScreenRef.current = nextScreen; }, [nextScreen]);
+  useEffect(() => { currentScreenRef.current = currentScreen; }, [currentScreen]);
+  useEffect(() => { settingsRef.current = settings; }, [settings]);
+  useEffect(() => { isPausedRef.current = isPaused; }, [isPaused]);
   
   // Fetch ALL adoption cats (always enabled, cached)
   const { data: allAdoptions } = trpc.screens.getRandomAdoptions.useQuery(
@@ -205,27 +215,32 @@ export default function TVDisplay() {
   }, [showControls, focusedButton, nextScreen, prevScreen, refresh, showControlsTemporarily]);
   
   // Auto-advance when not paused
-  // Use currentIndex as primary dependency to ensure timer restarts when looping back to index 0
+  // ONLY depends on currentIndex and isPaused to prevent timer resets from data refetches
+  // All other values are read from refs to keep the timer stable
   useEffect(() => {
-    if (isPaused || !currentScreen) {
+    if (isPaused) {
       if (autoAdvanceTimeout.current) {
         clearTimeout(autoAdvanceTimeout.current);
+        autoAdvanceTimeout.current = null;
       }
       return;
     }
     
+    const screen = currentScreenRef.current;
+    if (!screen) return;
+    
     // Use screen-specific duration, then screen type default, then global default
-    const typeDefaultDuration = SCREEN_TYPE_DURATIONS[currentScreen.type];
-    const duration = (currentScreen.durationSeconds || typeDefaultDuration || settings?.defaultDurationSeconds || 10) * 1000;
+    const typeDefaultDuration = SCREEN_TYPE_DURATIONS[screen.type];
+    const duration = (screen.durationSeconds || typeDefaultDuration || settingsRef.current?.defaultDurationSeconds || 10) * 1000;
     
     // Clear any existing timeout first
     if (autoAdvanceTimeout.current) {
       clearTimeout(autoAdvanceTimeout.current);
     }
     
-    // Set new timeout
+    // Set new timeout - use ref to avoid dependency on nextScreen
     autoAdvanceTimeout.current = setTimeout(() => {
-      nextScreen();
+      nextScreenRef.current();
     }, duration);
     
     return () => {
@@ -234,7 +249,7 @@ export default function TVDisplay() {
         autoAdvanceTimeout.current = null;
       }
     };
-  }, [isPaused, currentIndex, currentScreen?.id, currentScreen?.durationSeconds, settings?.defaultDurationSeconds, nextScreen]);
+  }, [isPaused, currentIndex]); // Only these two trigger timer restart
   
   // Hide cursor when controls are hidden (for non-TV displays)
   useEffect(() => {

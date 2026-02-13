@@ -1216,3 +1216,13 @@
 - [x] Add general session timers for online reservations (Full Purr countdown to :00, Mini Meow countdown to :30)
 - [x] Fix: Slide not advancing after duration (stabilized nextScreen callback with refs to prevent timer resets)
 - [x] Increased default duration from 15s to 20s
+
+## Bug Fix - Guest Status Board Still Not Advancing
+- [ ] Deep-dive debug: identify why auto-advance timer is being reset or not firing
+- [ ] Fix root cause and verify slide advances after duration
+
+## Bug Fix - Guest Status Board Still Not Advancing + Apple TV Empty
+- [x] Fix: Slide not advancing - rewrote auto-advance timer with refs (only depends on currentIndex + isPaused)
+- [x] Fix: Apple TV empty - replaced framer-motion with CSS animations for WKWebView compatibility
+- [x] Stabilized nextScreen/prevScreen callbacks in usePlaylist with refs
+- [x] Added animate-fade-in CSS keyframe animation
