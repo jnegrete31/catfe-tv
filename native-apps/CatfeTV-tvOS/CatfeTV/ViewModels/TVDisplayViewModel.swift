@@ -16,6 +16,11 @@ class TVDisplayViewModel: ObservableObject {
     @Published var temperature: Int?
     @Published var weatherCode: Int?
     
+    // Cats (from cats database table)
+    @Published var availableCats: [CatModel] = []
+    @Published var catCounts: CatCountsResponse?
+    @Published var featuredCat: CatModel?
+    
     // MARK: - Private Properties
     private var autoAdvanceTask: Task<Void, Never>?
     private var refreshTask: Task<Void, Never>?
@@ -61,12 +66,35 @@ class TVDisplayViewModel: ObservableObject {
             let imageURLs = screens.compactMap { $0.imagePath }
             await ImageCache.shared.preloadImages(urls: imageURLs)
             
+            // Also load cats from the database
+            await loadCats()
+            
         } catch {
             self.error = error.localizedDescription
             self.isOffline = true
         }
         
         isLoading = false
+    }
+    
+    func loadCats() async {
+        do {
+            async let catsResult = APIClient.shared.getAvailableCats()
+            async let countsResult = APIClient.shared.getCatCounts()
+            async let featuredResult = APIClient.shared.getFeaturedCat()
+            
+            let (fetchedCats, fetchedCounts, fetchedFeatured) = try await (catsResult, countsResult, featuredResult)
+            
+            self.availableCats = fetchedCats
+            self.catCounts = fetchedCounts
+            self.featuredCat = fetchedFeatured
+            
+            // Preload cat photos
+            let catImageURLs = fetchedCats.compactMap { $0.photoUrl }
+            await ImageCache.shared.preloadImages(urls: catImageURLs)
+        } catch {
+            print("Failed to load cats: \(error)")
+        }
     }
     
     func loadWeather() async {

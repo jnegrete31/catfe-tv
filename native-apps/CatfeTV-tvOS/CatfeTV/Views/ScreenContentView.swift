@@ -13,8 +13,20 @@ struct LoungeColors {
 
 struct ScreenContentView: View {
     let screen: Screen
+    var availableCats: [CatModel] = []
+    var catCounts: CatCountsResponse?
     
     var body: some View {
+        Group {
+            if screen.type == .adoptionShowcase && !availableCats.isEmpty {
+                AdoptionShowcaseView(cats: availableCats, catCounts: catCounts)
+            } else {
+                defaultScreenView
+            }
+        }
+    }
+    
+    var defaultScreenView: some View {
         ZStack {
             // Dark industrial background
             LoungeColors.charcoal
@@ -190,6 +202,227 @@ struct ScreenContentView: View {
     }
 }
 
+// MARK: - Adoption Showcase View (uses cats from database)
+struct AdoptionShowcaseView: View {
+    let cats: [CatModel]
+    let catCounts: CatCountsResponse?
+    @State private var displayCats: [CatModel] = []
+    @State private var rotations: [Double] = [-2, 3, -3, 2]
+    
+    let timer = Timer.publish(every: 6, on: .main, in: .common).autoconnect()
+    
+    var body: some View {
+        ZStack {
+            // Dark industrial background
+            LoungeColors.charcoal
+                .ignoresSafeArea()
+            
+            // Warm amber light glows
+            GeometryReader { geometry in
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [LoungeColors.amber.opacity(0.3), Color.clear],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: geometry.size.width * 0.4
+                        )
+                    )
+                    .frame(width: geometry.size.width * 0.8, height: geometry.size.width * 0.8)
+                    .position(x: geometry.size.width * 0.25, y: -geometry.size.height * 0.1)
+                
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [LoungeColors.warmOrange.opacity(0.2), Color.clear],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: geometry.size.width * 0.35
+                        )
+                    )
+                    .frame(width: geometry.size.width * 0.7, height: geometry.size.width * 0.7)
+                    .position(x: geometry.size.width * 0.75, y: -geometry.size.height * 0.05)
+            }
+            
+            // Mint green floor reflection
+            VStack {
+                Spacer()
+                LinearGradient(
+                    colors: [Color.clear, LoungeColors.mintGreen.opacity(0.2)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 200)
+            }
+            .ignoresSafeArea()
+            
+            // Header
+            VStack {
+                VStack(spacing: 8) {
+                    HStack(spacing: 0) {
+                        Text("Meet")
+                            .foregroundColor(LoungeColors.warmOrange)
+                        Text(" Our ")
+                            .foregroundColor(.white.opacity(0.9))
+                        Text("Cats")
+                            .foregroundColor(LoungeColors.mintGreen)
+                    }
+                    .font(.system(size: 72, weight: .bold, design: .serif))
+                    
+                    Text("FIND YOUR PURRFECT MATCH")
+                        .font(.system(size: 24, weight: .medium))
+                        .tracking(6)
+                        .foregroundColor(.white.opacity(0.5))
+                    
+                    // Adoption counter
+                    if let counts = catCounts, counts.adopted > 0 {
+                        HStack(spacing: 12) {
+                            Text("\u{1F389}")
+                                .font(.system(size: 28))
+                            Text("\(counts.adopted) \(counts.adopted == 1 ? "cat" : "cats") found their forever home!")
+                                .font(.system(size: 22, weight: .medium))
+                                .foregroundColor(LoungeColors.mintGreen)
+                        }
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 12)
+                        .background(
+                            Capsule()
+                                .stroke(LoungeColors.mintGreen, lineWidth: 2)
+                                .background(LoungeColors.mintGreen.opacity(0.15))
+                                .clipShape(Capsule())
+                        )
+                        .padding(.top, 16)
+                    }
+                }
+                .padding(.top, 40)
+                
+                Spacer()
+                
+                // Polaroid grid
+                HStack(spacing: 20) {
+                    ForEach(Array(displayCats.prefix(4).enumerated()), id: \.element.id) { index, cat in
+                        CatPolaroidCard(cat: cat, rotation: rotations[index])
+                    }
+                    
+                    // Empty placeholders
+                    if displayCats.count < 4 {
+                        ForEach(displayCats.count..<4, id: \.self) { index in
+                            EmptyPolaroidCard(rotation: rotations[index])
+                        }
+                    }
+                }
+                .padding(.horizontal, 40)
+                
+                Spacer()
+                
+                // Cat count indicator
+                HStack(spacing: 8) {
+                    Text("\u{1F43E}")
+                        .font(.system(size: 18))
+                    Text("\(cats.count) cats looking for homes")
+                        .font(.system(size: 16))
+                        .foregroundColor(.white.opacity(0.8))
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(Color.white.opacity(0.1))
+                .clipShape(Capsule())
+                .padding(.bottom, 40)
+            }
+        }
+        .onAppear {
+            shuffleCats()
+        }
+        .onReceive(timer) { _ in
+            if cats.count > 4 {
+                withAnimation(.easeInOut(duration: 0.6)) {
+                    shuffleCats()
+                }
+            }
+        }
+    }
+    
+    private func shuffleCats() {
+        displayCats = Array(cats.shuffled().prefix(4))
+    }
+}
+
+// MARK: - Cat Polaroid Card
+struct CatPolaroidCard: View {
+    let cat: CatModel
+    let rotation: Double
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Photo
+            if let photoUrl = cat.photoUrl {
+                AsyncImageView(url: photoUrl)
+                    .frame(width: 300, height: 300)
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+            } else {
+                ZStack {
+                    LinearGradient(
+                        colors: [Color.orange.opacity(0.2), Color.pink.opacity(0.2)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                    Text("\u{1F431}")
+                        .font(.system(size: 80))
+                }
+                .frame(width: 300, height: 300)
+                .clipShape(RoundedRectangle(cornerRadius: 4))
+            }
+            
+            // Name and breed
+            VStack(spacing: 4) {
+                Text("Meet \(cat.name)")
+                    .font(.system(size: 24, weight: .semibold, design: .serif))
+                    .foregroundColor(LoungeColors.charcoal)
+                    .lineLimit(1)
+                
+                Text([cat.breed, cat.colorPattern].compactMap { $0 }.joined(separator: " \u{00B7} "))
+                    .font(.system(size: 18))
+                    .foregroundColor(LoungeColors.stone)
+                    .lineLimit(1)
+            }
+            .padding(.vertical, 12)
+        }
+        .padding(12)
+        .background(Color(hex: "#FFFEF9"))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .shadow(color: .black.opacity(0.4), radius: 20, x: 0, y: 15)
+        .rotationEffect(.degrees(rotation))
+    }
+}
+
+// MARK: - Empty Polaroid Placeholder
+struct EmptyPolaroidCard: View {
+    let rotation: Double
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            ZStack {
+                Color.white.opacity(0.1)
+                VStack(spacing: 8) {
+                    Text("\u{1F431}")
+                        .font(.system(size: 60))
+                    Text("Coming Soon")
+                        .font(.system(size: 14))
+                        .foregroundColor(.white.opacity(0.5))
+                }
+            }
+            .frame(width: 300, height: 300)
+        }
+        .padding(12)
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color.white.opacity(0.3), style: StrokeStyle(lineWidth: 2, dash: [8]))
+        )
+        .rotationEffect(.degrees(rotation))
+        .opacity(0.5)
+    }
+}
+
 // MARK: - Screen Type Extensions
 extension ScreenType {
     var emoji: String {
@@ -244,25 +477,29 @@ struct AsyncImageView: View {
 }
 
 #Preview {
-    ScreenContentView(screen: Screen(
-        id: 1,
-        type: .adoption,
-        title: "Meet Whiskers",
-        subtitle: "2 years old • Female",
-        body: "A sweet and playful cat looking for her forever home.",
-        imagePath: nil,
-        qrUrl: "https://catfe.com/adopt/whiskers",
-        startDate: nil,
-        endDate: nil,
-        daysOfWeek: nil,
-        startTime: nil,
-        endTime: nil,
-        priority: 1,
-        durationSeconds: 10,
-        isActive: true,
-        isAdopted: false,
-        sortOrder: 0,
-        createdAt: Date(),
-        updatedAt: Date()
-    ))
+    ScreenContentView(
+        screen: Screen(
+            id: 1,
+            type: .adoption,
+            title: "Meet Whiskers",
+            subtitle: "2 years old \u{2022} Female",
+            body: "A sweet and playful cat looking for her forever home.",
+            imagePath: nil,
+            qrUrl: "https://catfe.com/adopt/whiskers",
+            startDate: nil,
+            endDate: nil,
+            daysOfWeek: nil,
+            startTime: nil,
+            endTime: nil,
+            priority: 1,
+            durationSeconds: 10,
+            isActive: true,
+            isAdopted: false,
+            sortOrder: 0,
+            createdAt: Date(),
+            updatedAt: Date()
+        ),
+        availableCats: [],
+        catCounts: nil
+    )
 }

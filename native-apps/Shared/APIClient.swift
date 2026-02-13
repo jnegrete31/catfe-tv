@@ -86,6 +86,21 @@ class APIClient {
         return response.settings
     }
     
+    /// Fetch available cats from the cats database table
+    func getAvailableCats() async throws -> [CatModel] {
+        return try await trpcQuery(procedure: "cats.getAvailable")
+    }
+    
+    /// Fetch cat counts (available, adopted, total)
+    func getCatCounts() async throws -> CatCountsResponse {
+        return try await trpcQuery(procedure: "cats.getCounts")
+    }
+    
+    /// Fetch featured cat (Cat of the Week)
+    func getFeaturedCat() async throws -> CatModel? {
+        return try await trpcQuery(procedure: "cats.getFeatured")
+    }
+    
     /// Fetch current weather for Santa Clarita, CA
     func getWeather() async throws -> WeatherResponse {
         let urlString = "https://api.open-meteo.com/v1/forecast?latitude=34.3917&longitude=-118.5426&current=temperature_2m,weather_code&temperature_unit=fahrenheit&timezone=America/Los_Angeles"

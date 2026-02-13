@@ -14,6 +14,7 @@ import PhotoModeration from "@/components/admin/PhotoModeration";
 import CaptionManager from "@/components/admin/CaptionManager";
 import { PollManager } from "@/components/admin/PollManager";
 import { PlaylistManager } from "@/components/admin/PlaylistManager";
+import { CatManager } from "@/components/admin/CatManager";
 import { trpc } from "@/lib/trpc";
 import type { Screen } from "@shared/types";
 import { 
@@ -35,12 +36,13 @@ import {
   Filter,
   Menu,
   X,
+  Cat,
 } from "lucide-react";
 import { IOSInstallPrompt } from "@/components/IOSInstallPrompt";
 
 export default function Admin() {
   const { user, loading, isAuthenticated, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState("screens");
+  const [activeTab, setActiveTab] = useState("cats");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingScreen, setEditingScreen] = useState<Screen | null>(null);
   const [screenFilter, setScreenFilter] = useState<"active" | "all" | "inactive" | "adopted">("active");
@@ -144,6 +146,7 @@ export default function Admin() {
 
   // Tab configuration for rendering
   const tabs = [
+    { value: "cats", icon: Cat, label: "Cats" },
     { value: "screens", icon: LayoutGrid, label: "Screens" },
     { value: "guests", icon: Users, label: "Guests" },
     { value: "photos", icon: Image, label: "Photos" },
@@ -378,6 +381,10 @@ export default function Admin() {
           </TabsContent>
 
           {/* Settings Tab */}
+          <TabsContent value="cats">
+            <CatManager />
+          </TabsContent>
+
           <TabsContent value="settings">
             {settingsQuery.isLoading ? (
               <div className="flex items-center justify-center py-12">
@@ -394,9 +401,9 @@ export default function Admin() {
       <nav className="fixed bottom-0 left-0 right-0 z-40 sm:hidden bg-background/95 backdrop-blur border-t safe-area-bottom">
         <div className="grid grid-cols-3 h-16">
           {[
-            { value: "guests", icon: Users, label: "Guests" },
+            { value: "cats", icon: Cat, label: "Cats" },
             { value: "screens", icon: LayoutGrid, label: "Screens" },
-            { value: "photos", icon: Image, label: "Photos" },
+            { value: "guests", icon: Users, label: "Guests" },
           ].map((item) => {
             const isActive = activeTab === item.value;
             return (

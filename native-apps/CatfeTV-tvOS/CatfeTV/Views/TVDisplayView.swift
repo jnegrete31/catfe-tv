@@ -17,7 +17,11 @@ struct TVDisplayView: View {
             } else if let error = viewModel.error, viewModel.screens.isEmpty {
                 ErrorView(message: error, onRetry: viewModel.refresh)
             } else if let screen = viewModel.currentScreen {
-                ScreenContentView(screen: screen)
+                ScreenContentView(
+                    screen: screen,
+                    availableCats: viewModel.availableCats,
+                    catCounts: viewModel.catCounts
+                )
                     .transition(.opacity)
                     .id(screen.id)
             } else {

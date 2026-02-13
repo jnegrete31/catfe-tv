@@ -1,0 +1,18 @@
+{
+  "images" : [
+    {
+      "filename" : "Catfé (4640 x 1440 px).png",
+      "idiom" : "tv",
+      "scale" : "1x"
+    },
+    {
+      "filename" : "Catfé.png",
+      "idiom" : "tv",
+      "scale" : "2x"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

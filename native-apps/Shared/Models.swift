@@ -89,6 +89,59 @@ struct BrandColors: Codable {
     let text: String
 }
 
+// MARK: - Cat Model (from cats database table)
+struct CatModel: Codable, Identifiable {
+    let id: Int
+    let name: String
+    let photoUrl: String?
+    let breed: String?
+    let colorPattern: String?
+    let dob: String? // ISO date string
+    let sex: String
+    let weight: String?
+    let personalityTags: [String]?
+    let bio: String?
+    let adoptionFee: String?
+    let isAltered: Bool
+    let felvFivStatus: String
+    let status: String // "available", "adopted", "medical_hold"
+    let isFeatured: Bool
+    let sortOrder: Int
+    let adoptedDate: String?
+    let createdAt: String
+    let updatedAt: String
+    
+    /// Computed age string from dob
+    var ageString: String? {
+        guard let dobStr = dob else { return nil }
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        guard let dobDate = formatter.date(from: dobStr) else {
+            // Try without fractional seconds
+            formatter.formatOptions = [.withInternetDateTime]
+            guard let d = formatter.date(from: dobStr) else { return nil }
+            return Self.calculateAge(from: d)
+        }
+        return Self.calculateAge(from: dobDate)
+    }
+    
+    private static func calculateAge(from date: Date) -> String {
+        let months = Calendar.current.dateComponents([.month], from: date, to: Date()).month ?? 0
+        if months < 1 { return "< 1 month" }
+        if months < 12 { return "\(months) month\(months == 1 ? "" : "s")" }
+        let years = months / 12
+        let remainingMonths = months % 12
+        if remainingMonths == 0 { return "\(years) year\(years == 1 ? "" : "s")" }
+        return "\(years) yr\(years == 1 ? "" : "s") \(remainingMonths) mo"
+    }
+}
+
+struct CatCountsResponse: Codable {
+    let available: Int
+    let adopted: Int
+    let total: Int
+}
+
 // MARK: - API Response Wrappers
 struct APIResponse<T: Codable>: Codable {
     let result: ResultWrapper<T>

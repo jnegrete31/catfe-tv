@@ -97,6 +97,17 @@ import {
   hasLikedPhoto,
   getPhotosByLikes,
   getUserLikedPhotos,
+  getAllCats,
+  getAvailableCats,
+  getAdoptedCats,
+  getFeaturedCat,
+  getCatById,
+  createCat,
+  updateCat,
+  deleteCat,
+  getCatsByStatus,
+  getRecentlyAdoptedCatsFromTable,
+  getCatCount,
 } from "./db";
 import { storagePut } from "./storage";
 import { notifyOwner } from "./_core/notification";
@@ -1383,6 +1394,151 @@ export const appRouter = router({
       await seedDefaultSlideTemplates();
       return { success: true };
     }),
+  }),
+
+  // ============ CATS ============
+  cats: router({
+    // Public: Get available cats (for TV display)
+    getAvailable: publicProcedure.query(async () => {
+      return getAvailableCats();
+    }),
+
+    // Public: Get adopted cats
+    getAdopted: publicProcedure.query(async () => {
+      return getAdoptedCats();
+    }),
+
+    // Public: Get featured cat (Cat of the Week)
+    getFeatured: publicProcedure.query(async () => {
+      return getFeaturedCat();
+    }),
+
+    // Public: Get recently adopted cats
+    getRecentlyAdopted: publicProcedure
+      .input(z.object({ days: z.number().default(30) }).optional())
+      .query(async ({ input }) => {
+        return getRecentlyAdoptedCatsFromTable(input?.days ?? 30);
+      }),
+
+    // Public: Get cat counts
+    getCounts: publicProcedure.query(async () => {
+      return getCatCount();
+    }),
+
+    // Public: Get single cat by ID
+    getById: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        return getCatById(input.id);
+      }),
+
+    // Admin: Get all cats (including staff-only fields)
+    getAll: adminProcedure.query(async () => {
+      return getAllCats();
+    }),
+
+    // Admin: Get cats by status
+    getByStatus: adminProcedure
+      .input(z.object({ status: z.string() }))
+      .query(async ({ input }) => {
+        return getCatsByStatus(input.status);
+      }),
+
+    // Admin: Create a new cat
+    create: adminProcedure
+      .input(z.object({
+        name: z.string().min(1).max(255),
+        photoUrl: z.string().max(1024).nullable().optional(),
+        breed: z.string().max(255).optional(),
+        colorPattern: z.string().max(255).nullable().optional(),
+        dob: z.date().nullable().optional(),
+        sex: z.enum(["female", "male", "unknown"]).default("unknown"),
+        weight: z.string().max(50).nullable().optional(),
+        personalityTags: z.array(z.string()).nullable().optional(),
+        bio: z.string().nullable().optional(),
+        adoptionFee: z.string().max(50).optional(),
+        isAltered: z.boolean().default(false),
+        felvFivStatus: z.enum(["negative", "positive", "unknown", "not_tested"]).default("not_tested"),
+        status: z.enum(["available", "adopted", "medical_hold", "foster", "trial"]).default("available"),
+        rescueId: z.string().max(100).nullable().optional(),
+        shelterluvId: z.string().max(100).nullable().optional(),
+        microchipNumber: z.string().max(100).nullable().optional(),
+        arrivalDate: z.date().nullable().optional(),
+        intakeType: z.string().max(100).nullable().optional(),
+        medicalNotes: z.string().nullable().optional(),
+        vaccinationsDue: z.array(z.object({ name: z.string(), dueDate: z.string() })).nullable().optional(),
+        fleaTreatmentDue: z.date().nullable().optional(),
+        adoptedDate: z.date().nullable().optional(),
+        adoptedBy: z.string().max(255).nullable().optional(),
+        isFeatured: z.boolean().default(false),
+        sortOrder: z.number().default(0),
+      }))
+      .mutation(async ({ input }) => {
+        return createCat(input as any);
+      }),
+
+    // Admin: Update a cat
+    update: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().min(1).max(255).optional(),
+        photoUrl: z.string().max(1024).nullable().optional(),
+        breed: z.string().max(255).optional(),
+        colorPattern: z.string().max(255).nullable().optional(),
+        dob: z.date().nullable().optional(),
+        sex: z.enum(["female", "male", "unknown"]).optional(),
+        weight: z.string().max(50).nullable().optional(),
+        personalityTags: z.array(z.string()).nullable().optional(),
+        bio: z.string().nullable().optional(),
+        adoptionFee: z.string().max(50).optional(),
+        isAltered: z.boolean().optional(),
+        felvFivStatus: z.enum(["negative", "positive", "unknown", "not_tested"]).optional(),
+        status: z.enum(["available", "adopted", "medical_hold", "foster", "trial"]).optional(),
+        rescueId: z.string().max(100).nullable().optional(),
+        shelterluvId: z.string().max(100).nullable().optional(),
+        microchipNumber: z.string().max(100).nullable().optional(),
+        arrivalDate: z.date().nullable().optional(),
+        intakeType: z.string().max(100).nullable().optional(),
+        medicalNotes: z.string().nullable().optional(),
+        vaccinationsDue: z.array(z.object({ name: z.string(), dueDate: z.string() })).nullable().optional(),
+        fleaTreatmentDue: z.date().nullable().optional(),
+        adoptedDate: z.date().nullable().optional(),
+        adoptedBy: z.string().max(255).nullable().optional(),
+        isFeatured: z.boolean().optional(),
+        sortOrder: z.number().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input;
+        // Strip undefined values to avoid overwriting existing data
+        const cleanData = Object.fromEntries(
+          Object.entries(data).filter(([_, v]) => v !== undefined)
+        );
+        return updateCat(id, cleanData as any);
+      }),
+
+    // Admin: Delete a cat
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        return deleteCat(input.id);
+      }),
+
+    // Admin: Upload cat photo
+    uploadPhoto: adminProcedure
+      .input(z.object({
+        catId: z.number(),
+        photoData: z.string(), // Base64 encoded image data
+        fileName: z.string(),
+        mimeType: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        const buffer = Buffer.from(input.photoData, "base64");
+        const timestamp = Date.now();
+        const fileKey = `cats/${input.catId}-${timestamp}-${input.fileName}`;
+        const { url } = await storagePut(fileKey, buffer, input.mimeType);
+        await updateCat(input.catId, { photoUrl: url });
+        return { url };
+      }),
   }),
 });
 

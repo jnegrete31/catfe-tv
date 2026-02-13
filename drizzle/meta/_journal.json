@@ -288,6 +288,13 @@
       "when": 1770939100679,
       "tag": "0040_clammy_living_mummy",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "5",
+      "when": 1770947721997,
+      "tag": "0041_curved_thunderbolts",
+      "breakpoints": true
     }
   ]
 }

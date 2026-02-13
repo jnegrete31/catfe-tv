@@ -1,0 +1,679 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		/* tvOS App */
+		TV001 /* CatfeTVApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF001 /* CatfeTVApp.swift */; };
+		TV002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF002 /* ContentView.swift */; };
+		TV003 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = TVF003 /* Assets.xcassets */; };
+		TV004 /* ScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF004 /* ScreenView.swift */; };
+		TV005 /* WeatherWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF005 /* WeatherWidget.swift */; };
+		TV006 /* ScreenRotator.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF006 /* ScreenRotator.swift */; };
+		TV007 /* AdoptionScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF007 /* AdoptionScreenView.swift */; };
+		TV008 /* EventsScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF008 /* EventsScreenView.swift */; };
+		TV009 /* MembershipScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF009 /* MembershipScreenView.swift */; };
+		TV010 /* RemindersScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF010 /* RemindersScreenView.swift */; };
+		TV011 /* SnapPurrScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF011 /* SnapPurrScreenView.swift */; };
+		TV012 /* TodayScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF012 /* TodayScreenView.swift */; };
+		TV013 /* ThankYouScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF013 /* ThankYouScreenView.swift */; };
+		TV014 /* AdoptionShowcaseScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF015 /* AdoptionShowcaseScreenView.swift */; };
+		TV015 /* PollWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF016 /* PollWidget.swift */; };
+			TV016 /* PollResultsWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF017 /* PollResultsWidget.swift */; };
+			TV017 /* TemplateOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF018 /* TemplateOverlayView.swift */; };
+			TV018 /* GuestReminderWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF019 /* GuestReminderWidget.swift */; };
+			TV020 /* WaiverWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF020 /* WaiverWidget.swift */; };
+			TV021 /* LogoWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF021 /* LogoWidget.swift */; };
+		
+		/* iOS Admin App */
+		IOS001 /* CatfeTVAdminApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = IOSF001 /* CatfeTVAdminApp.swift */; };
+		IOS002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = IOSF002 /* ContentView.swift */; };
+		IOS003 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = IOSF003 /* Assets.xcassets */; };
+		IOS004 /* ScreenListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = IOSF004 /* ScreenListView.swift */; };
+		IOS005 /* ScreenEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = IOSF005 /* ScreenEditorView.swift */; };
+		IOS006 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = IOSF006 /* SettingsView.swift */; };
+		IOS007 /* PreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = IOSF007 /* PreviewView.swift */; };
+		IOS008 /* ScheduleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = IOSF008 /* ScheduleView.swift */; };
+		IOS009 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = IOSF010 /* LoginView.swift */; };
+		
+		/* Shared */
+		SH001 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHF001 /* Models.swift */; };
+		SH002 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHF001 /* Models.swift */; };
+		SH003 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHF002 /* APIClient.swift */; };
+		SH004 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHF002 /* APIClient.swift */; };
+		SH005 /* WeatherService.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHF003 /* WeatherService.swift */; };
+		SH006 /* WeatherService.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHF003 /* WeatherService.swift */; };
+		SH007 /* ImageCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHF004 /* ImageCache.swift */; };
+		SH008 /* ImageCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHF004 /* ImageCache.swift */; };
+		SH009 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHF005 /* Theme.swift */; };
+		SH010 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHF005 /* Theme.swift */; };
+		SH011 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHF006 /* Extensions.swift */; };
+		SH012 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHF006 /* Extensions.swift */; };
+		SH013 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHF007 /* AuthService.swift */; };
+		SH014 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHF007 /* AuthService.swift */; };
+		3161834B7E6A46B68ED9BD06 /* AdoptionCounterScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20862D8E78C246B7B1CBA93E /* AdoptionCounterScreenView.swift */; };
+		6B1024C94B61446E9B0021F2 /* CheckInScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CCB061F120B466EAD114384 /* CheckInScreenView.swift */; };
+		GSB00001 /* GuestStatusBoardScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = GSB00002 /* GuestStatusBoardScreenView.swift */; };
+		22810065BDE340519254637D /* CosmicHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86CB68B09382437D9B459095 /* CosmicHelpers.swift */; };
+		303610EFC664458D9517DB33 /* HappyTailsQRScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95CD9A1BFCB64E6BB89476CB /* HappyTailsQRScreenView.swift */; };
+		160E26B617F844B9A485E8BA /* HappyTailsScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18F4708A52AA458882948CFB /* HappyTailsScreenView.swift */; };
+		1015FBD1570A481DB7476D37 /* LivestreamScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57676A24DBA740B8A2F54355 /* LivestreamScreenView.swift */; };
+		77D9526A66A04277AA19C611 /* SnapPurrGalleryScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F4846B359046729E9989E3 /* SnapPurrGalleryScreenView.swift */; };
+		117C38FFEFEB49CE8690FA9D /* SnapPurrQRScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 703BA8C8A61D4DC9907F0324 /* SnapPurrQRScreenView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		/* tvOS App Files */
+		TVF001 /* CatfeTVApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatfeTVApp.swift; sourceTree = "<group>"; };
+		TVF002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		TVF003 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		TVF004 /* ScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenView.swift; sourceTree = "<group>"; };
+		TVF005 /* WeatherWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherWidget.swift; sourceTree = "<group>"; };
+		TVF006 /* ScreenRotator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenRotator.swift; sourceTree = "<group>"; };
+		TVF007 /* AdoptionScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdoptionScreenView.swift; sourceTree = "<group>"; };
+		TVF008 /* EventsScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventsScreenView.swift; sourceTree = "<group>"; };
+		TVF009 /* MembershipScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MembershipScreenView.swift; sourceTree = "<group>"; };
+		TVF010 /* RemindersScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemindersScreenView.swift; sourceTree = "<group>"; };
+		TVF011 /* SnapPurrScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapPurrScreenView.swift; sourceTree = "<group>"; };
+		TVF012 /* TodayScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayScreenView.swift; sourceTree = "<group>"; };
+		TVF013 /* ThankYouScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThankYouScreenView.swift; sourceTree = "<group>"; };
+		TVF014 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		TVF015 /* AdoptionShowcaseScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdoptionShowcaseScreenView.swift; sourceTree = "<group>"; };
+		TVF016 /* PollWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PollWidget.swift; sourceTree = "<group>"; };
+			TVF017 /* PollResultsWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PollResultsWidget.swift; sourceTree = "<group>"; };
+			TVF018 /* TemplateOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateOverlayView.swift; sourceTree = "<group>"; };
+			TVF019 /* GuestReminderWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestReminderWidget.swift; sourceTree = "<group>"; };
+			TVF020 /* WaiverWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaiverWidget.swift; sourceTree = "<group>"; };
+			TVF021 /* LogoWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogoWidget.swift; sourceTree = "<group>"; };
+		
+		/* iOS Admin App Files */
+		IOSF001 /* CatfeTVAdminApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatfeTVAdminApp.swift; sourceTree = "<group>"; };
+		IOSF002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		IOSF003 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		IOSF004 /* ScreenListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenListView.swift; sourceTree = "<group>"; };
+		IOSF005 /* ScreenEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenEditorView.swift; sourceTree = "<group>"; };
+		IOSF006 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		IOSF007 /* PreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewView.swift; sourceTree = "<group>"; };
+		IOSF008 /* ScheduleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleView.swift; sourceTree = "<group>"; };
+		IOSF009 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		IOSF010 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		
+		/* Shared Files */
+		SHF001 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		SHF002 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
+		SHF003 /* WeatherService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherService.swift; sourceTree = "<group>"; };
+		SHF004 /* ImageCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCache.swift; sourceTree = "<group>"; };
+		SHF005 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		SHF006 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		SHF007 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
+		
+		/* Products */
+		PROD001 /* CatfeTVApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CatfeTVApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		PROD002 /* CatfeTVAdmin.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CatfeTVAdmin.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		20862D8E78C246B7B1CBA93E /* AdoptionCounterScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdoptionCounterScreenView.swift; sourceTree = "<group>"; };
+		6CCB061F120B466EAD114384 /* CheckInScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckInScreenView.swift; sourceTree = "<group>"; };
+		GSB00002 /* GuestStatusBoardScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestStatusBoardScreenView.swift; sourceTree = "<group>"; };
+		86CB68B09382437D9B459095 /* CosmicHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CosmicHelpers.swift; sourceTree = "<group>"; };
+		95CD9A1BFCB64E6BB89476CB /* HappyTailsQRScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HappyTailsQRScreenView.swift; sourceTree = "<group>"; };
+		18F4708A52AA458882948CFB /* HappyTailsScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HappyTailsScreenView.swift; sourceTree = "<group>"; };
+		57676A24DBA740B8A2F54355 /* LivestreamScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LivestreamScreenView.swift; sourceTree = "<group>"; };
+		A6F4846B359046729E9989E3 /* SnapPurrGalleryScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapPurrGalleryScreenView.swift; sourceTree = "<group>"; };
+		703BA8C8A61D4DC9907F0324 /* SnapPurrQRScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapPurrQRScreenView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		TVFBP001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		IOSFBP001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		ROOT /* Root */ = {
+			isa = PBXGroup;
+			children = (
+				TVGRP001 /* CatfeTVApp */,
+				IOSGRP001 /* CatfeTVAdmin */,
+				SHGRP001 /* Shared */,
+				PRODGRP /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		PRODGRP /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				PROD001 /* CatfeTVApp.app */,
+				PROD002 /* CatfeTVAdmin.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		TVGRP001 /* CatfeTVApp */ = {
+			isa = PBXGroup;
+			children = (
+				TVF001 /* CatfeTVApp.swift */,
+				TVF002 /* ContentView.swift */,
+				TVF004 /* ScreenView.swift */,
+				TVF005 /* WeatherWidget.swift */,
+				TVF006 /* ScreenRotator.swift */,
+				TVGRP002 /* Screens */,
+				TVGRP003 /* Views */,
+				TVF003 /* Assets.xcassets */,
+				TVF014 /* Info.plist */,
+			);
+			path = CatfeTVApp;
+			sourceTree = "<group>";
+		};
+		TVGRP002 /* Screens */ = {
+			isa = PBXGroup;
+			children = (
+				TVF007 /* AdoptionScreenView.swift */,
+				TVF015 /* AdoptionShowcaseScreenView.swift */,
+				TVF008 /* EventsScreenView.swift */,
+				TVF009 /* MembershipScreenView.swift */,
+				TVF010 /* RemindersScreenView.swift */,
+				TVF011 /* SnapPurrScreenView.swift */,
+				TVF012 /* TodayScreenView.swift */,
+				TVF013 /* ThankYouScreenView.swift */,
+				20862D8E78C246B7B1CBA93E /* AdoptionCounterScreenView.swift */,
+				6CCB061F120B466EAD114384 /* CheckInScreenView.swift */,
+				GSB00002 /* GuestStatusBoardScreenView.swift */,
+				86CB68B09382437D9B459095 /* CosmicHelpers.swift */,
+				95CD9A1BFCB64E6BB89476CB /* HappyTailsQRScreenView.swift */,
+				18F4708A52AA458882948CFB /* HappyTailsScreenView.swift */,
+				57676A24DBA740B8A2F54355 /* LivestreamScreenView.swift */,
+				A6F4846B359046729E9989E3 /* SnapPurrGalleryScreenView.swift */,
+				703BA8C8A61D4DC9907F0324 /* SnapPurrQRScreenView.swift */,
+			);
+			path = Screens;
+			sourceTree = "<group>";
+		};
+		TVGRP003 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				TVF016 /* PollWidget.swift */,
+				TVF017 /* PollResultsWidget.swift */,
+					TVF018 /* TemplateOverlayView.swift */,
+					TVF019 /* GuestReminderWidget.swift */,
+					TVF020 /* WaiverWidget.swift */,
+					TVF021 /* LogoWidget.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		IOSGRP001 /* CatfeTVAdmin */ = {
+			isa = PBXGroup;
+			children = (
+				IOSF001 /* CatfeTVAdminApp.swift */,
+				IOSF002 /* ContentView.swift */,
+				IOSF010 /* LoginView.swift */,
+				IOSF004 /* ScreenListView.swift */,
+				IOSF005 /* ScreenEditorView.swift */,
+				IOSF006 /* SettingsView.swift */,
+				IOSF007 /* PreviewView.swift */,
+				IOSF008 /* ScheduleView.swift */,
+				IOSF003 /* Assets.xcassets */,
+				IOSF009 /* Info.plist */,
+			);
+			path = CatfeTVAdmin;
+			sourceTree = "<group>";
+		};
+		SHGRP001 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				SHF001 /* Models.swift */,
+				SHF002 /* APIClient.swift */,
+				SHF007 /* AuthService.swift */,
+				SHF003 /* WeatherService.swift */,
+				SHF004 /* ImageCache.swift */,
+				SHF005 /* Theme.swift */,
+				SHF006 /* Extensions.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		TVTARGET /* CatfeTVApp */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = TVBCL001 /* Build configuration list for PBXNativeTarget "CatfeTVApp" */;
+			buildPhases = (
+				TVSBP001 /* Sources */,
+				TVFBP001 /* Frameworks */,
+				TVRBP001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = CatfeTVApp;
+			productName = CatfeTVApp;
+			productReference = PROD001 /* CatfeTVApp.app */;
+			productType = "com.apple.product-type.application";
+		};
+		IOSTARGET /* CatfeTVAdmin */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = IOSBCL001 /* Build configuration list for PBXNativeTarget "CatfeTVAdmin" */;
+			buildPhases = (
+				IOSSBP001 /* Sources */,
+				IOSFBP001 /* Frameworks */,
+				IOSRBP001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = CatfeTVAdmin;
+			productName = CatfeTVAdmin;
+			productReference = PROD002 /* CatfeTVAdmin.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		PROJECT001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					TVTARGET = {
+						CreatedOnToolsVersion = 15.0;
+					};
+					IOSTARGET = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = PROJBCL001 /* Build configuration list for PBXProject "CatfeTV" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = ROOT /* Root */;
+			productRefGroup = PRODGRP /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				TVTARGET /* CatfeTVApp */,
+				IOSTARGET /* CatfeTVAdmin */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		TVRBP001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				TV003 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		IOSRBP001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				IOS003 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		TVSBP001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				TV001 /* CatfeTVApp.swift in Sources */,
+				TV002 /* ContentView.swift in Sources */,
+				TV004 /* ScreenView.swift in Sources */,
+				TV005 /* WeatherWidget.swift in Sources */,
+				TV006 /* ScreenRotator.swift in Sources */,
+				TV007 /* AdoptionScreenView.swift in Sources */,
+				TV014 /* AdoptionShowcaseScreenView.swift in Sources */,
+				TV008 /* EventsScreenView.swift in Sources */,
+				TV009 /* MembershipScreenView.swift in Sources */,
+				TV010 /* RemindersScreenView.swift in Sources */,
+				TV011 /* SnapPurrScreenView.swift in Sources */,
+				TV012 /* TodayScreenView.swift in Sources */,
+				TV013 /* ThankYouScreenView.swift in Sources */,
+				3161834B7E6A46B68ED9BD06 /* AdoptionCounterScreenView.swift in Sources */,
+				6B1024C94B61446E9B0021F2 /* CheckInScreenView.swift in Sources */,
+				GSB00001 /* GuestStatusBoardScreenView.swift in Sources */,
+				22810065BDE340519254637D /* CosmicHelpers.swift in Sources */,
+				303610EFC664458D9517DB33 /* HappyTailsQRScreenView.swift in Sources */,
+				160E26B617F844B9A485E8BA /* HappyTailsScreenView.swift in Sources */,
+				1015FBD1570A481DB7476D37 /* LivestreamScreenView.swift in Sources */,
+				77D9526A66A04277AA19C611 /* SnapPurrGalleryScreenView.swift in Sources */,
+				117C38FFEFEB49CE8690FA9D /* SnapPurrQRScreenView.swift in Sources */,
+				TV015 /* PollWidget.swift in Sources */,
+					TV016 /* PollResultsWidget.swift in Sources */,
+					TV017 /* TemplateOverlayView.swift in Sources */,
+					TV018 /* GuestReminderWidget.swift in Sources */,
+					TV020 /* WaiverWidget.swift in Sources */,
+					TV021 /* LogoWidget.swift in Sources */,
+					SH001 /* Models.swift in Sources */,
+				SH003 /* APIClient.swift in Sources */,
+				SH005 /* WeatherService.swift in Sources */,
+				SH007 /* ImageCache.swift in Sources */,
+				SH009 /* Theme.swift in Sources */,
+				SH011 /* Extensions.swift in Sources */,
+				SH013 /* AuthService.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		IOSSBP001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				IOS001 /* CatfeTVAdminApp.swift in Sources */,
+				IOS002 /* ContentView.swift in Sources */,
+				IOS009 /* LoginView.swift in Sources */,
+				IOS004 /* ScreenListView.swift in Sources */,
+				IOS005 /* ScreenEditorView.swift in Sources */,
+				IOS006 /* SettingsView.swift in Sources */,
+				IOS007 /* PreviewView.swift in Sources */,
+				IOS008 /* ScheduleView.swift in Sources */,
+				SH002 /* Models.swift in Sources */,
+				SH004 /* APIClient.swift in Sources */,
+				SH006 /* WeatherService.swift in Sources */,
+				SH008 /* ImageCache.swift in Sources */,
+				SH010 /* Theme.swift in Sources */,
+				SH012 /* Extensions.swift in Sources */,
+				SH014 /* AuthService.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		/* Project Debug */
+		PROJDBG001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		/* Project Release */
+		PROJREL001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		/* tvOS Debug */
+		TVDBG001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CatfeTVApp/Info.plist;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIUserInterfaceStyle = Dark;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.catfe.tv;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = appletvos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 3;
+				TVOS_DEPLOYMENT_TARGET = 17.0;
+			};
+			name = Debug;
+		};
+		/* tvOS Release */
+		TVREL001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "App Icon & Top Shelf Image";
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CatfeTVApp/Info.plist;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIUserInterfaceStyle = Dark;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.catfe.tv;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = appletvos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 3;
+				TVOS_DEPLOYMENT_TARGET = 17.0;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		/* iOS Debug */
+		IOSDBG001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CatfeTVAdmin/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.catfe.tv.admin;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		/* iOS Release */
+		IOSREL001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CatfeTVAdmin/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.catfe.tv.admin;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		PROJBCL001 /* Build configuration list for PBXProject "CatfeTV" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				PROJDBG001 /* Debug */,
+				PROJREL001 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		TVBCL001 /* Build configuration list for PBXNativeTarget "CatfeTVApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				TVDBG001 /* Debug */,
+				TVREL001 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		IOSBCL001 /* Build configuration list for PBXNativeTarget "CatfeTVAdmin" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				IOSDBG001 /* Debug */,
+				IOSREL001 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = PROJECT001 /* Project object */;
+}

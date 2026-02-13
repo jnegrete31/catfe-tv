@@ -15,7 +15,8 @@ import {
   pollVotes, InsertPollVote, PollVote,
   playlists, InsertPlaylist, Playlist,
   playlistScreens, InsertPlaylistScreen, PlaylistScreen,
-  slideTemplates, InsertSlideTemplate, SlideTemplate, TemplateElement
+  slideTemplates, InsertSlideTemplate, SlideTemplate, TemplateElement,
+  cats, InsertCat, Cat
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -1966,4 +1967,98 @@ export async function getUserLikedPhotos(voterFingerprint: string): Promise<numb
     .where(eq(photoLikes.voterFingerprint, voterFingerprint));
   
   return likes.map(l => l.photoId);
+}
+
+
+// ============ CAT QUERIES ============
+
+export async function getAllCats(): Promise<Cat[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(cats).orderBy(cats.sortOrder, cats.name);
+}
+
+export async function getAvailableCats(): Promise<Cat[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(cats)
+    .where(eq(cats.status, "available"))
+    .orderBy(cats.sortOrder, cats.name);
+}
+
+export async function getAdoptedCats(): Promise<Cat[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(cats)
+    .where(eq(cats.status, "adopted"))
+    .orderBy(desc(cats.adoptedDate));
+}
+
+export async function getFeaturedCat(): Promise<Cat | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(cats)
+    .where(and(eq(cats.isFeatured, true), eq(cats.status, "available")))
+    .limit(1);
+  return result[0] || null;
+}
+
+export async function getCatById(id: number): Promise<Cat | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(cats).where(eq(cats.id, id));
+  return result[0] || null;
+}
+
+export async function createCat(data: InsertCat): Promise<Cat | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.insert(cats).values(data);
+  const insertId = result[0].insertId;
+  return getCatById(insertId);
+}
+
+export async function updateCat(id: number, data: Partial<InsertCat>): Promise<Cat | null> {
+  const db = await getDb();
+  if (!db) return null;
+  await db.update(cats).set(data).where(eq(cats.id, id));
+  return getCatById(id);
+}
+
+export async function deleteCat(id: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  await db.delete(cats).where(eq(cats.id, id));
+  return true;
+}
+
+export async function getCatsByStatus(status: string): Promise<Cat[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(cats)
+    .where(eq(cats.status, status as any))
+    .orderBy(cats.sortOrder, cats.name);
+}
+
+export async function getRecentlyAdoptedCatsFromTable(days: number = 30): Promise<Cat[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - days);
+  return db.select().from(cats)
+    .where(and(
+      eq(cats.status, "adopted"),
+      gte(cats.adoptedDate, cutoff)
+    ))
+    .orderBy(desc(cats.adoptedDate));
+}
+
+export async function getCatCount(): Promise<{ available: number; adopted: number; total: number }> {
+  const db = await getDb();
+  if (!db) return { available: 0, adopted: 0, total: 0 };
+  
+  const allCats = await db.select({ status: cats.status }).from(cats);
+  const available = allCats.filter(c => c.status === "available").length;
+  const adopted = allCats.filter(c => c.status === "adopted").length;
+  return { available, adopted, total: allCats.length };
 }

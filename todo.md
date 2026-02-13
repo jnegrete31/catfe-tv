@@ -1242,3 +1242,47 @@
 - [x] Removed all motion.div from CheckInScreen (header, 3 columns, footer)
 - [x] Removed backdrop-blur-sm from CheckInScreen columns (tvOS incompatible)
 - [x] All 135 tests passing
+
+## Bug Fix - Apple TV Native App (SwiftUI) Screens
+- [x] Apple TV app is native SwiftUI, NOT WKWebView — each screen has its own .swift file
+- [x] Fix CheckInScreenView: template overlay was overriding native view — changed routing to prioritize native views
+- [x] Create GuestStatusBoardScreenView.swift with live countdown timers and session window timers
+- [x] Add guestStatusBoard to ScreenType enum, Theme.swift, and ScreenView.swift routing
+- [x] Add GuestStatusBoardScreenView.swift to project.pbxproj build files
+- [x] Push changes to GitHub repo jnegrete31/catfe-tv (commit f88a44f)
+
+## Feature - Cats Management System (Central Cat Database)
+
+### Database & Schema
+- [x] Create cats table with guest-facing fields (name, photoUrl, breed, colorPattern, dob, sex, weight, personalityTags, bio, adoptionFee, isAltered, felvFivStatus, status)
+- [x] Add staff-only fields (rescueId, shelterluvId, microchipNumber, arrivalDate, medicalNotes, vaccinationsDue, fleaTreatmentDue)
+- [x] Add adoption tracking fields (adoptedDate, adoptedBy)
+- [x] Push database migration
+
+### Server-Side CRUD
+- [x] Create db.ts query helpers for cats (getAll, getById, getAvailable, getAdopted, create, update, delete)
+- [x] Create tRPC procedures for cats CRUD (public getAvailable, protected admin CRUD)
+- [x] Add image upload support for cat photos (S3 storage)
+
+### Admin Panel - Cats Tab
+- [x] Add Cats tab to admin panel with cat icon in tab bar and bottom nav
+- [x] Build cat list view with photo thumbnails, name, breed, status badge
+- [x] Build cat detail/edit form matching kennel card fields
+- [x] Add personality tags selector (Good with Cats, Good with Children, Shy, etc.)
+- [x] Add status selector (Available, Adopted, Medical Hold, Foster)
+- [x] Add photo upload for cat profile picture
+- [x] Add medical notes section (staff-only, collapsible)
+- [x] Add vaccination/treatment due date tracking
+
+### TV Display Integration
+- [x] Update Adoption Showcase screen to pull cats from cats table instead of individual screen entries
+- [ ] Update Adoption screen (single cat) to pull from cats table (deferred - hybrid approach)
+- [x] Adoption Showcase now serves as "Meet Our Cats" screen pulling from cats table
+
+### tvOS App Updates
+- [x] Add Cat model to Models.swift
+- [x] Update tvOS Adoption Showcase to use cats data
+- [x] Push changes to GitHub
+
+### Tests
+- [x] Write vitest tests for cats CRUD procedures (20 tests passing)

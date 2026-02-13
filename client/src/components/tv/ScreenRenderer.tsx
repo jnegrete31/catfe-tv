@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import type { Screen, Settings } from "@shared/types";
+import type { Screen, Settings, Cat } from "@shared/types";
 import { SCREEN_TYPE_CONFIG } from "@shared/types";
 import { QRCodeSVG } from "qrcode.react";
 import { trpc } from "@/lib/trpc";
@@ -46,7 +46,8 @@ function useCountUp(target: number, duration: number = 2000) {
 interface ScreenRendererProps {
   screen: Screen;
   settings: Settings | null;
-  adoptionCats?: Screen[]; // For ADOPTION_SHOWCASE
+  adoptionCats?: Screen[]; // For ADOPTION_SHOWCASE (legacy)
+  catDbCats?: Cat[]; // Cats from the cats table
 }
 
 // Logo component for branding - visible on both light and dark backgrounds
@@ -745,13 +746,37 @@ function AdoptionScreen({ screen, settings }: ScreenRendererProps) {
 }
 
 // ADOPTION_SHOWCASE - Grid of 4 random adoptable cats (Lounge-inspired design)
-function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRendererProps) {
-  const cats = adoptionCats || [];
-  const { data: adoptionCountData } = trpc.screens.getAdoptionCount.useQuery();
-  const adoptedCount = adoptionCountData?.count || 0;
+// Now pulls from the cats database table when available, falls back to legacy Screen objects
+function AdoptionShowcaseScreen({ screen, settings, adoptionCats, catDbCats }: ScreenRendererProps) {
+  const legacyCats = adoptionCats || [];
+  const { data: dbCats } = trpc.cats.getAvailable.useQuery(undefined, { staleTime: 30000 });
+  const { data: adoptionCountData } = trpc.cats.getCounts.useQuery(undefined, { staleTime: 30000 });
+  const adoptedCount = adoptionCountData?.adopted || 0;
   
-  // Use all cats passed in (already limited to 4 by parent)
-  const displayCats = cats;
+  // Prefer cats from the database, fall back to legacy Screen objects
+  const availableCats = catDbCats || dbCats || [];
+  const useDbCats = availableCats.length > 0;
+  
+  // Pick 4 random cats from the database
+  const [displayDbCats, setDisplayDbCats] = useState<Cat[]>([]);
+  useEffect(() => {
+    if (availableCats.length > 0) {
+      const shuffled = [...availableCats].sort(() => Math.random() - 0.5);
+      setDisplayDbCats(shuffled.slice(0, 4));
+    }
+  }, [availableCats.length]);
+  
+  // Shuffle every 6 seconds
+  useEffect(() => {
+    if (availableCats.length <= 4) return;
+    const interval = setInterval(() => {
+      const shuffled = [...availableCats].sort(() => Math.random() - 0.5);
+      setDisplayDbCats(shuffled.slice(0, 4));
+    }, 6000);
+    return () => clearInterval(interval);
+  }, [availableCats.length]);
+  
+  const displayCats = useDbCats ? [] : legacyCats; // Only used for legacy fallback
   
   // Polaroid rotation angles for visual interest
   const rotations = [-2, 3, -3, 2];
@@ -811,14 +836,15 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRender
       <div className="absolute inset-0 flex items-center justify-center px-6 pt-40 pb-24">
         <AnimatePresence mode="popLayout">
           <motion.div
-            key={displayCats.map(c => c.id).join('-')}
+            key={useDbCats ? displayDbCats.map(c => c.id).join('-') : displayCats.map(c => c.id).join('-')}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.6 }}
             className="flex flex-row gap-5 justify-center items-center w-full"
           >
-            {displayCats.map((cat, idx) => (
+            {/* Database cats (new system) */}
+            {useDbCats && displayDbCats.map((cat, idx) => (
               <motion.div
                 key={cat.id}
                 initial={{ opacity: 0, scale: 0.8, rotate: rotations[idx] - 10 }}
@@ -827,33 +853,55 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRender
                 transition={{ delay: idx * 0.1, duration: 0.5, type: 'spring', stiffness: 100 }}
                 style={{ transform: `rotate(${rotations[idx]}deg)` }}
               >
-                {/* Polaroid frame with cream background */}
                 <div className="p-3 pb-16 shadow-2xl rounded-lg relative" style={{ background: '#FFFEF9', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
-                  {/* Photo */}
                   <div className="relative aspect-square overflow-hidden bg-gray-100">
-                    {cat.imagePath ? (
-                      <img
-                        src={cat.imagePath}
-                        alt={cat.title}
-                        className="w-full h-full object-cover"
-                      />
+                    {cat.photoUrl ? (
+                      <img src={cat.photoUrl} alt={cat.name} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-orange-100 to-pink-100 flex items-center justify-center">
                         <span className="text-7xl">🐱</span>
                       </div>
                     )}
-                    {/* Subtle vignette */}
                     <div className="absolute inset-0" style={{ boxShadow: 'inset 0 0 60px rgba(0,0,0,0.15)' }} />
-                    
-                    {/* Adopted badge */}
+                  </div>
+                  <div className="absolute bottom-2 left-2 right-2 text-center">
+                    <p className="text-gray-800 text-2xl font-semibold truncate" style={{ fontFamily: 'Georgia, serif' }}>
+                      Meet {cat.name}
+                    </p>
+                    <p className="text-gray-600 text-lg truncate">
+                      {cat.breed}{cat.colorPattern ? ` · ${cat.colorPattern}` : ''}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+            
+            {/* Legacy Screen cats (fallback) */}
+            {!useDbCats && displayCats.map((cat, idx) => (
+              <motion.div
+                key={cat.id}
+                initial={{ opacity: 0, scale: 0.8, rotate: rotations[idx] - 10 }}
+                animate={{ opacity: 1, scale: 1, rotate: rotations[idx] }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ delay: idx * 0.1, duration: 0.5, type: 'spring', stiffness: 100 }}
+                style={{ transform: `rotate(${rotations[idx]}deg)` }}
+              >
+                <div className="p-3 pb-16 shadow-2xl rounded-lg relative" style={{ background: '#FFFEF9', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
+                  <div className="relative aspect-square overflow-hidden bg-gray-100">
+                    {cat.imagePath ? (
+                      <img src={cat.imagePath} alt={cat.title} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-orange-100 to-pink-100 flex items-center justify-center">
+                        <span className="text-7xl">🐱</span>
+                      </div>
+                    )}
+                    <div className="absolute inset-0" style={{ boxShadow: 'inset 0 0 60px rgba(0,0,0,0.15)' }} />
                     {(cat as any).isAdopted && (
                       <div className="absolute top-2 right-2 px-3 py-1 rounded-full bg-green-500 text-white text-sm font-bold shadow-lg">
                         🎉 Adopted!
                       </div>
                     )}
                   </div>
-                  
-                  {/* Cat name - handwritten style */}
                   <div className="absolute bottom-2 left-2 right-2 text-center">
                     <p className="text-gray-800 text-2xl font-semibold truncate" style={{ fontFamily: 'Georgia, serif' }}>
                       Meet {cat.title?.replace('Meet ', '')}
@@ -867,12 +915,12 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRender
             ))}
             
             {/* Empty polaroid placeholders */}
-            {displayCats.length < 4 && Array.from({ length: 4 - displayCats.length }).map((_, idx) => (
+            {(useDbCats ? displayDbCats.length : displayCats.length) < 4 && Array.from({ length: 4 - (useDbCats ? displayDbCats.length : displayCats.length) }).map((_, idx) => (
               <motion.div
                 key={`empty-${idx}`}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 0.5 }}
-                style={{ transform: `rotate(${rotations[displayCats.length + idx] || 0}deg)` }}
+                style={{ transform: `rotate(${rotations[(useDbCats ? displayDbCats.length : displayCats.length) + idx] || 0}deg)` }}
               >
                 <div className="bg-white/20 p-3 pb-16 rounded-sm border-2 border-dashed border-white/30">
                   <div className="aspect-square flex items-center justify-center bg-white/10">
@@ -892,7 +940,7 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats }: ScreenRender
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20">
         <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
           <span className="text-orange-400 text-lg">🐾</span>
-          <span className="text-white/80 text-sm">{cats.length} cats looking for homes</span>
+          <span className="text-white/80 text-sm">{useDbCats ? availableCats.length : displayCats.length} cats looking for homes</span>
         </div>
       </div>
       

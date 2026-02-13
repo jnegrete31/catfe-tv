@@ -474,3 +474,68 @@ export type WidgetOverrides = {
     label?: string;
   };
 };
+
+
+/**
+ * Cat status options
+ */
+export const catStatusEnum = mysqlEnum("catStatus", ["available", "adopted", "medical_hold", "foster", "trial"]);
+
+/**
+ * Cat sex options
+ */
+export const catSexEnum = mysqlEnum("catSex", ["female", "male", "unknown"]);
+
+/**
+ * FeLV/FIV status options
+ */
+export const felvFivStatusEnum = mysqlEnum("felvFivStatus", ["negative", "positive", "unknown", "not_tested"]);
+
+/**
+ * Cats table - central database for all cats at Catfé
+ * Guest-facing fields are displayed on TV screens and adoption slides
+ * Staff-only fields are visible only in the admin panel
+ */
+export const cats = mysqlTable("cats", {
+  id: int("id").autoincrement().primaryKey(),
+  
+  // === Guest-Facing Fields ===
+  name: varchar("name", { length: 255 }).notNull(),
+  photoUrl: varchar("photoUrl", { length: 1024 }), // S3 URL for cat profile photo
+  breed: varchar("breed", { length: 255 }).default("Domestic Shorthair"),
+  colorPattern: varchar("colorPattern", { length: 255 }), // e.g., "Grey Tabby", "Orange", "Tuxedo"
+  dob: timestamp("dob"), // Date of birth (auto-calculates age for display)
+  sex: catSexEnum.notNull().default("unknown"),
+  weight: varchar("weight", { length: 50 }), // e.g., "7.8 lbs"
+  personalityTags: json("personalityTags").$type<string[]>(), // e.g., ["Good with Cats", "Good with Children", "Shy"]
+  bio: text("bio"), // Personality description from kennel card memo
+  adoptionFee: varchar("adoptionFee", { length: 50 }).default("$150.00"), // e.g., "$150.00"
+  isAltered: boolean("isAltered").notNull().default(false), // Spayed/neutered
+  felvFivStatus: felvFivStatusEnum.notNull().default("not_tested"), // FeLV/FIV test results
+  status: catStatusEnum.notNull().default("available"),
+  
+  // === Staff-Only Fields ===
+  rescueId: varchar("rescueId", { length: 100 }), // e.g., "KRLA-A-8326"
+  shelterluvId: varchar("shelterluvId", { length: 100 }), // Shelterluv animal ID
+  microchipNumber: varchar("microchipNumber", { length: 100 }), // e.g., "941000029293663"
+  arrivalDate: timestamp("arrivalDate"), // When the cat arrived at Catfé
+  intakeType: varchar("intakeType", { length: 100 }), // e.g., "Transfer In", "Stray", "Owner Surrender"
+  medicalNotes: text("medicalNotes"), // Free text for medical history, dental work, etc.
+  vaccinationsDue: json("vaccinationsDue").$type<Array<{ name: string; dueDate: string }>>(), // e.g., [{ name: "Rabies", dueDate: "2029-01-26" }]
+  fleaTreatmentDue: timestamp("fleaTreatmentDue"), // Next flea treatment date
+  
+  // === Adoption Tracking ===
+  adoptedDate: timestamp("adoptedDate"), // When the cat was adopted
+  adoptedBy: varchar("adoptedBy", { length: 255 }), // Name of adopter
+  
+  // === Display Settings ===
+  isFeatured: boolean("isFeatured").notNull().default(false), // Featured cat (Cat of the Week)
+  sortOrder: int("sortOrder").notNull().default(0), // Display order
+  
+  // === Timestamps ===
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Cat = typeof cats.$inferSelect;
+export type InsertCat = typeof cats.$inferInsert;
