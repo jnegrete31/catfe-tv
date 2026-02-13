@@ -312,6 +312,8 @@ export const appRouter = router({
     // Public: Get active screens with template overlay data (for tvOS app)
     getActiveWithTemplates: publicProcedure.query(async () => {
       const screens = await getActiveScreens();
+      const catSlides = await generateCatSlides();
+      const allScreens = interleaveScreens(screens, catSlides);
       const templates = await getAllSlideTemplates();
       
       // Build a map of screenType -> template
@@ -321,7 +323,7 @@ export const appRouter = router({
       }
       
       // Attach template overlay data to each screen
-      return screens.map(screen => {
+      return allScreens.map(screen => {
         const template = templateMap.get(screen.type);
         return {
           ...screen,

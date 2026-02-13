@@ -1,12 +1,22 @@
+//
+//  Models.swift
+//  CatfeTV
+//
+//  Shared data models for tvOS and iOS apps
+//
+
 import Foundation
+import SwiftUI
 
 // MARK: - Screen Types
-enum ScreenType: String, Codable, CaseIterable {
-    case snapAndPurr = "SNAP_AND_PURR"
-    case event = "EVENT"
-    case todayAtCatfe = "TODAY_AT_CATFE"
+
+enum ScreenType: String, Codable, CaseIterable, Identifiable {
+    // Backend values (uppercase with underscores)
+    case snapPurr = "SNAP_AND_PURR"
+    case events = "EVENT"
+    case today = "TODAY_AT_CATFE"
     case membership = "MEMBERSHIP"
-    case reminder = "REMINDER"
+    case reminders = "REMINDER"
     case adoption = "ADOPTION"
     case adoptionShowcase = "ADOPTION_SHOWCASE"
     case adoptionCounter = "ADOPTION_COUNTER"
@@ -14,259 +24,638 @@ enum ScreenType: String, Codable, CaseIterable {
     case livestream = "LIVESTREAM"
     case happyTails = "HAPPY_TAILS"
     case snapPurrGallery = "SNAP_PURR_GALLERY"
-    case happyTailsQr = "HAPPY_TAILS_QR"
-    case snapPurrQr = "SNAP_PURR_QR"
+    case happyTailsQR = "HAPPY_TAILS_QR"
+    case snapPurrQR = "SNAP_PURR_QR"
     case poll = "POLL"
-    case pollQr = "POLL_QR"
+    case pollQR = "POLL_QR"
     case checkIn = "CHECK_IN"
-    case guestStatusBoard = "GUEST_STATUS_BOARD"
     case custom = "CUSTOM"
+    
+    var id: String { rawValue }
     
     var displayName: String {
         switch self {
-        case .snapAndPurr: return "Snap & Purr"
-        case .event: return "Event"
-        case .todayAtCatfe: return "Today at Catfé"
+        case .snapPurr: return "Snap & Purr"
+        case .events: return "Events"
+        case .today: return "Today at Catfé"
         case .membership: return "Membership"
-        case .reminder: return "Reminder"
+        case .reminders: return "Reminders"
         case .adoption: return "Adoption"
-        case .adoptionShowcase: return "Adoption Showcase"
+        case .adoptionShowcase: return "Adoptable Cats"
         case .adoptionCounter: return "Adoption Counter"
         case .thankYou: return "Thank You"
         case .livestream: return "Livestream"
         case .happyTails: return "Happy Tails"
         case .snapPurrGallery: return "Snap & Purr Gallery"
-        case .happyTailsQr: return "Happy Tails QR"
-        case .snapPurrQr: return "Snap & Purr QR"
+        case .happyTailsQR: return "Happy Tails QR"
+        case .snapPurrQR: return "Snap & Purr QR"
         case .poll: return "Poll"
-        case .pollQr: return "Poll QR"
+        case .pollQR: return "Poll QR"
         case .checkIn: return "Check In"
-        case .guestStatusBoard: return "Guest Status Board"
         case .custom: return "Custom"
         }
     }
     
-    var backgroundColor: String {
+    var icon: String {
         switch self {
-        case .snapAndPurr: return "#fef3c7"
-        case .event: return "#fce7f3"
-        case .todayAtCatfe: return "#dbeafe"
-        case .membership: return "#d1fae5"
-        case .reminder: return "#fee2e2"
-        case .adoption: return "#ede9fe"
-        case .adoptionShowcase: return "#ffedd5"
-        case .adoptionCounter: return "#d1fae5"
-        case .thankYou: return "#e0e7ff"
-        case .livestream: return "#fef3c7"
-        case .happyTails: return "#fce7f3"
-        case .snapPurrGallery: return "#fef3c7"
-        case .happyTailsQr: return "#fce7f3"
-        case .snapPurrQr: return "#fef3c7"
-        case .poll: return "#dbeafe"
-        case .pollQr: return "#dbeafe"
-        case .checkIn: return "#d1fae5"
-        case .guestStatusBoard: return "#e0e7ff"
-        case .custom: return "#f3f4f6"
+        case .snapPurr, .snapPurrGallery, .snapPurrQR: return "camera.fill"
+        case .events: return "calendar"
+        case .today: return "sun.max.fill"
+        case .membership: return "person.crop.circle.badge.checkmark"
+        case .reminders: return "bell.fill"
+        case .adoption: return "heart.fill"
+        case .adoptionShowcase: return "square.grid.2x2.fill"
+        case .adoptionCounter: return "number.circle.fill"
+        case .thankYou: return "hands.clap.fill"
+        case .livestream: return "video.fill"
+        case .happyTails, .happyTailsQR: return "pawprint.fill"
+        case .poll, .pollQR: return "chart.bar.fill"
+        case .checkIn: return "person.badge.plus"
+        case .custom: return "star.fill"
         }
     }
 }
 
-// MARK: - Screen Model (matches actual API response from screens.getActive)
-struct Screen: Codable, Identifiable {
-    let id: Int
-    let type: ScreenType
-    let title: String
-    let subtitle: String?
-    let body: String?
-    let imagePath: String?
-    let imageDisplayMode: String?
-    let qrUrl: String?
-    let startAt: String?
-    let endAt: String?
-    let daysOfWeek: [Int]?
-    let timeStart: String?
-    let timeEnd: String?
-    let priority: Int
-    let durationSeconds: Int
-    let sortOrder: Int
-    let isActive: Bool
-    let schedulingEnabled: Bool?
-    let isProtected: Bool?
-    let isAdopted: Bool?
-    let livestreamUrl: String?
-    let eventDate: String?
-    let eventTime: String?
-    let eventLocation: String?
-    let createdAt: String
-    let updatedAt: String
-}
+// MARK: - Screen Model
 
-// MARK: - Settings Model (matches actual API response from settings.get)
-struct Settings: Codable {
-    let id: Int
-    let locationName: String
-    let defaultDurationSeconds: Int
-    let fallbackMode: String
-    let brandColors: BrandColors?
-    let snapAndPurrFrequency: Int
-    let totalAdoptionCount: Int?
-    let logoUrl: String?
-    let livestreamUrl: String?
-    let githubRepo: String?
-    let githubBranch: String?
-    let refreshIntervalSeconds: Int
-    let waiverUrl: String?
-    let wifiName: String?
-    let wifiPassword: String?
-    let houseRules: [String]?
-    let updatedAt: String
-}
-
-struct BrandColors: Codable {
-    let primary: String
-    let secondary: String
-    let background: String
-    let text: String
-}
-
-// MARK: - Vaccination Due Item
-struct VaccinationDue: Codable {
-    let name: String
-    let dueDate: String
-}
-
-// MARK: - Cat Model (matches actual API response from cats.getAvailable)
-struct CatModel: Codable, Identifiable {
-    let id: Int
-    let name: String
-    let photoUrl: String?
-    let breed: String?
-    let colorPattern: String?
-    let dob: String?
-    let sex: String
-    let weight: String?
-    let personalityTags: [String]?
-    let bio: String?
-    let adoptionFee: String?
-    let isAltered: Bool
-    let felvFivStatus: String
-    let status: String
-    let rescueId: String?
-    let shelterluvId: String?
-    let microchipNumber: String?
-    let arrivalDate: String?
-    let intakeType: String?
-    let medicalNotes: String?
-    let vaccinationsDue: [VaccinationDue]?
-    let fleaTreatmentDue: String?
-    let adoptedDate: String?
-    let adoptedBy: String?
-    let isFeatured: Bool
-    let sortOrder: Int
-    let createdAt: String
-    let updatedAt: String
+struct Screen: Identifiable, Codable, Equatable {
+    var id: UUID
+    var numericId: Int? // Database ID for tRPC API calls
+    var type: ScreenType
+    var title: String
+    var subtitle: String?
+    var bodyText: String?
+    var imageURL: String?
+    var imageDisplayMode: String?
+    var qrCodeURL: String?
+    var duration: Int // seconds
+    var priority: Int
+    var isActive: Bool
+    var isAdopted: Bool // For adoption screens
+    var isProtected: Bool
+    var sortOrder: Int
+    var schedule: ScreenSchedule?
+    var livestreamUrl: String?
+    var templateOverlay: TemplateOverlay? // Template overlay data from Slide Editor
+    var createdAt: Date
+    var updatedAt: Date
     
-    /// Computed age string from dob
-    var ageString: String? {
-        guard let dobStr = dob else { return nil }
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        guard let dobDate = formatter.date(from: dobStr) else {
-            // Try without fractional seconds
-            formatter.formatOptions = [.withInternetDateTime]
-            guard let d = formatter.date(from: dobStr) else { return nil }
-            return Self.calculateAge(from: d)
+    // Adoption-specific fields
+    var catName: String?
+    var catAge: String?
+    var catGender: String?
+    var catBreed: String?
+    var catDescription: String?
+    
+    // Event-specific fields
+    var eventDate: String?
+    var eventTime: String?
+    var eventLocation: String?
+    
+    init(
+        id: UUID = UUID(),
+        numericId: Int? = nil,
+        type: ScreenType,
+        title: String,
+        subtitle: String? = nil,
+        bodyText: String? = nil,
+        imageURL: String? = nil,
+        imageDisplayMode: String? = "cover",
+        qrCodeURL: String? = nil,
+        duration: Int = 10,
+        priority: Int = 0,
+        isActive: Bool = true,
+        isAdopted: Bool = false,
+        isProtected: Bool = false,
+        sortOrder: Int = 0,
+        schedule: ScreenSchedule? = nil,
+        livestreamUrl: String? = nil,
+        templateOverlay: TemplateOverlay? = nil,
+        catName: String? = nil,
+        catAge: String? = nil,
+        catGender: String? = nil,
+        catBreed: String? = nil,
+        catDescription: String? = nil,
+        eventDate: String? = nil,
+        eventTime: String? = nil,
+        eventLocation: String? = nil
+    ) {
+        self.id = id
+        self.numericId = numericId
+        self.type = type
+        self.title = title
+        self.subtitle = subtitle
+        self.bodyText = bodyText
+        self.imageURL = imageURL
+        self.imageDisplayMode = imageDisplayMode
+        self.qrCodeURL = qrCodeURL
+        self.duration = duration
+        self.priority = priority
+        self.isActive = isActive
+        self.isAdopted = isAdopted
+        self.isProtected = isProtected
+        self.sortOrder = sortOrder
+        self.schedule = schedule
+        self.livestreamUrl = livestreamUrl
+        self.templateOverlay = templateOverlay
+        self.createdAt = Date()
+        self.updatedAt = Date()
+        self.catName = catName
+        self.catAge = catAge
+        self.catGender = catGender
+        self.catBreed = catBreed
+        self.catDescription = catDescription
+        self.eventDate = eventDate
+        self.eventTime = eventTime
+        self.eventLocation = eventLocation
+    }
+    
+    static func == (lhs: Screen, rhs: Screen) -> Bool {
+        lhs.id == rhs.id
+    }
+}
+
+// MARK: - API Screen Model (matches backend JSON exactly)
+
+struct APIScreen: Codable {
+    var id: Int
+    var type: String
+    var title: String
+    var subtitle: String?
+    var body: String?
+    var imagePath: String?
+    var imageDisplayMode: String?
+    var qrUrl: String?
+    var startAt: String?
+    var endAt: String?
+    var daysOfWeek: [Int]?
+    var timeStart: String?
+    var timeEnd: String?
+    var priority: Int
+    var durationSeconds: Int
+    var sortOrder: Int
+    var isActive: Bool
+    var isProtected: Bool
+    var isAdopted: Bool
+    var livestreamUrl: String?
+    var templateOverlay: TemplateOverlay? // Template data from Slide Editor
+    var createdAt: String
+    var updatedAt: String
+    
+    // Event-specific fields from API
+    var eventDate: String?
+    var eventTime: String?
+    var eventLocation: String?
+    
+    /// Convert API screen to local Screen model
+    func toScreen() -> Screen {
+        let screenType = ScreenType(rawValue: type) ?? .custom
+        
+        // Parse dates
+        let isoFormatter = ISO8601DateFormatter()
+        isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        
+        let isoFormatterNoFrac = ISO8601DateFormatter()
+        isoFormatterNoFrac.formatOptions = [.withInternetDateTime]
+        
+        func parseDate(_ str: String?) -> Date? {
+            guard let str = str else { return nil }
+            return isoFormatter.date(from: str) ?? isoFormatterNoFrac.date(from: str)
         }
-        return Self.calculateAge(from: dobDate)
+        
+        // Build schedule if scheduling fields are present
+        var schedule: ScreenSchedule? = nil
+        if daysOfWeek != nil || timeStart != nil || timeEnd != nil || startAt != nil || endAt != nil {
+            schedule = ScreenSchedule(
+                startDate: parseDate(startAt),
+                endDate: parseDate(endAt),
+                daysOfWeek: daysOfWeek ?? [0, 1, 2, 3, 4, 5, 6],
+                startTime: timeStart,
+                endTime: timeEnd
+            )
+        }
+        
+        return Screen(
+            id: UUID(),
+            numericId: id,
+            type: screenType,
+            title: title,
+            subtitle: subtitle,
+            bodyText: body,
+            imageURL: imagePath,
+            imageDisplayMode: imageDisplayMode,
+            qrCodeURL: qrUrl,
+            duration: durationSeconds,
+            priority: priority,
+            isActive: isActive,
+            isAdopted: isAdopted,
+            isProtected: isProtected,
+            sortOrder: sortOrder,
+            schedule: schedule,
+            livestreamUrl: livestreamUrl,
+            templateOverlay: templateOverlay,
+            eventDate: eventDate,
+            eventTime: eventTime,
+            eventLocation: eventLocation
+        )
+    }
+}
+
+// MARK: - Template Overlay Models
+
+/// Represents a single element in a template overlay (text, image, shape, etc.)
+struct TemplateElement: Codable, Identifiable {
+    var id: String
+    var type: String // "title", "subtitle", "body", "photo", "qrCode", "logo", "clock", "weather", "counter", "galleryGrid", "adoptionGrid", "catPhoto"
+    // Position (percentage of canvas, 0-100)
+    var x: Double
+    var y: Double
+    // Size (percentage of canvas, 0-100)
+    var width: Double
+    var height: Double
+    // Typography
+    var fontSize: Double?
+    var fontWeight: String? // "normal", "bold", "100"-"900"
+    var fontFamily: String?
+    var textAlign: String? // "left", "center", "right"
+    // Styling
+    var color: String?
+    var backgroundColor: String?
+    var borderRadius: Double?
+    var opacity: Double?
+    var rotation: Double? // degrees
+    // Layout
+    var zIndex: Int?
+    var padding: Double?
+    // Photo-specific
+    var objectFit: String? // "cover", "contain", "fill"
+    // Visibility
+    var visible: Bool?
+    // Gallery-specific
+    var galleryType: String?
+    var photosToShow: Int?
+}
+
+/// Widget override settings for per-slide customization of overlay widgets
+struct WidgetOverride: Codable {
+    var visible: Bool?
+    var x: Double?
+    var y: Double?
+    var width: Double?
+    var height: Double?
+    var fontSize: Double?
+    var color: String?
+    var opacity: Double?
+    var size: Double?
+    var label: String?
+    var showDate: Bool?
+}
+
+struct WidgetOverrides: Codable {
+    var logo: WidgetOverride?
+    var weather: WidgetOverride?
+    var clock: WidgetOverride?
+    var waiverQr: WidgetOverride?
+}
+
+/// Template overlay data attached to each screen from the API
+struct TemplateOverlay: Codable {
+    var elements: String // JSON string of TemplateElement[]
+    var backgroundColor: String?
+    var backgroundGradient: String?
+    var backgroundImageUrl: String?
+    var defaultFontFamily: String?
+    var defaultFontColor: String?
+    var widgetOverrides: String? // JSON string of WidgetOverrides
+    
+    /// Parse the elements JSON string into an array of TemplateElement
+    func parsedElements() -> [TemplateElement] {
+        guard let data = elements.data(using: .utf8) else { return [] }
+        do {
+            return try JSONDecoder().decode([TemplateElement].self, from: data)
+        } catch {
+            print("Failed to parse template elements: \(error)")
+            return []
+        }
     }
     
-    private static func calculateAge(from date: Date) -> String {
-        let months = Calendar.current.dateComponents([.month], from: date, to: Date()).month ?? 0
-        if months < 1 { return "< 1 month" }
-        if months < 12 { return "\(months) month\(months == 1 ? "" : "s")" }
-        let years = months / 12
-        let remainingMonths = months % 12
-        if remainingMonths == 0 { return "\(years) year\(years == 1 ? "" : "s")" }
-        return "\(years) yr\(years == 1 ? "" : "s") \(remainingMonths) mo"
+    /// Parse the widget overrides JSON string
+    func parsedWidgetOverrides() -> WidgetOverrides? {
+        guard let str = widgetOverrides, let data = str.data(using: .utf8) else { return nil }
+        do {
+            return try JSONDecoder().decode(WidgetOverrides.self, from: data)
+        } catch {
+            print("Failed to parse widget overrides: \(error)")
+            return nil
+        }
     }
 }
 
-struct CatCountsResponse: Codable {
-    let available: Int
-    let adopted: Int
-    let total: Int
+// MARK: - Schedule Model
+
+struct ScreenSchedule: Codable, Equatable {
+    var startDate: Date?
+    var endDate: Date?
+    var daysOfWeek: [Int] // 0 = Sunday, 6 = Saturday
+    var startTime: String? // "HH:mm" format
+    var endTime: String? // "HH:mm" format
+    
+    init(
+        startDate: Date? = nil,
+        endDate: Date? = nil,
+        daysOfWeek: [Int] = [0, 1, 2, 3, 4, 5, 6],
+        startTime: String? = nil,
+        endTime: String? = nil
+    ) {
+        self.startDate = startDate
+        self.endDate = endDate
+        self.daysOfWeek = daysOfWeek
+        self.startTime = startTime
+        self.endTime = endTime
+    }
+    
+    func isActiveNow() -> Bool {
+        let now = Date()
+        let calendar = Calendar.current
+        
+        // Check date range
+        if let start = startDate, now < start { return false }
+        if let end = endDate, now > end { return false }
+        
+        // Check day of week
+        let weekday = calendar.component(.weekday, from: now) - 1 // Convert to 0-indexed
+        if !daysOfWeek.contains(weekday) { return false }
+        
+        // Check time window
+        if let startTimeStr = startTime, let endTimeStr = endTime {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "HH:mm"
+            let currentTimeStr = formatter.string(from: now)
+            
+            if currentTimeStr < startTimeStr || currentTimeStr > endTimeStr {
+                return false
+            }
+        }
+        
+        return true
+    }
 }
 
-// MARK: - API Response Wrappers
+// MARK: - Settings Model
 
-/// tRPC + superjson wraps responses as: { result: { data: { json: T, meta?: ... } } }
-struct APIResponse<T: Codable>: Codable {
-    let result: ResultWrapper<T>
-}
-
-struct ResultWrapper<T: Codable>: Codable {
-    let data: SuperJSONWrapper<T>
-}
-
-struct SuperJSONWrapper<T: Codable>: Codable {
-    let json: T
-    let meta: SuperJSONMeta?
-}
-
-struct SuperJSONMeta: Codable {
-    // superjson metadata for date/bigint/etc transformations
-    // We don't need to parse this, just acknowledge it exists
-}
-
-// MARK: - tRPC Response Types
-// Settings uses a wrapper: { settings: Settings }
-struct SettingsResponse: Codable {
-    let settings: Settings
-}
-
-// MARK: - Weather Model (Open-Meteo)
-struct WeatherResponse: Codable {
-    let current: CurrentWeather
-}
-
-struct CurrentWeather: Codable {
-    let temperature2m: Double
-    let weatherCode: Int
+struct AppSettings: Codable {
+    var locationName: String?
+    var defaultDurationSeconds: Int
+    var snapAndPurrFrequency: Int // Show every N screens
+    var latitude: Double
+    var longitude: Double
+    var refreshIntervalSeconds: Int // seconds
+    var transitionDuration: Double // seconds
+    var totalAdoptionCount: Int
+    var logoUrl: String?
     
     enum CodingKeys: String, CodingKey {
-        case temperature2m = "temperature_2m"
-        case weatherCode = "weather_code"
+        case locationName
+        case defaultDurationSeconds
+        case snapAndPurrFrequency
+        case latitude, longitude
+        case refreshIntervalSeconds
+        case transitionDuration
+        case totalAdoptionCount
+        case logoUrl
+    }
+    
+    static var `default`: AppSettings {
+        AppSettings(
+            locationName: "Catfé Santa Clarita",
+            defaultDurationSeconds: 10,
+            snapAndPurrFrequency: 5,
+            latitude: 34.3917,
+            longitude: -118.5426,
+            refreshIntervalSeconds: 60,
+            transitionDuration: 1.0,
+            totalAdoptionCount: 0,
+            logoUrl: nil
+        )
     }
 }
 
-// MARK: - Weather Code Helper
-extension Int {
-    var weatherDescription: String {
-        switch self {
-        case 0: return "Clear"
-        case 1...2: return "Partly Cloudy"
-        case 3: return "Cloudy"
-        case 45...48: return "Foggy"
-        case 51...57: return "Drizzle"
-        case 61...67: return "Rain"
-        case 71...77: return "Snow"
-        case 80...82: return "Showers"
-        case 85...86: return "Snow Showers"
-        case 95...99: return "Thunderstorm"
-        default: return "Unknown"
-        }
+// MARK: - Weather Model
+
+struct WeatherData: Codable {
+    var temperature: Double
+    var condition: String
+    var icon: String
+    var humidity: Int
+    var lastUpdated: Date
+    
+    var temperatureString: String {
+        "\(Int(temperature))°F"
     }
     
-    var weatherIcon: String {
-        switch self {
-        case 0: return "sun.max.fill"
-        case 1...2: return "cloud.sun.fill"
-        case 3: return "cloud.fill"
-        case 45...48: return "cloud.fog.fill"
-        case 51...67: return "cloud.rain.fill"
-        case 71...86: return "cloud.snow.fill"
-        case 95...99: return "cloud.bolt.fill"
-        default: return "cloud.fill"
+    var conditionIcon: String {
+        switch condition.lowercased() {
+        case let c where c.contains("clear") || c.contains("sunny"):
+            return "sun.max.fill"
+        case let c where c.contains("cloud"):
+            return "cloud.fill"
+        case let c where c.contains("rain"):
+            return "cloud.rain.fill"
+        case let c where c.contains("snow"):
+            return "cloud.snow.fill"
+        case let c where c.contains("thunder"):
+            return "cloud.bolt.fill"
+        case let c where c.contains("fog") || c.contains("mist"):
+            return "cloud.fog.fill"
+        default:
+            return "sun.max.fill"
+        }
+    }
+}
+
+// MARK: - Poll Models
+
+struct PollOption: Codable, Identifiable {
+    var id: String
+    var text: String
+    var imageUrl: String?
+    var votes: Int?
+    
+    enum CodingKeys: String, CodingKey {
+        case id, text
+        case imageUrl = "imageUrl"
+        case votes
+    }
+}
+
+struct Poll: Codable, Identifiable {
+    var id: Int
+    var question: String
+    var options: [PollOption]
+    var totalVotes: Int
+    
+    enum CodingKeys: String, CodingKey {
+        case id, question, options, totalVotes
+    }
+}
+
+struct PollResponse: Codable {
+    var result: PollResult
+    
+    struct PollResult: Codable {
+        var data: PollData
+        
+        struct PollData: Codable {
+            var json: Poll?
+        }
+    }
+}
+
+// MARK: - API Response Models
+
+struct ScreensResponse: Codable {
+    var screens: [Screen]
+    var settings: AppSettings?
+}
+
+struct APIError: Error, LocalizedError {
+    var message: String
+    
+    var errorDescription: String? {
+        message
+    }
+}
+
+// MARK: - Sample Data
+
+extension Screen {
+    static var sampleScreens: [Screen] {
+        [
+            Screen(
+                type: .snapPurr,
+                title: "Snap & Purr",
+                subtitle: "Share your visit!",
+                bodyText: "Take a photo with our cats and share on social media using #CatfeSantaClarita",
+                qrCodeURL: "https://instagram.com/catfesantaclarita",
+                duration: 15
+            ),
+            Screen(
+                type: .adoption,
+                title: "Meet Scout",
+                subtitle: "6 months old • Female",
+                imageURL: "https://raw.githubusercontent.com/jnegrete31/catfe-tv/main/assets/catfe-tv/2026/01/1769716107287-scout.jpg",
+                duration: 12,
+                catName: "Scout",
+                catAge: "6 months",
+                catGender: "Female",
+                catBreed: "Domestic Shorthair",
+                catDescription: "This sweet cat is looking for her forever home. Ask staff for details!"
+            ),
+            Screen(
+                type: .events,
+                title: "Valentine's Day Special",
+                subtitle: "February 14th",
+                bodyText: "Join us for a special Valentine's Day event with treats and love!",
+                duration: 10,
+                eventDate: Date().addingTimeInterval(86400 * 14),
+                eventTime: "2:00 PM - 6:00 PM",
+                eventLocation: "Catfé Santa Clarita"
+            ),
+            Screen(
+                type: .today,
+                title: "Today at Catfé",
+                subtitle: "Thursday, January 29",
+                bodyText: "• Open 10 AM - 8 PM\n• Happy Hour 3-5 PM\n• New kittens available!",
+                duration: 10
+            ),
+            Screen(
+                type: .membership,
+                title: "Become a Member",
+                subtitle: "Unlimited visits & perks",
+                bodyText: "Get unlimited visits, member discounts, and exclusive events access!",
+                qrCodeURL: "https://catfesantaclarita.com/membership",
+                duration: 12
+            ),
+            Screen(
+                type: .reminders,
+                title: "Friendly Reminders",
+                subtitle: "Help us keep our cats happy",
+                bodyText: "• Wash hands before and after\n• No flash photography\n• Be gentle with the cats\n• Food and drinks in designated areas only",
+                duration: 10
+            ),
+            Screen(
+                type: .thankYou,
+                title: "Thank You!",
+                subtitle: "For visiting Catfé",
+                bodyText: "Your visit helps support local cat rescue organizations. See you next time!",
+                duration: 8
+            )
+        ]
+    }
+}
+
+// MARK: - Guest Session Model
+
+struct GuestSession: Codable, Identifiable {
+    var id: Int
+    var guestName: String
+    var guestCount: Int
+    var duration: String // "15", "30", or "60" minutes
+    var status: String // "active", "completed", "extended"
+    var checkInAt: Date
+    var expiresAt: Date
+    var checkedOutAt: Date?
+    var notes: String?
+    var reminderShown: Bool
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case guestName
+        case guestCount
+        case duration
+        case status
+        case checkInAt
+        case expiresAt
+        case checkedOutAt
+        case notes
+        case reminderShown
+    }
+    
+    /// Time remaining until session expires (in seconds)
+    var timeRemaining: TimeInterval {
+        return expiresAt.timeIntervalSinceNow
+    }
+    
+    /// Whether the session has less than 5 minutes remaining
+    var isNearingExpiry: Bool {
+        return timeRemaining > 0 && timeRemaining <= 5 * 60
+    }
+    
+    /// Whether the session has less than 2 minutes remaining (urgent)
+    var isUrgent: Bool {
+        return timeRemaining > 0 && timeRemaining <= 2 * 60
+    }
+    
+    /// Whether the session has expired
+    var isExpired: Bool {
+        return timeRemaining <= 0
+    }
+    
+    /// Formatted time remaining string (e.g., "4:32")
+    var formattedTimeRemaining: String {
+        let remaining = max(0, timeRemaining)
+        let minutes = Int(remaining) / 60
+        let seconds = Int(remaining) % 60
+        return "\(minutes):\(String(format: "%02d", seconds))"
+    }
+    
+    /// Session type label based on duration
+    var sessionTypeLabel: String {
+        switch duration {
+        case "15": return "Guest Pass"
+        case "30": return "Mini Meow"
+        case "60": return "Full Meow"
+        default: return "Session"
         }
     }
 }
