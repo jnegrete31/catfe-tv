@@ -121,6 +121,17 @@ struct ScreenContentView: View {
                         .padding(.vertical, 10)
                         .background(LoungeColors.warmOrange)
                         .clipShape(Capsule())
+                    } else if screen.type == .event {
+                        HStack(spacing: 8) {
+                            Text("\u{1F389}")
+                            Text("Upcoming Event")
+                        }
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 10)
+                        .background(LoungeColors.warmOrange)
+                        .clipShape(Capsule())
                     } else {
                         HStack(spacing: 8) {
                             Text(screen.type.emoji)
@@ -146,6 +157,40 @@ struct ScreenContentView: View {
                             .font(.system(size: 36, weight: .medium))
                             .foregroundColor(LoungeColors.cream.opacity(0.8))
                             .lineLimit(2)
+                    }
+                    
+                    // Event details: date, time, location (for EVENT screens)
+                    if screen.type == .event {
+                        VStack(alignment: .leading, spacing: 12) {
+                            if let eventDate = screen.eventDate, !eventDate.isEmpty {
+                                HStack(spacing: 12) {
+                                    Text("\u{1F4C5}")
+                                        .font(.system(size: 28))
+                                    Text(eventDate)
+                                        .font(.system(size: 32, weight: .medium))
+                                        .foregroundColor(LoungeColors.cream.opacity(0.9))
+                                }
+                            }
+                            if let eventTime = screen.eventTime, !eventTime.isEmpty {
+                                HStack(spacing: 12) {
+                                    Text("\u{1F550}")
+                                        .font(.system(size: 28))
+                                    Text(eventTime)
+                                        .font(.system(size: 32, weight: .medium))
+                                        .foregroundColor(LoungeColors.cream.opacity(0.9))
+                                }
+                            }
+                            if let eventLocation = screen.eventLocation, !eventLocation.isEmpty {
+                                HStack(spacing: 12) {
+                                    Text("\u{1F4CD}")
+                                        .font(.system(size: 28))
+                                    Text(eventLocation)
+                                        .font(.system(size: 32, weight: .medium))
+                                        .foregroundColor(LoungeColors.cream.opacity(0.9))
+                                }
+                            }
+                        }
+                        .padding(.top, 8)
                     }
                     
                     // Body (personality tags for adoption screens)
@@ -195,7 +240,7 @@ struct ScreenContentView: View {
                                 .font(.system(size: 40))
                             
                             VStack(alignment: .leading) {
-                                Text("Scan to learn more")
+                                Text(screen.type == .event ? "Scan to Book" : "Scan to learn more")
                                     .font(.headline)
                                 Text(qrUrl)
                                     .font(.caption)
@@ -226,6 +271,12 @@ struct ScreenContentView: View {
                                 Text(screen.title)
                                     .font(.system(size: 28, weight: .medium, design: .serif))
                                     .foregroundColor(LoungeColors.charcoal)
+                            }
+                            // "Upcoming Event" caption under photo (for event screens)
+                            if screen.type == .event {
+                                Text("Upcoming Event")
+                                    .font(.system(size: 24, weight: .medium, design: .serif))
+                                    .foregroundColor(LoungeColors.charcoal.opacity(0.7))
                             }
                         }
                         .padding(24)

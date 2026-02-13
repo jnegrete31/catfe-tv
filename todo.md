@@ -1371,3 +1371,9 @@
 - [x] Update TV display to show event date with calendar emoji
 - [x] Update tvOS Swift models to include eventDate
 - [x] Push to GitHub
+
+## Bug Fix - Apple TV Event Date Not Using eventDate Field
+- [ ] Find where tvOS ScreenContentView generates "Friday, February 13, 2026" for events
+- [ ] Fix it to use screen.eventDate from the API instead of auto-generating from createdAt
+- [ ] Ensure Pilates with Cats also shows the eventDate when set
+- [ ] Push to GitHub
