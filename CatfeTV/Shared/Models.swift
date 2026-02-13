@@ -493,6 +493,43 @@ struct AppSettings: Codable {
     }
 }
 
+// MARK: - Photo Submission Model
+
+struct PhotoSubmission: Codable, Identifiable {
+    var id: Int
+    var type: String // "happy_tails" or "snap_purr"
+    var status: String // "pending", "approved", "rejected"
+    var submitterName: String
+    var submitterEmail: String?
+    var photoUrl: String
+    var caption: String?
+    var catName: String?
+    var adoptionDate: String?
+    var reviewedAt: String?
+    var reviewedBy: Int?
+    var rejectionReason: String?
+    var displayOrder: Int
+    var showOnTv: Bool
+    var isFeatured: Bool
+    var backgroundStyle: String?
+    var borderStyle: String?
+    var likesCount: Int
+    var createdAt: String
+    var updatedAt: String
+    
+    enum CodingKeys: String, CodingKey {
+        case id, type, status
+        case submitterName, submitterEmail
+        case photoUrl, caption
+        case catName, adoptionDate
+        case reviewedAt, reviewedBy, rejectionReason
+        case displayOrder, showOnTv, isFeatured
+        case backgroundStyle, borderStyle
+        case likesCount
+        case createdAt, updatedAt
+    }
+}
+
 // MARK: - Weather Model
 
 struct WeatherData: Codable {

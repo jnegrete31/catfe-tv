@@ -317,8 +317,7 @@ class APIClient: ObservableObject {
         
         // Event fields
         if let eventDate = screen.eventDate {
-            let formatter = ISO8601DateFormatter()
-            input["startAt"] = formatter.string(from: eventDate)
+            input["startAt"] = eventDate
         }
         
         return input
