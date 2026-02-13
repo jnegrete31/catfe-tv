@@ -1777,28 +1777,19 @@ function CheckInScreen({ screen, settings }: ScreenRendererProps) {
       
       <div className="absolute inset-0 p-10 flex flex-col">
         {/* Header */}
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-6"
-        >
+        <div className="text-center mb-6">
           <h1 className="text-5xl font-light tracking-wider text-white mb-2" style={{ fontFamily: 'Georgia, serif' }}>
             Welcome to <span className="text-cyan-400">{locationName}</span>!
           </h1>
           <p className="text-xl text-white/60">
             {screen.subtitle || "Please complete these steps before your visit"}
           </p>
-        </motion.div>
+        </div>
         
         {/* Main content - 3 columns */}
         <div className="flex-1 grid grid-cols-3 gap-6">
           {/* Column 1: Waiver */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10 flex flex-col items-center"
-          >
+          <div className="bg-white/10 rounded-2xl p-6 border border-white/10 flex flex-col items-center">
             <div className="w-14 h-14 rounded-full bg-blue-500/20 border border-blue-400/30 flex items-center justify-center mb-4">
               <span className="text-3xl">📝</span>
             </div>
@@ -1813,15 +1804,10 @@ function CheckInScreen({ screen, settings }: ScreenRendererProps) {
             ) : (
               <p className="text-white/50 italic text-sm">Ask staff for waiver</p>
             )}
-          </motion.div>
+          </div>
           
           {/* Column 2: WiFi */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10 flex flex-col items-center"
-          >
+          <div className="bg-white/10 rounded-2xl p-6 border border-white/10 flex flex-col items-center">
             <div className="w-14 h-14 rounded-full bg-cyan-500/20 border border-cyan-400/30 flex items-center justify-center mb-4">
               <span className="text-3xl">📶</span>
             </div>
@@ -1845,15 +1831,10 @@ function CheckInScreen({ screen, settings }: ScreenRendererProps) {
             ) : (
               <p className="text-white/50 italic text-sm">Ask staff for WiFi details</p>
             )}
-          </motion.div>
+          </div>
           
           {/* Column 3: House Rules */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/10 flex flex-col"
-          >
+          <div className="bg-white/10 rounded-2xl p-6 border border-white/10 flex flex-col">
             <div className="flex items-center justify-center mb-4">
               <div className="w-14 h-14 rounded-full bg-orange-500/20 border border-orange-400/30 flex items-center justify-center">
                 <span className="text-3xl">📋</span>
@@ -1879,20 +1860,15 @@ function CheckInScreen({ screen, settings }: ScreenRendererProps) {
                 <p className="text-white/50 italic text-sm">Rules will be displayed here</p>
               </div>
             )}
-          </motion.div>
+          </div>
         </div>
         
         {/* Footer */}
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="text-center mt-6"
-        >
+        <div className="text-center mt-6">
           <p className="text-lg text-white/50">
             🐱 Thank you for visiting! Enjoy your time with our furry friends! 🐱
           </p>
-        </motion.div>
+        </div>
       </div>
     </div>
   );

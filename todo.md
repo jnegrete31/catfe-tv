@@ -1234,3 +1234,11 @@
 - [x] Removed backdrop-blur-sm from session window timer cards
 - [x] Session window countdown timers (Full Purr/Mini Meow) are part of the Guest Status Board slide
 - [x] All 135 tests passing
+
+## Bug Fix - Multiple Screens Not Rendering Content on Apple TV
+- [x] Guest Status Board: only title shows — fixed by removing animate-fade-in (opacity:0 start)
+- [x] Check-In screen: no WiFi/rules showing — fixed by replacing all motion.div with plain div
+- [x] Root cause: framer-motion's initial={{ opacity: 0 }} doesn't animate on tvOS WebKit, content stays invisible
+- [x] Removed all motion.div from CheckInScreen (header, 3 columns, footer)
+- [x] Removed backdrop-blur-sm from CheckInScreen columns (tvOS incompatible)
+- [x] All 135 tests passing
