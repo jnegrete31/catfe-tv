@@ -5,7 +5,7 @@ class APIClient {
     static let shared = APIClient()
     
     // Configure this with your deployed backend URL
-    var baseURL: String = "https://your-catfe-tv-app.manus.space"
+    var baseURL: String = "https://catfetv-amdmxcoq.manus.space"
     
     private let session: URLSession
     private let decoder: JSONDecoder
@@ -32,7 +32,10 @@ class APIClient {
             urlString += "?input=\(encoded)"
         }
         
+        print("[API] Fetching: \(urlString)")
+        
         guard let url = URL(string: urlString) else {
+            print("[API] ERROR: Invalid URL: \(urlString)")
             throw APIError.invalidURL
         }
         
@@ -43,16 +46,31 @@ class APIClient {
         let (data, response) = try await session.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse else {
+            print("[API] ERROR: Invalid response for \(procedure)")
             throw APIError.invalidResponse
         }
         
+        print("[API] \(procedure) → HTTP \(httpResponse.statusCode), \(data.count) bytes")
+        
         guard (200...299).contains(httpResponse.statusCode) else {
+            print("[API] ERROR: HTTP \(httpResponse.statusCode) for \(procedure)")
             throw APIError.httpError(statusCode: httpResponse.statusCode)
         }
         
         // tRPC + superjson wraps response in { result: { data: { json: T } } }
-        let wrapper = try decoder.decode(APIResponse<T>.self, from: data)
-        return wrapper.result.data.json
+        do {
+            let wrapper = try decoder.decode(APIResponse<T>.self, from: data)
+            print("[API] \(procedure) → decoded successfully")
+            return wrapper.result.data.json
+        } catch {
+            // Log the raw response for debugging
+            if let rawString = String(data: data, encoding: .utf8) {
+                let preview = String(rawString.prefix(500))
+                print("[API] ERROR decoding \(procedure): \(error)")
+                print("[API] Raw response preview: \(preview)")
+            }
+            throw error
+        }
     }
     
     // MARK: - Public API Methods

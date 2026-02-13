@@ -1349,3 +1349,14 @@
 - [x] Fix AdminViewModel: remove references to old field names
 - [x] Fix ScreenContentView preview: use new field names
 - [x] Push updated Swift files to GitHub
+
+## Bug Fix - Apple TV Not Showing Cat Slides (Real Screens Needed)
+- [x] Investigate why tvOS app doesn't show server-injected cat slides
+- [x] Confirmed: API returns 27 screens (16 ADOPTION cat slides + 11 regular) - server injection works
+- [x] Confirmed: Cat slides have identical JSON structure to regular screens - no parsing issue
+- [x] Root cause: tvOS app running old build with mismatched Swift models (old field names)
+- [x] Added comprehensive debug logging to APIClient and TVDisplayViewModel
+- [x] Updated baseURL to actual published site URL
+- [x] No admin Screens/Playlist changes needed - cats auto-inject from Cats table
+- [ ] Push to GitHub
+- [ ] User needs to rebuild tvOS app from latest code

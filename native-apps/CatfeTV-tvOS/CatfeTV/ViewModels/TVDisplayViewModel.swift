@@ -52,11 +52,20 @@ class TVDisplayViewModel: ObservableObject {
         isLoading = true
         error = nil
         
+        print("[TV] Loading content from \(APIClient.shared.baseURL)...")
+        
         do {
             async let screensResult = APIClient.shared.getActiveScreens()
             async let settingsResult = APIClient.shared.getSettings()
             
             let (fetchedScreens, fetchedSettings) = try await (screensResult, settingsResult)
+            
+            // Debug: log screen counts by type
+            let typeCounts = Dictionary(grouping: fetchedScreens, by: { $0.type }).mapValues { $0.count }
+            print("[TV] Loaded \(fetchedScreens.count) screens:")
+            for (type, count) in typeCounts.sorted(by: { $0.key.rawValue < $1.key.rawValue }) {
+                print("[TV]   \(type.rawValue): \(count)")
+            }
             
             let sortedScreens = fetchedScreens.sorted { $0.sortOrder < $1.sortOrder }
             self.settings = fetchedSettings
@@ -70,9 +79,13 @@ class TVDisplayViewModel: ObservableObject {
             
             // Preload images
             let imageURLs = screens.compactMap { $0.imagePath }
+            print("[TV] Preloading \(imageURLs.count) images...")
             await ImageCache.shared.preloadImages(urls: imageURLs)
             
+            print("[TV] Content loaded successfully. \(screens.count) screens ready.")
+            
         } catch {
+            print("[TV] ERROR loading content: \(error)")
             self.error = error.localizedDescription
             self.isOffline = true
         }
