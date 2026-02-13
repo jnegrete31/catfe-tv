@@ -1218,8 +1218,9 @@
 - [x] Increased default duration from 15s to 20s
 
 ## Bug Fix - Guest Status Board Still Not Advancing
-- [ ] Deep-dive debug: identify why auto-advance timer is being reset or not firing
-- [ ] Fix root cause and verify slide advances after duration
+- [x] Deep-dive debug: root cause was setTimeout + useEffect deps — with 1 screen, currentIndex stays 0 so effect never re-triggers
+- [x] Fix: switched from setTimeout to setInterval so timer keeps cycling regardless of playlist size
+- [x] Verified in browser: slides now advance correctly from Guest Status Board to other screens
 
 ## Bug Fix - Guest Status Board Still Not Advancing + Apple TV Empty
 - [x] Fix: Slide not advancing - rewrote auto-advance timer with refs (only depends on currentIndex + isPaused)
