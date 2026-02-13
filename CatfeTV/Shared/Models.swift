@@ -111,7 +111,7 @@ struct Screen: Identifiable, Codable, Equatable {
     var catDescription: String?
     
     // Event-specific fields
-    var eventDate: Date?
+    var eventDate: String?
     var eventTime: String?
     var eventLocation: String?
     
@@ -139,7 +139,7 @@ struct Screen: Identifiable, Codable, Equatable {
         catGender: String? = nil,
         catBreed: String? = nil,
         catDescription: String? = nil,
-        eventDate: Date? = nil,
+        eventDate: String? = nil,
         eventTime: String? = nil,
         eventLocation: String? = nil
     ) {
@@ -200,13 +200,15 @@ struct APIScreen: Codable {
     var isActive: Bool
     var isProtected: Bool
     var isAdopted: Bool
-    var schedulingEnabled: Bool? // When false, screen always shows if active; when true, follows schedule rules
     var livestreamUrl: String?
-    var eventTime: String? // e.g., "5:30pm - 7:30pm"
-    var eventLocation: String? // e.g., "Catfé Santa Clarita"
     var templateOverlay: TemplateOverlay? // Template data from Slide Editor
     var createdAt: String
     var updatedAt: String
+    
+    // Event-specific fields from API
+    var eventDate: String?
+    var eventTime: String?
+    var eventLocation: String?
     
     /// Convert API screen to local Screen model
     func toScreen() -> Screen {
@@ -224,19 +226,16 @@ struct APIScreen: Codable {
             return isoFormatter.date(from: str) ?? isoFormatterNoFrac.date(from: str)
         }
         
-        // Build schedule only if schedulingEnabled is true
-        // When schedulingEnabled is false (or nil), the screen always shows if active
+        // Build schedule if scheduling fields are present
         var schedule: ScreenSchedule? = nil
-        if schedulingEnabled == true {
-            if daysOfWeek != nil || timeStart != nil || timeEnd != nil || startAt != nil || endAt != nil {
-                schedule = ScreenSchedule(
-                    startDate: parseDate(startAt),
-                    endDate: parseDate(endAt),
-                    daysOfWeek: daysOfWeek ?? [0, 1, 2, 3, 4, 5, 6],
-                    startTime: timeStart,
-                    endTime: timeEnd
-                )
-            }
+        if daysOfWeek != nil || timeStart != nil || timeEnd != nil || startAt != nil || endAt != nil {
+            schedule = ScreenSchedule(
+                startDate: parseDate(startAt),
+                endDate: parseDate(endAt),
+                daysOfWeek: daysOfWeek ?? [0, 1, 2, 3, 4, 5, 6],
+                startTime: timeStart,
+                endTime: timeEnd
+            )
         }
         
         return Screen(
@@ -258,7 +257,7 @@ struct APIScreen: Codable {
             schedule: schedule,
             livestreamUrl: livestreamUrl,
             templateOverlay: templateOverlay,
-            eventDate: parseDate(startAt),
+            eventDate: eventDate,
             eventTime: eventTime,
             eventLocation: eventLocation
         )
@@ -417,10 +416,6 @@ struct AppSettings: Codable {
     var transitionDuration: Double // seconds
     var totalAdoptionCount: Int
     var logoUrl: String?
-    var waiverUrl: String? // URL for guest waiver form (displayed as QR on TV)
-    var wifiName: String? // WiFi network name for guests
-    var wifiPassword: String? // WiFi password for guests
-    var houseRules: [String]? // Array of house rules for check-in screen
     
     enum CodingKeys: String, CodingKey {
         case locationName
@@ -431,60 +426,6 @@ struct AppSettings: Codable {
         case transitionDuration
         case totalAdoptionCount
         case logoUrl
-        case waiverUrl
-        case wifiName
-        case wifiPassword
-        case houseRules
-    }
-    
-    // Custom decoder: use defaults for any missing/null fields so decode never fails
-    // The API may not return latitude, longitude, transitionDuration, etc.
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        locationName = try container.decodeIfPresent(String.self, forKey: .locationName)
-        defaultDurationSeconds = (try? container.decode(Int.self, forKey: .defaultDurationSeconds)) ?? 10
-        snapAndPurrFrequency = (try? container.decode(Int.self, forKey: .snapAndPurrFrequency)) ?? 5
-        latitude = (try? container.decode(Double.self, forKey: .latitude)) ?? 34.3917
-        longitude = (try? container.decode(Double.self, forKey: .longitude)) ?? -118.5426
-        refreshIntervalSeconds = (try? container.decode(Int.self, forKey: .refreshIntervalSeconds)) ?? 60
-        transitionDuration = (try? container.decode(Double.self, forKey: .transitionDuration)) ?? 1.0
-        totalAdoptionCount = (try? container.decode(Int.self, forKey: .totalAdoptionCount)) ?? 0
-        logoUrl = try container.decodeIfPresent(String.self, forKey: .logoUrl)
-        waiverUrl = try container.decodeIfPresent(String.self, forKey: .waiverUrl)
-        wifiName = try container.decodeIfPresent(String.self, forKey: .wifiName)
-        wifiPassword = try container.decodeIfPresent(String.self, forKey: .wifiPassword)
-        houseRules = try container.decodeIfPresent([String].self, forKey: .houseRules)
-    }
-    
-    // Memberwise init for programmatic construction
-    init(
-        locationName: String? = nil,
-        defaultDurationSeconds: Int = 10,
-        snapAndPurrFrequency: Int = 5,
-        latitude: Double = 34.3917,
-        longitude: Double = -118.5426,
-        refreshIntervalSeconds: Int = 60,
-        transitionDuration: Double = 1.0,
-        totalAdoptionCount: Int = 0,
-        logoUrl: String? = nil,
-        waiverUrl: String? = nil,
-        wifiName: String? = nil,
-        wifiPassword: String? = nil,
-        houseRules: [String]? = nil
-    ) {
-        self.locationName = locationName
-        self.defaultDurationSeconds = defaultDurationSeconds
-        self.snapAndPurrFrequency = snapAndPurrFrequency
-        self.latitude = latitude
-        self.longitude = longitude
-        self.refreshIntervalSeconds = refreshIntervalSeconds
-        self.transitionDuration = transitionDuration
-        self.totalAdoptionCount = totalAdoptionCount
-        self.logoUrl = logoUrl
-        self.waiverUrl = waiverUrl
-        self.wifiName = wifiName
-        self.wifiPassword = wifiPassword
-        self.houseRules = houseRules
     }
     
     static var `default`: AppSettings {
@@ -497,11 +438,7 @@ struct AppSettings: Codable {
             refreshIntervalSeconds: 60,
             transitionDuration: 1.0,
             totalAdoptionCount: 0,
-            logoUrl: nil,
-            waiverUrl: nil,
-            wifiName: nil,
-            wifiPassword: nil,
-            houseRules: nil
+            logoUrl: nil
         )
     }
 }
@@ -623,7 +560,7 @@ extension Screen {
                 subtitle: "February 14th",
                 bodyText: "Join us for a special Valentine's Day event with treats and love!",
                 duration: 10,
-                eventDate: Date().addingTimeInterval(86400 * 14),
+                eventDate: "February 14th",
                 eventTime: "2:00 PM - 6:00 PM",
                 eventLocation: "Catfé Santa Clarita"
             ),
@@ -723,26 +660,5 @@ struct GuestSession: Codable, Identifiable {
         case "60": return "Full Meow"
         default: return "Session"
         }
-    }
-}
-
-
-// MARK: - Photo Submissions
-
-struct PhotoSubmission: Codable, Identifiable {
-    let id: Int
-    let type: String // "snap_purr" or "happy_tails"
-    let status: String
-    let submitterName: String
-    let submitterEmail: String?
-    let photoUrl: String
-    let caption: String?
-    let catName: String?
-    let adoptionDate: String?
-    let backgroundStyle: String?
-    
-    enum CodingKeys: String, CodingKey {
-        case id, type, status, submitterName, submitterEmail
-        case photoUrl, caption, catName, adoptionDate, backgroundStyle
     }
 }

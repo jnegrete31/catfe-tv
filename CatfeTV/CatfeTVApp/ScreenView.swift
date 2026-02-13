@@ -18,23 +18,13 @@ struct ScreenView: View {
         return !overlay.elements.isEmpty
     }
     
-    /// Screen types that have dedicated native views and should NOT be overridden by templates
-    private var hasNativeView: Bool {
-        switch screen.type {
-        case .custom, .poll, .pollQR:
-            return false
-        default:
-            return true
-        }
-    }
-    
     var body: some View {
         Group {
-            if hasTemplateOverlay && !hasNativeView {
-                // Template exists and no native view: use template as full replacement
+            if hasTemplateOverlay {
+                // Template exists: use it as full replacement to prevent doubling
                 TemplateFullScreenView(screen: screen, settings: settings)
             } else {
-                // Use native screen design (template overlay will be added on top if present)
+                // No template: use default native screen design
                 switch screen.type {
                 case .snapPurr:
                     SnapPurrScreenView(screen: screen)
@@ -55,7 +45,7 @@ struct ScreenView: View {
                 case .adoptionShowcase:
                     AdoptionShowcaseScreenView(screen: screen, adoptionCats: adoptionCats)
                 case .adoptionCounter:
-                    AdoptionCounterScreenView(screen: screen, settings: settings, adoptionCats: adoptionCats)
+                    AdoptionCounterScreenView(screen: screen, settings: settings)
                 case .thankYou:
                     ThankYouScreenView(screen: screen)
                 case .happyTails:
@@ -308,7 +298,6 @@ struct BaseScreenLayout<Content: View>: View {
 struct QRCodeView: View {
     let url: String
     let size: CGFloat
-    var label: String = "Scan to learn more"
     
     @State private var qrImage: UIImage?
     
@@ -321,7 +310,7 @@ struct QRCodeView: View {
                         .resizable()
                         .frame(width: size, height: size)
                     
-                    Text(label)
+                    Text("Scan to learn more")
                         .font(CatfeTypography.caption)
                         .foregroundColor(.loungeCharcoal)
                 }
