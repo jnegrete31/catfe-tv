@@ -13,10 +13,9 @@ struct EventsScreenView: View {
     @State private var appeared = false
     
     private var formattedDate: String? {
-        guard let date = screen.eventDate else { return nil }
-        let formatter = DateFormatter()
-        formatter.dateFormat = "EEEE, MMMM d, yyyy"
-        return formatter.string(from: date)
+        guard let date = screen.eventDate, !date.isEmpty else { return nil }
+        // eventDate is already a formatted String from the API
+        return date
     }
     
     var body: some View {
@@ -111,7 +110,7 @@ struct EventsScreenView: View {
                         
                         // QR Code
                         if let qrURL = screen.qrCodeURL, !qrURL.isEmpty {
-                            QRCodeView(url: qrURL, size: 140, label: "Scan to Book")
+                            QRCodeView(url: qrURL, size: 140)
                         }
                         
                         Spacer()
