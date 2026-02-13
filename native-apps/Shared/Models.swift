@@ -9,7 +9,18 @@ enum ScreenType: String, Codable, CaseIterable {
     case reminder = "REMINDER"
     case adoption = "ADOPTION"
     case adoptionShowcase = "ADOPTION_SHOWCASE"
+    case adoptionCounter = "ADOPTION_COUNTER"
     case thankYou = "THANK_YOU"
+    case livestream = "LIVESTREAM"
+    case happyTails = "HAPPY_TAILS"
+    case snapPurrGallery = "SNAP_PURR_GALLERY"
+    case happyTailsQr = "HAPPY_TAILS_QR"
+    case snapPurrQr = "SNAP_PURR_QR"
+    case poll = "POLL"
+    case pollQr = "POLL_QR"
+    case checkIn = "CHECK_IN"
+    case guestStatusBoard = "GUEST_STATUS_BOARD"
+    case custom = "CUSTOM"
     
     var displayName: String {
         switch self {
@@ -20,7 +31,18 @@ enum ScreenType: String, Codable, CaseIterable {
         case .reminder: return "Reminder"
         case .adoption: return "Adoption"
         case .adoptionShowcase: return "Adoption Showcase"
+        case .adoptionCounter: return "Adoption Counter"
         case .thankYou: return "Thank You"
+        case .livestream: return "Livestream"
+        case .happyTails: return "Happy Tails"
+        case .snapPurrGallery: return "Snap & Purr Gallery"
+        case .happyTailsQr: return "Happy Tails QR"
+        case .snapPurrQr: return "Snap & Purr QR"
+        case .poll: return "Poll"
+        case .pollQr: return "Poll QR"
+        case .checkIn: return "Check In"
+        case .guestStatusBoard: return "Guest Status Board"
+        case .custom: return "Custom"
         }
     }
     
@@ -33,7 +55,18 @@ enum ScreenType: String, Codable, CaseIterable {
         case .reminder: return "#fee2e2"
         case .adoption: return "#ede9fe"
         case .adoptionShowcase: return "#ffedd5"
+        case .adoptionCounter: return "#d1fae5"
         case .thankYou: return "#e0e7ff"
+        case .livestream: return "#fef3c7"
+        case .happyTails: return "#fce7f3"
+        case .snapPurrGallery: return "#fef3c7"
+        case .happyTailsQr: return "#fce7f3"
+        case .snapPurrQr: return "#fef3c7"
+        case .poll: return "#dbeafe"
+        case .pollQr: return "#dbeafe"
+        case .checkIn: return "#d1fae5"
+        case .guestStatusBoard: return "#e0e7ff"
+        case .custom: return "#f3f4f6"
         }
     }
 }

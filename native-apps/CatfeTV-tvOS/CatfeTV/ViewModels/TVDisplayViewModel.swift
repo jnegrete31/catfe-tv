@@ -58,16 +58,71 @@ class TVDisplayViewModel: ObservableObject {
             
             let (fetchedScreens, fetchedSettings) = try await (screensResult, settingsResult)
             
-            self.screens = fetchedScreens.sorted { $0.sortOrder < $1.sortOrder }
+            var sortedScreens = fetchedScreens.sorted { $0.sortOrder < $1.sortOrder }
             self.settings = fetchedSettings
             self.isOffline = false
+            
+            // Load cats from the database
+            await loadCats()
+            
+            // Inject individual cat slides into the rotation
+            let catSlides = availableCats.map { cat -> Screen in
+                let ageStr = cat.ageString ?? ""
+                let sexStr = cat.sex == "male" ? "Male" : "Female"
+                let subtitle = [ageStr, sexStr].filter { !$0.isEmpty }.joined(separator: " \u{00B7} ")
+                let tags = cat.personalityTags?.joined(separator: " \u{00B7} ") ?? ""
+                
+                return Screen(
+                    id: 100000 + cat.id,
+                    type: .adoption,
+                    title: "Meet \(cat.name)",
+                    subtitle: subtitle,
+                    body: tags.isEmpty ? nil : tags,
+                    imagePath: cat.photoUrl,
+                    qrUrl: nil,
+                    startDate: nil,
+                    endDate: nil,
+                    daysOfWeek: nil,
+                    startTime: nil,
+                    endTime: nil,
+                    priority: 1,
+                    durationSeconds: 10,
+                    isActive: true,
+                    isAdopted: false,
+                    sortOrder: 0,
+                    createdAt: Date(),
+                    updatedAt: Date()
+                )
+            }
+            
+            // Interleave cat slides among regular screens
+            if !catSlides.isEmpty && !sortedScreens.isEmpty {
+                var result: [Screen] = []
+                var catIndex = 0
+                let interval = max(1, sortedScreens.count / max(1, catSlides.count))
+                
+                for (i, screen) in sortedScreens.enumerated() {
+                    result.append(screen)
+                    if (i + 1) % interval == 0 && catIndex < catSlides.count {
+                        result.append(catSlides[catIndex])
+                        catIndex += 1
+                    }
+                }
+                // Append remaining cat slides
+                while catIndex < catSlides.count {
+                    result.append(catSlides[catIndex])
+                    catIndex += 1
+                }
+                sortedScreens = result
+            } else if !catSlides.isEmpty {
+                sortedScreens = catSlides
+            }
+            
+            self.screens = sortedScreens
             
             // Preload images
             let imageURLs = screens.compactMap { $0.imagePath }
             await ImageCache.shared.preloadImages(urls: imageURLs)
-            
-            // Also load cats from the database
-            await loadCats()
             
         } catch {
             self.error = error.localizedDescription

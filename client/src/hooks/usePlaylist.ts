@@ -66,25 +66,17 @@ function catToScreen(cat: Cat, index: number): Screen {
     }
   }
   
-  // Build subtitle from breed, color, age, sex
+  // Build subtitle from age and sex only
   const parts: string[] = [];
-  if (cat.breed) parts.push(cat.breed);
-  if (cat.colorPattern) parts.push(cat.colorPattern);
   if (ageStr) parts.push(ageStr);
   if (cat.sex && cat.sex !== 'unknown') parts.push(cat.sex === 'female' ? 'Female' : 'Male');
   const subtitle = parts.join(' \u00b7 ');
   
-  // Build body from bio + personality tags + extras
+  // Build body from personality tags only
   const bodyParts: string[] = [];
-  if (cat.bio) bodyParts.push(cat.bio);
   if (cat.personalityTags && cat.personalityTags.length > 0) {
     bodyParts.push(cat.personalityTags.join(' \u00b7 '));
   }
-  const extras: string[] = [];
-  if (cat.isAltered) extras.push('Spayed/Neutered');
-  if (cat.felvFivStatus === 'negative') extras.push('FeLV/FIV Negative');
-  if (cat.adoptionFee) extras.push(`Adoption Fee: ${cat.adoptionFee}`);
-  if (extras.length > 0) bodyParts.push(extras.join(' \u00b7 '));
   
   return {
     id: -(cat.id + 10000), // Negative ID to distinguish from real screens

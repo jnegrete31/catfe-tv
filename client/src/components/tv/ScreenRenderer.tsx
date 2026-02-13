@@ -626,7 +626,7 @@ function AdoptionScreen({ screen, settings }: ScreenRendererProps) {
       >
         <h1 className="text-7xl font-bold tracking-wide" style={{ fontFamily: 'Georgia, serif' }}>
           <span className="text-white/90">Meet </span>
-          <span style={{ color: '#E8913A' }}>{screen.title?.replace('Meet ', '')}</span>
+          <span style={{ color: '#E8913A' }}>{screen.title}</span>
         </h1>
       </motion.div>
       
@@ -663,7 +663,7 @@ function AdoptionScreen({ screen, settings }: ScreenRendererProps) {
                 </div>
                 <div className="absolute bottom-4 left-4 right-4 text-center">
                   <p className="text-3xl font-medium" style={{ fontFamily: 'Georgia, serif', color: '#3d3d3d' }}>
-                    Meet {screen.title?.replace('Meet ', '')}
+                    Meet {screen.title}
                   </p>
                 </div>
               </div>
@@ -700,14 +700,18 @@ function AdoptionScreen({ screen, settings }: ScreenRendererProps) {
             )}
             
             {screen.body && (
-              <motion.p 
+              <motion.div 
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.4 }}
-                className="text-2xl leading-relaxed" style={{ color: 'rgba(255,255,255,0.6)' }}
+                className="flex flex-wrap gap-2"
               >
-                {screen.body}
-              </motion.p>
+                {screen.body.split(' · ').map((tag, i) => (
+                  <span key={i} className="px-4 py-2 rounded-full text-xl font-medium" style={{ background: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.85)' }}>
+                    {tag.trim()}
+                  </span>
+                ))}
+              </motion.div>
             )}
             
             {!isAdopted && (

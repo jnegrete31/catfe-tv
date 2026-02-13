@@ -98,17 +98,28 @@ struct ScreenContentView: View {
             HStack(spacing: 0) {
                 // Text content
                 VStack(alignment: .leading, spacing: 24) {
-                    // Type badge (or Adopted badge for adoption screens)
+                    // Type badge (or Adopted/Looking for Love badge for adoption screens)
                     if screen.type == .adoption && screen.isAdopted == true {
                         HStack(spacing: 8) {
-                            Text("🎉")
-                            Text("Adopted!")
+                            Text("\u{1F389}")
+                            Text("Found a Forever Home!")
                         }
                         .font(.headline)
                         .foregroundColor(.white)
                         .padding(.horizontal, 20)
                         .padding(.vertical, 10)
                         .background(LoungeColors.mintGreen)
+                        .clipShape(Capsule())
+                    } else if screen.type == .adoption {
+                        HStack(spacing: 8) {
+                            Text("\u{1F431}")
+                            Text("Looking for Love")
+                        }
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 10)
+                        .background(LoungeColors.warmOrange)
                         .clipShape(Capsule())
                     } else {
                         HStack(spacing: 8) {
@@ -137,12 +148,41 @@ struct ScreenContentView: View {
                             .lineLimit(2)
                     }
                     
-                    // Body
+                    // Body (personality tags for adoption screens)
                     if let body = screen.body, !body.isEmpty {
-                        Text(body)
-                            .font(.system(size: 28))
+                        if screen.type == .adoption {
+                            // Show personality tags as styled pills
+                            let tags = body.components(separatedBy: " \u{00B7} ")
+                            FlowLayout(spacing: 8) {
+                                ForEach(tags, id: \.self) { tag in
+                                    Text(tag.trimmingCharacters(in: .whitespaces))
+                                        .font(.system(size: 22, weight: .medium))
+                                        .foregroundColor(LoungeColors.cream)
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 8)
+                                        .background(Color.white.opacity(0.15))
+                                        .clipShape(Capsule())
+                                }
+                            }
+                            .padding(.top, 8)
+                        } else {
+                            Text(body)
+                                .font(.system(size: 28))
+                                .foregroundColor(LoungeColors.cream.opacity(0.7))
+                                .lineLimit(4)
+                                .padding(.top, 8)
+                        }
+                    }
+                    
+                    // "Scan the QR to Adopt Me" quote for adoption screens
+                    if screen.type == .adoption && screen.isAdopted != true {
+                        Text("\"Scan the QR to Adopt Me :)\"")
+                            .font(.system(size: 22, weight: .medium, design: .serif))
+                            .italic()
                             .foregroundColor(LoungeColors.cream.opacity(0.7))
-                            .lineLimit(4)
+                            .padding(16)
+                            .background(Color.white.opacity(0.08))
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
                             .padding(.top, 8)
                     }
                     
@@ -434,7 +474,18 @@ extension ScreenType {
         case .reminder: return "📢"
         case .adoption: return "❤️"
         case .adoptionShowcase: return "🐱"
+        case .adoptionCounter: return "🏠"
         case .thankYou: return "🙏"
+        case .livestream: return "📹"
+        case .happyTails: return "🐾"
+        case .snapPurrGallery: return "🖼️"
+        case .happyTailsQr: return "📱"
+        case .snapPurrQr: return "📱"
+        case .poll: return "🗳️"
+        case .pollQr: return "🗳️"
+        case .checkIn: return "✅"
+        case .guestStatusBoard: return "📋"
+        case .custom: return "✨"
         }
     }
 }
@@ -473,6 +524,49 @@ struct AsyncImageView: View {
             print("Failed to load image: \(error)")
         }
         isLoading = false
+    }
+}
+
+// MARK: - Flow Layout for Tag Pills
+struct FlowLayout: Layout {
+    var spacing: CGFloat = 8
+    
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let maxWidth = proposal.width ?? .infinity
+        var currentX: CGFloat = 0
+        var currentY: CGFloat = 0
+        var lineHeight: CGFloat = 0
+        
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+            if currentX + size.width > maxWidth && currentX > 0 {
+                currentX = 0
+                currentY += lineHeight + spacing
+                lineHeight = 0
+            }
+            lineHeight = max(lineHeight, size.height)
+            currentX += size.width + spacing
+        }
+        
+        return CGSize(width: maxWidth, height: currentY + lineHeight)
+    }
+    
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        var currentX: CGFloat = bounds.minX
+        var currentY: CGFloat = bounds.minY
+        var lineHeight: CGFloat = 0
+        
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+            if currentX + size.width > bounds.maxX && currentX > bounds.minX {
+                currentX = bounds.minX
+                currentY += lineHeight + spacing
+                lineHeight = 0
+            }
+            subview.place(at: CGPoint(x: currentX, y: currentY), proposal: .unspecified)
+            lineHeight = max(lineHeight, size.height)
+            currentX += size.width + spacing
+        }
     }
 }
 

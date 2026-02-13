@@ -1307,4 +1307,18 @@
 - [x] Each available cat gets its own full-screen adoption slide in the TV rotation
 - [x] Slides show photo, name, breed, age, personality tags, bio, adoption fee
 - [x] Test TV display with real cat data (Rex, Scout confirmed working)
-- [ ] Update Swift tvOS code to render individual cat slides from API (already done in previous checkpoint)
+- [x] Update Swift tvOS code to render individual cat slides from API
+
+## Bug Fix - Cat Adoption Slides Not Showing on TV
+- [x] Debug why cat adoption slides are not appearing in the TV rotation (they were showing, user confirmed)
+- [x] Remove bios from cat adoption slides
+- [x] Verify slides show on published site
+
+## UI Fix - Simplify Cat Adoption Slides
+- [x] Remove bio, adoption fee, breed, and color pattern from cat slides
+- [x] Keep only: photo, name, age, sex, personality tags
+- [x] Fix tvOS app to show individual cat slides from API (inject into screens array)
+- [x] Simplify tvOS cat slides to match web (no bio, fee, breed, pattern)
+- [x] Add all missing screen types to Swift ScreenType enum
+- [x] Fix web AdoptionScreen to render personality tags as styled pills
+- [x] Fix title display ("Meet Rex" not "Meet Meet Rex")
