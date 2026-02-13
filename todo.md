@@ -1370,4 +1370,4 @@
 - [x] Add date input to admin screen editor for EVENT type
 - [x] Update TV display to show event date with calendar emoji
 - [x] Update tvOS Swift models to include eventDate
-- [ ] Push to GitHub
+- [x] Push to GitHub
