@@ -1296,3 +1296,15 @@
 - [x] Build "Import from Documents" UI in CatManager with file upload
 - [x] Pre-fill cat form with extracted data for review before saving
 - [x] Write tests for document parsing procedure (4 tests, 24 total passing)
+
+## Cleanup - Remove Old Individual Adoption Slides
+- [x] Identify old ADOPTION-type individual slides in screens table (found 16)
+- [x] Delete old individual adoption slides (keep ADOPTION_SHOWCASE and ADOPTION_COUNTER)
+- [x] Verify Adoption Showcase still works with cats from Cats table
+
+## Feature - Individual Cat Slides from Database
+- [x] Update usePlaylist.ts to fetch available cats and inject as synthetic ADOPTION screens
+- [x] Each available cat gets its own full-screen adoption slide in the TV rotation
+- [x] Slides show photo, name, breed, age, personality tags, bio, adoption fee
+- [x] Test TV display with real cat data (Rex, Scout confirmed working)
+- [ ] Update Swift tvOS code to render individual cat slides from API (already done in previous checkpoint)

@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
-import type { Screen, Settings } from "@shared/types";
+import type { Screen, Settings, Cat } from "@shared/types";
 
 interface PlaylistState {
   screens: Screen[];
@@ -50,10 +50,77 @@ function isResultsTime(): boolean {
   return minuteInQuarter >= 12 && minuteInQuarter < 15;
 }
 
-// Build weighted playlist with SNAP_AND_PURR frequency (poll is now shown as corner widget)
-function buildPlaylist(screens: Screen[], snapFrequency: number): Screen[] {
+// Convert a Cat from the database into a synthetic Screen object for the TV playlist
+function catToScreen(cat: Cat, index: number): Screen {
+  // Calculate age from DOB
+  let ageStr = '';
+  if (cat.dob) {
+    const dob = new Date(cat.dob);
+    const now = new Date();
+    const months = (now.getFullYear() - dob.getFullYear()) * 12 + (now.getMonth() - dob.getMonth());
+    if (months < 12) {
+      ageStr = `${months} month${months !== 1 ? 's' : ''} old`;
+    } else {
+      const years = Math.floor(months / 12);
+      ageStr = `${years} year${years !== 1 ? 's' : ''} old`;
+    }
+  }
+  
+  // Build subtitle from breed, color, age, sex
+  const parts: string[] = [];
+  if (cat.breed) parts.push(cat.breed);
+  if (cat.colorPattern) parts.push(cat.colorPattern);
+  if (ageStr) parts.push(ageStr);
+  if (cat.sex && cat.sex !== 'unknown') parts.push(cat.sex === 'female' ? 'Female' : 'Male');
+  const subtitle = parts.join(' \u00b7 ');
+  
+  // Build body from bio + personality tags + extras
+  const bodyParts: string[] = [];
+  if (cat.bio) bodyParts.push(cat.bio);
+  if (cat.personalityTags && cat.personalityTags.length > 0) {
+    bodyParts.push(cat.personalityTags.join(' \u00b7 '));
+  }
+  const extras: string[] = [];
+  if (cat.isAltered) extras.push('Spayed/Neutered');
+  if (cat.felvFivStatus === 'negative') extras.push('FeLV/FIV Negative');
+  if (cat.adoptionFee) extras.push(`Adoption Fee: ${cat.adoptionFee}`);
+  if (extras.length > 0) bodyParts.push(extras.join(' \u00b7 '));
+  
+  return {
+    id: -(cat.id + 10000), // Negative ID to distinguish from real screens
+    type: 'ADOPTION' as Screen['type'],
+    title: cat.name,
+    subtitle: subtitle || null,
+    body: bodyParts.join('\n\n') || null,
+    imagePath: cat.photoUrl || null,
+    imageDisplayMode: 'cover',
+    qrUrl: null,
+    startAt: null,
+    endAt: null,
+    daysOfWeek: null,
+    timeStart: null,
+    timeEnd: null,
+    priority: 1,
+    durationSeconds: 15,
+    sortOrder: index,
+    isActive: true,
+    schedulingEnabled: false,
+    isProtected: false,
+    isAdopted: false,
+    livestreamUrl: null,
+    eventTime: null,
+    eventLocation: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    totalAdoptionCount: 0,
+    adoptionDate: null,
+  } as Screen;
+}
+
+// Build weighted playlist with SNAP_AND_PURR frequency and cat slides injection
+function buildPlaylist(screens: Screen[], snapFrequency: number, catSlides?: Screen[]): Screen[] {
   const eligible = screens.filter(isScreenEligible);
-  if (eligible.length === 0) return [];
+  if (eligible.length === 0 && (!catSlides || catSlides.length === 0)) return [];
   
   const snapScreens = eligible.filter(s => s.type === "SNAP_AND_PURR");
   const otherScreens = eligible.filter(s => s.type !== "SNAP_AND_PURR");
@@ -78,6 +145,38 @@ function buildPlaylist(screens: Screen[], snapFrequency: number): Screen[] {
   for (const screen of weightedOthers) {
     if (deduped.length === 0 || deduped[deduped.length - 1].id !== screen.id) {
       deduped.push(screen);
+    }
+  }
+  
+  // Inject cat slides from database into the deduped list (spread them out)
+  if (catSlides && catSlides.length > 0) {
+    // Shuffle cat slides for variety each cycle
+    const shuffledCats = [...catSlides].sort(() => Math.random() - 0.5);
+    
+    if (deduped.length === 0) {
+      // Only cat slides, no other screens
+      deduped.push(...shuffledCats);
+    } else {
+      // Interleave: insert a cat slide every N regular screens
+      const interval = Math.max(2, Math.floor(deduped.length / Math.min(shuffledCats.length, 8)));
+      const merged: Screen[] = [];
+      let catIdx = 0;
+      
+      for (let i = 0; i < deduped.length; i++) {
+        merged.push(deduped[i]);
+        // Insert a cat slide at regular intervals
+        if ((i + 1) % interval === 0 && catIdx < shuffledCats.length) {
+          merged.push(shuffledCats[catIdx]);
+          catIdx++;
+        }
+      }
+      // Append any remaining cat slides at the end
+      while (catIdx < shuffledCats.length) {
+        merged.push(shuffledCats[catIdx]);
+        catIdx++;
+      }
+      deduped.length = 0;
+      deduped.push(...merged);
     }
   }
   
@@ -128,6 +227,7 @@ export function usePlaylist() {
   const lastScreenIdsRef = useRef<string>(""); // Track screen IDs to avoid unnecessary rebuilds
   const playlistRef = useRef<Screen[]>([]); // Stable ref for nextScreen callback
   const settingsRef = useRef<Settings | null>(null); // Stable ref for settings
+  const catSlidesRef = useRef<Screen[]>([]); // Stable ref for cat slides in reshuffle
   
   // Check poll time window every 30 seconds
   useEffect(() => {
@@ -147,6 +247,21 @@ export function usePlaylist() {
     refetchInterval: (settings?.refreshIntervalSeconds || 60) * 1000,
     retry: 2,
   });
+  
+  // Fetch available cats from the cats table for individual adoption slides
+  const catsQuery = trpc.cats.getAvailable.useQuery(undefined, {
+    staleTime: 60000, // Cache for 1 minute
+    refetchInterval: 120000, // Refetch every 2 minutes
+  });
+  
+  // Convert cats to synthetic Screen objects (memoized to avoid rebuilds)
+  const catSlides = useMemo(() => {
+    if (!catsQuery.data || catsQuery.data.length === 0) return [];
+    return catsQuery.data.map((cat, idx) => catToScreen(cat, idx));
+  }, [catsQuery.data]);
+  
+  // Keep catSlides ref in sync for the reshuffle callback
+  useEffect(() => { catSlidesRef.current = catSlides; }, [catSlides]);
   
   // Fetch settings
   const settingsQuery = trpc.settings.get.useQuery(undefined, {
@@ -193,7 +308,7 @@ export function usePlaylist() {
     }
   }, [settingsQuery.data]);
   
-  // Update screens and build playlist (also rebuild when poll time window changes)
+  // Update screens and build playlist (also rebuild when poll time window or cats change)
   useEffect(() => {
     if (screensQuery.data) {
       const screens = screensQuery.data;
@@ -211,7 +326,7 @@ export function usePlaylist() {
       // Only rebuild playlist if screens actually changed or playlist is empty
       if (screensChanged || playlist.length === 0) {
         lastScreenIdsRef.current = currentScreenIds;
-        const newPlaylist = buildPlaylist(screens, settings?.snapAndPurrFrequency || 5);
+        const newPlaylist = buildPlaylist(screens, settings?.snapAndPurrFrequency || 5, catSlides);
         setPlaylist(newPlaylist);
         
         setState(prev => ({
@@ -236,7 +351,7 @@ export function usePlaylist() {
       // Try to use cached data
       const cached = loadCachedData();
       if (cached) {
-        const newPlaylist = buildPlaylist(cached.screens, cached.settings?.snapAndPurrFrequency || 5);
+        const newPlaylist = buildPlaylist(cached.screens, cached.settings?.snapAndPurrFrequency || 5, catSlides);
         setPlaylist(newPlaylist);
         if (cached.settings) setSettings(cached.settings);
         
@@ -256,7 +371,7 @@ export function usePlaylist() {
         }));
       }
     }
-  }, [screensQuery.data, screensQuery.error, settings, cacheData, loadCachedData, pollTimeWindow]);
+  }, [screensQuery.data, screensQuery.error, settings, cacheData, loadCachedData, pollTimeWindow, catSlides]);
   
   // Keep refs in sync for stable callbacks
   useEffect(() => { playlistRef.current = playlist; }, [playlist]);
@@ -277,7 +392,7 @@ export function usePlaylist() {
       if (nextIndex === 0 && pl.length > 1) {
         const lastScreen = pl[prev.currentIndex];
         const freq = settingsRef.current?.snapAndPurrFrequency || 5;
-        const newPlaylist = buildPlaylist(prev.screens, freq);
+        const newPlaylist = buildPlaylist(prev.screens, freq, catSlidesRef.current);
         // Avoid starting with the same screen that just played
         if (newPlaylist.length > 1 && newPlaylist[0]?.id === lastScreen?.id) {
           const swapIdx = 1 + Math.floor(Math.random() * (newPlaylist.length - 1));
@@ -321,7 +436,8 @@ export function usePlaylist() {
   const refresh = useCallback(() => {
     screensQuery.refetch();
     settingsQuery.refetch();
-  }, [screensQuery, settingsQuery]);
+    catsQuery.refetch();
+  }, [screensQuery, settingsQuery, catsQuery]);
   
   // Export isResultsTime for the TV display to show results overlay
   const showResultsOverlay = isResultsTime();

@@ -1661,7 +1661,8 @@ Extract as much information as possible from the documents. For the bio, write a
         }
 
         try {
-          return JSON.parse(content);
+          const textContent = typeof content === 'string' ? content : JSON.stringify(content);
+          return JSON.parse(textContent);
         } catch {
           throw new Error("Failed to parse extracted data");
         }
