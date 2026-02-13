@@ -1379,3 +1379,17 @@
 - [x] Added Upcoming Event caption under polaroid photo for events
 - [x] Changed QR text to Scan to Book for event screens
 - [x] Push to GitHub
+
+## Bug Fix - Apple TV Event Date REAL FIX (Actual Xcode Project)
+- [x] User shared actual Xcode project (completely different structure from GitHub repo)
+- [x] Found root cause: APIScreen struct missing eventDate/eventTime/eventLocation fields
+- [x] toScreen() was mapping startAt (scheduling date) to eventDate instead of actual eventDate
+- [x] EventsScreenView was formatting Date to "Friday, February 13, 2026" instead of using API string
+- [x] Fixed APIScreen: added eventDate/eventTime/eventLocation as String? fields
+- [x] Fixed Screen.eventDate: changed from Date? to String? (API returns free text like "February 14 & 15")
+- [x] Fixed toScreen(): maps actual eventDate/eventTime/eventLocation from API
+- [x] Fixed EventsScreenView: displays eventDate string directly
+- [x] Fixed buildScreenInput: sends eventDate/eventTime/eventLocation as strings
+- [x] Fixed screens.getActiveWithTemplates: added cat slide injection (was returning 11 screens, now 27)
+- [x] Copied fixed Models.swift and APIClient.swift to GitHub repo
+- [x] Pushed all changes to GitHub
