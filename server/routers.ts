@@ -227,6 +227,65 @@ const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
   return next({ ctx });
 });
 
+// Helper: Generate synthetic ADOPTION screens from available cats in the database
+async function generateCatSlides() {
+  const availableCats = await getAvailableCats();
+  return availableCats.map((cat) => {
+    const ageParts: string[] = [];
+    if (cat.dob) {
+      const dob = new Date(cat.dob);
+      const now = new Date();
+      const months = (now.getFullYear() - dob.getFullYear()) * 12 + (now.getMonth() - dob.getMonth());
+      if (months < 1) ageParts.push('< 1 month');
+      else if (months < 12) ageParts.push(`${months} month${months === 1 ? '' : 's'}`);
+      else {
+        const yrs = Math.floor(months / 12);
+        const rem = months % 12;
+        ageParts.push(rem > 0 ? `${yrs} yr${yrs === 1 ? '' : 's'} ${rem} mo` : `${yrs} year${yrs === 1 ? '' : 's'}`);
+      }
+    }
+    const sexStr = cat.sex === 'male' ? 'Male' : 'Female';
+    const subtitle = [...ageParts, sexStr].filter(Boolean).join(' \u00B7 ');
+    const tags = (cat.personalityTags as string[] | null)?.join(' \u00B7 ') || '';
+    return {
+      id: 100000 + cat.id,
+      type: 'ADOPTION' as const,
+      title: cat.name,
+      subtitle: subtitle || null,
+      body: tags || null,
+      imagePath: cat.photoUrl || null,
+      imageDisplayMode: 'cover',
+      qrUrl: 'https://www.shelterluv.com/matchme/adopt/KRLA/Cat',
+      startAt: null, endAt: null, daysOfWeek: null, timeStart: null, timeEnd: null,
+      priority: 1, durationSeconds: 10, sortOrder: 0,
+      isActive: true, schedulingEnabled: false, isProtected: false, isAdopted: false,
+      livestreamUrl: null, eventTime: null, eventLocation: null,
+      createdAt: new Date(), updatedAt: new Date(),
+    };
+  });
+}
+
+// Helper: Interleave cat slides among regular screens
+function interleaveScreens(screens: any[], catSlides: any[]) {
+  if (catSlides.length === 0) return screens;
+  if (screens.length === 0) return catSlides;
+  const result: any[] = [];
+  let catIdx = 0;
+  const interval = Math.max(1, Math.floor(screens.length / Math.max(1, catSlides.length)));
+  for (let i = 0; i < screens.length; i++) {
+    result.push(screens[i]);
+    if ((i + 1) % interval === 0 && catIdx < catSlides.length) {
+      result.push(catSlides[catIdx]);
+      catIdx++;
+    }
+  }
+  while (catIdx < catSlides.length) {
+    result.push(catSlides[catIdx]);
+    catIdx++;
+  }
+  return result;
+}
+
 export const appRouter = router({
   system: systemRouter,
   
@@ -241,9 +300,11 @@ export const appRouter = router({
 
   // ============ SCREENS ============
   screens: router({
-    // Public: Get all active screens (for TV display)
+    // Public: Get all active screens (for TV display) - includes synthetic cat adoption slides
     getActive: publicProcedure.query(async () => {
-      return getActiveScreens();
+      const activeScreens = await getActiveScreens();
+      const catSlides = await generateCatSlides();
+      return interleaveScreens(activeScreens, catSlides);
     }),
 
     // Public: Get active screens with template overlay data (for tvOS app)
@@ -1203,9 +1264,11 @@ export const appRouter = router({
       return { id: null, name: "All Active Screens", reason: "fallback" as const };
     }),
 
-    // Public: Get active screens for current playlist (for TV display)
+    // Public: Get active screens for current playlist (for TV display) - includes cat slides
     getActiveScreens: publicProcedure.query(async () => {
-      return getActiveScreensForCurrentPlaylist();
+      const screens = await getActiveScreensForCurrentPlaylist();
+      const catSlides = await generateCatSlides();
+      return interleaveScreens(screens, catSlides);
     }),
 
     // Public: Get active screens for current playlist WITH template overlay data (for tvOS app)

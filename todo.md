@@ -1322,3 +1322,15 @@
 - [x] Add all missing screen types to Swift ScreenType enum
 - [x] Fix web AdoptionScreen to render personality tags as styled pills
 - [x] Fix title display ("Meet Rex" not "Meet Meet Rex")
+
+## Feature - Adoption QR Code on Cat Slides
+- [x] Add Shelterluv QR code (https://www.shelterluv.com/matchme/adopt/KRLA/Cat) to each cat's adoption slide
+- [x] Update catToScreen in usePlaylist.ts to set qrUrl (now server-side via generateCatSlides)
+- [x] Update tvOS cat slide injection to include qrUrl (now server-side)
+
+## Bug Fix - tvOS Cat Adoption Slides Not in Playlist
+- [x] Fix Apple TV app not showing cat adoption slides in rotation
+- [x] Moved cat slide injection to server-side (generateCatSlides + interleaveScreens)
+- [x] Both screens.getActive and playlists.getActiveScreens now include cat slides
+- [x] Removed client-side injection from usePlaylist.ts and TVDisplayViewModel.swift
+- [x] All 160 tests passing

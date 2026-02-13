@@ -23,6 +23,7 @@ vi.mock("./db", () => ({
   deleteTimeSlot: vi.fn(),
   getScreensForTimeSlot: vi.fn(),
   setScreensForTimeSlot: vi.fn(),
+  getAvailableCats: vi.fn(),
 }));
 
 import * as db from "./db";
@@ -119,9 +120,10 @@ describe("screens.getActive", () => {
     vi.clearAllMocks();
   });
 
-  it("returns active screens for public users", async () => {
+  it("returns active screens for public users (with cat slides injected)", async () => {
     const mockScreens = [mockScreen];
     vi.mocked(db.getActiveScreens).mockResolvedValue(mockScreens);
+    vi.mocked(db.getAvailableCats).mockResolvedValue([]);
 
     const ctx = createPublicContext();
     const caller = appRouter.createCaller(ctx);
@@ -130,10 +132,12 @@ describe("screens.getActive", () => {
 
     expect(result).toEqual(mockScreens);
     expect(db.getActiveScreens).toHaveBeenCalled();
+    expect(db.getAvailableCats).toHaveBeenCalled();
   });
 
-  it("returns empty array when no active screens", async () => {
+  it("returns empty array when no active screens and no cats", async () => {
     vi.mocked(db.getActiveScreens).mockResolvedValue([]);
+    vi.mocked(db.getAvailableCats).mockResolvedValue([]);
 
     const ctx = createPublicContext();
     const caller = appRouter.createCaller(ctx);
@@ -141,6 +145,37 @@ describe("screens.getActive", () => {
     const result = await caller.screens.getActive();
 
     expect(result).toEqual([]);
+  });
+
+  it("injects cat slides into active screens", async () => {
+    const mockScreens = [mockScreen];
+    vi.mocked(db.getActiveScreens).mockResolvedValue(mockScreens);
+    vi.mocked(db.getAvailableCats).mockResolvedValue([
+      {
+        id: 1, name: "Judy", photoUrl: "https://example.com/judy.jpg",
+        breed: "DSH", colorPattern: "Tabby", dob: new Date("2024-07-01"),
+        sex: "female", weight: "7.8", personalityTags: ["Friendly"],
+        bio: null, adoptionFee: "150", isAltered: true,
+        felvFivStatus: "negative", catStatus: "available",
+        rescueId: "KRLA-A-8326", shelterluvId: null, microchipNumber: null,
+        arrivalDate: null, medicalNotes: null, vaccinationsDue: null,
+        fleaTreatmentDue: null, adoptedDate: null, adoptedBy: null,
+        createdAt: new Date(), updatedAt: new Date(),
+      } as any,
+    ]);
+
+    const ctx = createPublicContext();
+    const caller = appRouter.createCaller(ctx);
+
+    const result = await caller.screens.getActive();
+
+    // Should have the original screen + 1 injected cat slide
+    expect(result.length).toBeGreaterThan(1);
+    const catSlide = result.find((s: any) => s.id === 100001); // 100000 + cat.id
+    expect(catSlide).toBeDefined();
+    expect(catSlide?.title).toBe("Judy");
+    expect(catSlide?.type).toBe("ADOPTION");
+    expect(catSlide?.qrUrl).toContain("shelterluv.com");
   });
 });
 
