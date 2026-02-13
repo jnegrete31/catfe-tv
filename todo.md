@@ -1334,3 +1334,18 @@
 - [x] Both screens.getActive and playlists.getActiveScreens now include cat slides
 - [x] Removed client-side injection from usePlaylist.ts and TVDisplayViewModel.swift
 - [x] All 160 tests passing
+
+## Bug Fix - tvOS Still Not Showing Cat Adoption Slides
+- [x] Investigate what API endpoint tvOS app calls and how it parses the response
+- [x] Check if tvOS app is using published site or dev server
+- [x] Fix Swift models to match actual API response format exactly
+- [x] Update Screen model: use startAt/endAt/timeStart/timeEnd (not startDate/endDate/startTime/endTime)
+- [x] Update Screen model: add all missing fields (imageDisplayMode, schedulingEnabled, isProtected, livestreamUrl, eventTime, eventLocation)
+- [x] Update Screen model: use String for all date fields (not Date)
+- [x] Update Settings model: houseRules is [String]? not String?
+- [x] Update CatModel: add all fields including vaccinationsDue as [VaccinationDue]?
+- [x] Fix APIClient: handle cats.getFeatured returning null
+- [x] Fix APIClient: settings.get returns Settings directly (no wrapper)
+- [x] Fix AdminViewModel: remove references to old field names
+- [x] Fix ScreenContentView preview: use new field names
+- [x] Push updated Swift files to GitHub

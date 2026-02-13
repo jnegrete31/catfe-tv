@@ -232,7 +232,6 @@ struct ScreenContentView: View {
                         .background(LoungeColors.cream)
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                         .shadow(color: Color.black.opacity(0.3), radius: 20, x: 0, y: 10)
-                        .rotationEffect(.degrees(-2))
                     }
                     .padding(.trailing, 80)
                     .padding(.vertical, 60)
@@ -577,21 +576,27 @@ struct FlowLayout: Layout {
             type: .adoption,
             title: "Meet Whiskers",
             subtitle: "2 years old \u{2022} Female",
-            body: "A sweet and playful cat looking for her forever home.",
+            body: "Playful \u{00B7} Gentle \u{00B7} Loves Cuddles",
             imagePath: nil,
-            qrUrl: "https://catfe.com/adopt/whiskers",
-            startDate: nil,
-            endDate: nil,
+            imageDisplayMode: nil,
+            qrUrl: "https://www.shelterluv.com/matchme/adopt/KRLA/Cat",
+            startAt: nil,
+            endAt: nil,
             daysOfWeek: nil,
-            startTime: nil,
-            endTime: nil,
+            timeStart: nil,
+            timeEnd: nil,
             priority: 1,
             durationSeconds: 10,
-            isActive: true,
-            isAdopted: false,
             sortOrder: 0,
-            createdAt: Date(),
-            updatedAt: Date()
+            isActive: true,
+            schedulingEnabled: false,
+            isProtected: false,
+            isAdopted: false,
+            livestreamUrl: nil,
+            eventTime: nil,
+            eventLocation: nil,
+            createdAt: "2026-02-13T00:00:00.000Z",
+            updatedAt: "2026-02-13T00:00:00.000Z"
         ),
         availableCats: [],
         catCounts: nil

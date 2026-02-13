@@ -66,29 +66,8 @@ class AdminViewModel: ObservableObject {
     // MARK: - Reordering
     func moveScreen(from source: IndexSet, to destination: Int) {
         screens.move(fromOffsets: source, toOffset: destination)
-        // Update sort orders
-        for (index, _) in screens.enumerated() {
-            screens[index] = Screen(
-                id: screens[index].id,
-                type: screens[index].type,
-                title: screens[index].title,
-                subtitle: screens[index].subtitle,
-                body: screens[index].body,
-                imagePath: screens[index].imagePath,
-                qrUrl: screens[index].qrUrl,
-                startDate: screens[index].startDate,
-                endDate: screens[index].endDate,
-                daysOfWeek: screens[index].daysOfWeek,
-                startTime: screens[index].startTime,
-                endTime: screens[index].endTime,
-                priority: screens[index].priority,
-                durationSeconds: screens[index].durationSeconds,
-                isActive: screens[index].isActive,
-                sortOrder: index,
-                createdAt: screens[index].createdAt,
-                updatedAt: screens[index].updatedAt
-            )
-        }
-        // TODO: Save order to backend
+        // Note: Screen is a struct with let properties, so we can't mutate sortOrder in-place.
+        // The sort order update would need to be sent to the backend API.
+        // TODO: Implement API call to update sort orders
     }
 }

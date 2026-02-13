@@ -71,7 +71,7 @@ enum ScreenType: String, Codable, CaseIterable {
     }
 }
 
-// MARK: - Screen Model
+// MARK: - Screen Model (matches actual API response from screens.getActive)
 struct Screen: Codable, Identifiable {
     let id: Int
     let type: ScreenType
@@ -79,29 +79,28 @@ struct Screen: Codable, Identifiable {
     let subtitle: String?
     let body: String?
     let imagePath: String?
+    let imageDisplayMode: String?
     let qrUrl: String?
-    let startDate: Date?
-    let endDate: Date?
+    let startAt: String?
+    let endAt: String?
     let daysOfWeek: [Int]?
-    let startTime: String?
-    let endTime: String?
+    let timeStart: String?
+    let timeEnd: String?
     let priority: Int
     let durationSeconds: Int
-    let isActive: Bool
-    let isAdopted: Bool?
     let sortOrder: Int
-    let createdAt: Date
-    let updatedAt: Date
-    
-    enum CodingKeys: String, CodingKey {
-        case id, type, title, subtitle, body, imagePath, qrUrl
-        case startDate, endDate, daysOfWeek, startTime, endTime
-        case priority, durationSeconds, isActive, isAdopted, sortOrder
-        case createdAt, updatedAt
-    }
+    let isActive: Bool
+    let schedulingEnabled: Bool?
+    let isProtected: Bool?
+    let isAdopted: Bool?
+    let livestreamUrl: String?
+    let eventTime: String?
+    let eventLocation: String?
+    let createdAt: String
+    let updatedAt: String
 }
 
-// MARK: - Settings Model
+// MARK: - Settings Model (matches actual API response from settings.get)
 struct Settings: Codable {
     let id: Int
     let locationName: String
@@ -109,10 +108,17 @@ struct Settings: Codable {
     let fallbackMode: String
     let brandColors: BrandColors?
     let snapAndPurrFrequency: Int
+    let totalAdoptionCount: Int?
+    let logoUrl: String?
+    let livestreamUrl: String?
     let githubRepo: String?
     let githubBranch: String?
     let refreshIntervalSeconds: Int
-    let updatedAt: Date
+    let waiverUrl: String?
+    let wifiName: String?
+    let wifiPassword: String?
+    let houseRules: [String]?
+    let updatedAt: String
 }
 
 struct BrandColors: Codable {
@@ -122,14 +128,20 @@ struct BrandColors: Codable {
     let text: String
 }
 
-// MARK: - Cat Model (from cats database table)
+// MARK: - Vaccination Due Item
+struct VaccinationDue: Codable {
+    let name: String
+    let dueDate: String
+}
+
+// MARK: - Cat Model (matches actual API response from cats.getAvailable)
 struct CatModel: Codable, Identifiable {
     let id: Int
     let name: String
     let photoUrl: String?
     let breed: String?
     let colorPattern: String?
-    let dob: String? // ISO date string
+    let dob: String?
     let sex: String
     let weight: String?
     let personalityTags: [String]?
@@ -137,10 +149,19 @@ struct CatModel: Codable, Identifiable {
     let adoptionFee: String?
     let isAltered: Bool
     let felvFivStatus: String
-    let status: String // "available", "adopted", "medical_hold"
+    let status: String
+    let rescueId: String?
+    let shelterluvId: String?
+    let microchipNumber: String?
+    let arrivalDate: String?
+    let intakeType: String?
+    let medicalNotes: String?
+    let vaccinationsDue: [VaccinationDue]?
+    let fleaTreatmentDue: String?
+    let adoptedDate: String?
+    let adoptedBy: String?
     let isFeatured: Bool
     let sortOrder: Int
-    let adoptedDate: String?
     let createdAt: String
     let updatedAt: String
     
@@ -176,19 +197,28 @@ struct CatCountsResponse: Codable {
 }
 
 // MARK: - API Response Wrappers
+
+/// tRPC + superjson wraps responses as: { result: { data: { json: T, meta?: ... } } }
 struct APIResponse<T: Codable>: Codable {
     let result: ResultWrapper<T>
 }
 
 struct ResultWrapper<T: Codable>: Codable {
-    let data: T
+    let data: SuperJSONWrapper<T>
+}
+
+struct SuperJSONWrapper<T: Codable>: Codable {
+    let json: T
+    let meta: SuperJSONMeta?
+}
+
+struct SuperJSONMeta: Codable {
+    // superjson metadata for date/bigint/etc transformations
+    // We don't need to parse this, just acknowledge it exists
 }
 
 // MARK: - tRPC Response Types
-struct ScreensResponse: Codable {
-    let screens: [Screen]
-}
-
+// Settings uses a wrapper: { settings: Settings }
 struct SettingsResponse: Codable {
     let settings: Settings
 }

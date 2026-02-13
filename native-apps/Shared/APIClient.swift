@@ -16,29 +16,12 @@ class APIClient {
         config.timeoutIntervalForResource = 60
         self.session = URLSession(configuration: config)
         
+        // Use default decoder - all dates are now String in the models
         self.decoder = JSONDecoder()
-        self.decoder.dateDecodingStrategy = .custom { decoder in
-            let container = try decoder.singleValueContainer()
-            let dateString = try container.decode(String.self)
-            
-            // Try ISO8601 with fractional seconds
-            let formatter = ISO8601DateFormatter()
-            formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-            if let date = formatter.date(from: dateString) {
-                return date
-            }
-            
-            // Try ISO8601 without fractional seconds
-            formatter.formatOptions = [.withInternetDateTime]
-            if let date = formatter.date(from: dateString) {
-                return date
-            }
-            
-            throw DecodingError.dataCorruptedError(in: container, debugDescription: "Cannot decode date: \(dateString)")
-        }
     }
     
     // MARK: - tRPC Query Helper
+    /// tRPC + superjson response format: { result: { data: { json: T, meta: {...} } } }
     private func trpcQuery<T: Codable>(procedure: String, input: [String: Any]? = nil) async throws -> T {
         var urlString = "\(baseURL)/api/trpc/\(procedure)"
         
@@ -67,23 +50,22 @@ class APIClient {
             throw APIError.httpError(statusCode: httpResponse.statusCode)
         }
         
-        // tRPC wraps response in { result: { data: ... } }
+        // tRPC + superjson wraps response in { result: { data: { json: T } } }
         let wrapper = try decoder.decode(APIResponse<T>.self, from: data)
-        return wrapper.result.data
+        return wrapper.result.data.json
     }
     
     // MARK: - Public API Methods
     
-    /// Fetch all active screens for TV display
+    /// Fetch all active screens for TV display (includes server-injected cat slides)
     func getActiveScreens() async throws -> [Screen] {
-        let response: ScreensResponse = try await trpcQuery(procedure: "screens.getActive")
-        return response.screens
+        // screens.getActive returns the array directly (no wrapper object)
+        return try await trpcQuery(procedure: "screens.getActive")
     }
     
-    /// Fetch settings
+    /// Fetch settings (returns Settings object directly, no wrapper)
     func getSettings() async throws -> Settings {
-        let response: SettingsResponse = try await trpcQuery(procedure: "settings.get")
-        return response.settings
+        return try await trpcQuery(procedure: "settings.get")
     }
     
     /// Fetch available cats from the cats database table
@@ -96,9 +78,24 @@ class APIClient {
         return try await trpcQuery(procedure: "cats.getCounts")
     }
     
-    /// Fetch featured cat (Cat of the Week)
+    /// Fetch featured cat (Cat of the Week) - may return null
     func getFeaturedCat() async throws -> CatModel? {
-        return try await trpcQuery(procedure: "cats.getFeatured")
+        // The API returns { result: { data: { json: null } } } when no featured cat
+        // We need to handle this gracefully
+        let urlString = "\(baseURL)/api/trpc/cats.getFeatured"
+        guard let url = URL(string: urlString) else {
+            throw APIError.invalidURL
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        let (data, response) = try await session.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
+            throw APIError.invalidResponse
+        }
+        // Try to decode as CatModel, return nil if json is null
+        let wrapper = try decoder.decode(APIResponse<CatModel?>.self, from: data)
+        return wrapper.result.data.json
     }
     
     /// Fetch current weather for Santa Clarita, CA
