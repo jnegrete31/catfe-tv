@@ -409,13 +409,18 @@ struct ScreenSchedule: Codable, Equatable {
 struct AppSettings: Codable {
     var locationName: String?
     var defaultDurationSeconds: Int
-    var snapAndPurrFrequency: Int // Show every N screens
+    var snapAndPurrFrequency: Int
     var latitude: Double
     var longitude: Double
-    var refreshIntervalSeconds: Int // seconds
-    var transitionDuration: Double // seconds
+    var refreshIntervalSeconds: Int
+    var transitionDuration: Double
     var totalAdoptionCount: Int
     var logoUrl: String?
+    var waiverUrl: String?
+    var wifiName: String?
+    var wifiPassword: String?
+    var houseRules: [String]?
+    var livestreamUrl: String?
     
     enum CodingKeys: String, CodingKey {
         case locationName
@@ -426,20 +431,65 @@ struct AppSettings: Codable {
         case transitionDuration
         case totalAdoptionCount
         case logoUrl
+        case waiverUrl
+        case wifiName
+        case wifiPassword
+        case houseRules
+        case livestreamUrl
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        locationName = try container.decodeIfPresent(String.self, forKey: .locationName)
+        defaultDurationSeconds = (try? container.decode(Int.self, forKey: .defaultDurationSeconds)) ?? 10
+        snapAndPurrFrequency = (try? container.decode(Int.self, forKey: .snapAndPurrFrequency)) ?? 5
+        latitude = (try? container.decode(Double.self, forKey: .latitude)) ?? 34.3917
+        longitude = (try? container.decode(Double.self, forKey: .longitude)) ?? -118.5426
+        refreshIntervalSeconds = (try? container.decode(Int.self, forKey: .refreshIntervalSeconds)) ?? 60
+        transitionDuration = (try? container.decode(Double.self, forKey: .transitionDuration)) ?? 1.0
+        totalAdoptionCount = (try? container.decode(Int.self, forKey: .totalAdoptionCount)) ?? 0
+        logoUrl = try container.decodeIfPresent(String.self, forKey: .logoUrl)
+        waiverUrl = try container.decodeIfPresent(String.self, forKey: .waiverUrl)
+        wifiName = try container.decodeIfPresent(String.self, forKey: .wifiName)
+        wifiPassword = try container.decodeIfPresent(String.self, forKey: .wifiPassword)
+        houseRules = try container.decodeIfPresent([String].self, forKey: .houseRules)
+        livestreamUrl = try container.decodeIfPresent(String.self, forKey: .livestreamUrl)
+    }
+    
+    init(
+        locationName: String? = "Catfé Santa Clarita",
+        defaultDurationSeconds: Int = 10,
+        snapAndPurrFrequency: Int = 5,
+        latitude: Double = 34.3917,
+        longitude: Double = -118.5426,
+        refreshIntervalSeconds: Int = 60,
+        transitionDuration: Double = 1.0,
+        totalAdoptionCount: Int = 0,
+        logoUrl: String? = nil,
+        waiverUrl: String? = nil,
+        wifiName: String? = nil,
+        wifiPassword: String? = nil,
+        houseRules: [String]? = nil,
+        livestreamUrl: String? = nil
+    ) {
+        self.locationName = locationName
+        self.defaultDurationSeconds = defaultDurationSeconds
+        self.snapAndPurrFrequency = snapAndPurrFrequency
+        self.latitude = latitude
+        self.longitude = longitude
+        self.refreshIntervalSeconds = refreshIntervalSeconds
+        self.transitionDuration = transitionDuration
+        self.totalAdoptionCount = totalAdoptionCount
+        self.logoUrl = logoUrl
+        self.waiverUrl = waiverUrl
+        self.wifiName = wifiName
+        self.wifiPassword = wifiPassword
+        self.houseRules = houseRules
+        self.livestreamUrl = livestreamUrl
     }
     
     static var `default`: AppSettings {
-        AppSettings(
-            locationName: "Catfé Santa Clarita",
-            defaultDurationSeconds: 10,
-            snapAndPurrFrequency: 5,
-            latitude: 34.3917,
-            longitude: -118.5426,
-            refreshIntervalSeconds: 60,
-            transitionDuration: 1.0,
-            totalAdoptionCount: 0,
-            logoUrl: nil
-        )
+        AppSettings()
     }
 }
 

@@ -14,7 +14,6 @@ struct AdoptionCounterScreenView: View {
     var adoptionCats: [Screen] = [] // All adoption cats (adopted + available)
     
     @State private var appeared = false
-    @State private var displayCount: Int = 0
     
     private var targetCount: Int {
         settings.totalAdoptionCount
@@ -71,10 +70,12 @@ struct AdoptionCounterScreenView: View {
                         
                         Spacer().frame(height: 20)
                         
-                        // Counter number
-                        Text("\(displayCount)")
+                        // Counter number - displayed immediately, no animation
+                        Text("\(targetCount)")
                             .font(.system(size: 160, weight: .bold, design: .serif))
                             .foregroundColor(.loungeAmber)
+                            .opacity(appeared ? 1 : 0)
+                            .animation(.easeOut(duration: 0.5).delay(0.2), value: appeared)
                         
                         Spacer().frame(height: 12)
                         
@@ -128,19 +129,6 @@ struct AdoptionCounterScreenView: View {
         }
         .onAppear {
             withAnimation { appeared = true }
-            animateCounter()
-        }
-    }
-    
-    private func animateCounter() {
-        let steps = 40
-        let delay = 1.5 / Double(steps)
-        for i in 0...steps {
-            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * delay) {
-                withAnimation(.easeOut(duration: 0.05)) {
-                    displayCount = Int(Double(targetCount) * Double(i) / Double(steps))
-                }
-            }
         }
     }
 }
