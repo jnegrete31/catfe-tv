@@ -1400,6 +1400,8 @@
 - [ ] Fix image display for cat adoption and Happy Tails slides
 
 ## Bug Fix - Snap & Purr and Happy Tails Photos Missing on Apple TV
-- [ ] Check API response for Snap & Purr and Happy Tails gallery screens
-- [ ] Check tvOS rendering code for SnapPurrGalleryView and HappyTailsGalleryView
-- [ ] Fix photo display for these gallery slides
+- [x] Check API response - gallery screens had imagePath: null (photos stored separately)
+- [x] Found 19 snap_purr photos and 1 happy_tails photo in photos.getApproved endpoint
+- [x] Server-side fix: inject random approved photo URL into imagePath for gallery screens in getActiveWithTemplates
+- [x] Fixed test mocks: added getAvailableCats and getApprovedPhotosByType defaults
+- [x] All 160 tests passing
