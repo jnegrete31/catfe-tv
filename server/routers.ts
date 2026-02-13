@@ -316,19 +316,39 @@ export const appRouter = router({
       const allScreens = interleaveScreens(screens, catSlides);
       const templates = await getAllSlideTemplates();
       
+      // Fetch approved photos for gallery screens
+      const [snapPurrPhotos, happyTailsPhotos] = await Promise.all([
+        getApprovedPhotosByType('snap_purr'),
+        getApprovedPhotosByType('happy_tails'),
+      ]);
+      
       // Build a map of screenType -> template
       const templateMap = new Map<string, any>();
       for (const t of templates) {
         templateMap.set(t.screenType, t);
       }
       
-      // Attach template overlay data to each screen
+      // Attach template overlay data and inject gallery photos into screens
       return allScreens.map(screen => {
         const template = templateMap.get(screen.type);
+        let imagePath = screen.imagePath;
+        
+        // Inject a random photo URL for gallery screens that don't have their own image
+        if (!imagePath) {
+          if ((screen.type === 'SNAP_AND_PURR' || screen.type === 'SNAP_PURR_QR') && snapPurrPhotos.length > 0) {
+            const randomPhoto = snapPurrPhotos[Math.floor(Math.random() * snapPurrPhotos.length)];
+            imagePath = randomPhoto.photoUrl;
+          } else if ((screen.type === 'HAPPY_TAILS' || screen.type === 'HAPPY_TAILS_QR') && happyTailsPhotos.length > 0) {
+            const randomPhoto = happyTailsPhotos[Math.floor(Math.random() * happyTailsPhotos.length)];
+            imagePath = randomPhoto.photoUrl;
+          }
+        }
+        
         return {
           ...screen,
+          imagePath,
           templateOverlay: template ? {
-            elements: template.elements, // JSON string of TemplateElement[]
+            elements: template.elements,
             backgroundColor: template.backgroundColor,
             backgroundGradient: template.backgroundGradient,
             backgroundImageUrl: template.backgroundImageUrl,
