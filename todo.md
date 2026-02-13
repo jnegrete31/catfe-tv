@@ -1227,3 +1227,10 @@
 - [x] Fix: Apple TV empty - replaced framer-motion with CSS animations for WKWebView compatibility
 - [x] Stabilized nextScreen/prevScreen callbacks in usePlaylist with refs
 - [x] Added animate-fade-in CSS keyframe animation
+
+## Bug Fix - Guest Status Board Not Rendering on Apple TV
+- [x] Root cause: animate-fade-in CSS starts at opacity:0, tvOS WebKit doesn't run the animation so content stays invisible
+- [x] Removed all animate-fade-in classes from GuestStatusBoardScreen
+- [x] Removed backdrop-blur-sm from session window timer cards
+- [x] Session window countdown timers (Full Purr/Mini Meow) are part of the Guest Status Board slide
+- [x] All 135 tests passing

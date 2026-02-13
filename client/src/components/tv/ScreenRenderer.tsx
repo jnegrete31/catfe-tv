@@ -2050,7 +2050,7 @@ function GuestStatusBoardScreen({ screen, settings }: ScreenRendererProps) {
       <div className="absolute inset-0 p-8 flex flex-col">
         {/* Header */}
         <div
-          className="text-center mb-4 flex-shrink-0 animate-fade-in"
+          className="text-center mb-4 flex-shrink-0"
         >
           <h1 className="text-5xl font-light tracking-wider text-white mb-1" style={{ fontFamily: 'Georgia, serif' }}>
             {screen.title || `${locationName} Session Times`}
@@ -2064,15 +2064,14 @@ function GuestStatusBoardScreen({ screen, settings }: ScreenRendererProps) {
 
         {/* Session Window Timers - always visible for online reservation guests */}
         <div
-          className="flex gap-4 mb-4 flex-shrink-0 animate-fade-in"
-          style={{ animationDelay: '0.1s' }}
+          className="flex gap-4 mb-4 flex-shrink-0"
         >
           {sessionWindows.map((win) => {
             const isUrgent = win.minutesLeft < 5;
             return (
               <div
                 key={win.type}
-                className={`flex-1 rounded-xl border backdrop-blur-sm bg-gradient-to-br ${win.bgColor} p-4 flex items-center gap-4`}
+                className={`flex-1 rounded-xl border bg-gradient-to-br ${win.bgColor} p-4 flex items-center gap-4`}
               >
                 <div className="text-4xl">{win.icon}</div>
                 <div className="flex-1">
@@ -2107,13 +2106,13 @@ function GuestStatusBoardScreen({ screen, settings }: ScreenRendererProps) {
                   <div
                     key={session.id}
                     className={`
-                      relative rounded-xl border backdrop-blur-sm overflow-hidden animate-fade-in
+                      relative rounded-xl border overflow-hidden
                       bg-gradient-to-br ${colors.bg} ${colors.border}
                       ${timeStatus.isExpired ? 'opacity-50' : ''}
                       ${timeStatus.isUrgent && !timeStatus.isExpired ? 'ring-2 ring-red-400/50' : ''}
                       flex flex-col
                     `}
-                    style={{ animationDelay: `${index * 0.05}s` }}
+
                   >
                     {/* Progress bar at top */}
                     <div className="h-1 bg-white/10 flex-shrink-0">
@@ -2161,7 +2160,7 @@ function GuestStatusBoardScreen({ screen, settings }: ScreenRendererProps) {
         ) : (
           /* When no checked-in guests, show a friendly message below the timers */
           <div className="flex-1 flex flex-col items-center justify-center">
-            <div className="text-center animate-fade-in">
+            <div className="text-center">
               <div className="text-6xl mb-4">\uD83D\uDC3E</div>
               <h2 className="text-2xl font-light text-white/50 mb-2" style={{ fontFamily: 'Georgia, serif' }}>
                 Enjoy your time with our cats!
@@ -2175,8 +2174,7 @@ function GuestStatusBoardScreen({ screen, settings }: ScreenRendererProps) {
 
         {/* Footer with session type legend */}
         <div
-          className="mt-3 flex items-center justify-center gap-8 flex-shrink-0 animate-fade-in"
-          style={{ animationDelay: '0.5s' }}
+          className="mt-3 flex items-center justify-center gap-8 flex-shrink-0"
         >
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-teal-400"></span>
