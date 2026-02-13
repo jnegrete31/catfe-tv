@@ -1359,4 +1359,7 @@
 - [x] Updated baseURL to actual published site URL
 - [x] No admin Screens/Playlist changes needed - cats auto-inject from Cats table
 - [x] Push to GitHub
-- [ ] User needs to rebuild tvOS app from latest code
+- [x] REAL FIX: tvOS app calls playlists.getActiveScreensWithTemplates (not screens.getActive)
+- [x] Updated getActiveScreensWithTemplates to also inject cat slides via generateCatSlides + interleaveScreens
+- [x] Endpoint now returns 26 screens (16 ADOPTION + 10 regular) instead of just 10
+- [x] All 160 tests passing
