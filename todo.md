@@ -1286,3 +1286,13 @@
 
 ### Tests
 - [x] Write vitest tests for cats CRUD procedures (20 tests passing)
+
+## UI Fix - Cat Manager Settings Layout
+- [x] Fix admin tab bar (Cats, Screens, Guests, etc.) so all tabs fit in one row without scrolling
+
+## Feature - Document Import for Cats (AI-powered)
+- [x] Create tRPC procedure to accept uploaded kennel card / medical history documents
+- [x] Use LLM to extract cat fields from uploaded documents (name, breed, DOB, microchip, vaccinations, FeLV/FIV, etc.)
+- [x] Build "Import from Documents" UI in CatManager with file upload
+- [x] Pre-fill cat form with extracted data for review before saving
+- [x] Write tests for document parsing procedure (4 tests, 24 total passing)

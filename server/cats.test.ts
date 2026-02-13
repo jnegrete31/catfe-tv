@@ -94,7 +94,18 @@ vi.mock("./storage", () => ({
   storagePut: vi.fn().mockResolvedValue({ url: "https://s3.example.com/cat-photo.jpg", key: "cat-photo.jpg" }),
 }));
 
+// Mock LLM
+vi.mock("./_core/llm", () => ({
+  invokeLLM: vi.fn(),
+}));
+
+// Mock notification
+vi.mock("./_core/notification", () => ({
+  notifyOwner: vi.fn().mockResolvedValue(true),
+}));
+
 import * as db from "./db";
+import { invokeLLM } from "./_core/llm";
 
 type AuthenticatedUser = NonNullable<TrpcContext["user"]>;
 
@@ -496,5 +507,163 @@ describe("cats.getRecentlyAdopted", () => {
 
     expect(result).toEqual([]);
     expect(db.getRecentlyAdoptedCatsFromTable).toHaveBeenCalledWith(7);
+  });
+});
+
+
+describe("cats.parseDocuments (admin)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("extracts cat data from uploaded documents via LLM", async () => {
+    const mockExtractedData = {
+      name: "Judy",
+      breed: "Domestic Shorthair",
+      colorPattern: "Grey Tabby",
+      dob: "2024-07-01",
+      sex: "female",
+      weight: "7.8 lbs",
+      personalityTags: ["Good with Cats", "Shy"],
+      bio: "Judy is a sweet, affectionate tabby.",
+      adoptionFee: "$150.00",
+      isAltered: true,
+      felvFivStatus: "negative",
+      rescueId: "KRLA-A-8326",
+      shelterluvId: "205889349",
+      microchipNumber: "941000029293663",
+      intakeType: "Transfer In",
+      medicalNotes: "Dental cleaning performed.",
+      vaccinationsDue: [{ name: "Rabies", dueDate: "2029-01-15" }],
+      fleaTreatmentDue: "2026-02-25",
+    };
+
+    vi.mocked(invokeLLM).mockResolvedValue({
+      choices: [{
+        message: {
+          content: JSON.stringify(mockExtractedData),
+          role: "assistant",
+        },
+        index: 0,
+        finish_reason: "stop",
+      }],
+    } as any);
+
+    const ctx = createAdminContext();
+    const caller = appRouter.createCaller(ctx);
+
+    const result = await caller.cats.parseDocuments({
+      documents: [{
+        data: "dGVzdA==",
+        fileName: "kennel-card.jpg",
+        mimeType: "image/jpeg",
+      }],
+    });
+
+    expect(result.name).toBe("Judy");
+    expect(result.breed).toBe("Domestic Shorthair");
+    expect(result.sex).toBe("female");
+    expect(result.isAltered).toBe(true);
+    expect(result.vaccinationsDue).toHaveLength(1);
+    expect(invokeLLM).toHaveBeenCalledOnce();
+  });
+
+  it("rejects non-admin users", async () => {
+    const ctx = createUserContext();
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(
+      caller.cats.parseDocuments({
+        documents: [{
+          data: "dGVzdA==",
+          fileName: "kennel-card.jpg",
+          mimeType: "image/jpeg",
+        }],
+      })
+    ).rejects.toThrow();
+  });
+
+  it("handles LLM returning empty content", async () => {
+    vi.mocked(invokeLLM).mockResolvedValue({
+      choices: [{
+        message: {
+          content: null,
+          role: "assistant",
+        },
+        index: 0,
+        finish_reason: "stop",
+      }],
+    } as any);
+
+    const ctx = createAdminContext();
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(
+      caller.cats.parseDocuments({
+        documents: [{
+          data: "dGVzdA==",
+          fileName: "kennel-card.jpg",
+          mimeType: "image/jpeg",
+        }],
+      })
+    ).rejects.toThrow("Failed to extract data from documents");
+  });
+
+  it("handles multiple documents (kennel card + medical history)", async () => {
+    const mockExtractedData = {
+      name: "Apollo",
+      breed: "Domestic Shorthair",
+      colorPattern: "Orange Tabby",
+      dob: "2023-03-15",
+      sex: "male",
+      weight: "10.2 lbs",
+      personalityTags: ["Playful", "Social"],
+      bio: "Apollo is a big friendly orange boy.",
+      adoptionFee: "$150.00",
+      isAltered: true,
+      felvFivStatus: "negative",
+      rescueId: "KRLA-A-9001",
+      shelterluvId: "205889999",
+      microchipNumber: "941000029299999",
+      intakeType: "Transfer In",
+      medicalNotes: "Up to date on all vaccines.",
+      vaccinationsDue: [
+        { name: "Rabies", dueDate: "2029-03-15" },
+        { name: "FVRCP", dueDate: "2027-03-15" },
+      ],
+      fleaTreatmentDue: "2026-03-01",
+    };
+
+    vi.mocked(invokeLLM).mockResolvedValue({
+      choices: [{
+        message: {
+          content: JSON.stringify(mockExtractedData),
+          role: "assistant",
+        },
+        index: 0,
+        finish_reason: "stop",
+      }],
+    } as any);
+
+    const ctx = createAdminContext();
+    const caller = appRouter.createCaller(ctx);
+
+    const result = await caller.cats.parseDocuments({
+      documents: [
+        {
+          data: "dGVzdA==",
+          fileName: "kennel-card.jpg",
+          mimeType: "image/jpeg",
+        },
+        {
+          data: "dGVzdDI=",
+          fileName: "medical-history.pdf",
+          mimeType: "application/pdf",
+        },
+      ],
+    });
+
+    expect(result.name).toBe("Apollo");
+    expect(result.vaccinationsDue).toHaveLength(2);
   });
 });

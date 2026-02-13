@@ -23,6 +23,8 @@ import {
   Stethoscope,
   Calendar,
   Shield,
+  FileUp,
+  ScanLine,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -130,9 +132,12 @@ export function CatManager() {
   const [statusFilter, setStatusFilter] = useState<"available" | "all" | "adopted" | "medical_hold">("available");
   const [showMedical, setShowMedical] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const docInputRef = useRef<HTMLInputElement>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importDocs, setImportDocs] = useState<File[]>([]);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -196,6 +201,7 @@ export function CatManager() {
       catsQuery.refetch();
     },
   });
+  const parseDocsMutation = trpc.cats.parseDocuments.useMutation();
 
   const cats = catsQuery.data || [];
   const filteredCats = statusFilter === "all" ? cats
@@ -211,6 +217,8 @@ export function CatManager() {
     setPhotoPreview(null);
     setPhotoFile(null);
     setShowMedical(false);
+    setImportDocs([]);
+    setIsImporting(false);
     setFormData({
       name: "",
       breed: "Domestic Shorthair",
@@ -338,6 +346,76 @@ export function CatManager() {
       const result = await createMutation.mutateAsync(payload);
       if (photoFile && result) await uploadPhoto(result.id);
     }
+  }
+
+  async function handleDocImport() {
+    if (importDocs.length === 0) return;
+    setIsImporting(true);
+    try {
+      // Convert files to base64
+      const documents = await Promise.all(
+        importDocs.map(async (file) => {
+          const base64 = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+              const result = reader.result as string;
+              resolve(result.split(",")[1]);
+            };
+            reader.readAsDataURL(file);
+          });
+          return {
+            data: base64,
+            fileName: file.name,
+            mimeType: file.type,
+          };
+        })
+      );
+
+      const result = await parseDocsMutation.mutateAsync({ documents });
+
+      // Pre-fill the form with extracted data
+      setFormData((prev) => ({
+        ...prev,
+        name: result.name || prev.name,
+        breed: result.breed || prev.breed,
+        colorPattern: result.colorPattern || prev.colorPattern,
+        dob: result.dob || prev.dob,
+        sex: (result.sex as any) || prev.sex,
+        weight: result.weight || prev.weight,
+        personalityTags: result.personalityTags || prev.personalityTags,
+        bio: result.bio || prev.bio,
+        adoptionFee: result.adoptionFee || prev.adoptionFee,
+        isAltered: result.isAltered ?? prev.isAltered,
+        felvFivStatus: (result.felvFivStatus as any) || prev.felvFivStatus,
+        rescueId: result.rescueId || prev.rescueId,
+        shelterluvId: result.shelterluvId || prev.shelterluvId,
+        microchipNumber: result.microchipNumber || prev.microchipNumber,
+        intakeType: result.intakeType || prev.intakeType,
+        medicalNotes: result.medicalNotes || prev.medicalNotes,
+        vaccinationsDue: result.vaccinationsDue || prev.vaccinationsDue,
+        fleaTreatmentDue: result.fleaTreatmentDue || prev.fleaTreatmentDue,
+      }));
+
+      // Auto-expand medical section if we got medical data
+      if (result.medicalNotes || result.vaccinationsDue?.length || result.rescueId) {
+        setShowMedical(true);
+      }
+
+      setImportDocs([]);
+      toast.success(`Extracted info for ${result.name || "cat"}. Review and save!`);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to extract data from documents");
+    } finally {
+      setIsImporting(false);
+    }
+  }
+
+  function handleDocSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    setImportDocs((prev) => [...prev, ...files]);
+    // Reset input so same file can be selected again
+    e.target.value = "";
   }
 
   function toggleTag(tag: string) {
@@ -529,6 +607,79 @@ export function CatManager() {
           </SheetHeader>
           <ScrollArea className="h-[calc(92vh-60px)]">
             <div className="p-4 space-y-6">
+              {/* Document Import Section */}
+              {!editingCat && (
+                <div className="rounded-lg border-2 border-dashed border-primary/30 bg-primary/5 p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <ScanLine className="w-5 h-5 text-primary" />
+                    <h3 className="text-sm font-semibold">Import from Documents</h3>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Upload kennel card and/or medical history — AI will auto-fill the form
+                  </p>
+
+                  {/* Selected docs list */}
+                  {importDocs.length > 0 && (
+                    <div className="space-y-1 mb-3">
+                      {importDocs.map((doc, i) => (
+                        <div key={i} className="flex items-center gap-2 text-xs bg-background rounded px-2 py-1.5 border">
+                          <FileUp className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+                          <span className="truncate flex-1">{doc.name}</span>
+                          <button
+                            type="button"
+                            onClick={() => setImportDocs(prev => prev.filter((_, idx) => idx !== i))}
+                            className="text-muted-foreground hover:text-foreground"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => docInputRef.current?.click()}
+                      disabled={isImporting}
+                    >
+                      <FileUp className="w-4 h-4 mr-1" />
+                      {importDocs.length > 0 ? "Add More" : "Select Files"}
+                    </Button>
+                    {importDocs.length > 0 && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={handleDocImport}
+                        disabled={isImporting}
+                      >
+                        {isImporting ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                            Scanning...
+                          </>
+                        ) : (
+                          <>
+                            <ScanLine className="w-4 h-4 mr-1" />
+                            Extract Info
+                          </>
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                  <input
+                    ref={docInputRef}
+                    type="file"
+                    accept="image/*,application/pdf"
+                    multiple
+                    className="hidden"
+                    onChange={handleDocSelect}
+                  />
+                </div>
+              )}
+
               {/* Photo Upload */}
               <div>
                 <Label className="text-sm font-medium mb-2 block">Photo</Label>

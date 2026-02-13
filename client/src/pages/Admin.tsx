@@ -252,17 +252,17 @@ export default function Admin() {
       {/* Main Content */}
       <main className="container py-4 pb-24 sm:pb-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          {/* Horizontally scrollable tab bar for mobile */}
-          <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 mb-4">
-            <TabsList className="inline-flex w-auto min-w-full sm:grid sm:grid-cols-7 sm:w-full h-10">
+          {/* Tab bar - fits all tabs in one row */}
+          <div className="mb-4">
+            <TabsList className="grid grid-cols-8 w-full h-10">
               {tabs.map((tab) => (
                 <TabsTrigger
                   key={tab.value}
                   value={tab.value}
-                  className="flex items-center gap-1.5 px-3 sm:px-2 text-xs sm:text-sm whitespace-nowrap min-h-[36px]"
+                  className="flex items-center justify-center gap-1 px-1 text-[10px] sm:text-sm whitespace-nowrap min-h-[36px]"
                 >
-                  <tab.icon className="w-4 h-4 shrink-0" />
-                  <span className="sm:inline">{tab.label}</span>
+                  <tab.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                  <span className="hidden sm:inline">{tab.label}</span>
                 </TabsTrigger>
               ))}
             </TabsList>

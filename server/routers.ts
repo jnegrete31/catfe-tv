@@ -110,6 +110,7 @@ import {
   getCatCount,
 } from "./db";
 import { storagePut } from "./storage";
+import { invokeLLM } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
 
 // Screen type enum values
@@ -1521,6 +1522,149 @@ export const appRouter = router({
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         return deleteCat(input.id);
+      }),
+
+    // Admin: Parse kennel card / medical history documents using AI
+    parseDocuments: adminProcedure
+      .input(z.object({
+        documents: z.array(z.object({
+          data: z.string(), // Base64 encoded file data
+          fileName: z.string(),
+          mimeType: z.string(), // image/jpeg, image/png, application/pdf
+        })),
+      }))
+      .mutation(async ({ input }) => {
+        // Upload documents to S3 first so we have URLs for the LLM
+        const docUrls: string[] = [];
+        for (const doc of input.documents) {
+          const buffer = Buffer.from(doc.data, "base64");
+          const timestamp = Date.now();
+          const fileKey = `cat-docs/${timestamp}-${doc.fileName}`;
+          const { url } = await storagePut(fileKey, buffer, doc.mimeType);
+          docUrls.push(url);
+        }
+
+        // Build LLM messages with document images/files
+        const contentParts: any[] = [
+          {
+            type: "text" as const,
+            text: `You are a veterinary data extraction assistant for a cat lounge. Extract all cat information from the uploaded kennel card and/or medical history documents.
+
+Return a JSON object with these fields (use null for any field you cannot find):
+{
+  "name": string,
+  "breed": string (e.g. "Domestic Shorthair", "Siamese"),
+  "colorPattern": string (e.g. "Grey Tabby", "Orange", "Tuxedo"),
+  "dob": string (ISO date format YYYY-MM-DD, calculate from age if only age is given),
+  "sex": "male" | "female" | "unknown",
+  "weight": string (e.g. "7.8 lbs"),
+  "personalityTags": string[] (e.g. ["Good with Cats", "Good with Children", "Shy", "Playful"]),
+  "bio": string (personality description, memo notes about the cat),
+  "adoptionFee": string (e.g. "$150.00"),
+  "isAltered": boolean (spayed/neutered),
+  "felvFivStatus": "negative" | "positive" | "not_tested" (FeLV/FIV test results),
+  "rescueId": string (e.g. "KRLA-A-8326"),
+  "shelterluvId": string (Shelterluv animal ID number),
+  "microchipNumber": string,
+  "intakeType": string (e.g. "Transfer In", "Stray", "Owner Surrender"),
+  "medicalNotes": string (dental work, surgeries, conditions, treatments - combine all medical info),
+  "vaccinationsDue": [{"name": string, "dueDate": string}] (upcoming vaccination due dates in YYYY-MM-DD format),
+  "fleaTreatmentDue": string (next flea treatment date in YYYY-MM-DD format)
+}
+
+Extract as much information as possible from the documents. For the bio, write a warm, friendly description based on any personality notes, memo text, or specification fields you find.`,
+          },
+        ];
+
+        // Add each document as an image or file
+        for (let i = 0; i < docUrls.length; i++) {
+          const doc = input.documents[i];
+          if (doc.mimeType === "application/pdf") {
+            contentParts.push({
+              type: "file_url" as const,
+              file_url: {
+                url: docUrls[i],
+                mime_type: "application/pdf" as const,
+              },
+            });
+          } else {
+            contentParts.push({
+              type: "image_url" as const,
+              image_url: {
+                url: docUrls[i],
+                detail: "high" as const,
+              },
+            });
+          }
+        }
+
+        const response = await invokeLLM({
+          messages: [
+            {
+              role: "user",
+              content: contentParts,
+            },
+          ],
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: "cat_info",
+              strict: true,
+              schema: {
+                type: "object",
+                properties: {
+                  name: { type: ["string", "null"] },
+                  breed: { type: ["string", "null"] },
+                  colorPattern: { type: ["string", "null"] },
+                  dob: { type: ["string", "null"], description: "ISO date YYYY-MM-DD" },
+                  sex: { type: ["string", "null"], enum: ["male", "female", "unknown", null] },
+                  weight: { type: ["string", "null"] },
+                  personalityTags: { type: ["array", "null"], items: { type: "string" } },
+                  bio: { type: ["string", "null"] },
+                  adoptionFee: { type: ["string", "null"] },
+                  isAltered: { type: ["boolean", "null"] },
+                  felvFivStatus: { type: ["string", "null"], enum: ["negative", "positive", "not_tested", null] },
+                  rescueId: { type: ["string", "null"] },
+                  shelterluvId: { type: ["string", "null"] },
+                  microchipNumber: { type: ["string", "null"] },
+                  intakeType: { type: ["string", "null"] },
+                  medicalNotes: { type: ["string", "null"] },
+                  vaccinationsDue: {
+                    type: ["array", "null"],
+                    items: {
+                      type: "object",
+                      properties: {
+                        name: { type: "string" },
+                        dueDate: { type: "string" },
+                      },
+                      required: ["name", "dueDate"],
+                      additionalProperties: false,
+                    },
+                  },
+                  fleaTreatmentDue: { type: ["string", "null"] },
+                },
+                required: [
+                  "name", "breed", "colorPattern", "dob", "sex", "weight",
+                  "personalityTags", "bio", "adoptionFee", "isAltered", "felvFivStatus",
+                  "rescueId", "shelterluvId", "microchipNumber", "intakeType",
+                  "medicalNotes", "vaccinationsDue", "fleaTreatmentDue"
+                ],
+                additionalProperties: false,
+              },
+            },
+          },
+        });
+
+        const content = response.choices?.[0]?.message?.content;
+        if (!content) {
+          throw new Error("Failed to extract data from documents");
+        }
+
+        try {
+          return JSON.parse(content);
+        } catch {
+          throw new Error("Failed to parse extracted data");
+        }
       }),
 
     // Admin: Upload cat photo
