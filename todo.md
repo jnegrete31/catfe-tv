@@ -1373,7 +1373,9 @@
 - [x] Push to GitHub
 
 ## Bug Fix - Apple TV Event Date Not Using eventDate Field
-- [ ] Find where tvOS ScreenContentView generates "Friday, February 13, 2026" for events
-- [ ] Fix it to use screen.eventDate from the API instead of auto-generating from createdAt
-- [ ] Ensure Pilates with Cats also shows the eventDate when set
-- [ ] Push to GitHub
+- [x] Found that ScreenContentView had NO event-specific rendering at all (was using generic layout)
+- [x] Added Upcoming Event badge for EVENT type screens
+- [x] Added event details section with calendar/clock/pin emojis reading screen.eventDate/eventTime/eventLocation from API
+- [x] Added Upcoming Event caption under polaroid photo for events
+- [x] Changed QR text to Scan to Book for event screens
+- [x] Push to GitHub
