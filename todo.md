@@ -1358,5 +1358,5 @@
 - [x] Added comprehensive debug logging to APIClient and TVDisplayViewModel
 - [x] Updated baseURL to actual published site URL
 - [x] No admin Screens/Playlist changes needed - cats auto-inject from Cats table
-- [ ] Push to GitHub
+- [x] Push to GitHub
 - [ ] User needs to rebuild tvOS app from latest code
