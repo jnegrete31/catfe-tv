@@ -1,0 +1,8 @@
+{
+  "query": "SELECT id, screenType, title, CASE WHEN templateOverlay IS NOT NULL AND templateOverlay != '' AND templateOverlay != 'null' THEN 'HAS OVERLAY' ELSE 'NO OVERLAY' END as overlay_status FROM screens WHERE screenType IN ('SNAP_AND_PURR', 'SNAP_PURR_QR', 'HAPPY_TAILS', 'HAPPY_TAILS_QR', 'GUEST_STATUS_BOARD');",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2KjT5kGWaGHMws6.75433b4e530a --database aMDMXCoQ2ycSYTjhkKKJzm --execute SELECT id, screenType, title, CASE WHEN templateOverlay IS NOT NULL AND templateOverlay != '' AND templateOverlay != 'null' THEN 'HAS OVERLAY' ELSE 'NO OVERLAY' END as overlay_status FROM screens WHERE screenType IN ('SNAP_AND_PURR', 'SNAP_PURR_QR', 'HAPPY_TAILS', 'HAPPY_TAILS_QR', 'GUEST_STATUS_BOARD');",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'templateoverlay' in 'field list'"
+  ]
+}

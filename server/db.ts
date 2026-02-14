@@ -1718,7 +1718,9 @@ export async function getSlideTemplateByScreenType(screenType: string): Promise<
   if (!db) return undefined;
   
   try {
-    const results = await db.select().from(slideTemplates).where(eq(slideTemplates.screenType, screenType as any));
+    // For non-CUSTOM types, find by screenType (there should be at most one)
+    const results = await db.select().from(slideTemplates)
+      .where(and(eq(slideTemplates.screenType, screenType as any), isNull(slideTemplates.screenId)));
     return results[0];
   } catch (error) {
     console.error("[Database] Failed to get slide template:", error);
@@ -1726,35 +1728,61 @@ export async function getSlideTemplateByScreenType(screenType: string): Promise<
   }
 }
 
-export async function upsertSlideTemplate(template: Partial<InsertSlideTemplate> & { screenType: string }): Promise<SlideTemplate | undefined> {
+export async function getSlideTemplateByScreenId(screenId: number): Promise<SlideTemplate | undefined> {
   const db = await getDb();
   if (!db) return undefined;
   
   try {
-    // Check if template exists
-    const existing = await getSlideTemplateByScreenType(template.screenType);
+    const results = await db.select().from(slideTemplates)
+      .where(eq(slideTemplates.screenId, screenId));
+    return results[0];
+  } catch (error) {
+    console.error("[Database] Failed to get slide template by screenId:", error);
+    return undefined;
+  }
+}
+
+export async function upsertSlideTemplate(template: Partial<InsertSlideTemplate> & { screenType: string; screenId?: number | null }): Promise<SlideTemplate | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  
+  try {
+    // For CUSTOM slides with a screenId, look up by screenId
+    // For other types, look up by screenType
+    let existing: SlideTemplate | undefined;
+    if (template.screenId) {
+      existing = await getSlideTemplateByScreenId(template.screenId);
+    } else {
+      existing = await getSlideTemplateByScreenType(template.screenType);
+    }
+    
+    const updateData = {
+      name: template.name,
+      backgroundColor: template.backgroundColor,
+      backgroundGradient: template.backgroundGradient,
+      backgroundImageUrl: template.backgroundImageUrl,
+      elements: template.elements,
+      defaultFontFamily: template.defaultFontFamily,
+      defaultFontColor: template.defaultFontColor,
+      showAnimations: template.showAnimations,
+      animationStyle: template.animationStyle,
+      widgetOverrides: template.widgetOverrides,
+    };
     
     if (existing) {
       // Update existing template
       await db.update(slideTemplates)
-        .set({
-          name: template.name,
-          backgroundColor: template.backgroundColor,
-          backgroundGradient: template.backgroundGradient,
-          backgroundImageUrl: template.backgroundImageUrl,
-          elements: template.elements,
-          defaultFontFamily: template.defaultFontFamily,
-          defaultFontColor: template.defaultFontColor,
-          showAnimations: template.showAnimations,
-          animationStyle: template.animationStyle,
-        })
-        .where(eq(slideTemplates.screenType, template.screenType as any));
+        .set(updateData)
+        .where(eq(slideTemplates.id, existing.id));
       
-      return await getSlideTemplateByScreenType(template.screenType);
+      // Return updated
+      const results = await db.select().from(slideTemplates).where(eq(slideTemplates.id, existing.id));
+      return results[0];
     } else {
       // Insert new template
       await db.insert(slideTemplates).values({
         screenType: template.screenType as any,
+        screenId: template.screenId || null,
         name: template.name || `${template.screenType} Template`,
         backgroundColor: template.backgroundColor || "#1a1a2e",
         elements: template.elements || "[]",
@@ -1762,8 +1790,13 @@ export async function upsertSlideTemplate(template: Partial<InsertSlideTemplate>
         defaultFontColor: template.defaultFontColor || "#ffffff",
         showAnimations: template.showAnimations ?? true,
         animationStyle: template.animationStyle || "fade",
+        widgetOverrides: template.widgetOverrides || null,
       });
       
+      // Return the newly inserted template
+      if (template.screenId) {
+        return await getSlideTemplateByScreenId(template.screenId);
+      }
       return await getSlideTemplateByScreenType(template.screenType);
     }
   } catch (error) {
@@ -1772,12 +1805,18 @@ export async function upsertSlideTemplate(template: Partial<InsertSlideTemplate>
   }
 }
 
-export async function deleteSlideTemplate(screenType: string): Promise<boolean> {
+export async function deleteSlideTemplate(screenType: string, screenId?: number): Promise<boolean> {
   const db = await getDb();
   if (!db) return false;
   
   try {
-    await db.delete(slideTemplates).where(eq(slideTemplates.screenType, screenType as any));
+    if (screenId) {
+      await db.delete(slideTemplates).where(eq(slideTemplates.screenId, screenId));
+    } else {
+      await db.delete(slideTemplates).where(
+        and(eq(slideTemplates.screenType, screenType as any), isNull(slideTemplates.screenId))
+      );
+    }
     return true;
   } catch (error) {
     console.error("[Database] Failed to delete slide template:", error);

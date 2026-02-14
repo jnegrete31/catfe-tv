@@ -395,9 +395,9 @@ function RenderElement({
 
 // Main template-based renderer
 export function TemplateRenderer({ screen, settings, adoptionCount }: TemplateRendererProps) {
-  // Fetch template for this screen type
+  // Fetch template for this screen type (with screenId for CUSTOM slides)
   const { data: template } = trpc.templates.getByScreenType.useQuery(
-    { screenType: screen.type },
+    { screenType: screen.type, ...(screen.type === 'CUSTOM' && screen.id ? { screenId: screen.id } : {}) },
     { staleTime: 60000 } // Cache for 1 minute
   );
 

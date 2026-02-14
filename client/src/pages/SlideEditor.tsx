@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
@@ -75,7 +75,7 @@ interface TemplateElement {
   photosToShow?: number; // Number of photos to display in gallery
 }
 
-// Screen types available for editing
+// Screen types available for editing (excludes CUSTOM - those are listed individually)
 const SCREEN_TYPES = [
   { value: "ADOPTION", label: "Adoption" },
   { value: "ADOPTION_SHOWCASE", label: "Adoption Showcase" },
@@ -89,7 +89,6 @@ const SCREEN_TYPES = [
   { value: "HAPPY_TAILS", label: "Happy Tails" },
   { value: "SNAP_PURR_GALLERY", label: "Snap & Purr Gallery" },
   { value: "LIVESTREAM", label: "Livestream" },
-  { value: "CUSTOM", label: "Custom Slides" },
 ];
 
 // Element type icons
@@ -111,6 +110,7 @@ const ELEMENT_ICONS: Record<string, React.ReactNode> = {
 export default function SlideEditor() {
   const [, navigate] = useLocation();
   const [selectedScreenType, setSelectedScreenType] = useState("ADOPTION");
+  const [selectedScreenId, setSelectedScreenId] = useState<number | null>(null); // For CUSTOM slides
   const [elements, setElements] = useState<TemplateElement[]>([]);
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   const [backgroundColor, setBackgroundColor] = useState("#1a1a2e");
@@ -144,14 +144,21 @@ export default function SlideEditor() {
     return Math.round(value / GRID_SIZE) * GRID_SIZE;
   };
 
-  // Fetch template for selected screen type
+  // Fetch all screens to find CUSTOM slides
+  const { data: allScreens } = trpc.screens.getAll.useQuery();
+  const customScreens = useMemo(() => 
+    (allScreens || []).filter((s: any) => s.type === 'CUSTOM'),
+    [allScreens]
+  );
+
+  // Fetch template for selected screen type (with screenId for CUSTOM slides)
   const { data: template, refetch: refetchTemplate, isLoading: isLoadingTemplate } = trpc.templates.getByScreenType.useQuery(
-    { screenType: selectedScreenType },
+    { screenType: selectedScreenType, ...(selectedScreenId ? { screenId: selectedScreenId } : {}) },
     { enabled: !!selectedScreenType, staleTime: 0 } // Always fetch fresh data
   );
 
   // Handle screen type change - reset state and refetch
-  const handleScreenTypeChange = (newScreenType: string) => {
+  const handleScreenTypeChange = (newScreenType: string, screenId?: number) => {
     // Reset to defaults before loading new template
     setElements([]);
     setBackgroundColor("#1a1a2e");
@@ -164,6 +171,7 @@ export default function SlideEditor() {
       waiverQr: { visible: true, x: 2, y: 2, size: 80, opacity: 1, label: "Sign Waiver" },
     });
     setHasChanges(false);
+    setSelectedScreenId(screenId || null);
     setSelectedScreenType(newScreenType);
   };
 
@@ -390,6 +398,7 @@ export default function SlideEditor() {
   const handleSave = () => {
     saveMutation.mutate({
       screenType: selectedScreenType,
+      ...(selectedScreenId ? { screenId: selectedScreenId } : {}),
       name: templateName || undefined,
       elements: JSON.stringify(elements),
       backgroundColor,
@@ -412,7 +421,7 @@ export default function SlideEditor() {
   // Reset to defaults
   const handleReset = () => {
     if (confirm("Reset this template to defaults? All customizations will be lost.")) {
-      deleteMutation.mutate({ screenType: selectedScreenType });
+      deleteMutation.mutate({ screenType: selectedScreenType, ...(selectedScreenId ? { screenId: selectedScreenId } : {}) });
     }
   };
 
@@ -570,8 +579,18 @@ export default function SlideEditor() {
             <h1 className="text-xl font-semibold">Slide Template Editor</h1>
           </div>
           <div className="flex items-center gap-2">
-            <Select value={selectedScreenType} onValueChange={handleScreenTypeChange}>
-              <SelectTrigger className="w-[200px]">
+            <Select 
+              value={selectedScreenId ? `CUSTOM_${selectedScreenId}` : selectedScreenType} 
+              onValueChange={(val) => {
+                if (val.startsWith('CUSTOM_')) {
+                  const id = parseInt(val.replace('CUSTOM_', ''));
+                  handleScreenTypeChange('CUSTOM', id);
+                } else {
+                  handleScreenTypeChange(val);
+                }
+              }}
+            >
+              <SelectTrigger className="w-[240px]">
                 <SelectValue placeholder="Select screen type" />
               </SelectTrigger>
               <SelectContent>
@@ -580,6 +599,17 @@ export default function SlideEditor() {
                     {type.label}
                   </SelectItem>
                 ))}
+                {customScreens.length > 0 && (
+                  <>
+                    <div className="border-t my-1" />
+                    <div className="px-2 py-1 text-xs font-semibold text-muted-foreground">Custom Slides</div>
+                    {customScreens.map((screen: any) => (
+                      <SelectItem key={`CUSTOM_${screen.id}`} value={`CUSTOM_${screen.id}`}>
+                        {screen.title || `Custom Slide #${screen.id}`}
+                      </SelectItem>
+                    ))}
+                  </>
+                )}
                 <div className="border-t my-1" />
                 <button
                   className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
@@ -1407,11 +1437,15 @@ export default function SlideEditor() {
                     isActive: true,
                   });
                   toast.success(`Custom slide "${newSlideTitle}" created!`);
+                  // Refresh the screens list so the new custom slide appears in the dropdown
+                  await utils.screens.getAll.invalidate();
                   // Store the name for saving with the template
                   setTemplateName(newSlideTitle.trim());
                   setNewSlideTitle("");
                   setShowNewSlideDialog(false);
-                  // Switch to editing the new custom slide template
+                  // Switch to editing the new custom slide by its screenId
+                  const newScreenId = (result as any)?.id;
+                  setSelectedScreenId(newScreenId || null);
                   setSelectedScreenType("CUSTOM");
                   // Clear elements for fresh start
                   setElements([]);

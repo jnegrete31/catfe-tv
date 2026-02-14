@@ -1405,3 +1405,18 @@
 - [x] Server-side fix: inject random approved photo URL into imagePath for gallery screens in getActiveWithTemplates
 - [x] Fixed test mocks: added getAvailableCats and getApprovedPhotosByType defaults
 - [x] All 160 tests passing
+
+## Bug Fix - Snap & Purr Gallery Not Showing + Guest Status Board Empty on Apple TV
+- [ ] Debug why Snap & Purr gallery photos not appearing (Happy Tails works)
+- [ ] Debug why Guest Status Board is empty on Apple TV
+- [ ] Fix both issues
+
+## Bug Fix - Custom Slides Independence
+- [x] Fix custom slides so each new custom slide is its own independent screen
+- [x] Added screenId column to slideTemplates table for per-screen template storage
+- [x] Updated template save/load/delete to use screenId for CUSTOM type
+- [x] Updated SlideEditor dropdown to list individual custom slides
+- [x] Updated ScreenRenderer and TemplateRenderer to fetch per-screen templates
+- [x] 4 new tests for custom slide independence (9 total template tests passing)
+- [x] All 164 tests passing
+- [x] Remove polls from tvOS app (not needed)

@@ -88,6 +88,7 @@ import {
   seedDefaultPlaylists,
   getAllSlideTemplates,
   getSlideTemplateByScreenType,
+  getSlideTemplateByScreenId,
   upsertSlideTemplate,
   deleteSlideTemplate,
   getDefaultTemplateElements,
@@ -322,15 +323,23 @@ export const appRouter = router({
         getApprovedPhotosByType('happy_tails'),
       ]);
       
-      // Build a map of screenType -> template
-      const templateMap = new Map<string, any>();
+      // Build maps: screenType -> template (for non-CUSTOM) and screenId -> template (for CUSTOM)
+      const templateByType = new Map<string, any>();
+      const templateByScreenId = new Map<number, any>();
       for (const t of templates) {
-        templateMap.set(t.screenType, t);
+        if (t.screenId) {
+          templateByScreenId.set(t.screenId, t);
+        } else {
+          templateByType.set(t.screenType, t);
+        }
       }
       
       // Attach template overlay data and inject gallery photos into screens
       return allScreens.map(screen => {
-        const template = templateMap.get(screen.type);
+        // For CUSTOM screens, look up by screenId first, then fall back to screenType
+        const template = (screen.type === 'CUSTOM' && screen.id) 
+          ? (templateByScreenId.get(screen.id) || templateByType.get(screen.type))
+          : templateByType.get(screen.type);
         let imagePath = screen.imagePath;
         
         // Inject a random photo URL for gallery screens that don't have their own image
@@ -1302,15 +1311,23 @@ export const appRouter = router({
       const allScreens = interleaveScreens(screens, catSlides);
       const templates = await getAllSlideTemplates();
       
-      // Build a map of screenType -> template
-      const templateMap = new Map<string, any>();
+      // Build maps: screenType -> template (for non-CUSTOM) and screenId -> template (for CUSTOM)
+      const templateByType = new Map<string, any>();
+      const templateByScreenId = new Map<number, any>();
       for (const t of templates) {
-        templateMap.set(t.screenType, t);
+        if (t.screenId) {
+          templateByScreenId.set(t.screenId, t);
+        } else {
+          templateByType.set(t.screenType, t);
+        }
       }
       
       // Attach template overlay data to each screen
       return allScreens.map(screen => {
-        const template = templateMap.get(screen.type);
+        // For CUSTOM screens, look up by screenId first, then fall back to screenType
+        const template = (screen.type === 'CUSTOM' && screen.id) 
+          ? (templateByScreenId.get(screen.id) || templateByType.get(screen.type))
+          : templateByType.get(screen.type);
         return {
           ...screen,
           templateOverlay: template ? {
@@ -1424,15 +1441,22 @@ export const appRouter = router({
       return await getAllSlideTemplates();
     }),
 
-    // Get template by screen type
+    // Get template by screen type (or by screenId for CUSTOM slides)
     getByScreenType: publicProcedure
-      .input(z.object({ screenType: z.string() }))
+      .input(z.object({ screenType: z.string(), screenId: z.number().optional() }))
       .query(async ({ input }) => {
-        const template = await getSlideTemplateByScreenType(input.screenType);
+        let template;
+        // For CUSTOM screens with a screenId, look up by screenId
+        if (input.screenType === 'CUSTOM' && input.screenId) {
+          template = await getSlideTemplateByScreenId(input.screenId);
+        } else {
+          template = await getSlideTemplateByScreenType(input.screenType);
+        }
         if (!template) {
           // Return default template if none exists
           return {
             screenType: input.screenType,
+            screenId: input.screenId || null,
             elements: JSON.stringify(getDefaultTemplateElements(input.screenType)),
             backgroundColor: "#1a1a2e",
             defaultFontFamily: "Inter",
@@ -1455,6 +1479,7 @@ export const appRouter = router({
     save: adminProcedure
       .input(z.object({
         screenType: z.string(),
+        screenId: z.number().optional(), // For CUSTOM slides, links to the specific screen
         name: z.string().optional(),
         backgroundColor: z.string().optional(),
         backgroundGradient: z.string().nullable().optional(),
@@ -1473,9 +1498,9 @@ export const appRouter = router({
 
     // Admin: Delete template (resets to default)
     delete: adminProcedure
-      .input(z.object({ screenType: z.string() }))
+      .input(z.object({ screenType: z.string(), screenId: z.number().optional() }))
       .mutation(async ({ input }) => {
-        await deleteSlideTemplate(input.screenType);
+        await deleteSlideTemplate(input.screenType, input.screenId);
         return { success: true };
       }),
 

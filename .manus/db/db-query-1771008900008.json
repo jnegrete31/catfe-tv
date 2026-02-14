@@ -1,0 +1,20 @@
+{
+  "query": "SELECT screenType, JSON_LENGTH(elements) as element_count, LEFT(CAST(elements AS CHAR), 200) as elements_preview FROM slideTemplates;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2KjT5kGWaGHMws6.75433b4e530a --database aMDMXCoQ2ycSYTjhkKKJzm --execute SELECT screenType, JSON_LENGTH(elements) as element_count, LEFT(CAST(elements AS CHAR), 200) as elements_preview FROM slideTemplates;",
+  "rows": [
+    {
+      "screenType": "CHECK_IN",
+      "element_count": "3",
+      "elements_preview": "[{\"id\":\"title\",\"type\":\"title\",\"x\":10,\"y\":10,\"width\":80,\"height\":12,\"fontSize\":72,\"fontWeight\":\"bold\",\"textAlign\":\"center\"},{\"id\":\"subtitle\",\"type\":\"subtitle\",\"x\":10,\"y\":25,\"width\":80,\"height\":8,\"fontS"
+    },
+    {
+      "screenType": "CUSTOM",
+      "element_count": "1",
+      "elements_preview": "[{\"id\":\"logo-1770403231968\",\"type\":\"logo\",\"x\":25,\"y\":10,\"width\":50,\"height\":80,\"fontSize\":24,\"fontWeight\":\"normal\",\"textAlign\":\"center\",\"color\":\"#ffffff\",\"visible\":true}]"
+    }
+  ],
+  "messages": [],
+  "stdout": "screenType\telement_count\telements_preview\nCHECK_IN\t3\t[{\"id\":\"title\",\"type\":\"title\",\"x\":10,\"y\":10,\"width\":80,\"height\":12,\"fontSize\":72,\"fontWeight\":\"bold\",\"textAlign\":\"center\"},{\"id\":\"subtitle\",\"type\":\"subtitle\",\"x\":10,\"y\":25,\"width\":80,\"height\":8,\"fontS\nCUSTOM\t1\t[{\"id\":\"logo-1770403231968\",\"type\":\"logo\",\"x\":25,\"y\":10,\"width\":50,\"height\":80,\"fontSize\":24,\"fontWeight\":\"normal\",\"textAlign\":\"center\",\"color\":\"#ffffff\",\"visible\":true}]\n",
+  "stderr": "",
+  "execution_time_ms": 56
+}

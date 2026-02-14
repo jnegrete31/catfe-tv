@@ -2345,8 +2345,9 @@ function TemplateElementsOverlay({ screenType, screen, settings }: { screenType:
 // Main renderer that selects the appropriate component
 export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendererProps) {
   // Fetch template for this screen type (all types, not just CUSTOM)
+  // For CUSTOM screens, pass screenId to get the per-slide template
   const { data: savedTemplate } = trpc.templates.getByScreenType.useQuery(
-    { screenType: screen.type },
+    { screenType: screen.type, ...(screen.type === 'CUSTOM' && screen.id ? { screenId: screen.id } : {}) },
     { staleTime: 60000 }
   );
   

@@ -1,0 +1,8 @@
+{
+  "query": "SELECT screenType, JSON_LENGTH(elements) as element_count FROM slide_templates;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2KjT5kGWaGHMws6.75433b4e530a --database aMDMXCoQ2ycSYTjhkKKJzm --execute SELECT screenType, JSON_LENGTH(elements) as element_count FROM slide_templates;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1146 (42S02) at line 1: Table 'amdmxcoq2ycsytjhkkkjzm.slide_templates' doesn't exist"
+  ]
+}

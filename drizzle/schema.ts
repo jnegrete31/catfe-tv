@@ -381,7 +381,8 @@ export const templateElementTypeEnum = mysqlEnum("templateElementType", [
  */
 export const slideTemplates = mysqlTable("slideTemplates", {
   id: int("id").autoincrement().primaryKey(),
-  screenType: screenTypeEnum.notNull().unique(), // One template per screen type
+  screenType: screenTypeEnum.notNull(), // Screen type (non-unique to allow multiple CUSTOM templates)
+  screenId: int("screenId"), // Links to screens.id for CUSTOM slides (each custom slide gets its own template)
   name: varchar("name", { length: 255 }).notNull(),
   // Canvas settings
   backgroundColor: varchar("backgroundColor", { length: 32 }).default("#1a1a2e"),
