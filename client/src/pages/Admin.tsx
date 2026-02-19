@@ -11,8 +11,7 @@ import { SettingsForm } from "@/components/admin/SettingsForm";
 import { PlaylistPreview } from "@/components/admin/ScreenPreview";
 import { GuestCheckIn } from "@/components/admin/GuestCheckIn";
 import PhotoModeration from "@/components/admin/PhotoModeration";
-import CaptionManager from "@/components/admin/CaptionManager";
-import { PollManager } from "@/components/admin/PollManager";
+
 import { PlaylistManager } from "@/components/admin/PlaylistManager";
 import { CatManager } from "@/components/admin/CatManager";
 import { trpc } from "@/lib/trpc";
@@ -28,8 +27,7 @@ import {
   Users,
   Image,
   Heart,
-  MessageSquare,
-  Vote,
+
   ListMusic,
   Palette,
   EyeOff,
@@ -150,8 +148,6 @@ export default function Admin() {
     { value: "screens", icon: LayoutGrid, label: "Screens" },
     { value: "guests", icon: Users, label: "Guests" },
     { value: "photos", icon: Image, label: "Photos" },
-    { value: "captions", icon: MessageSquare, label: "Captions" },
-    { value: "polls", icon: Vote, label: "Polls" },
     { value: "playlists", icon: ListMusic, label: "Playlists" },
     { value: "settings", icon: Settings, label: "Settings" },
   ];
@@ -254,12 +250,12 @@ export default function Admin() {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           {/* Tab bar - fits all tabs in one row */}
           <div className="mb-4">
-            <TabsList className="grid grid-cols-8 w-full h-10">
+            <TabsList className="flex w-full h-10 justify-center">
               {tabs.map((tab) => (
                 <TabsTrigger
                   key={tab.value}
                   value={tab.value}
-                  className="flex items-center justify-center gap-1 px-1 text-[10px] sm:text-sm whitespace-nowrap min-h-[36px]"
+                  className="flex-1 flex items-center justify-center gap-1 px-1 text-[10px] sm:text-sm whitespace-nowrap min-h-[36px]"
                 >
                   <tab.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
                   <span className="hidden sm:inline">{tab.label}</span>
@@ -365,15 +361,6 @@ export default function Admin() {
             <PhotoModeration />
           </TabsContent>
           
-          {/* Captions Tab */}
-          <TabsContent value="captions">
-            <CaptionManager />
-          </TabsContent>
-          
-          {/* Polls Tab */}
-          <TabsContent value="polls">
-            <PollManager />
-          </TabsContent>
 
           {/* Playlists Tab */}
           <TabsContent value="playlists">

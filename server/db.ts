@@ -565,6 +565,14 @@ export async function togglePhotoFeatured(id: number, isFeatured: boolean) {
   return { success: true };
 }
 
+export async function updatePhotoCaption(id: number, caption: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(photoSubmissions).set({ caption }).where(eq(photoSubmissions.id, id));
+  return { success: true };
+}
+
 export async function getFeaturedPhotos() {
   const db = await getDb();
   if (!db) return [];

@@ -1360,3 +1360,18 @@
 - [x] Add adopted_in_lounge filter card to CatManager (purple "In Lounge" card)
 - [x] Add bulkUpdateStatus procedure to routers.ts
 - [x] Write/update tests for adopted_in_lounge status and adoption date overlay (169 tests passing)
+
+## Bug Fix - Remove Polls and Captions Tabs (Post-Rollback)
+- [x] Remove Polls tab from admin panel
+- [x] Remove Captions tab from admin panel
+- [x] Fix tab grid layout to grid-cols-6 for 6 tabs
+- [x] Center tabs properly (Cats, Screens, Guests, Photos, Playlists, Settings)
+
+## Feature - Inline Caption Editing in Photos Tab
+- [x] Add inline caption editing to each photo card in PhotoModeration
+- [x] Add pencil icon to edit caption on hover
+- [x] Add updateCaption backend procedure (db.ts + routers.ts)
+- [x] Write tests for updateCaption (173 tests passing)
+
+## Bug Fix - Tab Centering
+- [x] Ensure 6 admin tabs are visually centered using flex layout with flex-1 triggers

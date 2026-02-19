@@ -45,6 +45,7 @@ import {
   deletePhotoSubmission,
   togglePhotoVisibility,
   togglePhotoFeatured,
+  updatePhotoCaption,
   getFeaturedPhotos,
   getPhotoSubmissionStats,
   getSessionHistory,
@@ -851,6 +852,16 @@ export const appRouter = router({
       }))
       .mutation(async ({ input }) => {
         return togglePhotoFeatured(input.id, input.isFeatured);
+      }),
+
+    // Admin: Update photo caption
+    updateCaption: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        caption: z.string().max(500),
+      }))
+      .mutation(async ({ input }) => {
+        return updatePhotoCaption(input.id, input.caption);
       }),
 
     // Public: Get featured photos for TV display

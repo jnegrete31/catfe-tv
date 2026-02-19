@@ -6,11 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { 
   Check, X, Trash2, Eye, EyeOff, Image, Heart, Camera, 
-  Clock, User, Mail, MessageSquare, Cat, Calendar, Star
+  Clock, User, Mail, MessageSquare, Cat, Calendar, Star,
+  Pencil, Save, XCircle
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -36,6 +38,8 @@ export default function PhotoModeration() {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editingCaptionId, setEditingCaptionId] = useState<number | null>(null);
+  const [editCaptionText, setEditCaptionText] = useState("");
 
   const utils = trpc.useUtils();
 
@@ -84,6 +88,18 @@ export default function PhotoModeration() {
     },
   });
 
+  const updateCaptionMutation = trpc.photos.updateCaption.useMutation({
+    onSuccess: () => {
+      toast.success("Caption updated!");
+      utils.photos.invalidate();
+      setEditingCaptionId(null);
+      setEditCaptionText("");
+    },
+    onError: () => {
+      toast.error("Failed to update caption");
+    },
+  });
+
   const handleApprove = (photo: PhotoSubmission) => {
     approveMutation.mutate({ id: photo.id });
   };
@@ -104,6 +120,20 @@ export default function PhotoModeration() {
 
   const handleToggleFeatured = (photo: PhotoSubmission) => {
     toggleFeaturedMutation.mutate({ id: photo.id, isFeatured: !photo.isFeatured });
+  };
+
+  const handleStartEditCaption = (photo: PhotoSubmission) => {
+    setEditingCaptionId(photo.id);
+    setEditCaptionText(photo.caption || "");
+  };
+
+  const handleSaveCaption = (photoId: number) => {
+    updateCaptionMutation.mutate({ id: photoId, caption: editCaptionText });
+  };
+
+  const handleCancelEditCaption = () => {
+    setEditingCaptionId(null);
+    setEditCaptionText("");
   };
 
   const formatDate = (date: Date | string | null) => {
@@ -184,13 +214,61 @@ export default function PhotoModeration() {
           </div>
         )}
 
-        {/* Caption */}
-        {photo.caption && (
-          <div className="flex items-start gap-2 text-sm text-gray-600">
-            <MessageSquare className="w-4 h-4 mt-0.5 flex-shrink-0" />
-            <span className="line-clamp-2">{photo.caption}</span>
-          </div>
-        )}
+        {/* Caption - Inline Editable */}
+        <div className="group">
+          {editingCaptionId === photo.id ? (
+            <div className="space-y-2">
+              <div className="flex items-start gap-2">
+                <MessageSquare className="w-4 h-4 mt-2.5 flex-shrink-0 text-primary" />
+                <Input
+                  value={editCaptionText}
+                  onChange={(e) => setEditCaptionText(e.target.value)}
+                  placeholder="Enter a caption..."
+                  className="text-sm"
+                  maxLength={500}
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleSaveCaption(photo.id);
+                    if (e.key === "Escape") handleCancelEditCaption();
+                  }}
+                />
+              </div>
+              <div className="flex items-center gap-1.5 ml-6">
+                <Button
+                  size="sm"
+                  className="h-7 text-xs bg-green-600 hover:bg-green-700"
+                  onClick={() => handleSaveCaption(photo.id)}
+                  disabled={updateCaptionMutation.isPending}
+                >
+                  <Save className="w-3 h-3 mr-1" /> Save
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 text-xs"
+                  onClick={handleCancelEditCaption}
+                >
+                  <XCircle className="w-3 h-3 mr-1" /> Cancel
+                </Button>
+                <span className="text-[10px] text-muted-foreground ml-auto">
+                  {editCaptionText.length}/500
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div
+              className="flex items-start gap-2 text-sm text-gray-600 cursor-pointer hover:bg-accent/50 rounded-md p-1 -m-1 transition-colors"
+              onClick={() => handleStartEditCaption(photo)}
+              title="Click to edit caption"
+            >
+              <MessageSquare className="w-4 h-4 mt-0.5 flex-shrink-0" />
+              <span className="line-clamp-2 flex-1">
+                {photo.caption || <span className="italic text-gray-400">No caption — tap to add</span>}
+              </span>
+              <Pencil className="w-3.5 h-3.5 flex-shrink-0 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity mt-0.5" />
+            </div>
+          )}
+        </div>
 
         {/* Date */}
         <div className="flex items-center gap-2 text-xs text-gray-500">

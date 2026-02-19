@@ -88,6 +88,7 @@ vi.mock("./db", () => ({
   setPlaylistScreens: vi.fn(),
   getActivePlaylist: vi.fn(),
   bulkUpdateCatStatus: vi.fn(),
+  updatePhotoCaption: vi.fn(),
 }));
 
 // Mock storage
@@ -867,5 +868,67 @@ describe("cats create/update with adopted_in_lounge", () => {
     });
 
     expect(result.status).toBe("adopted_in_lounge");
+  });
+});
+
+// ============ PHOTO CAPTION UPDATE ============
+
+describe("photos.updateCaption (admin)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("updates a photo caption for admin users", async () => {
+    vi.mocked(db.updatePhotoCaption).mockResolvedValue({ success: true });
+
+    const ctx = createAdminContext();
+    const caller = appRouter.createCaller(ctx);
+
+    const result = await caller.photos.updateCaption({
+      id: 1,
+      caption: "A beautiful cat lounging in the sun",
+    });
+
+    expect(result).toEqual({ success: true });
+    expect(db.updatePhotoCaption).toHaveBeenCalledWith(1, "A beautiful cat lounging in the sun");
+  });
+
+  it("rejects non-admin users", async () => {
+    const ctx = createUserContext();
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(
+      caller.photos.updateCaption({
+        id: 1,
+        caption: "test caption",
+      })
+    ).rejects.toThrow();
+  });
+
+  it("rejects unauthenticated users", async () => {
+    const ctx = createPublicContext();
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(
+      caller.photos.updateCaption({
+        id: 1,
+        caption: "test caption",
+      })
+    ).rejects.toThrow();
+  });
+
+  it("allows empty caption string", async () => {
+    vi.mocked(db.updatePhotoCaption).mockResolvedValue({ success: true });
+
+    const ctx = createAdminContext();
+    const caller = appRouter.createCaller(ctx);
+
+    const result = await caller.photos.updateCaption({
+      id: 1,
+      caption: "",
+    });
+
+    expect(result).toEqual({ success: true });
+    expect(db.updatePhotoCaption).toHaveBeenCalledWith(1, "");
   });
 });
