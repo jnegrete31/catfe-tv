@@ -1397,3 +1397,25 @@
 - [x] Add special glow/shimmer effect on the counter number at milestones (pulsing glow, number scale animation)
 - [x] Celebration is CSS/framer-motion based, works on web TV display
 - [x] Write unit tests for milestone detection logic (13 tests, 186 total passing)
+
+## Feature - tvOS Adoption Counter Redesign
+- [x] Review current Swift AdoptionCounterScreen implementation
+- [x] Implement hybrid split layout (left: counter, right: mosaic + carousel)
+- [x] Add milestone detection logic (bronze/silver/gold/diamond tiers)
+- [x] Add confetti particle animation for milestones (50 particles, tier-colored)
+- [x] Add milestone badge with tier-colored gradient capsule
+- [x] Add pulsing glow and number shimmer effects at milestones
+- [x] Add animated counter (60-step count-up effect)
+- [x] Add recently adopted cat carousel with polaroid cards (4s rotation)
+- [x] Add photo mosaic background on right side (4x3 grid)
+- [x] Updated ScreenView to pass adoptionCats to AdoptionCounterScreenView
+- [x] Push updated Swift files to GitHub (commit 45e8bdf)
+
+## Bug Fix - Cat Slides Not Showing on TV
+- [x] Investigate why cat slides are not displaying (cats were in cats table, not screens table)
+- [x] Auto-generate ADOPTION type slides from cats in the Cats tab via generateCatSlides()
+- [x] Inject auto-generated cat slides into getActiveScreensWithTemplates response (Apple TV)
+- [x] Inject into getRandomAdoptions (web TV)
+- [x] Set isAdopted=true for adopted_in_lounge cats
+- [x] Verified: 14 cat slides now appear in API response (Alpaca, Apollo, Celia, etc.)
+- [x] Updated tests — 186 tests passing

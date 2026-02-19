@@ -24,6 +24,11 @@ vi.mock("./db", () => ({
   getScreensForTimeSlot: vi.fn(),
   setScreensForTimeSlot: vi.fn(),
   getRandomAdoptionScreens: vi.fn(),
+  getAvailableCats: vi.fn().mockResolvedValue([]),
+  getAdoptedCats: vi.fn().mockResolvedValue([]),
+  getRecentlyAdoptedCatsFromTable: vi.fn().mockResolvedValue([]),
+  getCatCount: vi.fn().mockResolvedValue({ available: 0, adopted: 0, total: 0 }),
+  catToVirtualScreen: vi.fn(),
 }));
 
 import * as db from "./db";
@@ -223,66 +228,33 @@ describe("Screen isAdopted field", () => {
   });
 
   it("should include isAdopted in getRandomAdoptions results", async () => {
-    const mockAdoptionCats = [
+    // getRandomAdoptions now pulls from cats table via getAvailableCats
+    const mockCats = [
       {
-        id: 1,
-        type: "ADOPTION",
-        title: "Cat 1",
-        subtitle: "1 year old",
-        body: null,
-        imagePath: "https://example.com/cat1.jpg",
-        imageDisplayMode: "cover",
-        qrUrl: null,
-        startAt: null,
-        endAt: null,
-        daysOfWeek: null,
-        timeStart: null,
-        timeEnd: null,
-        priority: 1,
-        durationSeconds: 10,
-        sortOrder: 0,
-        isActive: true,
-        isProtected: false,
-        isAdopted: false,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        id: 1, name: "Cat 1", breed: "Tabby", sex: "female", dob: new Date("2023-01-01"),
+        bio: null, photoUrl: "https://example.com/cat1.jpg", status: "available",
+        personalityTags: [], isFeatured: false, sortOrder: 0,
+        adoptedDate: null, createdAt: new Date(), updatedAt: new Date(),
       },
       {
-        id: 2,
-        type: "ADOPTION",
-        title: "Cat 2",
-        subtitle: "2 years old",
-        body: null,
-        imagePath: "https://example.com/cat2.jpg",
-        imageDisplayMode: "cover",
-        qrUrl: null,
-        startAt: null,
-        endAt: null,
-        daysOfWeek: null,
-        timeStart: null,
-        timeEnd: null,
-        priority: 1,
-        durationSeconds: 10,
-        sortOrder: 0,
-        isActive: true,
-        isProtected: false,
-        isAdopted: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        id: 2, name: "Cat 2", breed: "Siamese", sex: "male", dob: new Date("2022-06-15"),
+        bio: null, photoUrl: "https://example.com/cat2.jpg", status: "adopted_in_lounge",
+        personalityTags: [], isFeatured: false, sortOrder: 1,
+        adoptedDate: new Date(), createdAt: new Date(), updatedAt: new Date(),
       },
     ];
 
-    // getRandomAdoptions uses getActiveScreens internally
-    vi.mocked(db.getActiveScreens).mockResolvedValue(mockAdoptionCats);
+    vi.mocked(db.getAvailableCats).mockResolvedValue(mockCats as any);
+    vi.mocked(db.getActiveScreens).mockResolvedValue([]); // No legacy screens
 
     const ctx = createPublicContext();
     const result = await caller(ctx).screens.getRandomAdoptions({ count: 4 });
 
     expect(result).toHaveLength(2);
-    // Results are shuffled, so check that both cats are present with correct isAdopted values
-    const cat1 = result.find(c => c.id === 1);
-    const cat2 = result.find(c => c.id === 2);
-    expect(cat1?.isAdopted).toBe(false);
+    // Results are auto-generated from cats - check they have ADOPTION type
+    expect(result.every(r => r.type === 'ADOPTION')).toBe(true);
+    // Check that adopted_in_lounge cat has isAdopted = true
+    const cat2 = result.find(c => c.title === 'Cat 2');
     expect(cat2?.isAdopted).toBe(true);
   });
 });

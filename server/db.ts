@@ -2079,3 +2079,63 @@ export async function getCatCount(): Promise<{ available: number; adopted: numbe
   const adopted = allCats.filter(c => c.status === "adopted" || c.status === "adopted_in_lounge").length;
   return { available, adopted, total: allCats.length };
 }
+
+/**
+ * Convert a Cat record to a virtual Screen object for TV display.
+ * This allows cats from the Cats tab to automatically appear as ADOPTION slides
+ * on both the web TV and Apple TV without needing manual screen entries.
+ */
+export function catToVirtualScreen(cat: Cat): Screen {
+  // Build personality tags as body text (tag1 · tag2 · tag3)
+  const tags = (cat.personalityTags || []) as string[];
+  const bodyText = tags.length > 0 ? tags.join(' · ') : undefined;
+  
+  // Build subtitle from breed, age, and sex
+  const parts: string[] = [];
+  if (cat.breed) parts.push(cat.breed);
+  if (cat.dob) {
+    const ageMs = Date.now() - new Date(cat.dob).getTime();
+    const ageYears = Math.floor(ageMs / (365.25 * 24 * 60 * 60 * 1000));
+    const ageMonths = Math.floor(ageMs / (30.44 * 24 * 60 * 60 * 1000));
+    if (ageYears >= 1) {
+      parts.push(`${ageYears} year${ageYears > 1 ? 's' : ''} old`);
+    } else {
+      parts.push(`${ageMonths} month${ageMonths !== 1 ? 's' : ''} old`);
+    }
+  }
+  if (cat.sex && cat.sex !== 'unknown') {
+    parts.push(cat.sex === 'male' ? 'Male' : 'Female');
+  }
+  const subtitle = parts.length > 0 ? parts.join(' · ') : undefined;
+  
+  // Use a large negative ID to avoid collision with real screen IDs
+  const virtualId = -(cat.id + 100000);
+  
+  return {
+    id: virtualId,
+    type: 'ADOPTION' as any,
+    title: cat.name,
+    subtitle: subtitle || null,
+    body: bodyText || cat.bio || null,
+    imagePath: cat.photoUrl || null,
+    imageDisplayMode: 'cover',
+    qrUrl: null,
+    startAt: null,
+    endAt: null,
+    daysOfWeek: null,
+    timeStart: null,
+    timeEnd: null,
+    priority: 1,
+    durationSeconds: 10,
+    sortOrder: cat.sortOrder,
+    isActive: true,
+    schedulingEnabled: false,
+    isProtected: false,
+    isAdopted: cat.status === 'adopted' || cat.status === 'adopted_in_lounge',
+    livestreamUrl: null,
+    eventTime: null,
+    eventLocation: null,
+    createdAt: cat.createdAt,
+    updatedAt: cat.updatedAt,
+  } as Screen;
+}
