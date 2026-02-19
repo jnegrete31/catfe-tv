@@ -13,7 +13,6 @@ import GuestSlideshow from "./pages/GuestSlideshow";
 import Vote from "./pages/Vote";
 import SlideEditor from "./pages/SlideEditor";
 import PhotoVote from "./pages/PhotoVote";
-import AdoptionCounterPreview from "./pages/AdoptionCounterPreview";
 
 function Router() {
   return (
@@ -27,7 +26,6 @@ function Router() {
       <Route path="/vote/:pollId" component={Vote} />
       <Route path="/admin/slide-editor" component={SlideEditor} />
       <Route path="/photos/vote" component={PhotoVote} />
-      <Route path="/admin/adoption-counter-preview" component={AdoptionCounterPreview} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

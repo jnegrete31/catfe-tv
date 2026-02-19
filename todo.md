@@ -1419,3 +1419,7 @@
 - [x] Set isAdopted=true for adopted_in_lounge cats
 - [x] Verified: 14 cat slides now appear in API response (Alpaca, Apollo, Celia, etc.)
 - [x] Updated tests — 186 tests passing
+
+## Cleanup - Remove Adoption Counter Preview Page
+- [x] Delete AdoptionCounterPreview.tsx
+- [x] Remove route and import from App.tsx
