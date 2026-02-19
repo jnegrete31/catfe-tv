@@ -45,6 +45,7 @@ import {
   deletePhotoSubmission,
   togglePhotoVisibility,
   togglePhotoFeatured,
+  updatePhotoCaption,
   getFeaturedPhotos,
   getPhotoSubmissionStats,
   getSessionHistory,
@@ -106,6 +107,7 @@ import {
   createCat,
   updateCat,
   deleteCat,
+  bulkUpdateCatStatus,
   getCatsByStatus,
   getRecentlyAdoptedCatsFromTable,
   getCatCount,
@@ -892,6 +894,16 @@ export const appRouter = router({
         return togglePhotoFeatured(input.id, input.isFeatured);
       }),
 
+    // Admin: Update photo caption
+    updateCaption: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        caption: z.string().max(500).nullable(),
+      }))
+      .mutation(async ({ input }) => {
+        return updatePhotoCaption(input.id, input.caption);
+      }),
+
     // Public: Get featured photos for TV display
     getFeatured: publicProcedure.query(async () => {
       return getFeaturedPhotos();
@@ -1643,6 +1655,17 @@ export const appRouter = router({
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         return deleteCat(input.id);
+      }),
+
+    // Admin: Bulk update cat status
+    bulkUpdateStatus: adminProcedure
+      .input(z.object({
+        ids: z.array(z.number()).min(1),
+        status: z.enum(["available", "adopted", "medical_hold", "foster", "trial"]),
+      }))
+      .mutation(async ({ input }) => {
+        const count = await bulkUpdateCatStatus(input.ids, input.status);
+        return { updated: count };
       }),
 
     // Admin: Parse kennel card / medical history documents using AI

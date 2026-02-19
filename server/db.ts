@@ -1,4 +1,4 @@
-import { eq, and, gte, lte, gt, or, isNull, asc, desc, sql } from "drizzle-orm";
+import { eq, and, gte, lte, gt, or, isNull, asc, desc, sql, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { 
   InsertUser, users, 
@@ -563,6 +563,14 @@ export async function togglePhotoFeatured(id: number, isFeatured: boolean) {
   
   await db.update(photoSubmissions).set({ isFeatured }).where(eq(photoSubmissions.id, id));
   return { success: true };
+}
+
+export async function updatePhotoCaption(id: number, caption: string | null): Promise<PhotoSubmission | null> {
+  const db = await getDb();
+  if (!db) return null;
+  await db.update(photoSubmissions).set({ caption }).where(eq(photoSubmissions.id, id));
+  const result = await db.select().from(photoSubmissions).where(eq(photoSubmissions.id, id));
+  return result[0] || null;
 }
 
 export async function getFeaturedPhotos() {
@@ -2069,6 +2077,23 @@ export async function deleteCat(id: number): Promise<boolean> {
   if (!db) return false;
   await db.delete(cats).where(eq(cats.id, id));
   return true;
+}
+
+export async function bulkUpdateCatStatus(
+  ids: number[],
+  status: "available" | "adopted" | "medical_hold" | "foster" | "trial",
+  adoptedDate?: Date | null,
+  adoptedBy?: string | null
+): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  const updateData: any = { status };
+  if (status === "adopted") {
+    updateData.adoptedDate = adoptedDate || new Date();
+    if (adoptedBy !== undefined) updateData.adoptedBy = adoptedBy;
+  }
+  await db.update(cats).set(updateData).where(inArray(cats.id, ids));
+  return ids.length;
 }
 
 export async function getCatsByStatus(status: string): Promise<Cat[]> {

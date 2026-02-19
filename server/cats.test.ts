@@ -12,6 +12,7 @@ vi.mock("./db", () => ({
   createCat: vi.fn(),
   updateCat: vi.fn(),
   deleteCat: vi.fn(),
+  bulkUpdateCatStatus: vi.fn(),
   getCatsByStatus: vi.fn(),
   getRecentlyAdoptedCatsFromTable: vi.fn(),
   getCatCount: vi.fn(),
@@ -87,6 +88,7 @@ vi.mock("./db", () => ({
   getPlaylistScreens: vi.fn(),
   setPlaylistScreens: vi.fn(),
   getActivePlaylist: vi.fn(),
+  updatePhotoCaption: vi.fn(),
 }));
 
 // Mock storage
@@ -665,5 +667,107 @@ describe("cats.parseDocuments (admin)", () => {
 
     expect(result.name).toBe("Apollo");
     expect(result.vaccinationsDue).toHaveLength(2);
+  });
+});
+
+// ============ BULK UPDATE STATUS ============
+
+describe("cats.bulkUpdateStatus (admin)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("updates multiple cats status for admin users", async () => {
+    vi.mocked(db.bulkUpdateCatStatus).mockResolvedValue(3);
+
+    const ctx = createAdminContext();
+    const caller = appRouter.createCaller(ctx);
+
+    const result = await caller.cats.bulkUpdateStatus({
+      ids: [1, 2, 3],
+      status: "adopted",
+    });
+
+    expect(result).toEqual({ updated: 3 });
+    expect(db.bulkUpdateCatStatus).toHaveBeenCalledWith([1, 2, 3], "adopted");
+  });
+
+  it("updates a single cat status", async () => {
+    vi.mocked(db.bulkUpdateCatStatus).mockResolvedValue(1);
+
+    const ctx = createAdminContext();
+    const caller = appRouter.createCaller(ctx);
+
+    const result = await caller.cats.bulkUpdateStatus({
+      ids: [5],
+      status: "medical_hold",
+    });
+
+    expect(result).toEqual({ updated: 1 });
+    expect(db.bulkUpdateCatStatus).toHaveBeenCalledWith([5], "medical_hold");
+  });
+
+  it("accepts all valid status values", async () => {
+    vi.mocked(db.bulkUpdateCatStatus).mockResolvedValue(1);
+
+    const ctx = createAdminContext();
+    const caller = appRouter.createCaller(ctx);
+
+    for (const status of ["available", "adopted", "medical_hold", "foster", "trial"] as const) {
+      await caller.cats.bulkUpdateStatus({
+        ids: [1],
+        status,
+      });
+    }
+
+    expect(db.bulkUpdateCatStatus).toHaveBeenCalledTimes(5);
+  });
+
+  it("rejects empty ids array", async () => {
+    const ctx = createAdminContext();
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(
+      caller.cats.bulkUpdateStatus({
+        ids: [],
+        status: "adopted",
+      })
+    ).rejects.toThrow();
+  });
+
+  it("rejects non-admin users", async () => {
+    const ctx = createUserContext();
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(
+      caller.cats.bulkUpdateStatus({
+        ids: [1, 2],
+        status: "adopted",
+      })
+    ).rejects.toThrow();
+  });
+
+  it("rejects unauthenticated users", async () => {
+    const ctx = createPublicContext();
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(
+      caller.cats.bulkUpdateStatus({
+        ids: [1],
+        status: "available",
+      })
+    ).rejects.toThrow();
+  });
+
+  it("rejects invalid status values", async () => {
+    const ctx = createAdminContext();
+    const caller = appRouter.createCaller(ctx);
+
+    await expect(
+      caller.cats.bulkUpdateStatus({
+        ids: [1],
+        status: "invalid_status" as any,
+      })
+    ).rejects.toThrow();
   });
 });

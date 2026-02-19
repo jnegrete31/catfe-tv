@@ -1433,3 +1433,24 @@
 - [x] Update adoption counter screen to use live count from getAdoptionCount endpoint
 - [x] TemplateRenderer counter element fetches live adoption count
 - [x] All 164 tests passing
+
+## Feature - Bulk Cat Status Update
+- [x] Add bulk updateStatus backend endpoint (accepts array of cat IDs + new status)
+- [x] Add checkbox selection to Cats tab table rows
+- [x] Add "Select All" checkbox in table header
+- [x] Add bulk action toolbar (appears when cats are selected)
+- [x] Add status dropdown in bulk toolbar (Available, Adopted, Medical Hold, etc.)
+- [x] Update adoption counter automatically after bulk status change
+- [x] Write tests for bulk update endpoint
+
+## Feature - Merge Captions into Photos Tab
+- [x] Move caption editing into the Photos tab (inline with each photo)
+- [x] Remove separate Captions tab from admin navigation
+- [x] Allow editing captions directly on photo cards
+- [x] Add collapsible "Suggested Captions" section to Photos tab
+- [x] Add updateCaption backend procedure for inline caption editing
+- [x] Write tests for updateCaption endpoint
+
+## Bug Fix - Admin Tab Centering
+- [x] Fix tab grid to match actual number of tabs (changed grid-cols-8 to grid-cols-6)
+- [x] Center tabs properly after removing Captions tab (now 6 tabs: Cats, Screens, Guests, Photos, Playlists, Settings)
