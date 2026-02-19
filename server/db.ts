@@ -2029,7 +2029,7 @@ export async function getAvailableCats(): Promise<Cat[]> {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(cats)
-    .where(eq(cats.status, "available"))
+    .where(inArray(cats.status, ["available", "adopted_in_lounge"]))
     .orderBy(cats.sortOrder, cats.name);
 }
 
@@ -2037,7 +2037,7 @@ export async function getAdoptedCats(): Promise<Cat[]> {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(cats)
-    .where(eq(cats.status, "adopted"))
+    .where(inArray(cats.status, ["adopted", "adopted_in_lounge"]))
     .orderBy(desc(cats.adoptedDate));
 }
 
@@ -2045,7 +2045,7 @@ export async function getFeaturedCat(): Promise<Cat | null> {
   const db = await getDb();
   if (!db) return null;
   const result = await db.select().from(cats)
-    .where(and(eq(cats.isFeatured, true), eq(cats.status, "available")))
+    .where(and(eq(cats.isFeatured, true), inArray(cats.status, ["available", "adopted_in_lounge"])))
     .limit(1);
   return result[0] || null;
 }
@@ -2081,7 +2081,7 @@ export async function deleteCat(id: number): Promise<boolean> {
 
 export async function bulkUpdateCatStatus(
   ids: number[],
-  status: "available" | "adopted" | "medical_hold" | "foster" | "trial",
+  status: "available" | "adopted" | "adopted_in_lounge" | "medical_hold" | "foster" | "trial",
   adoptedDate?: Date | null,
   adoptedBy?: string | null
 ): Promise<number> {
@@ -2111,7 +2111,7 @@ export async function getRecentlyAdoptedCatsFromTable(days: number = 30): Promis
   cutoff.setDate(cutoff.getDate() - days);
   return db.select().from(cats)
     .where(and(
-      eq(cats.status, "adopted"),
+      inArray(cats.status, ["adopted", "adopted_in_lounge"]),
       gte(cats.adoptedDate, cutoff)
     ))
     .orderBy(desc(cats.adoptedDate));
@@ -2122,7 +2122,7 @@ export async function getCatCount(): Promise<{ available: number; adopted: numbe
   if (!db) return { available: 0, adopted: 0, total: 0 };
   
   const allCats = await db.select({ status: cats.status }).from(cats);
-  const available = allCats.filter(c => c.status === "available").length;
-  const adopted = allCats.filter(c => c.status === "adopted").length;
+  const available = allCats.filter(c => c.status === "available" || c.status === "adopted_in_lounge").length;
+  const adopted = allCats.filter(c => c.status === "adopted" || c.status === "adopted_in_lounge").length;
   return { available, adopted, total: allCats.length };
 }

@@ -100,6 +100,7 @@ function getStatusColor(status: string) {
   switch (status) {
     case "available": return "bg-green-100 text-green-800 border-green-200";
     case "adopted": return "bg-pink-100 text-pink-800 border-pink-200";
+    case "adopted_in_lounge": return "bg-purple-100 text-purple-800 border-purple-200";
     case "medical_hold": return "bg-red-100 text-red-800 border-red-200";
     case "foster": return "bg-blue-100 text-blue-800 border-blue-200";
     case "trial": return "bg-amber-100 text-amber-800 border-amber-200";
@@ -111,6 +112,7 @@ function getStatusLabel(status: string) {
   switch (status) {
     case "available": return "Available";
     case "adopted": return "Adopted";
+    case "adopted_in_lounge": return "Adopted · In Lounge";
     case "medical_hold": return "Medical Hold";
     case "foster": return "Foster";
     case "trial": return "Trial";
@@ -132,7 +134,7 @@ function getDaysAtCatfe(arrivalDate: Date | null): string {
 export function CatManager() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCat, setEditingCat] = useState<CatData | null>(null);
-  const [statusFilter, setStatusFilter] = useState<"available" | "all" | "adopted" | "medical_hold">("available");
+  const [statusFilter, setStatusFilter] = useState<"available" | "all" | "adopted" | "adopted_in_lounge" | "medical_hold">("available");
   const [showMedical, setShowMedical] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
@@ -144,7 +146,7 @@ export function CatManager() {
 
   // Bulk selection state
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
-  const [bulkStatus, setBulkStatus] = useState<"available" | "adopted" | "medical_hold" | "foster" | "trial">("adopted");
+  const [bulkStatus, setBulkStatus] = useState<"available" | "adopted" | "adopted_in_lounge" | "medical_hold" | "foster" | "trial">("adopted");
   const isSelectMode = selectedIds.size > 0;
 
   // Form state
@@ -227,6 +229,7 @@ export function CatManager() {
 
   const availableCount = cats.filter(c => c.status === "available").length;
   const adoptedCount = cats.filter(c => c.status === "adopted").length;
+  const adoptedInLoungeCount = cats.filter(c => c.status === "adopted_in_lounge").length;
   const medicalCount = cats.filter(c => c.status === "medical_hold").length;
 
   function handleClose() {
@@ -502,7 +505,7 @@ export function CatManager() {
   return (
     <div className="space-y-4">
       {/* Status Filter Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
         <button
           type="button"
           onClick={() => setStatusFilter("available")}
@@ -528,6 +531,19 @@ export function CatManager() {
             <Heart className="w-4 h-4 text-pink-500" />
           </p>
           <p className="text-xs text-muted-foreground">Adopted</p>
+        </button>
+        <button
+          type="button"
+          onClick={() => setStatusFilter("adopted_in_lounge")}
+          className={`rounded-lg p-3 border text-left transition-colors ${
+            statusFilter === "adopted_in_lounge" ? "bg-purple-50 border-purple-400 ring-1 ring-purple-400" : "bg-card hover:bg-accent/50"
+          }`}
+        >
+          <p className="text-xl font-bold flex items-center gap-1">
+            {adoptedInLoungeCount}
+            <Heart className="w-4 h-4 text-purple-500" />
+          </p>
+          <p className="text-xs text-muted-foreground">In Lounge</p>
         </button>
         <button
           type="button"
@@ -582,6 +598,7 @@ export function CatManager() {
             <SelectContent>
               <SelectItem value="available">Available</SelectItem>
               <SelectItem value="adopted">Adopted</SelectItem>
+              <SelectItem value="adopted_in_lounge">Adopted · In Lounge</SelectItem>
               <SelectItem value="medical_hold">Medical Hold</SelectItem>
               <SelectItem value="foster">Foster</SelectItem>
               <SelectItem value="trial">Trial</SelectItem>
@@ -634,6 +651,7 @@ export function CatManager() {
           <p className="text-muted-foreground">
             {statusFilter === "available" ? "No available cats" :
              statusFilter === "adopted" ? "No adopted cats yet" :
+             statusFilter === "adopted_in_lounge" ? "No adopted cats still in the lounge" :
              statusFilter === "medical_hold" ? "No cats on medical hold" :
              "No cats in the roster"}
           </p>
@@ -984,6 +1002,7 @@ export function CatManager() {
                     <SelectContent>
                       <SelectItem value="available">🟢 Available</SelectItem>
                       <SelectItem value="adopted">💕 Adopted</SelectItem>
+                      <SelectItem value="adopted_in_lounge">🟣 Adopted · In Lounge</SelectItem>
                       <SelectItem value="medical_hold">🔴 Medical Hold</SelectItem>
                       <SelectItem value="foster">🔵 Foster</SelectItem>
                       <SelectItem value="trial">🟡 Trial Adoption</SelectItem>

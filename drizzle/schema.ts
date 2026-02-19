@@ -481,7 +481,7 @@ export type WidgetOverrides = {
 /**
  * Cat status options
  */
-export const catStatusEnum = mysqlEnum("catStatus", ["available", "adopted", "medical_hold", "foster", "trial"]);
+export const catStatusEnum = mysqlEnum("catStatus", ["available", "adopted", "adopted_in_lounge", "medical_hold", "foster", "trial"]);
 
 /**
  * Cat sex options

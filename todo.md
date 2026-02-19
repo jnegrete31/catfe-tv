@@ -1454,3 +1454,15 @@
 ## Bug Fix - Admin Tab Centering
 - [x] Fix tab grid to match actual number of tabs (changed grid-cols-8 to grid-cols-6)
 - [x] Center tabs properly after removing Captions tab (now 6 tabs: Cats, Screens, Guests, Photos, Playlists, Settings)
+
+## Feature - Adopted Still in Lounge Status
+- [x] Add "adopted_in_lounge" status to catStatus enum in database schema
+- [x] Run database migration for new status value
+- [x] Update getAdoptableCats / TV display queries to include adopted_in_lounge cats
+- [x] Update adoption showcase to show adopted_in_lounge cats with "Adopted!" badge
+- [x] Update CatManager form status dropdown with new option
+- [x] Update CatManager status filter cards with new status (purple "In Lounge" card)
+- [x] Update bulk status update dropdown with new option
+- [x] Update getStatusLabel and status display helpers across UI
+- [x] Ensure adopted_in_lounge cats show "Adopted!" badge on TV slides
+- [x] Write/update tests for new status (178 tests passing)

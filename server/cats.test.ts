@@ -713,14 +713,14 @@ describe("cats.bulkUpdateStatus (admin)", () => {
     const ctx = createAdminContext();
     const caller = appRouter.createCaller(ctx);
 
-    for (const status of ["available", "adopted", "medical_hold", "foster", "trial"] as const) {
+    for (const status of ["available", "adopted", "adopted_in_lounge", "medical_hold", "foster", "trial"] as const) {
       await caller.cats.bulkUpdateStatus({
         ids: [1],
         status,
       });
     }
 
-    expect(db.bulkUpdateCatStatus).toHaveBeenCalledTimes(5);
+    expect(db.bulkUpdateCatStatus).toHaveBeenCalledTimes(6);
   });
 
   it("rejects empty ids array", async () => {
@@ -769,5 +769,72 @@ describe("cats.bulkUpdateStatus (admin)", () => {
         status: "invalid_status" as any,
       })
     ).rejects.toThrow();
+  });
+});
+
+// ============ ADOPTED IN LOUNGE STATUS ============
+
+describe("cats.bulkUpdateStatus with adopted_in_lounge", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("sets cats to adopted_in_lounge status", async () => {
+    vi.mocked(db.bulkUpdateCatStatus).mockResolvedValue(2);
+
+    const ctx = createAdminContext();
+    const caller = appRouter.createCaller(ctx);
+
+    const result = await caller.cats.bulkUpdateStatus({
+      ids: [1, 2],
+      status: "adopted_in_lounge",
+    });
+
+    expect(result).toEqual({ updated: 2 });
+    expect(db.bulkUpdateCatStatus).toHaveBeenCalledWith([1, 2], "adopted_in_lounge");
+  });
+
+  it("can create a cat with adopted_in_lounge status", async () => {
+    const mockCat = {
+      id: 1,
+      name: "Whiskers",
+      breed: "Domestic Shorthair",
+      status: "adopted_in_lounge" as const,
+      photoUrl: null,
+      colorPattern: null,
+      dob: null,
+      sex: "unknown" as const,
+      weight: null,
+      personalityTags: null,
+      bio: null,
+      adoptionFee: "$150.00",
+      isAltered: false,
+      felvFivStatus: "not_tested" as const,
+      rescueId: null,
+      shelterluvId: null,
+      microchipNumber: null,
+      arrivalDate: null,
+      intakeType: null,
+      medicalNotes: null,
+      vaccinationsDue: null,
+      fleaTreatmentDue: null,
+      adoptedDate: new Date(),
+      adoptedBy: "Jane Doe",
+      isFeatured: false,
+      sortOrder: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    vi.mocked(db.createCat).mockResolvedValue(mockCat);
+
+    const ctx = createAdminContext();
+    const caller = appRouter.createCaller(ctx);
+
+    const result = await caller.cats.create({
+      name: "Whiskers",
+      status: "adopted_in_lounge",
+    });
+
+    expect(result.status).toBe("adopted_in_lounge");
   });
 });
