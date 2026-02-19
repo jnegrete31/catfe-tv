@@ -1377,9 +1377,15 @@
 - [x] Ensure 6 admin tabs are visually centered using flex layout with flex-1 triggers
 
 ## Feature - Adoption Counter Slide Redesign
-- [ ] Build Concept A preview (Wall of Love Photo Mosaic)
-- [ ] Build Concept C preview (Happy Tails Timeline Split Layout)
-- [ ] Create preview page to toggle between concepts
-- [ ] Let user choose preferred design
-- [ ] Replace current adoption counter with chosen design
-- [ ] Ensure design works for both Apple TV and web
+- [x] Build Concept A preview (Wall of Love Photo Mosaic)
+- [x] Build Concept C preview (Happy Tails Timeline Split Layout)
+- [x] Create preview page to toggle between concepts
+- [x] User chose hybrid: Concept C layout + photo mosaic on right side
+- [x] Replace current adoption counter with hybrid design
+- [x] Design works for both Apple TV and web
+
+## Feature - Hybrid Adoption Counter (C + Mosaic)
+- [x] Combine Concept C split layout with photo mosaic on right side
+- [x] Fix vertical centering of counter content (fixed tv-screen CSS and preview container)
+- [x] Replace current AdoptionCounterScreen in ScreenRenderer with hybrid design
+- [x] Preview page updated with hybrid design for comparison

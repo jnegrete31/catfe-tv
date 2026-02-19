@@ -48,7 +48,7 @@ function ConceptA() {
   }, [totalCount]);
 
   return (
-    <div className="tv-screen relative overflow-hidden" style={{ background: '#2d2d2d' }}>
+    <div className="relative overflow-hidden w-full h-full" style={{ background: '#2d2d2d' }}>
       {/* Photo mosaic background */}
       <div className="absolute inset-0 grid grid-cols-6 grid-rows-4 gap-0.5 opacity-25">
         {Array.from({ length: 24 }).map((_, i) => {
@@ -215,7 +215,15 @@ function ConceptA() {
 function ConceptC() {
   const { data: settingsData } = trpc.settings.get.useQuery();
   const { data: recentlyAdopted } = trpc.cats.getRecentlyAdopted.useQuery({ days: 90 });
+  const { data: availableCats } = trpc.cats.getAvailable.useQuery();
   const totalCount = settingsData?.totalAdoptionCount || 0;
+
+  // Cats with photos for the mosaic background
+  const allCatsWithPhotos = useMemo(() => {
+    const adopted = (recentlyAdopted || []).filter((c: Cat) => c.photoUrl);
+    const available = (availableCats || []).filter((c: Cat) => c.photoUrl);
+    return [...adopted, ...available];
+  }, [recentlyAdopted, availableCats]);
 
   // Rotating carousel index
   const [currentCatIndex, setCurrentCatIndex] = useState(0);
@@ -259,7 +267,7 @@ function ConceptC() {
   const currentCat = adoptedCats[currentCatIndex];
 
   return (
-    <div className="tv-screen relative overflow-hidden" style={{ background: '#2d2d2d' }}>
+    <div className="relative overflow-hidden w-full h-full" style={{ background: '#2d2d2d' }}>
       {/* Split layout */}
       <div className="absolute inset-0 flex">
         {/* LEFT SIDE — Counter & branding */}
@@ -289,7 +297,7 @@ function ConceptC() {
             className="relative z-10 text-center px-8"
           >
             {/* Top label */}
-            <div className="flex items-center justify-center gap-2 mb-6">
+            <div className="flex items-center justify-center gap-2 mb-4">
               <div className="h-px w-12" style={{ background: '#DAA520' }} />
               <span className="text-sm tracking-[0.3em] uppercase" style={{ color: '#86C5A9', fontFamily: 'Georgia, serif' }}>
                 Forever Homes
@@ -302,7 +310,7 @@ function ConceptC() {
               initial={{ scale: 0.5, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: 'spring', stiffness: 80, delay: 0.3 }}
-              className="text-[12rem] font-black leading-none block"
+              className="text-[8rem] font-black leading-[0.9] block"
               style={{
                 fontFamily: 'Georgia, serif',
                 background: 'linear-gradient(180deg, #E8913A 0%, #DAA520 50%, #86C5A9 100%)',
@@ -314,30 +322,57 @@ function ConceptC() {
               {displayCount}
             </motion.span>
 
-            <h2 className="text-4xl tracking-wider mt-2" style={{ fontFamily: 'Georgia, serif', color: '#2d2d2d' }}>
+            <h2 className="text-2xl tracking-wider mt-3" style={{ fontFamily: 'Georgia, serif', color: '#2d2d2d' }}>
               Cats Adopted
             </h2>
 
-            <p className="text-lg mt-4" style={{ color: 'rgba(45, 45, 45, 0.5)' }}>
+            <p className="text-sm mt-2" style={{ color: 'rgba(45, 45, 45, 0.5)' }}>
               Every visit helps us find forever homes
             </p>
           </motion.div>
         </div>
 
-        {/* RIGHT SIDE — Recently adopted carousel */}
+        {/* RIGHT SIDE — Photo mosaic + carousel */}
         <div className="w-1/2 relative flex items-center justify-center"
              style={{ background: 'linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%)' }}>
+          
+          {/* Photo mosaic background */}
+          <div className="absolute inset-0 grid grid-cols-4 grid-rows-3 gap-0.5 opacity-20">
+            {Array.from({ length: 12 }).map((_, i) => {
+              const cat = allCatsWithPhotos[i % Math.max(allCatsWithPhotos.length, 1)];
+              return (
+                <motion.div
+                  key={i}
+                  className="relative overflow-hidden"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: i * 0.08, duration: 0.5 }}
+                >
+                  {cat?.photoUrl ? (
+                    <img src={cat.photoUrl} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full" style={{ background: 'linear-gradient(135deg, #3a3a3a, #2a2a2a)' }} />
+                  )}
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* Dark overlay to make carousel pop */}
+          <div className="absolute inset-0" style={{
+            background: 'radial-gradient(ellipse at center, rgba(30,30,30,0.5) 0%, rgba(26,26,26,0.8) 70%)'
+          }} />
           
           {/* Amber glow */}
           <div className="absolute top-0 left-0 w-64 h-64 rounded-full opacity-20"
                style={{ background: 'radial-gradient(circle, rgba(218, 165, 32, 0.5) 0%, transparent 70%)' }} />
           
           {/* Mint floor reflection */}
-          <div className="absolute bottom-0 left-0 right-0 h-1/3"
+          <div className="absolute bottom-0 left-0 right-0 h-1/4"
                style={{ background: 'linear-gradient(to top, rgba(134, 197, 169, 0.1) 0%, transparent 100%)' }} />
 
           {/* "Recently Adopted" label */}
-          <div className="absolute top-8 left-0 right-0 text-center">
+          <div className="absolute top-8 left-0 right-0 text-center z-10">
             <span className="text-sm tracking-[0.3em] uppercase" style={{ color: 'rgba(134, 197, 169, 0.6)' }}>
               Recently Adopted
             </span>
@@ -352,7 +387,7 @@ function ConceptC() {
                 animate={{ opacity: 1, x: 0, rotateY: 0 }}
                 exit={{ opacity: 0, x: -60, rotateY: 10 }}
                 transition={{ duration: 0.6, ease: 'easeInOut' }}
-                className="relative w-72"
+                className="relative w-72 z-10"
               >
                 {/* Polaroid-style card */}
                 <div className="rounded-xl overflow-hidden shadow-2xl"
@@ -404,7 +439,7 @@ function ConceptC() {
 
           {/* Dot indicators */}
           {adoptedCats.length > 1 && (
-            <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-2">
+            <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-2 z-10">
               {adoptedCats.slice(0, 8).map((_: Cat, i: number) => (
                 <div
                   key={i}
@@ -427,7 +462,7 @@ function ConceptC() {
 // PREVIEW PAGE — Toggle between concepts
 // ============================================================
 export default function AdoptionCounterPreview() {
-  const [activeConcept, setActiveConcept] = useState<"A" | "C">("A");
+  const [activeConcept, setActiveConcept] = useState<"A" | "C">("C");
 
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col">
@@ -494,7 +529,7 @@ export default function AdoptionCounterPreview() {
           </p>
         ) : (
           <p className="text-gray-400 text-sm">
-            <strong className="text-amber-400">Concept C — Happy Tails Timeline:</strong> Split layout with the counter on the left (cream/warm tones) and a rotating carousel of recently adopted cats on the right (dark with polaroid cards).
+            <strong className="text-amber-400">Concept C — Happy Tails (Hybrid):</strong> Split layout with the counter on the left (cream/warm tones) and a photo mosaic + rotating carousel of recently adopted cats on the right.
           </p>
         )}
       </div>
