@@ -1375,3 +1375,11 @@
 
 ## Bug Fix - Tab Centering
 - [x] Ensure 6 admin tabs are visually centered using flex layout with flex-1 triggers
+
+## Feature - Adoption Counter Slide Redesign
+- [ ] Build Concept A preview (Wall of Love Photo Mosaic)
+- [ ] Build Concept C preview (Happy Tails Timeline Split Layout)
+- [ ] Create preview page to toggle between concepts
+- [ ] Let user choose preferred design
+- [ ] Replace current adoption counter with chosen design
+- [ ] Ensure design works for both Apple TV and web
