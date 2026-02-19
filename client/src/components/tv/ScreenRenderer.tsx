@@ -999,8 +999,8 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats, catDbCats }: S
 
 // ADOPTION_COUNTER - Full-screen celebration of total adoptions
 function AdoptionCounterScreen({ screen, settings }: ScreenRendererProps) {
-  const { data: settingsData } = trpc.settings.get.useQuery();
-  const totalCount = settingsData?.totalAdoptionCount || 0;
+  const { data: adoptionData } = trpc.screens.getAdoptionCount.useQuery();
+  const totalCount = adoptionData?.count || 0;
   
   return (
     <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
@@ -2376,7 +2376,7 @@ export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendere
           <TemplateRenderer 
             screen={screen} 
             settings={settings} 
-            adoptionCount={settings?.totalAdoptionCount}
+            adoptionCount={undefined}
             adoptionCats={adoptionCats}
           />
         </motion.div>

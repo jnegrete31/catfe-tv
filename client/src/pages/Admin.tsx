@@ -12,7 +12,6 @@ import { PlaylistPreview } from "@/components/admin/ScreenPreview";
 import { GuestCheckIn } from "@/components/admin/GuestCheckIn";
 import PhotoModeration from "@/components/admin/PhotoModeration";
 import CaptionManager from "@/components/admin/CaptionManager";
-import { PollManager } from "@/components/admin/PollManager";
 import { PlaylistManager } from "@/components/admin/PlaylistManager";
 import { CatManager } from "@/components/admin/CatManager";
 import { trpc } from "@/lib/trpc";
@@ -29,7 +28,6 @@ import {
   Image,
   Heart,
   MessageSquare,
-  Vote,
   ListMusic,
   Palette,
   EyeOff,
@@ -151,7 +149,6 @@ export default function Admin() {
     { value: "guests", icon: Users, label: "Guests" },
     { value: "photos", icon: Image, label: "Photos" },
     { value: "captions", icon: MessageSquare, label: "Captions" },
-    { value: "polls", icon: Vote, label: "Polls" },
     { value: "playlists", icon: ListMusic, label: "Playlists" },
     { value: "settings", icon: Settings, label: "Settings" },
   ];
@@ -368,11 +365,6 @@ export default function Admin() {
           {/* Captions Tab */}
           <TabsContent value="captions">
             <CaptionManager />
-          </TabsContent>
-          
-          {/* Polls Tab */}
-          <TabsContent value="polls">
-            <PollManager />
           </TabsContent>
 
           {/* Playlists Tab */}

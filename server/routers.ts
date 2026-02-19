@@ -508,16 +508,23 @@ export const appRouter = router({
           .slice(0, input.limit);
       }),
 
-    // Get count of adopted cats (for success counter)
+    // Get count of adopted cats (for success counter) - auto-calculated from database
     getAdoptionCount: publicProcedure
       .query(async () => {
+        // Count from cats table (primary source)
+        const adoptedCatsFromTable = await getAdoptedCats();
+        const catsTableCount = adoptedCatsFromTable.length;
+        
+        // Also count from screens table (legacy adoption screens marked as adopted)
         const allScreens = await getAllScreens();
-        // Count all adopted cats (both active and inactive)
-        const adoptedCount = allScreens.filter(s => 
+        const screensAdoptedCount = allScreens.filter(s => 
           s.type === 'ADOPTION' && 
           (s as any).isAdopted === true
         ).length;
-        return { count: adoptedCount };
+        
+        // Use the higher of the two counts (they may overlap)
+        const count = Math.max(catsTableCount, screensAdoptedCount);
+        return { count };
       }),
   }),
 

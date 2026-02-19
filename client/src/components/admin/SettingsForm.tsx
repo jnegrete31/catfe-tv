@@ -468,27 +468,7 @@ export function SettingsForm({ settings, onSuccess }: SettingsFormProps) {
       </Card>
       
       {/* Adoption Counter */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-green-700">🎉 Adoption Counter</CardTitle>
-          <CardDescription>Track your total adoptions for the celebration display</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="totalAdoptionCount">Total Cats Adopted</Label>
-            <Input
-              id="totalAdoptionCount"
-              type="number"
-              min={0}
-              {...register("totalAdoptionCount", { valueAsNumber: true })}
-              className="text-2xl font-bold text-center h-14"
-            />
-            <p className="text-xs text-muted-foreground">
-              Enter the total number of cats adopted (including before this system was set up)
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      <AdoptionCounterCard />
       
       {/* Playlist Settings */}
       <Card>
@@ -585,5 +565,39 @@ export function SettingsForm({ settings, onSuccess }: SettingsFormProps) {
         {updateMutation.isPending ? "Saving..." : "Save Settings"}
       </Button>
     </form>
+  );
+}
+
+// Auto-calculated adoption counter card
+function AdoptionCounterCard() {
+  const { data: adoptionData, isLoading } = trpc.screens.getAdoptionCount.useQuery();
+  const { data: catsData } = trpc.cats.getAll.useQuery();
+  
+  const adoptedCatsCount = catsData?.filter((c: any) => c.status === 'adopted').length || 0;
+  const totalCount = adoptionData?.count || 0;
+  
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-green-700">🎉 Adoption Counter</CardTitle>
+        <CardDescription>Auto-calculated from your cats database</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="text-center">
+          <div className="text-5xl font-bold text-green-600 mb-2">
+            {isLoading ? "..." : totalCount}
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Total cats adopted
+          </p>
+        </div>
+        <div className="p-3 bg-green-50 rounded-lg text-sm">
+          <p className="text-green-800">
+            <strong>{adoptedCatsCount}</strong> cats marked as "adopted" in the Cats tab.
+            This number updates automatically when you change a cat's status to adopted.
+          </p>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

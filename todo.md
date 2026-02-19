@@ -1420,3 +1420,16 @@
 - [x] 4 new tests for custom slide independence (9 total template tests passing)
 - [x] All 164 tests passing
 - [x] Remove polls from tvOS app (not needed)
+
+## Admin Cleanup - Remove Polls Tab
+- [x] Remove Polls tab from admin navigation
+- [x] Keep poll data in database (no schema changes) but hide from UI
+- [x] Remove Cat Polls feature card from homepage
+- [x] Remove Poll Voting Page from staff guide
+
+## Admin Improvement - Auto-Sync Adoption Counter
+- [x] Auto-calculate adoption count from cats database instead of manual settings input
+- [x] Replace manual "Total Cats Adopted" input with read-only auto-calculated display in Settings
+- [x] Update adoption counter screen to use live count from getAdoptionCount endpoint
+- [x] TemplateRenderer counter element fetches live adoption count
+- [x] All 164 tests passing
