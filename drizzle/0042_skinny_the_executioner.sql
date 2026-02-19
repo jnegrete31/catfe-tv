@@ -1,0 +1,1 @@
+ALTER TABLE `screens` ADD `eventDate` varchar(100);

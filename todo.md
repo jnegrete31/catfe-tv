@@ -1349,3 +1349,14 @@
 - [x] Fix AdminViewModel: remove references to old field names
 - [x] Fix ScreenContentView preview: use new field names
 - [x] Push updated Swift files to GitHub
+
+## Feature - Adoption Date Overlay on TV Slides
+- [x] Verify adopted_in_lounge status exists in schema (re-added after rollback)
+- [x] Ensure adopted_in_lounge cats appear on TV adoption showcase slides
+- [x] Add adoption date badge overlay (e.g., "Adopted Feb 19!") on TV slides for adopted_in_lounge cats
+- [x] Update cat count indicator to differentiate available vs recently adopted
+- [x] Update admin UI status helpers (getStatusColor, getStatusLabel) for adopted_in_lounge
+- [x] Update all status dropdowns (form, bulk update) with adopted_in_lounge option
+- [x] Add adopted_in_lounge filter card to CatManager (purple "In Lounge" card)
+- [x] Add bulkUpdateStatus procedure to routers.ts
+- [x] Write/update tests for adopted_in_lounge status and adoption date overlay (169 tests passing)

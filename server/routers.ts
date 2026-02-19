@@ -108,6 +108,7 @@ import {
   getCatsByStatus,
   getRecentlyAdoptedCatsFromTable,
   getCatCount,
+  bulkUpdateCatStatus,
 } from "./db";
 import { storagePut } from "./storage";
 import { invokeLLM } from "./_core/llm";
@@ -1523,7 +1524,7 @@ export const appRouter = router({
         adoptionFee: z.string().max(50).optional(),
         isAltered: z.boolean().default(false),
         felvFivStatus: z.enum(["negative", "positive", "unknown", "not_tested"]).default("not_tested"),
-        status: z.enum(["available", "adopted", "medical_hold", "foster", "trial"]).default("available"),
+        status: z.enum(["available", "adopted", "adopted_in_lounge", "medical_hold", "foster", "trial"]).default("available"),
         rescueId: z.string().max(100).nullable().optional(),
         shelterluvId: z.string().max(100).nullable().optional(),
         microchipNumber: z.string().max(100).nullable().optional(),
@@ -1557,7 +1558,7 @@ export const appRouter = router({
         adoptionFee: z.string().max(50).optional(),
         isAltered: z.boolean().optional(),
         felvFivStatus: z.enum(["negative", "positive", "unknown", "not_tested"]).optional(),
-        status: z.enum(["available", "adopted", "medical_hold", "foster", "trial"]).optional(),
+        status: z.enum(["available", "adopted", "adopted_in_lounge", "medical_hold", "foster", "trial"]).optional(),
         rescueId: z.string().max(100).nullable().optional(),
         shelterluvId: z.string().max(100).nullable().optional(),
         microchipNumber: z.string().max(100).nullable().optional(),
@@ -1585,6 +1586,17 @@ export const appRouter = router({
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         return deleteCat(input.id);
+      }),
+
+    // Admin: Bulk update cat status
+    bulkUpdateStatus: adminProcedure
+      .input(z.object({
+        ids: z.array(z.number()).min(1),
+        status: z.enum(["available", "adopted", "adopted_in_lounge", "medical_hold", "foster", "trial"]),
+      }))
+      .mutation(async ({ input }) => {
+        const count = await bulkUpdateCatStatus(input.ids, input.status);
+        return { updated: count };
       }),
 
     // Admin: Parse kennel card / medical history documents using AI

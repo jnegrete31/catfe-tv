@@ -1,4 +1,4 @@
-import { eq, and, gte, lte, gt, or, isNull, asc, desc, sql } from "drizzle-orm";
+import { eq, and, gte, lte, gt, or, isNull, asc, desc, sql, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { 
   InsertUser, users, 
@@ -1982,7 +1982,7 @@ export async function getAvailableCats(): Promise<Cat[]> {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(cats)
-    .where(eq(cats.status, "available"))
+    .where(inArray(cats.status, ["available", "adopted_in_lounge"]))
     .orderBy(cats.sortOrder, cats.name);
 }
 
@@ -1990,7 +1990,7 @@ export async function getAdoptedCats(): Promise<Cat[]> {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(cats)
-    .where(eq(cats.status, "adopted"))
+    .where(inArray(cats.status, ["adopted", "adopted_in_lounge"]))
     .orderBy(desc(cats.adoptedDate));
 }
 
@@ -2032,6 +2032,15 @@ export async function deleteCat(id: number): Promise<boolean> {
   return true;
 }
 
+export async function bulkUpdateCatStatus(ids: number[], status: string): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  const result = await db.update(cats)
+    .set({ status: status as any, updatedAt: new Date() })
+    .where(inArray(cats.id, ids));
+  return (result as any)[0]?.affectedRows || ids.length;
+}
+
 export async function getCatsByStatus(status: string): Promise<Cat[]> {
   const db = await getDb();
   if (!db) return [];
@@ -2047,7 +2056,7 @@ export async function getRecentlyAdoptedCatsFromTable(days: number = 30): Promis
   cutoff.setDate(cutoff.getDate() - days);
   return db.select().from(cats)
     .where(and(
-      eq(cats.status, "adopted"),
+      inArray(cats.status, ["adopted", "adopted_in_lounge"]),
       gte(cats.adoptedDate, cutoff)
     ))
     .orderBy(desc(cats.adoptedDate));
@@ -2059,6 +2068,6 @@ export async function getCatCount(): Promise<{ available: number; adopted: numbe
   
   const allCats = await db.select({ status: cats.status }).from(cats);
   const available = allCats.filter(c => c.status === "available").length;
-  const adopted = allCats.filter(c => c.status === "adopted").length;
+  const adopted = allCats.filter(c => c.status === "adopted" || c.status === "adopted_in_lounge").length;
   return { available, adopted, total: allCats.length };
 }

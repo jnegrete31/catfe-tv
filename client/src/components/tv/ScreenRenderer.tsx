@@ -867,13 +867,20 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats, catDbCats }: S
                       </div>
                     )}
                     <div className="absolute inset-0" style={{ boxShadow: 'inset 0 0 60px rgba(0,0,0,0.15)' }} />
+                    {cat.status === 'adopted_in_lounge' && (
+                      <div className="absolute top-3 right-3 px-4 py-2 rounded-full shadow-lg" style={{ background: 'linear-gradient(135deg, #86C5A9, #5fa88a)' }}>
+                        <span className="text-white text-sm font-bold tracking-wide">
+                          🎉 Adopted{cat.adoptedDate ? ` ${new Date(cat.adoptedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : ''}!
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <div className="absolute bottom-2 left-2 right-2 text-center">
                     <p className="text-gray-800 text-2xl font-semibold truncate" style={{ fontFamily: 'Georgia, serif' }}>
-                      Meet {cat.name}
+                      {cat.status === 'adopted_in_lounge' ? cat.name : `Meet ${cat.name}`}
                     </p>
                     <p className="text-gray-600 text-lg truncate">
-                      {cat.breed}{cat.colorPattern ? ` · ${cat.colorPattern}` : ''}
+                      {cat.status === 'adopted_in_lounge' ? 'Found their forever home!' : `${cat.breed}${cat.colorPattern ? ` \u00b7 ${cat.colorPattern}` : ''}`}
                     </p>
                   </div>
                 </div>
@@ -944,7 +951,12 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats, catDbCats }: S
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20">
         <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
           <span className="text-orange-400 text-lg">🐾</span>
-          <span className="text-white/80 text-sm">{useDbCats ? availableCats.length : displayCats.length} cats looking for homes</span>
+          <span className="text-white/80 text-sm">
+            {useDbCats 
+              ? `${availableCats.filter(c => c.status === 'available').length} looking for homes${availableCats.filter(c => c.status === 'adopted_in_lounge').length > 0 ? ` \u00b7 ${availableCats.filter(c => c.status === 'adopted_in_lounge').length} recently adopted!` : ''}`
+              : `${displayCats.length} cats looking for homes`
+            }
+          </span>
         </div>
       </div>
       
