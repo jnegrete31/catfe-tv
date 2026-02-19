@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,9 +25,6 @@ import {
   Shield,
   FileUp,
   ScanLine,
-  CheckSquare,
-  Square,
-  MinusSquare,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -100,7 +97,6 @@ function getStatusColor(status: string) {
   switch (status) {
     case "available": return "bg-green-100 text-green-800 border-green-200";
     case "adopted": return "bg-pink-100 text-pink-800 border-pink-200";
-    case "adopted_in_lounge": return "bg-purple-100 text-purple-800 border-purple-200";
     case "medical_hold": return "bg-red-100 text-red-800 border-red-200";
     case "foster": return "bg-blue-100 text-blue-800 border-blue-200";
     case "trial": return "bg-amber-100 text-amber-800 border-amber-200";
@@ -112,7 +108,6 @@ function getStatusLabel(status: string) {
   switch (status) {
     case "available": return "Available";
     case "adopted": return "Adopted";
-    case "adopted_in_lounge": return "Adopted · In Lounge";
     case "medical_hold": return "Medical Hold";
     case "foster": return "Foster";
     case "trial": return "Trial";
@@ -134,7 +129,7 @@ function getDaysAtCatfe(arrivalDate: Date | null): string {
 export function CatManager() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCat, setEditingCat] = useState<CatData | null>(null);
-  const [statusFilter, setStatusFilter] = useState<"available" | "all" | "adopted" | "adopted_in_lounge" | "medical_hold">("available");
+  const [statusFilter, setStatusFilter] = useState<"available" | "all" | "adopted" | "medical_hold">("available");
   const [showMedical, setShowMedical] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
@@ -143,11 +138,6 @@ export function CatManager() {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const [importDocs, setImportDocs] = useState<File[]>([]);
-
-  // Bulk selection state
-  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
-  const [bulkStatus, setBulkStatus] = useState<"available" | "adopted" | "adopted_in_lounge" | "medical_hold" | "foster" | "trial">("adopted");
-  const isSelectMode = selectedIds.size > 0;
 
   // Form state
   const [formData, setFormData] = useState({
@@ -212,16 +202,6 @@ export function CatManager() {
     },
   });
   const parseDocsMutation = trpc.cats.parseDocuments.useMutation();
-  const bulkUpdateMutation = trpc.cats.bulkUpdateStatus.useMutation({
-    onSuccess: (data) => {
-      catsQuery.refetch();
-      toast.success(`${data.updated} cat(s) updated to ${getStatusLabel(bulkStatus)}.`);
-      setSelectedIds(new Set());
-    },
-    onError: (err) => {
-      toast.error(err.message);
-    },
-  });
 
   const cats = catsQuery.data || [];
   const filteredCats = statusFilter === "all" ? cats
@@ -229,7 +209,6 @@ export function CatManager() {
 
   const availableCount = cats.filter(c => c.status === "available").length;
   const adoptedCount = cats.filter(c => c.status === "adopted").length;
-  const adoptedInLoungeCount = cats.filter(c => c.status === "adopted_in_lounge").length;
   const medicalCount = cats.filter(c => c.status === "medical_hold").length;
 
   function handleClose() {
@@ -471,41 +450,10 @@ export function CatManager() {
 
   const isLoading = createMutation.isPending || updateMutation.isPending || uploadingPhoto;
 
-  // Bulk selection helpers
-  function toggleSelect(id: number) {
-    setSelectedIds(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
-
-  function toggleSelectAll() {
-    const filteredIds = filteredCats.map(c => c.id);
-    const allSelected = filteredIds.every(id => selectedIds.has(id));
-    if (allSelected) {
-      setSelectedIds(new Set());
-    } else {
-      setSelectedIds(new Set(filteredIds));
-    }
-  }
-
-  function handleBulkUpdate() {
-    if (selectedIds.size === 0) return;
-    bulkUpdateMutation.mutate({
-      ids: Array.from(selectedIds),
-      status: bulkStatus,
-    });
-  }
-
-  const allFilteredSelected = filteredCats.length > 0 && filteredCats.every(c => selectedIds.has(c.id));
-  const someFilteredSelected = filteredCats.some(c => selectedIds.has(c.id));
-
   return (
     <div className="space-y-4">
       {/* Status Filter Cards */}
-      <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         <button
           type="button"
           onClick={() => setStatusFilter("available")}
@@ -534,19 +482,6 @@ export function CatManager() {
         </button>
         <button
           type="button"
-          onClick={() => setStatusFilter("adopted_in_lounge")}
-          className={`rounded-lg p-3 border text-left transition-colors ${
-            statusFilter === "adopted_in_lounge" ? "bg-purple-50 border-purple-400 ring-1 ring-purple-400" : "bg-card hover:bg-accent/50"
-          }`}
-        >
-          <p className="text-xl font-bold flex items-center gap-1">
-            {adoptedInLoungeCount}
-            <Heart className="w-4 h-4 text-purple-500" />
-          </p>
-          <p className="text-xs text-muted-foreground">In Lounge</p>
-        </button>
-        <button
-          type="button"
           onClick={() => setStatusFilter("medical_hold")}
           className={`rounded-lg p-3 border text-left transition-colors ${
             statusFilter === "medical_hold" ? "bg-red-50 border-red-400 ring-1 ring-red-400" : "bg-card hover:bg-accent/50"
@@ -570,76 +505,6 @@ export function CatManager() {
         </button>
       </div>
 
-      {/* Bulk Actions Bar */}
-      {isSelectMode && (
-        <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/10 border border-primary/30">
-          <button
-            type="button"
-            onClick={toggleSelectAll}
-            className="flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80"
-          >
-            {allFilteredSelected ? (
-              <CheckSquare className="w-4 h-4" />
-            ) : someFilteredSelected ? (
-              <MinusSquare className="w-4 h-4" />
-            ) : (
-              <Square className="w-4 h-4" />
-            )}
-            {allFilteredSelected ? "Deselect All" : "Select All"}
-          </button>
-          <span className="text-xs text-muted-foreground">
-            {selectedIds.size} selected
-          </span>
-          <div className="flex-1" />
-          <Select value={bulkStatus} onValueChange={(v) => setBulkStatus(v as any)}>
-            <SelectTrigger className="w-36 h-8 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="available">Available</SelectItem>
-              <SelectItem value="adopted">Adopted</SelectItem>
-              <SelectItem value="adopted_in_lounge">Adopted · In Lounge</SelectItem>
-              <SelectItem value="medical_hold">Medical Hold</SelectItem>
-              <SelectItem value="foster">Foster</SelectItem>
-              <SelectItem value="trial">Trial</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button
-            size="sm"
-            className="h-8 text-xs"
-            onClick={handleBulkUpdate}
-            disabled={bulkUpdateMutation.isPending}
-          >
-            {bulkUpdateMutation.isPending ? (
-              <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
-            ) : null}
-            Update
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 text-xs"
-            onClick={() => setSelectedIds(new Set())}
-          >
-            Cancel
-          </Button>
-        </div>
-      )}
-
-      {/* Select All toggle (when not in select mode) */}
-      {!isSelectMode && filteredCats.length > 0 && !catsQuery.isLoading && (
-        <div className="flex items-center">
-          <button
-            type="button"
-            onClick={toggleSelectAll}
-            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <Square className="w-3.5 h-3.5" />
-            Select cats for bulk status update
-          </button>
-        </div>
-      )}
-
       {/* Cat List */}
       {catsQuery.isLoading ? (
         <div className="flex items-center justify-center py-12">
@@ -651,7 +516,6 @@ export function CatManager() {
           <p className="text-muted-foreground">
             {statusFilter === "available" ? "No available cats" :
              statusFilter === "adopted" ? "No adopted cats yet" :
-             statusFilter === "adopted_in_lounge" ? "No adopted cats still in the lounge" :
              statusFilter === "medical_hold" ? "No cats on medical hold" :
              "No cats in the roster"}
           </p>
@@ -664,37 +528,9 @@ export function CatManager() {
           {filteredCats.map((cat) => (
             <div
               key={cat.id}
-              className={`flex items-center gap-3 p-3 rounded-lg border transition-colors cursor-pointer ${
-                selectedIds.has(cat.id)
-                  ? "bg-primary/5 border-primary/30 ring-1 ring-primary/20"
-                  : "bg-card hover:bg-accent/50"
-              }`}
-              onClick={() => {
-                if (isSelectMode) {
-                  toggleSelect(cat.id);
-                } else {
-                  handleEdit(cat as CatData);
-                }
-              }}
+              className="flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer"
+              onClick={() => handleEdit(cat as CatData)}
             >
-              {/* Checkbox (visible in select mode) */}
-              {isSelectMode && (
-                <button
-                  type="button"
-                  className="flex-shrink-0"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleSelect(cat.id);
-                  }}
-                >
-                  {selectedIds.has(cat.id) ? (
-                    <CheckSquare className="w-5 h-5 text-primary" />
-                  ) : (
-                    <Square className="w-5 h-5 text-muted-foreground" />
-                  )}
-                </button>
-              )}
-
               {/* Photo */}
               <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden bg-muted flex-shrink-0">
                 {cat.photoUrl ? (
@@ -1002,7 +838,6 @@ export function CatManager() {
                     <SelectContent>
                       <SelectItem value="available">🟢 Available</SelectItem>
                       <SelectItem value="adopted">💕 Adopted</SelectItem>
-                      <SelectItem value="adopted_in_lounge">🟣 Adopted · In Lounge</SelectItem>
                       <SelectItem value="medical_hold">🔴 Medical Hold</SelectItem>
                       <SelectItem value="foster">🔵 Foster</SelectItem>
                       <SelectItem value="trial">🟡 Trial Adoption</SelectItem>

@@ -11,6 +11,8 @@ import { SettingsForm } from "@/components/admin/SettingsForm";
 import { PlaylistPreview } from "@/components/admin/ScreenPreview";
 import { GuestCheckIn } from "@/components/admin/GuestCheckIn";
 import PhotoModeration from "@/components/admin/PhotoModeration";
+import CaptionManager from "@/components/admin/CaptionManager";
+import { PollManager } from "@/components/admin/PollManager";
 import { PlaylistManager } from "@/components/admin/PlaylistManager";
 import { CatManager } from "@/components/admin/CatManager";
 import { trpc } from "@/lib/trpc";
@@ -26,6 +28,8 @@ import {
   Users,
   Image,
   Heart,
+  MessageSquare,
+  Vote,
   ListMusic,
   Palette,
   EyeOff,
@@ -146,6 +150,8 @@ export default function Admin() {
     { value: "screens", icon: LayoutGrid, label: "Screens" },
     { value: "guests", icon: Users, label: "Guests" },
     { value: "photos", icon: Image, label: "Photos" },
+    { value: "captions", icon: MessageSquare, label: "Captions" },
+    { value: "polls", icon: Vote, label: "Polls" },
     { value: "playlists", icon: ListMusic, label: "Playlists" },
     { value: "settings", icon: Settings, label: "Settings" },
   ];
@@ -248,7 +254,7 @@ export default function Admin() {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           {/* Tab bar - fits all tabs in one row */}
           <div className="mb-4">
-            <TabsList className="grid grid-cols-6 w-full h-10">
+            <TabsList className="grid grid-cols-8 w-full h-10">
               {tabs.map((tab) => (
                 <TabsTrigger
                   key={tab.value}
@@ -359,6 +365,16 @@ export default function Admin() {
             <PhotoModeration />
           </TabsContent>
           
+          {/* Captions Tab */}
+          <TabsContent value="captions">
+            <CaptionManager />
+          </TabsContent>
+          
+          {/* Polls Tab */}
+          <TabsContent value="polls">
+            <PollManager />
+          </TabsContent>
+
           {/* Playlists Tab */}
           <TabsContent value="playlists">
             <PlaylistManager />

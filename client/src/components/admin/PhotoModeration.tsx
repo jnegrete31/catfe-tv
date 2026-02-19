@@ -6,13 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { 
   Check, X, Trash2, Eye, EyeOff, Image, Heart, Camera, 
-  Clock, User, Mail, MessageSquare, Cat, Calendar, Star,
-  Pencil, Plus, GripVertical, Sparkles, RefreshCw, ChevronDown, ChevronUp
+  Clock, User, Mail, MessageSquare, Cat, Calendar, Star
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -33,65 +31,17 @@ type PhotoSubmission = {
   rejectionReason: string | null;
 };
 
-type CaptionType = "happy_tails" | "snap_purr";
-
-interface Caption {
-  id: number;
-  type: CaptionType;
-  text: string;
-  sortOrder: number;
-  isActive: boolean;
-}
-
 export default function PhotoModeration() {
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoSubmission | null>(null);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  // Inline caption editing
-  const [editingCaptionPhotoId, setEditingCaptionPhotoId] = useState<number | null>(null);
-  const [editCaptionText, setEditCaptionText] = useState("");
-  // Caption suggestions section
-  const [captionSectionOpen, setCaptionSectionOpen] = useState(false);
-  const [captionActiveTab, setCaptionActiveTab] = useState<CaptionType>("snap_purr");
-  const [newCaptionText, setNewCaptionText] = useState("");
 
   const utils = trpc.useUtils();
 
   const { data: stats } = trpc.photos.getStats.useQuery();
   const { data: pendingPhotos, isLoading: pendingLoading } = trpc.photos.getPending.useQuery();
   const { data: allPhotos, isLoading: allLoading } = trpc.photos.getAll.useQuery();
-
-  // Caption queries and mutations
-  const { data: captions = [], isLoading: captionsLoading } = trpc.captions.getAll.useQuery();
-
-  const createCaptionMutation = trpc.captions.create.useMutation({
-    onSuccess: () => {
-      utils.captions.getAll.invalidate();
-      setNewCaptionText("");
-      toast.success("Caption added");
-    },
-  });
-
-  const updateCaptionMutation = trpc.captions.update.useMutation({
-    onSuccess: () => {
-      utils.captions.getAll.invalidate();
-    },
-  });
-
-  const deleteCaptionMutation = trpc.captions.delete.useMutation({
-    onSuccess: () => {
-      utils.captions.getAll.invalidate();
-      toast.success("Caption deleted");
-    },
-  });
-
-  const seedCaptionsMutation = trpc.captions.seedDefaults.useMutation({
-    onSuccess: () => {
-      utils.captions.getAll.invalidate();
-      toast.success("Default captions added");
-    },
-  });
 
   const approveMutation = trpc.photos.approve.useMutation({
     onSuccess: () => {
@@ -134,18 +84,6 @@ export default function PhotoModeration() {
     },
   });
 
-  const updatePhotoCaptionMutation = trpc.photos.updateCaption.useMutation({
-    onSuccess: () => {
-      toast.success("Caption updated");
-      utils.photos.invalidate();
-      setEditingCaptionPhotoId(null);
-      setEditCaptionText("");
-    },
-    onError: (err) => {
-      toast.error(err.message);
-    },
-  });
-
   const handleApprove = (photo: PhotoSubmission) => {
     approveMutation.mutate({ id: photo.id });
   };
@@ -168,23 +106,6 @@ export default function PhotoModeration() {
     toggleFeaturedMutation.mutate({ id: photo.id, isFeatured: !photo.isFeatured });
   };
 
-  const handleStartEditCaption = (photo: PhotoSubmission) => {
-    setEditingCaptionPhotoId(photo.id);
-    setEditCaptionText(photo.caption || "");
-  };
-
-  const handleSaveCaption = (photoId: number) => {
-    updatePhotoCaptionMutation.mutate({
-      id: photoId,
-      caption: editCaptionText.trim() || null,
-    });
-  };
-
-  const handleCancelEditCaption = () => {
-    setEditingCaptionPhotoId(null);
-    setEditCaptionText("");
-  };
-
   const formatDate = (date: Date | string | null) => {
     if (!date) return "N/A";
     return new Date(date).toLocaleDateString("en-US", {
@@ -194,33 +115,6 @@ export default function PhotoModeration() {
       hour: "numeric",
       minute: "2-digit",
     });
-  };
-
-  // Caption suggestion helpers
-  const filteredCaptions = captions.filter((c: Caption) => c.type === captionActiveTab);
-
-  const handleAddCaption = () => {
-    if (!newCaptionText.trim()) return;
-    createCaptionMutation.mutate({
-      type: captionActiveTab,
-      text: newCaptionText.trim(),
-    });
-  };
-
-  const handleToggleCaptionActive = (id: number, isActive: boolean) => {
-    updateCaptionMutation.mutate({ id, isActive });
-  };
-
-  const handleDeleteCaption = (id: number) => {
-    if (confirm("Delete this caption suggestion?")) {
-      deleteCaptionMutation.mutate({ id });
-    }
-  };
-
-  const handleSeedDefaults = () => {
-    if (confirm("This will add the default captions. Continue?")) {
-      seedCaptionsMutation.mutate();
-    }
   };
 
   const PhotoCard = ({ photo, showActions = true }: { photo: PhotoSubmission; showActions?: boolean }) => (
@@ -290,64 +184,13 @@ export default function PhotoModeration() {
           </div>
         )}
 
-        {/* Caption - Inline Editable */}
-        <div className="space-y-1">
-          {editingCaptionPhotoId === photo.id ? (
-            <div className="space-y-2">
-              <div className="flex items-start gap-2">
-                <MessageSquare className="w-4 h-4 mt-2 flex-shrink-0 text-primary" />
-                <Textarea
-                  value={editCaptionText}
-                  onChange={(e) => setEditCaptionText(e.target.value)}
-                  placeholder="Enter a caption..."
-                  rows={2}
-                  maxLength={500}
-                  className="text-sm"
-                  autoFocus
-                />
-              </div>
-              <div className="flex items-center gap-2 justify-end">
-                <span className="text-[10px] text-muted-foreground">{editCaptionText.length}/500</span>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-7 text-xs"
-                  onClick={handleCancelEditCaption}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  size="sm"
-                  className="h-7 text-xs"
-                  onClick={() => handleSaveCaption(photo.id)}
-                  disabled={updatePhotoCaptionMutation.isPending}
-                >
-                  Save
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-start gap-2 group">
-              <MessageSquare className="w-4 h-4 mt-0.5 flex-shrink-0 text-gray-400" />
-              {photo.caption ? (
-                <span className="text-sm text-gray-600 line-clamp-2 flex-1">{photo.caption}</span>
-              ) : (
-                <span className="text-sm text-gray-400 italic flex-1">No caption</span>
-              )}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleStartEditCaption(photo);
-                }}
-                className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 p-1 rounded hover:bg-accent"
-                title="Edit caption"
-              >
-                <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
-              </button>
-            </div>
-          )}
-        </div>
+        {/* Caption */}
+        {photo.caption && (
+          <div className="flex items-start gap-2 text-sm text-gray-600">
+            <MessageSquare className="w-4 h-4 mt-0.5 flex-shrink-0" />
+            <span className="line-clamp-2">{photo.caption}</span>
+          </div>
+        )}
 
         {/* Date */}
         <div className="flex items-center gap-2 text-xs text-gray-500">
@@ -480,7 +323,7 @@ export default function PhotoModeration() {
         </Card>
       </div>
 
-      {/* Photo Tabs */}
+      {/* Tabs */}
       <Tabs defaultValue="pending">
         <TabsList>
           <TabsTrigger value="pending" className="gap-2">
@@ -537,89 +380,6 @@ export default function PhotoModeration() {
           )}
         </TabsContent>
       </Tabs>
-
-      {/* Suggested Captions Section (Collapsible) */}
-      <div className="border rounded-lg">
-        <button
-          type="button"
-          className="w-full flex items-center justify-between p-4 text-left hover:bg-accent/50 transition-colors rounded-lg"
-          onClick={() => setCaptionSectionOpen(!captionSectionOpen)}
-        >
-          <div className="flex items-center gap-2">
-            <MessageSquare className="w-5 h-5 text-primary" />
-            <div>
-              <h3 className="text-sm font-semibold">Suggested Captions</h3>
-              <p className="text-xs text-muted-foreground">Manage caption suggestions for photo uploads</p>
-            </div>
-          </div>
-          {captionSectionOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-        </button>
-
-        {captionSectionOpen && (
-          <div className="p-4 pt-0 space-y-4 border-t">
-            {captions.length === 0 && !captionsLoading && (
-              <div className="flex justify-center py-2">
-                <Button onClick={handleSeedDefaults} variant="outline" size="sm">
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  Add Default Captions
-                </Button>
-              </div>
-            )}
-
-            <Tabs value={captionActiveTab} onValueChange={(v) => setCaptionActiveTab(v as CaptionType)}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="snap_purr" className="flex items-center gap-2">
-                  <Camera className="w-4 h-4" />
-                  Snap & Purr
-                </TabsTrigger>
-                <TabsTrigger value="happy_tails" className="flex items-center gap-2">
-                  <Heart className="w-4 h-4" />
-                  Happy Tails
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="snap_purr" className="mt-3">
-                <CaptionList
-                  captions={filteredCaptions}
-                  onToggleActive={handleToggleCaptionActive}
-                  onDelete={handleDeleteCaption}
-                  type="snap_purr"
-                />
-              </TabsContent>
-
-              <TabsContent value="happy_tails" className="mt-3">
-                <CaptionList
-                  captions={filteredCaptions}
-                  onToggleActive={handleToggleCaptionActive}
-                  onDelete={handleDeleteCaption}
-                  type="happy_tails"
-                />
-              </TabsContent>
-            </Tabs>
-
-            {/* Add New Caption */}
-            <div className="flex flex-col sm:flex-row gap-2">
-              <Input
-                value={newCaptionText}
-                onChange={(e) => setNewCaptionText(e.target.value)}
-                placeholder={`New ${captionActiveTab === "snap_purr" ? "Snap & Purr" : "Happy Tails"} caption (max 100 chars)`}
-                maxLength={100}
-                onKeyDown={(e) => e.key === "Enter" && handleAddCaption()}
-                className="h-9"
-              />
-              <Button
-                onClick={handleAddCaption}
-                disabled={!newCaptionText.trim() || createCaptionMutation.isPending}
-                size="sm"
-                className="h-9 shrink-0"
-              >
-                <Plus className="w-4 h-4 mr-1" />
-                Add
-              </Button>
-            </div>
-          </div>
-        )}
-      </div>
 
       {/* Reject Dialog */}
       <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
@@ -679,60 +439,6 @@ export default function PhotoModeration() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  );
-}
-
-function CaptionList({
-  captions,
-  onToggleActive,
-  onDelete,
-  type,
-}: {
-  captions: Caption[];
-  onToggleActive: (id: number, isActive: boolean) => void;
-  onDelete: (id: number) => void;
-  type: CaptionType;
-}) {
-  if (captions.length === 0) {
-    return (
-      <div className="py-4 text-center text-sm text-muted-foreground">
-        No captions yet for {type === "snap_purr" ? "Snap & Purr" : "Happy Tails"}.
-      </div>
-    );
-  }
-
-  return (
-    <div className="divide-y rounded-lg border">
-      {captions.map((caption) => (
-        <div
-          key={caption.id}
-          className={`flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 ${
-            !caption.isActive ? "opacity-50 bg-gray-50" : ""
-          }`}
-        >
-          <div className="flex-1 min-w-0">
-            <span className={`text-xs sm:text-sm ${!caption.isActive ? "line-through" : ""}`}>
-              {caption.text}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            <Switch
-              checked={caption.isActive}
-              onCheckedChange={(checked) => onToggleActive(caption.id, checked)}
-            />
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onDelete(caption.id)}
-              className="text-red-500 hover:text-red-700 hover:bg-red-50 h-7 w-7"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </Button>
-          </div>
-        </div>
-      ))}
     </div>
   );
 }

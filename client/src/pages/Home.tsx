@@ -203,6 +203,7 @@ export default function Home() {
             <FeatureCardSmall icon={<QrCode className="w-5 h-5" />} title="QR Codes" description="Auto-generated on slides" />
             <FeatureCardSmall icon={<Clock className="w-5 h-5" />} title="Clock & Weather" description="Live overlay on all slides" />
             <FeatureCardSmall icon={<Star className="w-5 h-5" />} title="Photo Likes" description="Guests vote on favorites" />
+            <FeatureCardSmall icon={<MessageSquare className="w-5 h-5" />} title="Cat Polls" description="Fun voting every 15 min" />
             <FeatureCardSmall icon={<Shield className="w-5 h-5" />} title="Waiver QR" description="Digital waiver on screen" />
             <FeatureCardSmall icon={<Globe className="w-5 h-5" />} title="WiFi & Rules" description="Check-in screen for guests" />
             <FeatureCardSmall icon={<Image className="w-5 h-5" />} title="Photo Frames" description="Cat-themed frame overlays" />
@@ -523,8 +524,10 @@ export default function Home() {
               <GuideStep number={2} title="Photo Voting Page">
                 <p><strong>/photos/vote</strong> — Guests can browse and like their favorite Snap & Purr photos. The most-liked photos get highlighted in the gallery.</p>
               </GuideStep>
-
-              <GuideStep number={3} title="Live Slideshow Page">
+              <GuideStep number={3} title="Poll Voting Page">
+                <p><strong>/vote/:pollId</strong> — When cat polls are active, guests scan the QR code to vote on fun questions like "Who has the fluffiest tail?" Results show on their phone after voting ends.</p>
+              </GuideStep>
+              <GuideStep number={4} title="Live Slideshow Page">
                 <p><strong>/slideshow/:type</strong> — A mobile-friendly view of the photo gallery. Guests can watch the slideshow on their phone after uploading a photo.</p>
               </GuideStep>
             </GuideSection>

@@ -1,1 +1,0 @@
-ALTER TABLE `cats` MODIFY COLUMN `catStatus` enum('available','adopted','adopted_in_lounge','medical_hold','foster','trial') NOT NULL DEFAULT 'available';

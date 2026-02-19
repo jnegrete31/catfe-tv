@@ -70,7 +70,6 @@ vi.mock("./db", () => ({
   getPollForTV: vi.fn(),
   createTemplatePoll: vi.fn(),
   getAdoptableCats: vi.fn(),
-  getAvailableCats: vi.fn(),
   getAllPlaylists: vi.fn(),
   getActivePlaylist: vi.fn(),
   getPlaylistById: vi.fn(),
@@ -223,9 +222,6 @@ const mockAdoptionTemplate = {
 describe("screens.getActiveWithTemplates", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Default mocks for cat slides and gallery photos (injected server-side)
-    vi.mocked(db.getAvailableCats).mockResolvedValue([]);
-    vi.mocked(db.getApprovedPhotosByType).mockResolvedValue([]);
   });
 
   it("returns active screens with template overlay data attached", async () => {

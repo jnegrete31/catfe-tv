@@ -45,7 +45,6 @@ import {
   deletePhotoSubmission,
   togglePhotoVisibility,
   togglePhotoFeatured,
-  updatePhotoCaption,
   getFeaturedPhotos,
   getPhotoSubmissionStats,
   getSessionHistory,
@@ -89,7 +88,6 @@ import {
   seedDefaultPlaylists,
   getAllSlideTemplates,
   getSlideTemplateByScreenType,
-  getSlideTemplateByScreenId,
   upsertSlideTemplate,
   deleteSlideTemplate,
   getDefaultTemplateElements,
@@ -107,7 +105,6 @@ import {
   createCat,
   updateCat,
   deleteCat,
-  bulkUpdateCatStatus,
   getCatsByStatus,
   getRecentlyAdoptedCatsFromTable,
   getCatCount,
@@ -161,7 +158,6 @@ const screenInput = z.object({
   isProtected: z.boolean().default(false),
   isAdopted: z.boolean().default(false),
   livestreamUrl: z.string().url().max(1024).nullable().optional().or(z.literal("")),
-  eventDate: z.string().max(100).nullable().optional(),
   eventTime: z.string().max(100).nullable().optional(),
   eventLocation: z.string().max(255).nullable().optional(),
 });
@@ -188,7 +184,6 @@ const screenUpdateInput = z.object({
   isProtected: z.boolean().optional(),
   isAdopted: z.boolean().optional(),
   livestreamUrl: z.string().url().max(1024).nullable().optional().or(z.literal("")),
-  eventDate: z.string().max(100).nullable().optional(),
   eventTime: z.string().max(100).nullable().optional(),
   eventLocation: z.string().max(255).nullable().optional(),
 });
@@ -264,7 +259,7 @@ async function generateCatSlides() {
       startAt: null, endAt: null, daysOfWeek: null, timeStart: null, timeEnd: null,
       priority: 1, durationSeconds: 10, sortOrder: 0,
       isActive: true, schedulingEnabled: false, isProtected: false, isAdopted: false,
-      livestreamUrl: null, eventDate: null, eventTime: null, eventLocation: null,
+      livestreamUrl: null, eventTime: null, eventLocation: null,
       createdAt: new Date(), updatedAt: new Date(),
     };
   });
@@ -315,51 +310,21 @@ export const appRouter = router({
     // Public: Get active screens with template overlay data (for tvOS app)
     getActiveWithTemplates: publicProcedure.query(async () => {
       const screens = await getActiveScreens();
-      const catSlides = await generateCatSlides();
-      const allScreens = interleaveScreens(screens, catSlides);
       const templates = await getAllSlideTemplates();
       
-      // Fetch approved photos for gallery screens
-      const [snapPurrPhotos, happyTailsPhotos] = await Promise.all([
-        getApprovedPhotosByType('snap_purr'),
-        getApprovedPhotosByType('happy_tails'),
-      ]);
-      
-      // Build maps: screenType -> template (for non-CUSTOM) and screenId -> template (for CUSTOM)
-      const templateByType = new Map<string, any>();
-      const templateByScreenId = new Map<number, any>();
+      // Build a map of screenType -> template
+      const templateMap = new Map<string, any>();
       for (const t of templates) {
-        if (t.screenId) {
-          templateByScreenId.set(t.screenId, t);
-        } else {
-          templateByType.set(t.screenType, t);
-        }
+        templateMap.set(t.screenType, t);
       }
       
-      // Attach template overlay data and inject gallery photos into screens
-      return allScreens.map(screen => {
-        // For CUSTOM screens, look up by screenId first, then fall back to screenType
-        const template = (screen.type === 'CUSTOM' && screen.id) 
-          ? (templateByScreenId.get(screen.id) || templateByType.get(screen.type))
-          : templateByType.get(screen.type);
-        let imagePath = screen.imagePath;
-        
-        // Inject a random photo URL for gallery screens that don't have their own image
-        if (!imagePath) {
-          if ((screen.type === 'SNAP_AND_PURR' || screen.type === 'SNAP_PURR_QR') && snapPurrPhotos.length > 0) {
-            const randomPhoto = snapPurrPhotos[Math.floor(Math.random() * snapPurrPhotos.length)];
-            imagePath = randomPhoto.photoUrl;
-          } else if ((screen.type === 'HAPPY_TAILS' || screen.type === 'HAPPY_TAILS_QR') && happyTailsPhotos.length > 0) {
-            const randomPhoto = happyTailsPhotos[Math.floor(Math.random() * happyTailsPhotos.length)];
-            imagePath = randomPhoto.photoUrl;
-          }
-        }
-        
+      // Attach template overlay data to each screen
+      return screens.map(screen => {
+        const template = templateMap.get(screen.type);
         return {
           ...screen,
-          imagePath,
           templateOverlay: template ? {
-            elements: template.elements,
+            elements: template.elements, // JSON string of TemplateElement[]
             backgroundColor: template.backgroundColor,
             backgroundGradient: template.backgroundGradient,
             backgroundImageUrl: template.backgroundImageUrl,
@@ -510,23 +475,16 @@ export const appRouter = router({
           .slice(0, input.limit);
       }),
 
-    // Get count of adopted cats (for success counter) - auto-calculated from database
+    // Get count of adopted cats (for success counter)
     getAdoptionCount: publicProcedure
       .query(async () => {
-        // Count from cats table (primary source)
-        const adoptedCatsFromTable = await getAdoptedCats();
-        const catsTableCount = adoptedCatsFromTable.length;
-        
-        // Also count from screens table (legacy adoption screens marked as adopted)
         const allScreens = await getAllScreens();
-        const screensAdoptedCount = allScreens.filter(s => 
+        // Count all adopted cats (both active and inactive)
+        const adoptedCount = allScreens.filter(s => 
           s.type === 'ADOPTION' && 
           (s as any).isAdopted === true
         ).length;
-        
-        // Use the higher of the two counts (they may overlap)
-        const count = Math.max(catsTableCount, screensAdoptedCount);
-        return { count };
+        return { count: adoptedCount };
       }),
   }),
 
@@ -892,16 +850,6 @@ export const appRouter = router({
       }))
       .mutation(async ({ input }) => {
         return togglePhotoFeatured(input.id, input.isFeatured);
-      }),
-
-    // Admin: Update photo caption
-    updateCaption: adminProcedure
-      .input(z.object({
-        id: z.number(),
-        caption: z.string().max(500).nullable(),
-      }))
-      .mutation(async ({ input }) => {
-        return updatePhotoCaption(input.id, input.caption);
       }),
 
     // Public: Get featured photos for TV display
@@ -1326,27 +1274,17 @@ export const appRouter = router({
     // Public: Get active screens for current playlist WITH template overlay data (for tvOS app)
     getActiveScreensWithTemplates: publicProcedure.query(async () => {
       const screens = await getActiveScreensForCurrentPlaylist();
-      const catSlides = await generateCatSlides();
-      const allScreens = interleaveScreens(screens, catSlides);
       const templates = await getAllSlideTemplates();
       
-      // Build maps: screenType -> template (for non-CUSTOM) and screenId -> template (for CUSTOM)
-      const templateByType = new Map<string, any>();
-      const templateByScreenId = new Map<number, any>();
+      // Build a map of screenType -> template
+      const templateMap = new Map<string, any>();
       for (const t of templates) {
-        if (t.screenId) {
-          templateByScreenId.set(t.screenId, t);
-        } else {
-          templateByType.set(t.screenType, t);
-        }
+        templateMap.set(t.screenType, t);
       }
       
       // Attach template overlay data to each screen
-      return allScreens.map(screen => {
-        // For CUSTOM screens, look up by screenId first, then fall back to screenType
-        const template = (screen.type === 'CUSTOM' && screen.id) 
-          ? (templateByScreenId.get(screen.id) || templateByType.get(screen.type))
-          : templateByType.get(screen.type);
+      return screens.map(screen => {
+        const template = templateMap.get(screen.type);
         return {
           ...screen,
           templateOverlay: template ? {
@@ -1460,22 +1398,15 @@ export const appRouter = router({
       return await getAllSlideTemplates();
     }),
 
-    // Get template by screen type (or by screenId for CUSTOM slides)
+    // Get template by screen type
     getByScreenType: publicProcedure
-      .input(z.object({ screenType: z.string(), screenId: z.number().optional() }))
+      .input(z.object({ screenType: z.string() }))
       .query(async ({ input }) => {
-        let template;
-        // For CUSTOM screens with a screenId, look up by screenId
-        if (input.screenType === 'CUSTOM' && input.screenId) {
-          template = await getSlideTemplateByScreenId(input.screenId);
-        } else {
-          template = await getSlideTemplateByScreenType(input.screenType);
-        }
+        const template = await getSlideTemplateByScreenType(input.screenType);
         if (!template) {
           // Return default template if none exists
           return {
             screenType: input.screenType,
-            screenId: input.screenId || null,
             elements: JSON.stringify(getDefaultTemplateElements(input.screenType)),
             backgroundColor: "#1a1a2e",
             defaultFontFamily: "Inter",
@@ -1498,7 +1429,6 @@ export const appRouter = router({
     save: adminProcedure
       .input(z.object({
         screenType: z.string(),
-        screenId: z.number().optional(), // For CUSTOM slides, links to the specific screen
         name: z.string().optional(),
         backgroundColor: z.string().optional(),
         backgroundGradient: z.string().nullable().optional(),
@@ -1517,9 +1447,9 @@ export const appRouter = router({
 
     // Admin: Delete template (resets to default)
     delete: adminProcedure
-      .input(z.object({ screenType: z.string(), screenId: z.number().optional() }))
+      .input(z.object({ screenType: z.string() }))
       .mutation(async ({ input }) => {
-        await deleteSlideTemplate(input.screenType, input.screenId);
+        await deleteSlideTemplate(input.screenType);
         return { success: true };
       }),
 
@@ -1593,7 +1523,7 @@ export const appRouter = router({
         adoptionFee: z.string().max(50).optional(),
         isAltered: z.boolean().default(false),
         felvFivStatus: z.enum(["negative", "positive", "unknown", "not_tested"]).default("not_tested"),
-        status: z.enum(["available", "adopted", "adopted_in_lounge", "medical_hold", "foster", "trial"]).default("available"),
+        status: z.enum(["available", "adopted", "medical_hold", "foster", "trial"]).default("available"),
         rescueId: z.string().max(100).nullable().optional(),
         shelterluvId: z.string().max(100).nullable().optional(),
         microchipNumber: z.string().max(100).nullable().optional(),
@@ -1627,7 +1557,7 @@ export const appRouter = router({
         adoptionFee: z.string().max(50).optional(),
         isAltered: z.boolean().optional(),
         felvFivStatus: z.enum(["negative", "positive", "unknown", "not_tested"]).optional(),
-        status: z.enum(["available", "adopted", "adopted_in_lounge", "medical_hold", "foster", "trial"]).optional(),
+        status: z.enum(["available", "adopted", "medical_hold", "foster", "trial"]).optional(),
         rescueId: z.string().max(100).nullable().optional(),
         shelterluvId: z.string().max(100).nullable().optional(),
         microchipNumber: z.string().max(100).nullable().optional(),
@@ -1655,17 +1585,6 @@ export const appRouter = router({
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         return deleteCat(input.id);
-      }),
-
-    // Admin: Bulk update cat status
-    bulkUpdateStatus: adminProcedure
-      .input(z.object({
-        ids: z.array(z.number()).min(1),
-        status: z.enum(["available", "adopted", "adopted_in_lounge", "medical_hold", "foster", "trial"]),
-      }))
-      .mutation(async ({ input }) => {
-        const count = await bulkUpdateCatStatus(input.ids, input.status);
-        return { updated: count };
       }),
 
     // Admin: Parse kennel card / medical history documents using AI

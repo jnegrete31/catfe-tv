@@ -341,29 +341,6 @@ function EventScreen({ screen, settings }: ScreenRendererProps) {
                 {screen.body}
               </p>
             )}
-            {/* Event details: date, time, location */}
-            {((screen as any).eventDate || (screen as any).eventTime || (screen as any).eventLocation) && (
-              <div className="mt-6 space-y-3">
-                {(screen as any).eventDate && (
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">📅</span>
-                    <span className="text-2xl" style={{ color: '#4a4a4a' }}>{(screen as any).eventDate}</span>
-                  </div>
-                )}
-                {(screen as any).eventTime && (
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">🕐</span>
-                    <span className="text-2xl" style={{ color: '#4a4a4a' }}>{(screen as any).eventTime}</span>
-                  </div>
-                )}
-                {(screen as any).eventLocation && (
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">📍</span>
-                    <span className="text-2xl" style={{ color: '#4a4a4a' }}>{(screen as any).eventLocation}</span>
-                  </div>
-                )}
-              </div>
-            )}
             {screen.qrUrl && (
               <motion.div 
                 initial={{ scale: 0.9, opacity: 0 }}
@@ -890,18 +867,13 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats, catDbCats }: S
                       </div>
                     )}
                     <div className="absolute inset-0" style={{ boxShadow: 'inset 0 0 60px rgba(0,0,0,0.15)' }} />
-                    {cat.status === 'adopted_in_lounge' && (
-                      <div className="absolute top-2 right-2 px-3 py-1 rounded-full bg-green-500 text-white text-sm font-bold shadow-lg">
-                        🎉 Adopted!
-                      </div>
-                    )}
                   </div>
                   <div className="absolute bottom-2 left-2 right-2 text-center">
                     <p className="text-gray-800 text-2xl font-semibold truncate" style={{ fontFamily: 'Georgia, serif' }}>
-                      {cat.status === 'adopted_in_lounge' ? cat.name : `Meet ${cat.name}`}
+                      Meet {cat.name}
                     </p>
                     <p className="text-gray-600 text-lg truncate">
-                      {cat.status === 'adopted_in_lounge' ? 'Found their forever home!' : `${cat.breed}${cat.colorPattern ? ` \u00b7 ${cat.colorPattern}` : ''}`}
+                      {cat.breed}{cat.colorPattern ? ` · ${cat.colorPattern}` : ''}
                     </p>
                   </div>
                 </div>
@@ -972,12 +944,7 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats, catDbCats }: S
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20">
         <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
           <span className="text-orange-400 text-lg">🐾</span>
-          <span className="text-white/80 text-sm">
-            {useDbCats 
-              ? `${availableCats.filter(c => c.status === 'available').length} looking for homes${availableCats.filter(c => c.status === 'adopted_in_lounge').length > 0 ? ` · ${availableCats.filter(c => c.status === 'adopted_in_lounge').length} recently adopted!` : ''}`
-              : `${displayCats.length} cats looking for homes`
-            }
-          </span>
+          <span className="text-white/80 text-sm">{useDbCats ? availableCats.length : displayCats.length} cats looking for homes</span>
         </div>
       </div>
       
@@ -1009,8 +976,8 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats, catDbCats }: S
 
 // ADOPTION_COUNTER - Full-screen celebration of total adoptions
 function AdoptionCounterScreen({ screen, settings }: ScreenRendererProps) {
-  const { data: adoptionData } = trpc.screens.getAdoptionCount.useQuery();
-  const totalCount = adoptionData?.count || 0;
+  const { data: settingsData } = trpc.settings.get.useQuery();
+  const totalCount = settingsData?.totalAdoptionCount || 0;
   
   return (
     <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
@@ -2355,9 +2322,8 @@ function TemplateElementsOverlay({ screenType, screen, settings }: { screenType:
 // Main renderer that selects the appropriate component
 export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendererProps) {
   // Fetch template for this screen type (all types, not just CUSTOM)
-  // For CUSTOM screens, pass screenId to get the per-slide template
   const { data: savedTemplate } = trpc.templates.getByScreenType.useQuery(
-    { screenType: screen.type, ...(screen.type === 'CUSTOM' && screen.id ? { screenId: screen.id } : {}) },
+    { screenType: screen.type },
     { staleTime: 60000 }
   );
   
@@ -2386,7 +2352,7 @@ export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendere
           <TemplateRenderer 
             screen={screen} 
             settings={settings} 
-            adoptionCount={undefined}
+            adoptionCount={settings?.totalAdoptionCount}
             adoptionCats={adoptionCats}
           />
         </motion.div>

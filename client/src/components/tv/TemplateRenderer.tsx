@@ -334,7 +334,7 @@ function RenderElement({
       return <WeatherElement style={{ ...baseStyle, ...textStyle }} />;
 
     case "counter":
-      const count = adoptionCount || 0;
+      const count = adoptionCount || settings?.totalAdoptionCount || 0;
       return (
         <motion.div
           initial={{ opacity: 0, scale: 0.5 }}
@@ -394,14 +394,10 @@ function RenderElement({
 }
 
 // Main template-based renderer
-export function TemplateRenderer({ screen, settings, adoptionCount: propAdoptionCount }: TemplateRendererProps) {
-  // Fetch live adoption count from database
-  const { data: adoptionData } = trpc.screens.getAdoptionCount.useQuery(undefined, { staleTime: 60000 });
-  const adoptionCount = propAdoptionCount || adoptionData?.count || 0;
-  
-  // Fetch template for this screen type (with screenId for CUSTOM slides)
+export function TemplateRenderer({ screen, settings, adoptionCount }: TemplateRendererProps) {
+  // Fetch template for this screen type
   const { data: template } = trpc.templates.getByScreenType.useQuery(
-    { screenType: screen.type, ...(screen.type === 'CUSTOM' && screen.id ? { screenId: screen.id } : {}) },
+    { screenType: screen.type },
     { staleTime: 60000 } // Cache for 1 minute
   );
 
