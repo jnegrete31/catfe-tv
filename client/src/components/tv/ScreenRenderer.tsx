@@ -3,7 +3,7 @@ import type { Screen, Settings, Cat } from "@shared/types";
 import { SCREEN_TYPE_CONFIG } from "@shared/types";
 import { QRCodeSVG } from "qrcode.react";
 import { trpc } from "@/lib/trpc";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { PollScreen } from "./PollScreen";
 import { TemplateRenderer } from "./TemplateRenderer";
 
@@ -987,11 +987,70 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats, catDbCats }: S
 }
 
 // ADOPTION_COUNTER - Hybrid split layout: counter on left, photo mosaic + carousel on right
+// Milestone detection helper
+function getMilestoneInfo(count: number): { isMilestone: boolean; label: string; tier: 'bronze' | 'silver' | 'gold' | 'diamond' } {
+  if (count > 0 && count % 100 === 0) return { isMilestone: true, label: `${count} Forever Homes!`, tier: 'diamond' };
+  if (count > 0 && count % 50 === 0) return { isMilestone: true, label: `${count} Milestone!`, tier: 'gold' };
+  if (count > 0 && count % 25 === 0) return { isMilestone: true, label: `${count} and Counting!`, tier: 'silver' };
+  if (count > 0 && count % 10 === 0) return { isMilestone: true, label: `${count} Cats Loved!`, tier: 'bronze' };
+  return { isMilestone: false, label: '', tier: 'bronze' };
+}
+
+// Confetti particle component
+function ConfettiParticle({ index, tier }: { index: number; tier: string }) {
+  const colors: Record<string, string[]> = {
+    diamond: ['#FFD700', '#FF69B4', '#00CED1', '#FF6347', '#7B68EE', '#FFD700'],
+    gold: ['#FFD700', '#DAA520', '#FFA500', '#E8913A', '#F5DEB3', '#FFD700'],
+    silver: ['#C0C0C0', '#86C5A9', '#DAA520', '#E8913A', '#B8D4C8', '#C0C0C0'],
+    bronze: ['#E8913A', '#DAA520', '#86C5A9', '#F5E6D3', '#CD853F', '#E8913A'],
+  };
+  const palette = colors[tier] || colors.gold;
+  const color = palette[index % palette.length];
+  const size = 6 + Math.random() * 10;
+  const left = Math.random() * 100;
+  const delay = Math.random() * 2;
+  const duration = 3 + Math.random() * 3;
+  const rotation = Math.random() * 720 - 360;
+  const shapes = ['rounded-none', 'rounded-full', 'rounded-sm'];
+  const shape = shapes[index % shapes.length];
+
+  return (
+    <motion.div
+      className={`absolute ${shape}`}
+      style={{
+        width: size,
+        height: size * (shape === 'rounded-none' ? 0.6 : 1),
+        backgroundColor: color,
+        left: `${left}%`,
+        top: '-5%',
+      }}
+      initial={{ y: 0, opacity: 1, rotate: 0, scale: 0 }}
+      animate={{
+        y: ['0vh', '110vh'],
+        opacity: [0, 1, 1, 0.8, 0],
+        rotate: [0, rotation],
+        scale: [0, 1, 1, 0.8],
+        x: [0, (Math.random() - 0.5) * 100],
+      }}
+      transition={{
+        duration,
+        delay,
+        repeat: Infinity,
+        repeatDelay: Math.random() * 2,
+        ease: 'easeIn',
+      }}
+    />
+  );
+}
+
 function AdoptionCounterScreen({ screen, settings }: ScreenRendererProps) {
   const { data: settingsData } = trpc.settings.get.useQuery();
   const { data: recentlyAdopted } = trpc.cats.getRecentlyAdopted.useQuery({ days: 90 });
   const { data: availableCats } = trpc.cats.getAvailable.useQuery();
   const totalCount = settingsData?.totalAdoptionCount || 0;
+
+  // Milestone detection
+  const milestone = useMemo(() => getMilestoneInfo(totalCount), [totalCount]);
 
   // Cats with photos for the mosaic background
   const allCatsWithPhotos = useMemo(() => {
@@ -1017,8 +1076,10 @@ function AdoptionCounterScreen({ screen, settings }: ScreenRendererProps) {
 
   // Animate counter up
   const [displayCount, setDisplayCount] = useState(0);
+  const [countUpDone, setCountUpDone] = useState(false);
   useEffect(() => {
     if (totalCount === 0) return;
+    setCountUpDone(false);
     const duration = 2000;
     const steps = 60;
     const increment = totalCount / steps;
@@ -1027,6 +1088,7 @@ function AdoptionCounterScreen({ screen, settings }: ScreenRendererProps) {
       current += increment;
       if (current >= totalCount) {
         setDisplayCount(totalCount);
+        setCountUpDone(true);
         clearInterval(timer);
       } else {
         setDisplayCount(Math.floor(current));
@@ -1040,22 +1102,53 @@ function AdoptionCounterScreen({ screen, settings }: ScreenRendererProps) {
     return new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
 
+  // Milestone tier colors
+  const tierGlow: Record<string, string> = {
+    diamond: 'rgba(0, 206, 209, 0.4)',
+    gold: 'rgba(255, 215, 0, 0.4)',
+    silver: 'rgba(192, 192, 192, 0.3)',
+    bronze: 'rgba(232, 145, 58, 0.3)',
+  };
+
   const currentCat = adoptedCats[currentCatIndex];
 
   return (
     <div className="tv-screen relative overflow-hidden" style={{ background: '#2d2d2d' }}>
+      {/* Confetti layer — covers full screen when milestone */}
+      {milestone.isMilestone && countUpDone && (
+        <div className="absolute inset-0 z-50 pointer-events-none overflow-hidden">
+          {Array.from({ length: 60 }).map((_, i) => (
+            <ConfettiParticle key={i} index={i} tier={milestone.tier} />
+          ))}
+        </div>
+      )}
+
       {/* Split layout */}
       <div className="absolute inset-0 flex">
         {/* LEFT SIDE — Counter & branding (cream warm tones) */}
         <div className="w-1/2 relative flex flex-col items-center justify-center"
              style={{ background: 'linear-gradient(160deg, #F5E6D3 0%, #EDE0D4 50%, #E8DDD0 100%)' }}>
           
-          {/* Warm light glow */}
-          <div className="absolute top-0 left-1/3 w-64 h-64 rounded-full opacity-40"
-               style={{ background: 'radial-gradient(circle, rgba(218, 165, 32, 0.3) 0%, transparent 70%)' }} />
+          {/* Warm light glow — enhanced at milestones */}
+          <div className="absolute top-0 left-1/3 w-64 h-64 rounded-full transition-opacity duration-1000"
+               style={{
+                 opacity: milestone.isMilestone && countUpDone ? 0.7 : 0.4,
+                 background: `radial-gradient(circle, ${milestone.isMilestone ? tierGlow[milestone.tier] : 'rgba(218, 165, 32, 0.3)'} 0%, transparent 70%)`,
+               }} />
           
-          {/* Mint accent bar at top */}
-          <div className="absolute top-0 left-0 right-0 h-2" style={{ background: '#86C5A9' }} />
+          {/* Extra milestone glow pulse */}
+          {milestone.isMilestone && countUpDone && (
+            <motion.div
+              className="absolute inset-0 pointer-events-none"
+              animate={{ opacity: [0, 0.15, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+              style={{ background: `radial-gradient(circle at center, ${tierGlow[milestone.tier]} 0%, transparent 60%)` }}
+            />
+          )}
+          
+          {/* Mint accent bar at top — gold shimmer at milestones */}
+          <div className="absolute top-0 left-0 right-0 h-2 transition-colors duration-1000"
+               style={{ background: milestone.isMilestone && countUpDone ? '#DAA520' : '#86C5A9' }} />
           
           {/* Decorative cat silhouette */}
           <div className="absolute bottom-8 left-8 opacity-[0.06]">
@@ -1072,6 +1165,34 @@ function AdoptionCounterScreen({ screen, settings }: ScreenRendererProps) {
             animate={{ opacity: 1, y: 0 }}
             className="relative z-10 text-center px-8"
           >
+            {/* Milestone badge — appears above the label when at a milestone */}
+            {milestone.isMilestone && countUpDone && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ type: 'spring', stiffness: 120, delay: 0.5 }}
+                className="mb-4"
+              >
+                <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full shadow-lg"
+                     style={{
+                       background: milestone.tier === 'diamond'
+                         ? 'linear-gradient(135deg, #00CED1, #7B68EE, #FFD700)'
+                         : milestone.tier === 'gold'
+                         ? 'linear-gradient(135deg, #FFD700, #FFA500, #DAA520)'
+                         : milestone.tier === 'silver'
+                         ? 'linear-gradient(135deg, #C0C0C0, #86C5A9, #DAA520)'
+                         : 'linear-gradient(135deg, #E8913A, #DAA520, #86C5A9)',
+                     }}>
+                  <span className="text-lg">🎉</span>
+                  <span className="text-white font-bold text-sm tracking-wider uppercase"
+                        style={{ fontFamily: 'Georgia, serif', textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
+                    {milestone.label}
+                  </span>
+                  <span className="text-lg">🎉</span>
+                </div>
+              </motion.div>
+            )}
+
             {/* Top label */}
             <div className="flex items-center justify-center gap-2 mb-4">
               <div className="h-px w-12" style={{ background: '#DAA520' }} />
@@ -1081,18 +1202,29 @@ function AdoptionCounterScreen({ screen, settings }: ScreenRendererProps) {
               <div className="h-px w-12" style={{ background: '#DAA520' }} />
             </div>
 
-            {/* Big number */}
+            {/* Big number — with shimmer at milestones */}
             <motion.span
               initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: 'spring', stiffness: 80, delay: 0.3 }}
-              className="text-[8rem] font-black leading-[0.9] block"
+              animate={{
+                scale: milestone.isMilestone && countUpDone ? [1, 1.05, 1] : 1,
+                opacity: 1,
+              }}
+              transition={milestone.isMilestone && countUpDone
+                ? { scale: { duration: 1.5, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 0.5 } }
+                : { type: 'spring', stiffness: 80, delay: 0.3 }
+              }
+              className="text-[8rem] font-black leading-[0.9] block relative"
               style={{
                 fontFamily: 'Georgia, serif',
-                background: 'linear-gradient(180deg, #E8913A 0%, #DAA520 50%, #86C5A9 100%)',
+                background: milestone.isMilestone && countUpDone
+                  ? 'linear-gradient(135deg, #FFD700 0%, #E8913A 30%, #FFD700 50%, #DAA520 70%, #FFD700 100%)'
+                  : 'linear-gradient(180deg, #E8913A 0%, #DAA520 50%, #86C5A9 100%)',
+                backgroundSize: milestone.isMilestone && countUpDone ? '200% 200%' : '100% 100%',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
-                filter: 'drop-shadow(0 4px 15px rgba(218, 165, 32, 0.2))',
+                filter: milestone.isMilestone && countUpDone
+                  ? 'drop-shadow(0 4px 20px rgba(255, 215, 0, 0.4))'
+                  : 'drop-shadow(0 4px 15px rgba(218, 165, 32, 0.2))',
               }}
             >
               {displayCount}
@@ -1103,7 +1235,7 @@ function AdoptionCounterScreen({ screen, settings }: ScreenRendererProps) {
             </h2>
 
             <p className="text-sm mt-2" style={{ color: 'rgba(45, 45, 45, 0.5)' }}>
-              Every visit helps us find forever homes
+              {milestone.isMilestone ? 'Thank you for making this possible!' : 'Every visit helps us find forever homes'}
             </p>
           </motion.div>
         </div>

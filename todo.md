@@ -1389,3 +1389,11 @@
 - [x] Fix vertical centering of counter content (fixed tv-screen CSS and preview container)
 - [x] Replace current AdoptionCounterScreen in ScreenRenderer with hybrid design
 - [x] Preview page updated with hybrid design for comparison
+
+## Feature - Milestone Celebration on Adoption Counter
+- [x] Detect milestone numbers (every 10=bronze, 25=silver, 50=gold, 100=diamond)
+- [x] Add confetti burst animation (60 particles, tier-colored) when counter is at a milestone
+- [x] Add golden milestone badge (e.g., "🎉 50 Milestone!", "🎉 100 Forever Homes!")
+- [x] Add special glow/shimmer effect on the counter number at milestones (pulsing glow, number scale animation)
+- [x] Celebration is CSS/framer-motion based, works on web TV display
+- [x] Write unit tests for milestone detection logic (13 tests, 186 total passing)
