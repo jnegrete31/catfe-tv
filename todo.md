@@ -1457,3 +1457,14 @@
 - [x] Update all 19 QRCodeView call sites across 16 Swift files to pass screen.qrLabel
 - [x] Update APIClient buildScreenInput to send qrLabel
 - [x] Push changes to GitHub
+
+## Feature - Automatic Adoption Counter (All-Time)
+- [x] Update adoption counter to automatically count all cats with status "adopted" or "adopted_in_lounge" from DB
+- [x] Manual count field renamed to "Pre-Database Adoption Offset" (optional, for cats adopted before system)
+- [x] Set existing offset to 0 (DB already has all 17 cats)
+- [x] Update web TV adoption counter screen to use auto count (screens.getAdoptionCount + offset)
+- [x] Update web TemplateRenderer counter element to use auto count
+- [x] Update Apple TV AdoptionCounterScreenView to use apiClient.autoAdoptionCount
+- [x] Update Apple TV TemplateOverlayView counter element
+- [x] Added fetchAdoptionCount() to APIClient with 60-second refresh
+- [x] Push changes to GitHub

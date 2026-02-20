@@ -334,7 +334,7 @@ function RenderElement({
       return <WeatherElement style={{ ...baseStyle, ...textStyle }} />;
 
     case "counter":
-      const count = adoptionCount || settings?.totalAdoptionCount || 0;
+      const count = adoptionCount || 0;
       return (
         <motion.div
           initial={{ opacity: 0, scale: 0.5 }}

@@ -343,7 +343,7 @@ export default function Home() {
                 <p>The <strong>Adoption Showcase</strong> screen type shows 4 adoptable cats in a grid. It automatically pulls random cats from your active adoption slides and shuffles every 6 seconds.</p>
               </GuideStep>
               <GuideStep number={5} title="Adoption Counter">
-                <p>The <strong>Adoption Counter</strong> screen shows the total number of cats adopted. Set the total count in <strong>Settings → Total Adoptions</strong>. Recently adopted cats' photos appear on either side of the counter.</p>
+                <p>The <strong>Adoption Counter</strong> screen automatically counts all cats marked as adopted in the Cats tab. If you had adoptions before this system was set up, add that number as an offset in <strong>Settings → Pre-Database Adoption Offset</strong>. Recently adopted cats' photos appear on either side of the counter.</p>
               </GuideStep>
             </GuideSection>
 
@@ -466,8 +466,8 @@ export default function Home() {
               <GuideStep number={1} title="Fallback Slide Duration">
                 <p>Set the default duration (in seconds) for slides that don't have a custom duration. This is the fallback — individual slides can override this with their own duration setting.</p>
               </GuideStep>
-              <GuideStep number={2} title="Total Adoptions Count">
-                <p>Enter the total number of cats adopted from the lounge. This number appears on the <strong>Adoption Counter</strong> TV slide. Update it whenever a new cat is adopted.</p>
+              <GuideStep number={2} title="Pre-Database Adoption Offset">
+                <p>The adoption counter automatically counts cats marked as adopted in the Cats tab. Use this field only to add cats adopted <strong>before</strong> this system was set up. The offset is added on top of the automatic count.</p>
               </GuideStep>
               <GuideStep number={3} title="Logo Upload">
                 <p>Upload your lounge's logo. It appears as an overlay on all TV slides (bottom-right corner on web, bottom-right on Apple TV).</p>
