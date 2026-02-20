@@ -26,6 +26,8 @@ export const SCREEN_TYPES = [
   "POLL_QR",
   "CHECK_IN",
   "GUEST_STATUS_BOARD",
+  "LIVE_AVAILABILITY",
+  "SESSION_BOARD",
   "CUSTOM",
 ] as const;
 
@@ -51,6 +53,8 @@ export const SCREEN_TYPE_CONFIG: Record<ScreenType, { label: string; color: stri
   POLL_QR: { label: "Poll QR", color: "#8b5cf6", bgColor: "#f3e8ff" },
   CHECK_IN: { label: "Guest Check-in", color: "#0891b2", bgColor: "#cffafe" },
   GUEST_STATUS_BOARD: { label: "Guest Status Board", color: "#0d9488", bgColor: "#ccfbf1" },
+  LIVE_AVAILABILITY: { label: "Live Availability", color: "#059669", bgColor: "#d1fae5" },
+  SESSION_BOARD: { label: "Session Board", color: "#0284c7", bgColor: "#e0f2fe" },
   CUSTOM: { label: "Custom Slide", color: "#6b7280", bgColor: "#f3f4f6" },
 };
 
@@ -90,4 +94,6 @@ export const SCREEN_TYPE_DURATIONS: Partial<Record<ScreenType, number>> = {
   ADOPTION_SHOWCASE: 30,
   LIVESTREAM: 60,
   GUEST_STATUS_BOARD: 20,
+  LIVE_AVAILABILITY: 15,
+  SESSION_BOARD: 20,
 };

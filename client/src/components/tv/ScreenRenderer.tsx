@@ -2498,6 +2498,292 @@ function GuestStatusBoardScreen({ screen, settings }: ScreenRendererProps) {
   );
 }
 
+// LIVE_AVAILABILITY - Shows next available sessions with capacity from Roller
+function LiveAvailabilityScreen({ screen, settings }: ScreenRendererProps) {
+  const { data: sessions } = trpc.roller.getTodaySessions.useQuery(undefined, {
+    refetchInterval: 5 * 60 * 1000, // Refresh every 5 minutes
+    staleTime: 2 * 60 * 1000,
+  });
+
+  // Get current time in PST
+  const now = new Date();
+  const pstTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+  const currentMinutes = pstTime.getHours() * 60 + pstTime.getMinutes();
+
+  // Group sessions by time slot and find upcoming ones
+  const upcomingSessions = useMemo(() => {
+    if (!sessions) return [];
+    
+    // Group by startTime, pick the best product per slot
+    const timeSlotMap = new Map<string, any[]>();
+    for (const s of sessions) {
+      const [h, m] = s.startTime.split(':').map(Number);
+      const sessionMinutes = h * 60 + m;
+      // Only show sessions that haven't ended yet
+      const [eh, em] = s.endTime.split(':').map(Number);
+      const endMinutes = eh * 60 + em;
+      if (endMinutes <= currentMinutes) continue;
+      
+      if (!timeSlotMap.has(s.startTime)) {
+        timeSlotMap.set(s.startTime, []);
+      }
+      timeSlotMap.get(s.startTime)!.push(s);
+    }
+    
+    // Sort by start time and take next 6 slots
+    const sorted = Array.from(timeSlotMap.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .slice(0, 6);
+    
+    return sorted.map(([time, products]) => ({
+      time,
+      products: products.sort((a: any, b: any) => b.cost - a.cost), // Most expensive first
+    }));
+  }, [sessions, currentMinutes]);
+
+  const nextSession = upcomingSessions[0];
+  const totalCapacity = nextSession?.products.reduce((sum: number, p: any) => sum + (p.capacityRemaining || 0), 0) || 0;
+  const maxCapacity = nextSession?.products[0]?.capacityRemaining || 12;
+  const isCurrentlyInSession = nextSession && (() => {
+    const [h, m] = nextSession.time.split(':').map(Number);
+    return currentMinutes >= h * 60 + m;
+  })();
+
+  return (
+    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #065f46 0%, #064e3b 40%, #022c22 100%)' }}>
+      {/* Subtle animated background */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute -top-20 -right-20 w-96 h-96 rounded-full bg-emerald-300 blur-3xl animate-pulse" />
+        <div className="absolute -bottom-20 -left-20 w-80 h-80 rounded-full bg-teal-300 blur-3xl" style={{ animation: 'pulse 4s ease-in-out infinite' }} />
+      </div>
+
+      <div className="relative z-10 w-full h-full flex flex-col p-8 md:p-12">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <div className="w-4 h-4 rounded-full bg-emerald-400 animate-pulse" />
+            <h2 className="text-3xl md:text-4xl font-bold text-white tracking-wide uppercase">Live Availability</h2>
+          </div>
+          <div className="text-xl text-emerald-300/80">
+            {pstTime.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+          </div>
+        </div>
+
+        {!sessions || sessions.length === 0 ? (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <div className="text-8xl mb-6">😺</div>
+              <h3 className="text-4xl font-bold text-white mb-3">No Sessions Today</h3>
+              <p className="text-2xl text-emerald-300/80">Check back tomorrow for available sessions!</p>
+            </div>
+          </div>
+        ) : upcomingSessions.length === 0 ? (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <div className="text-8xl mb-6">🌙</div>
+              <h3 className="text-4xl font-bold text-white mb-3">All Sessions Complete</h3>
+              <p className="text-2xl text-emerald-300/80">See you tomorrow!</p>
+            </div>
+          </div>
+        ) : (
+          <div className="flex-1 flex gap-8">
+            {/* Left: Next Session Highlight */}
+            <div className="flex-1 flex flex-col justify-center">
+              <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/20">
+                <div className="text-emerald-300 text-xl font-semibold mb-2 uppercase tracking-wider">
+                  {isCurrentlyInSession ? '🟢 Happening Now' : '⏰ Next Session'}
+                </div>
+                <div className="text-7xl md:text-8xl font-bold text-white mb-4">
+                  {nextSession?.products[0]?.sessionName || nextSession?.time}
+                </div>
+                <div className="flex flex-wrap gap-3 mb-6">
+                  {nextSession?.products.map((p: any, i: number) => (
+                    <div key={i} className="bg-white/10 rounded-xl px-4 py-2 border border-white/10">
+                      <div className="text-white font-semibold text-lg">{p.productName.replace(/\s*\(.*\)/, '')}</div>
+                      <div className="text-emerald-300 text-sm">${p.cost}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className={`text-5xl font-bold ${totalCapacity <= 3 ? 'text-red-400' : totalCapacity <= 6 ? 'text-amber-400' : 'text-emerald-400'}`}>
+                    {totalCapacity}
+                  </div>
+                  <div className="text-2xl text-white/80">
+                    {totalCapacity === 1 ? 'spot remaining' : 'spots remaining'}
+                  </div>
+                </div>
+                {/* Capacity bar */}
+                <div className="mt-4 h-3 bg-white/10 rounded-full overflow-hidden">
+                  <div 
+                    className={`h-full rounded-full transition-all duration-1000 ${
+                      totalCapacity <= 3 ? 'bg-red-400' : totalCapacity <= 6 ? 'bg-amber-400' : 'bg-emerald-400'
+                    }`}
+                    style={{ width: `${Math.min((totalCapacity / maxCapacity) * 100, 100)}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Upcoming Sessions List */}
+            <div className="w-[400px] flex flex-col gap-3">
+              <h3 className="text-xl font-semibold text-emerald-300 uppercase tracking-wider mb-2">Coming Up</h3>
+              {upcomingSessions.slice(1, 6).map((slot, i) => {
+                const capacity = slot.products.reduce((sum: number, p: any) => sum + (p.capacityRemaining || 0), 0);
+                return (
+                  <div key={i} className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10 flex items-center justify-between">
+                    <div>
+                      <div className="text-2xl font-bold text-white">{slot.products[0]?.sessionName || slot.time}</div>
+                      <div className="text-sm text-white/60">{slot.products.map((p: any) => p.productName.replace(/\s*\(.*\)/, '')).join(' · ')}</div>
+                    </div>
+                    <div className={`text-xl font-bold px-3 py-1 rounded-lg ${
+                      capacity <= 3 ? 'bg-red-500/20 text-red-400' : capacity <= 6 ? 'bg-amber-500/20 text-amber-400' : 'bg-emerald-500/20 text-emerald-400'
+                    }`}>
+                      {capacity} left
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* QR Code for booking */}
+        {screen.qrUrl && (
+          <div className="mt-4 flex items-center gap-4 self-end">
+            <div className="bg-white p-3 rounded-xl shadow-lg">
+              <QRCodeSVG value={screen.qrUrl} size={80} level="M" />
+            </div>
+            <span className="text-lg text-white/80">{screen.qrLabel || 'Book Now'}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// SESSION_BOARD - Shows all today's sessions in a comprehensive grid from Roller
+function SessionBoardScreen({ screen, settings }: ScreenRendererProps) {
+  const { data: sessions } = trpc.roller.getTodaySessions.useQuery(undefined, {
+    refetchInterval: 5 * 60 * 1000,
+    staleTime: 2 * 60 * 1000,
+  });
+
+  const now = new Date();
+  const pstTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+  const currentMinutes = pstTime.getHours() * 60 + pstTime.getMinutes();
+
+  // Group by unique time slots
+  const timeSlots = useMemo(() => {
+    if (!sessions) return [];
+    
+    const slotMap = new Map<string, { time: string; startTime: string; endTime: string; products: any[] }>();
+    for (const s of sessions) {
+      if (!slotMap.has(s.startTime)) {
+        slotMap.set(s.startTime, { time: s.startTime, startTime: s.startTime, endTime: s.endTime, products: [] });
+      }
+      slotMap.get(s.startTime)!.products.push(s);
+    }
+    
+    return Array.from(slotMap.values()).sort((a, b) => a.startTime.localeCompare(b.startTime));
+  }, [sessions]);
+
+  return (
+    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0c4a6e 0%, #0e7490 50%, #155e75 100%)' }}>
+      {/* Background decoration */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute top-10 right-10 w-64 h-64 rounded-full bg-cyan-300 blur-3xl" />
+        <div className="absolute bottom-10 left-10 w-48 h-48 rounded-full bg-sky-300 blur-3xl" />
+      </div>
+
+      <div className="relative z-10 w-full h-full flex flex-col p-6 md:p-10">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-3xl md:text-4xl font-bold text-white">Today's Sessions</h2>
+            <p className="text-lg text-cyan-300/80 mt-1">
+              {pstTime.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+            </p>
+          </div>
+          <div className="flex items-center gap-3 text-white/60 text-sm">
+            <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-emerald-400" /> Available</div>
+            <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-amber-400" /> Limited</div>
+            <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-red-400" /> Almost Full</div>
+          </div>
+        </div>
+
+        {!sessions || sessions.length === 0 ? (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <div className="text-7xl mb-4">📅</div>
+              <h3 className="text-3xl font-bold text-white mb-2">No Sessions Scheduled</h3>
+              <p className="text-xl text-cyan-300/80">Check back soon!</p>
+            </div>
+          </div>
+        ) : (
+          <div className="flex-1 overflow-hidden">
+            <div className="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 h-full auto-rows-min">
+              {timeSlots.map((slot, i) => {
+                const [h, m] = slot.startTime.split(':').map(Number);
+                const [eh, em] = slot.endTime.split(':').map(Number);
+                const slotStart = h * 60 + m;
+                const slotEnd = eh * 60 + em;
+                const isPast = slotEnd <= currentMinutes;
+                const isCurrent = currentMinutes >= slotStart && currentMinutes < slotEnd;
+                const totalCapacity = slot.products.reduce((sum: number, p: any) => sum + (p.capacityRemaining || 0), 0);
+                
+                return (
+                  <div 
+                    key={i} 
+                    className={`rounded-2xl p-4 border transition-all ${
+                      isPast 
+                        ? 'bg-white/5 border-white/5 opacity-40' 
+                        : isCurrent 
+                          ? 'bg-white/20 border-emerald-400/50 ring-2 ring-emerald-400/30' 
+                          : 'bg-white/10 border-white/10'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className={`text-xl font-bold ${isPast ? 'text-white/50' : 'text-white'}`}>
+                        {slot.products[0]?.sessionName || slot.time}
+                      </span>
+                      {isCurrent && <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />}
+                    </div>
+                    
+                    {slot.products.map((p: any, j: number) => (
+                      <div key={j} className="mb-1">
+                        <div className={`text-xs ${isPast ? 'text-white/30' : 'text-white/60'}`}>
+                          {p.productName.replace(/\s*\(.*\)/, '')}
+                        </div>
+                        <div className={`text-sm font-semibold ${
+                          isPast ? 'text-white/30' :
+                          p.capacityRemaining <= 3 ? 'text-red-400' : 
+                          p.capacityRemaining <= 6 ? 'text-amber-400' : 'text-emerald-400'
+                        }`}>
+                          {isPast ? 'Ended' : `${p.capacityRemaining} spots`}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* QR Code for booking */}
+        {screen.qrUrl && (
+          <div className="mt-4 flex items-center gap-4 self-end">
+            <div className="bg-white p-3 rounded-xl shadow-lg">
+              <QRCodeSVG value={screen.qrUrl} size={80} level="M" />
+            </div>
+            <span className="text-lg text-white/80">{screen.qrLabel || 'Book a Session'}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // Lightweight overlay that renders only template elements on top of the default screen
 // This preserves the original screen design while allowing element additions from the Slide Editor
 function TemplateElementsOverlay({ screenType, screen, settings }: { screenType: string; screen: Screen; settings: Settings | null }) {
@@ -2740,6 +3026,8 @@ export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendere
     POLL: () => <PollScreen />,
     CHECK_IN: CheckInScreen,
     GUEST_STATUS_BOARD: GuestStatusBoardScreen,
+    LIVE_AVAILABILITY: LiveAvailabilityScreen,
+    SESSION_BOARD: SessionBoardScreen,
     // Custom slides always use TemplateRenderer with their saved template
     CUSTOM: ({ screen }) => {
       // For CUSTOM screens, render with dark elegant theme

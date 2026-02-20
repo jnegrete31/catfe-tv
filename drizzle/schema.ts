@@ -40,6 +40,8 @@ export const screenTypeEnum = mysqlEnum("screenType", [
   "POLL_QR",
   "CHECK_IN",
   "GUEST_STATUS_BOARD",
+  "LIVE_AVAILABILITY",
+  "SESSION_BOARD",
   "CUSTOM"
 ]);
 
@@ -167,7 +169,7 @@ export type InsertScreenView = typeof screenViews.$inferInsert;
 /**
  * Session duration options for guest check-in
  */
-export const sessionDurationEnum = mysqlEnum("sessionDuration", ["15", "30", "60"]);
+export const sessionDurationEnum = mysqlEnum("sessionDuration", ["15", "30", "60", "90"]);
 
 /**
  * Session status options
