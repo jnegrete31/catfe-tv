@@ -89,7 +89,7 @@ struct LivestreamScreenView: View {
                             Spacer()
                             
                             if let qrURL = screen.qrCodeURL, !qrURL.isEmpty {
-                                QRCodeView(url: qrURL, size: 180)
+                                QRCodeView(url: qrURL, size: 180, label: screen.qrLabel)
                             }
                             
                             Spacer()

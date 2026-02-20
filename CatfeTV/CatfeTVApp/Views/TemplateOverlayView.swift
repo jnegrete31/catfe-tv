@@ -220,7 +220,7 @@ struct TemplateElementView: View {
     private var qrCodeElement: some View {
         Group {
             if let qrUrl = screen.qrCodeURL, !qrUrl.isEmpty {
-                QRCodeView(url: qrUrl, size: min(elemWidth, elemHeight) * 0.8)
+                QRCodeView(url: qrUrl, size: min(elemWidth, elemHeight) * 0.8, label: screen.qrLabel)
             } else {
                 EmptyView()
             }

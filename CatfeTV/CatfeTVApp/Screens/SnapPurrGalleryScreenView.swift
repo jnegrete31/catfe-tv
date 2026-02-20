@@ -139,7 +139,7 @@ struct SnapPurrGalleryScreenView: View {
                             Spacer()
                             
                             if let qrURL = screen.qrCodeURL, !qrURL.isEmpty {
-                                QRCodeView(url: qrURL, size: 150)
+                                QRCodeView(url: qrURL, size: 150, label: screen.qrLabel)
                             }
                             
                             Spacer()

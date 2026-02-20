@@ -1447,3 +1447,13 @@
   - Updated SlideEditor with custom slide picker (select individual slides to edit)
   - Updated ScreenRenderer to use per-screen templateOverride for CUSTOM slides
   - Pushed all changes to GitHub
+
+## Feature - Customizable QR Code Label
+- [x] Add qrLabel field to screens database schema
+- [x] Update backend routers to handle qrLabel in create/update
+- [x] Add QR Label input to admin screen editor (shows when QR URL is present)
+- [x] Update web TV display renderers to show custom QR label (with smart fallbacks)
+- [x] Update tvOS QRCodeView to accept optional label parameter
+- [x] Update all 19 QRCodeView call sites across 16 Swift files to pass screen.qrLabel
+- [x] Update APIClient buildScreenInput to send qrLabel
+- [x] Push changes to GitHub

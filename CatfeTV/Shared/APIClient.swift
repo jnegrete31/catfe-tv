@@ -317,6 +317,7 @@ class APIClient: ObservableObject {
         if let body = screen.bodyText { input["body"] = body }
         if let imagePath = screen.imageURL { input["imagePath"] = imagePath }
         if let qrUrl = screen.qrCodeURL { input["qrUrl"] = qrUrl }
+        if let qrLabel = screen.qrLabel { input["qrLabel"] = qrLabel }
         
         // Event fields
         if let eventDate = screen.eventDate {
