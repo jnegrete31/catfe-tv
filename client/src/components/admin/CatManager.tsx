@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,7 +62,7 @@ type CatData = {
   adoptionFee: string | null;
   isAltered: boolean;
   felvFivStatus: "negative" | "positive" | "unknown" | "not_tested";
-  status: "available" | "adopted" | "medical_hold" | "foster" | "trial";
+  status: "available" | "adopted" | "adopted_in_lounge" | "medical_hold" | "foster" | "trial";
   rescueId: string | null;
   shelterluvId: string | null;
   microchipNumber: string | null;
@@ -154,7 +154,7 @@ export function CatManager() {
     adoptionFee: "$150.00",
     isAltered: false,
     felvFivStatus: "not_tested" as "negative" | "positive" | "unknown" | "not_tested",
-    status: "available" as "available" | "adopted" | "medical_hold" | "foster" | "trial",
+    status: "available" as "available" | "adopted" | "adopted_in_lounge" | "medical_hold" | "foster" | "trial",
     rescueId: "",
     shelterluvId: "",
     microchipNumber: "",
@@ -180,15 +180,71 @@ export function CatManager() {
     },
   });
   const updateMutation = trpc.cats.update.useMutation({
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       catsQuery.refetch();
-      toast.success(`${formData.name} has been updated.`);
-      handleClose();
+      // Only show toast and close for manual saves (new cats), not auto-save
+      if (!editingCat) {
+        toast.success(`${formData.name} has been updated.`);
+        handleClose();
+      }
     },
     onError: (err) => {
       toast.error(err.message);
     },
   });
+
+  // Auto-save with debounce for editing existing cats
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
+
+  const triggerAutoSave = useCallback(() => {
+    if (!editingCat || !formData.name) return;
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    setAutoSaveStatus("idle");
+    autoSaveTimerRef.current = setTimeout(async () => {
+      setAutoSaveStatus("saving");
+      try {
+        const payload: any = {
+          id: editingCat.id,
+          name: formData.name,
+          breed: formData.breed || undefined,
+          colorPattern: formData.colorPattern || null,
+          sex: formData.sex,
+          weight: formData.weight || null,
+          personalityTags: formData.personalityTags.length > 0 ? formData.personalityTags : null,
+          bio: formData.bio || null,
+          adoptionFee: formData.adoptionFee || undefined,
+          isAltered: formData.isAltered,
+          felvFivStatus: formData.felvFivStatus,
+          status: formData.status,
+          rescueId: formData.rescueId || null,
+          shelterluvId: formData.shelterluvId || null,
+          microchipNumber: formData.microchipNumber || null,
+          intakeType: formData.intakeType || null,
+          medicalNotes: formData.medicalNotes || null,
+          vaccinationsDue: formData.vaccinationsDue.length > 0 ? formData.vaccinationsDue : null,
+          isFeatured: formData.isFeatured,
+          adoptedBy: formData.adoptedBy || null,
+        };
+        if (formData.dob) payload.dob = new Date(formData.dob);
+        if (formData.arrivalDate) payload.arrivalDate = new Date(formData.arrivalDate);
+        if (formData.fleaTreatmentDue) payload.fleaTreatmentDue = new Date(formData.fleaTreatmentDue);
+        if (formData.adoptedDate) payload.adoptedDate = new Date(formData.adoptedDate);
+        await updateMutation.mutateAsync(payload);
+        setAutoSaveStatus("saved");
+        setTimeout(() => setAutoSaveStatus("idle"), 2000);
+      } catch {
+        setAutoSaveStatus("idle");
+      }
+    }, 1000);
+  }, [editingCat, formData]);
+
+  // Cleanup auto-save timer on unmount
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    };
+  }, []);
   const deleteMutation = trpc.cats.delete.useMutation({
     onSuccess: () => {
       catsQuery.refetch();
@@ -620,6 +676,14 @@ export function CatManager() {
             <SheetTitle className="flex items-center gap-2">
               <Cat className="w-5 h-5" />
               {editingCat ? `Edit ${editingCat.name}` : "Add New Cat"}
+              {editingCat && autoSaveStatus === "saving" && (
+                <span className="text-xs font-normal text-muted-foreground flex items-center gap-1 ml-auto">
+                  <Loader2 className="w-3 h-3 animate-spin" /> Saving...
+                </span>
+              )}
+              {editingCat && autoSaveStatus === "saved" && (
+                <span className="text-xs font-normal text-green-600 ml-auto">✓ Saved</span>
+              )}
             </SheetTitle>
           </SheetHeader>
           <ScrollArea className="h-[calc(92vh-60px)]">
@@ -751,6 +815,7 @@ export function CatManager() {
                     id="name"
                     value={formData.name}
                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    onBlur={() => editingCat && triggerAutoSave()}
                     placeholder="e.g., Judy"
                   />
                 </div>
@@ -763,6 +828,7 @@ export function CatManager() {
                       id="breed"
                       value={formData.breed}
                       onChange={(e) => setFormData(prev => ({ ...prev, breed: e.target.value }))}
+                      onBlur={() => editingCat && triggerAutoSave()}
                       placeholder="Domestic Shorthair"
                     />
                   </div>
@@ -772,6 +838,7 @@ export function CatManager() {
                       id="colorPattern"
                       value={formData.colorPattern}
                       onChange={(e) => setFormData(prev => ({ ...prev, colorPattern: e.target.value }))}
+                      onBlur={() => editingCat && triggerAutoSave()}
                       placeholder="Grey Tabby"
                     />
                   </div>
@@ -781,7 +848,7 @@ export function CatManager() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label>Sex</Label>
-                    <Select value={formData.sex} onValueChange={(v) => setFormData(prev => ({ ...prev, sex: v as any }))}>
+                    <Select value={formData.sex} onValueChange={(v) => { setFormData(prev => ({ ...prev, sex: v as any })); if (editingCat) triggerAutoSave(); }}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="female">Female ♀</SelectItem>
@@ -796,7 +863,7 @@ export function CatManager() {
                       id="dob"
                       type="date"
                       value={formData.dob}
-                      onChange={(e) => setFormData(prev => ({ ...prev, dob: e.target.value }))}
+                      onChange={(e) => { setFormData(prev => ({ ...prev, dob: e.target.value })); if (editingCat) triggerAutoSave(); }}
                     />
                   </div>
                 </div>
@@ -809,6 +876,7 @@ export function CatManager() {
                       id="weight"
                       value={formData.weight}
                       onChange={(e) => setFormData(prev => ({ ...prev, weight: e.target.value }))}
+                      onBlur={() => editingCat && triggerAutoSave()}
                       placeholder="7.8 lbs"
                     />
                   </div>
@@ -818,6 +886,7 @@ export function CatManager() {
                       id="adoptionFee"
                       value={formData.adoptionFee}
                       onChange={(e) => setFormData(prev => ({ ...prev, adoptionFee: e.target.value }))}
+                      onBlur={() => editingCat && triggerAutoSave()}
                       placeholder="$150.00"
                     />
                   </div>
@@ -830,12 +899,12 @@ export function CatManager() {
                     <Switch
                       id="isAltered"
                       checked={formData.isAltered}
-                      onCheckedChange={(v) => setFormData(prev => ({ ...prev, isAltered: v }))}
+                      onCheckedChange={(v) => { setFormData(prev => ({ ...prev, isAltered: v })); if (editingCat) triggerAutoSave(); }}
                     />
                   </div>
                   <div>
                     <Label>FeLV/FIV</Label>
-                    <Select value={formData.felvFivStatus} onValueChange={(v) => setFormData(prev => ({ ...prev, felvFivStatus: v as any }))}>
+                    <Select value={formData.felvFivStatus} onValueChange={(v) => { setFormData(prev => ({ ...prev, felvFivStatus: v as any })); if (editingCat) triggerAutoSave(); }}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="negative">Negative ✓</SelectItem>
@@ -850,7 +919,20 @@ export function CatManager() {
                 {/* Status */}
                 <div>
                   <Label>Status</Label>
-                  <Select value={formData.status} onValueChange={(v) => setFormData(prev => ({ ...prev, status: v as any }))}>
+                  <Select value={formData.status} onValueChange={(v) => {
+                    const newStatus = v as any;
+                    const isAdoptedStatus = newStatus === "adopted" || newStatus === "adopted_in_lounge";
+                    const wasAdopted = formData.status === "adopted" || formData.status === "adopted_in_lounge";
+                    setFormData(prev => ({
+                      ...prev,
+                      status: newStatus,
+                      // Auto-set adoption date to today if switching to an adopted status and no date set yet
+                      adoptedDate: (isAdoptedStatus && !wasAdopted && !prev.adoptedDate)
+                        ? new Date().toISOString().split("T")[0]
+                        : prev.adoptedDate,
+                    }));
+                    if (editingCat) triggerAutoSave();
+                  }}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="available">🟢 Available</SelectItem>
@@ -863,16 +945,16 @@ export function CatManager() {
                   </Select>
                 </div>
 
-                {/* Adopted fields (show when status is adopted) */}
-                {formData.status === "adopted" && (
-                  <div className="grid grid-cols-2 gap-3 p-3 rounded-lg bg-pink-50 border border-pink-200">
+                {/* Adopted fields (show when status is adopted or adopted_in_lounge) */}
+                {(formData.status === "adopted" || formData.status === "adopted_in_lounge") && (
+                  <div className={`grid grid-cols-2 gap-3 p-3 rounded-lg border ${formData.status === "adopted_in_lounge" ? "bg-purple-50 border-purple-200" : "bg-pink-50 border-pink-200"}`}>
                     <div>
                       <Label htmlFor="adoptedDate">Adoption Date</Label>
                       <Input
                         id="adoptedDate"
                         type="date"
                         value={formData.adoptedDate}
-                        onChange={(e) => setFormData(prev => ({ ...prev, adoptedDate: e.target.value }))}
+                        onChange={(e) => { setFormData(prev => ({ ...prev, adoptedDate: e.target.value })); if (editingCat) triggerAutoSave(); }}
                       />
                     </div>
                     <div>
@@ -881,6 +963,7 @@ export function CatManager() {
                         id="adoptedBy"
                         value={formData.adoptedBy}
                         onChange={(e) => setFormData(prev => ({ ...prev, adoptedBy: e.target.value }))}
+                        onBlur={() => editingCat && triggerAutoSave()}
                         placeholder="Adopter name"
                       />
                     </div>
@@ -896,7 +979,7 @@ export function CatManager() {
                   <Switch
                     id="isFeatured"
                     checked={formData.isFeatured}
-                    onCheckedChange={(v) => setFormData(prev => ({ ...prev, isFeatured: v }))}
+                    onCheckedChange={(v) => { setFormData(prev => ({ ...prev, isFeatured: v })); if (editingCat) triggerAutoSave(); }}
                   />
                 </div>
 
@@ -908,7 +991,7 @@ export function CatManager() {
                       <button
                         key={tag}
                         type="button"
-                        onClick={() => toggleTag(tag)}
+                        onClick={() => { toggleTag(tag); if (editingCat) triggerAutoSave(); }}
                         className={`text-xs px-2.5 py-1.5 rounded-full border transition-colors ${
                           formData.personalityTags.includes(tag)
                             ? "bg-primary text-primary-foreground border-primary"
@@ -928,6 +1011,7 @@ export function CatManager() {
                     id="bio"
                     value={formData.bio}
                     onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
+                    onBlur={() => editingCat && triggerAutoSave()}
                     placeholder="Paste the memo from the kennel card..."
                     rows={4}
                   />
@@ -958,6 +1042,7 @@ export function CatManager() {
                           id="rescueId"
                           value={formData.rescueId}
                           onChange={(e) => setFormData(prev => ({ ...prev, rescueId: e.target.value }))}
+                          onBlur={() => editingCat && triggerAutoSave()}
                           placeholder="KRLA-A-8326"
                         />
                       </div>
@@ -967,6 +1052,7 @@ export function CatManager() {
                           id="shelterluvId"
                           value={formData.shelterluvId}
                           onChange={(e) => setFormData(prev => ({ ...prev, shelterluvId: e.target.value }))}
+                          onBlur={() => editingCat && triggerAutoSave()}
                           placeholder="205889349"
                         />
                       </div>
@@ -979,6 +1065,7 @@ export function CatManager() {
                         id="microchipNumber"
                         value={formData.microchipNumber}
                         onChange={(e) => setFormData(prev => ({ ...prev, microchipNumber: e.target.value }))}
+                        onBlur={() => editingCat && triggerAutoSave()}
                         placeholder="941000029293663"
                       />
                     </div>
@@ -991,7 +1078,7 @@ export function CatManager() {
                           id="arrivalDate"
                           type="date"
                           value={formData.arrivalDate}
-                          onChange={(e) => setFormData(prev => ({ ...prev, arrivalDate: e.target.value }))}
+                          onChange={(e) => { setFormData(prev => ({ ...prev, arrivalDate: e.target.value })); if (editingCat) triggerAutoSave(); }}
                         />
                       </div>
                       <div>
@@ -1000,6 +1087,7 @@ export function CatManager() {
                           id="intakeType"
                           value={formData.intakeType}
                           onChange={(e) => setFormData(prev => ({ ...prev, intakeType: e.target.value }))}
+                          onBlur={() => editingCat && triggerAutoSave()}
                           placeholder="Transfer In"
                         />
                       </div>
@@ -1012,7 +1100,7 @@ export function CatManager() {
                           <Calendar className="w-3.5 h-3.5" />
                           Vaccinations Due
                         </Label>
-                        <Button type="button" variant="ghost" size="sm" onClick={addVaccination}>
+                        <Button type="button" variant="ghost" size="sm" onClick={() => { addVaccination(); if (editingCat) triggerAutoSave(); }}>
                           <Plus className="w-3.5 h-3.5 mr-1" />
                           Add
                         </Button>
@@ -1031,7 +1119,7 @@ export function CatManager() {
                             onChange={(e) => updateVaccination(i, "dueDate", e.target.value)}
                             className="w-36"
                           />
-                          <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeVaccination(i)}>
+                          <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => { removeVaccination(i); if (editingCat) triggerAutoSave(); }}>
                             <X className="w-4 h-4" />
                           </Button>
                         </div>
@@ -1045,7 +1133,7 @@ export function CatManager() {
                         id="fleaTreatmentDue"
                         type="date"
                         value={formData.fleaTreatmentDue}
-                        onChange={(e) => setFormData(prev => ({ ...prev, fleaTreatmentDue: e.target.value }))}
+                        onChange={(e) => { setFormData(prev => ({ ...prev, fleaTreatmentDue: e.target.value })); if (editingCat) triggerAutoSave(); }}
                       />
                     </div>
 
@@ -1056,6 +1144,7 @@ export function CatManager() {
                         id="medicalNotes"
                         value={formData.medicalNotes}
                         onChange={(e) => setFormData(prev => ({ ...prev, medicalNotes: e.target.value }))}
+                        onBlur={() => editingCat && triggerAutoSave()}
                         placeholder="Dental work, treatments, special needs..."
                         rows={3}
                       />
@@ -1082,13 +1171,19 @@ export function CatManager() {
                   </Button>
                 )}
                 <div className="flex-1" />
-                <Button variant="outline" onClick={handleClose}>Cancel</Button>
-                <Button onClick={handleSubmit} disabled={isLoading || !formData.name}>
-                  {isLoading ? (
-                    <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                  ) : null}
-                  {editingCat ? "Save" : "Add Cat"}
-                </Button>
+                {editingCat ? (
+                  <Button variant="outline" onClick={handleClose}>Close</Button>
+                ) : (
+                  <>
+                    <Button variant="outline" onClick={handleClose}>Cancel</Button>
+                    <Button onClick={handleSubmit} disabled={isLoading || !formData.name}>
+                      {isLoading ? (
+                        <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                      ) : null}
+                      Add Cat
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </ScrollArea>

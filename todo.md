@@ -1423,3 +1423,12 @@
 ## Cleanup - Remove Adoption Counter Preview Page
 - [x] Delete AdoptionCounterPreview.tsx
 - [x] Remove route and import from App.tsx
+
+## Feature - Auto-Set Adoption Date & Auto-Save Cats
+- [x] Auto-set adoptedDate to today when status changes to adopted or adopted_in_lounge
+- [x] Add auto-save (1.5s debounce) to cat editing — no more Save button needed
+- [x] Auto-save triggers on: status, name, breed, bio, photo, dates, toggles, tags, medical notes, all fields
+- [x] Show "Saving..." / "✓ Saved" indicator in sheet header
+- [x] Replace Save/Cancel with Close button when editing (auto-save handles it)
+- [x] Keep Add Cat button for new cat creation
+- [x] All 186 tests passing, tsc --noEmit clean
