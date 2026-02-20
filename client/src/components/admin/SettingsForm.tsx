@@ -475,7 +475,7 @@ export function SettingsForm({ settings, onSuccess }: SettingsFormProps) {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="totalAdoptionCount">Total Cats Adopted</Label>
+            <Label htmlFor="totalAdoptionCount">Pre-Database Adoption Offset</Label>
             <Input
               id="totalAdoptionCount"
               type="number"
@@ -484,7 +484,7 @@ export function SettingsForm({ settings, onSuccess }: SettingsFormProps) {
               className="text-2xl font-bold text-center h-14"
             />
             <p className="text-xs text-muted-foreground">
-              Enter the total number of cats adopted (including before this system was set up)
+              Add a number here for cats adopted <strong>before</strong> this system was set up. The counter automatically counts cats marked as adopted in the Cats tab. This offset is added on top of that.
             </p>
           </div>
         </CardContent>

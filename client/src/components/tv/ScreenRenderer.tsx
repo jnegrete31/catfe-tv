@@ -1050,7 +1050,11 @@ function AdoptionCounterScreen({ screen, settings }: ScreenRendererProps) {
   const { data: settingsData } = trpc.settings.get.useQuery();
   const { data: recentlyAdopted } = trpc.cats.getRecentlyAdopted.useQuery({ days: 90 });
   const { data: availableCats } = trpc.cats.getAvailable.useQuery();
-  const totalCount = settingsData?.totalAdoptionCount || 0;
+  const { data: autoCount } = trpc.screens.getAdoptionCount.useQuery(undefined, { staleTime: 30000 });
+  // Use automatic DB count; settings.totalAdoptionCount can serve as an offset for pre-database adoptions
+  const dbCount = autoCount?.count || 0;
+  const manualOffset = settingsData?.totalAdoptionCount || 0;
+  const totalCount = dbCount + manualOffset;
 
   // Milestone detection
   const milestone = useMemo(() => getMilestoneInfo(totalCount), [totalCount]);
@@ -2593,6 +2597,12 @@ function TemplateElementsOverlay({ screenType, screen, settings }: { screenType:
 
 // Main renderer that selects the appropriate component
 export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendererProps) {
+  // Auto count adoptions from DB + manual offset
+  const { data: autoCount } = trpc.screens.getAdoptionCount.useQuery(undefined, { staleTime: 30000 });
+  const dbCount = autoCount?.count || 0;
+  const manualOffset = settings?.totalAdoptionCount || 0;
+  const autoAdoptionCount = dbCount + manualOffset;
+
   // Fetch template for this screen type (all types, not just CUSTOM)
   const { data: savedTemplate } = trpc.templates.getByScreenType.useQuery(
     { screenType: screen.type },
@@ -2703,7 +2713,7 @@ export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendere
           <TemplateRenderer 
             screen={screen} 
             settings={settings} 
-            adoptionCount={settings?.totalAdoptionCount}
+            adoptionCount={autoAdoptionCount}
             adoptionCats={adoptionCats}
           />
         </motion.div>
