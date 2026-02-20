@@ -7,7 +7,7 @@ type GuestSession = {
   id: number;
   guestName: string;
   guestCount: number;
-  duration: "15" | "30" | "60";
+  duration: "15" | "30" | "60" | "90";
   status: "active" | "completed" | "extended";
   checkInAt: Date;
   expiresAt: Date;

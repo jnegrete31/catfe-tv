@@ -1468,3 +1468,14 @@
 - [x] Update Apple TV TemplateOverlayView counter element
 - [x] Added fetchAdoptionCount() to APIClient with 60-second refresh
 - [x] Push changes to GitHub
+
+## Feature - Roller API Integration
+- [x] Set up Roller API credentials (client ID + secret) securely
+- [x] Build Roller API client on server (OAuth2 token management, API calls)
+- [x] Build Live Availability TV slide (session times + remaining capacity)
+- [x] Build Today's Sessions Board TV slide (all sessions in grid layout)
+- [x] Build auto guest check-in via Roller redemption webhook (POST /api/webhooks/roller)
+- [x] Added 90-minute session duration for Study Sessions
+- [ ] Build waiver status integration (requires live webhook to get guest IDs — future enhancement)
+- [ ] Update Apple TV with new Roller-powered slides (future enhancement)
+- [x] Push changes to GitHub

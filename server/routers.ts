@@ -116,6 +116,7 @@ import {
 import { storagePut } from "./storage";
 import { invokeLLM } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
+import { getProductAvailability, searchBookings } from "./roller";
 
 // Screen type enum values
 const screenTypes = [
@@ -137,6 +138,8 @@ const screenTypes = [
   "POLL_QR",
   "CHECK_IN",
   "GUEST_STATUS_BOARD",
+  "LIVE_AVAILABILITY",
+  "SESSION_BOARD",
   "CUSTOM",
 ] as const;
 
@@ -671,7 +674,7 @@ export const appRouter = router({
       .input(z.object({
         guestName: z.string().min(1).max(255),
         guestCount: z.number().min(1).max(20).default(1),
-        duration: z.enum(["15", "30", "60"]),
+        duration: z.enum(["15", "30", "60", "90"]),
         notes: z.string().max(500).nullable().optional(),
       }))
       .mutation(async ({ input }) => {
@@ -1893,6 +1896,84 @@ Extract as much information as possible from the documents. For the bio, write a
         const { url } = await storagePut(fileKey, buffer, input.mimeType);
         await updateCat(input.catId, { photoUrl: url });
         return { url };
+      }),
+  }),
+
+  // ---- Roller Integration ----
+  roller: router({
+    getAvailability: publicProcedure
+      .input(z.object({ date: z.string().optional() }))
+      .query(async ({ input }) => {
+        const date = input.date || new Date().toISOString().split("T")[0];
+        const products = await getProductAvailability(date);
+        
+        // Filter to session products and format for TV display
+        const sessionProducts = products.filter((p: any) => p.type === "sessionpass");
+        
+        return sessionProducts.map((product: any) => {
+          const sessions = (product.sessions || []).map((s: any) => ({
+            name: s.name,
+            startTime: s.startTime,
+            endTime: s.endTime,
+            capacityRemaining: s.capacityRemaining,
+            ticketCapacityRemaining: s.ticketCapacityRemaining,
+            onlineSalesOpen: s.onlineSalesOpen,
+          }));
+          
+          const cost = product.products?.[0]?.cost || 0;
+          
+          return {
+            id: product.id || product.parentProductId,
+            name: product.parentProductName || product.name,
+            description: product.description || "",
+            imageUrl: product.imageUrl || "",
+            cost,
+            sessions,
+          };
+        });
+      }),
+
+    getTodaySessions: publicProcedure.query(async () => {
+      const today = new Date().toISOString().split("T")[0];
+      const products = await getProductAvailability(today);
+      const sessionProducts = products.filter((p: any) => p.type === "sessionpass");
+      
+      // Flatten all sessions across products with product info
+      const allSessions: any[] = [];
+      for (const product of sessionProducts) {
+        for (const session of (product.sessions || [])) {
+          allSessions.push({
+            productName: product.parentProductName || product.name,
+            productId: product.id || product.parentProductId,
+            description: product.description || "",
+            cost: product.products?.[0]?.cost || 0,
+            sessionName: session.name,
+            startTime: session.startTime,
+            endTime: session.endTime,
+            capacityRemaining: session.capacityRemaining,
+            ticketCapacityRemaining: session.ticketCapacityRemaining,
+            onlineSalesOpen: session.onlineSalesOpen,
+          });
+        }
+      }
+      
+      // Sort by start time
+      allSessions.sort((a, b) => a.startTime.localeCompare(b.startTime));
+      
+      return allSessions;
+    }),
+
+    getBookings: protectedProcedure
+      .input(z.object({
+        dateFrom: z.string(),
+        dateTo: z.string().optional(),
+      }))
+      .query(async ({ input }) => {
+        const bookings = await searchBookings({
+          dateFrom: input.dateFrom,
+          dateTo: input.dateTo,
+        });
+        return bookings;
       }),
   }),
 });

@@ -42,7 +42,7 @@ type GuestSession = {
   id: number;
   guestName: string;
   guestCount: number;
-  duration: "15" | "30" | "60";
+  duration: "15" | "30" | "60" | "90";
   status: "active" | "completed" | "extended";
   checkInAt: Date;
   expiresAt: Date;
@@ -81,7 +81,7 @@ export function GuestCheckIn() {
   const [isCheckInOpen, setIsCheckInOpen] = useState(false);
   const [guestName, setGuestName] = useState("");
   const [guestCount, setGuestCount] = useState("1");
-  const [duration, setDuration] = useState<"15" | "30" | "60">("30");
+  const [duration, setDuration] = useState<"15" | "30" | "60" | "90">("30");
   const [notes, setNotes] = useState("");
   const [, setTick] = useState(0);
   const warnedSessionIds = useRef<Set<number>>(new Set());
@@ -303,7 +303,7 @@ export function GuestCheckIn() {
               
               <div className="space-y-2">
                 <Label htmlFor="duration">Duration</Label>
-                <Select value={duration} onValueChange={(v) => setDuration(v as "15" | "30" | "60")}>
+                <Select value={duration} onValueChange={(v) => setDuration(v as "15" | "30" | "60" | "90")}>
                   <SelectTrigger className="h-11">
                     <SelectValue />
                   </SelectTrigger>
@@ -311,6 +311,7 @@ export function GuestCheckIn() {
                     <SelectItem value="15">15 minutes</SelectItem>
                     <SelectItem value="30">30 minutes</SelectItem>
                     <SelectItem value="60">60 minutes</SelectItem>
+                    <SelectItem value="90">90 minutes</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

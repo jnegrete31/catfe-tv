@@ -1,0 +1,1 @@
+ALTER TABLE `guestSessions` MODIFY COLUMN `sessionDuration` enum('15','30','60','90') NOT NULL;
