@@ -190,6 +190,7 @@ export const guestSessions = mysqlTable("guestSessions", {
   checkedOutAt: timestamp("checkedOutAt"),
   notes: text("notes"),
   reminderShown: boolean("reminderShown").notNull().default(false), // Track if 5-min reminder was shown
+  rollerBookingRef: varchar("rollerBookingRef", { length: 255 }), // Roller booking reference for dedup
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

@@ -1479,3 +1479,12 @@
 - [ ] Build waiver status integration (requires live webhook to get guest IDs — future enhancement)
 - [ ] Update Apple TV with new Roller-powered slides (future enhancement)
 - [x] Push changes to GitHub
+
+## Feature - Roller Polling-Based Auto Check-in (Webhook Alternative)
+- [x] Investigate Roller API for recent redemptions/check-ins endpoint
+- [x] Implement polling-based auto check-in (poll Roller API every 30 seconds for new bookings)
+- [x] Remove dependency on webhook configuration (auto-registers via API + polling fallback)
+- [x] Add rollerBookingRef to guestSessions for dedup (prevents duplicate check-ins)
+- [x] Add getRollerPollingStatus endpoint for monitoring
+- [x] Extract shared helpers into rollerWebhookHelpers.ts for testability
+- [x] Write tests for polling service (5 tests passing, 194 total)

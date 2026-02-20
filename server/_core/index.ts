@@ -5,6 +5,7 @@ import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { registerRollerWebhook } from "../rollerWebhook";
+import { startRollerPolling } from "../rollerPolling";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
@@ -61,6 +62,8 @@ async function startServer() {
 
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
+    // Start Roller polling for auto guest check-in
+    startRollerPolling().catch(err => console.warn("[Roller Poll] Failed to start:", err.message));
   });
 }
 

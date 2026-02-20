@@ -1,0 +1,1 @@
+ALTER TABLE `guestSessions` ADD `rollerBookingRef` varchar(255);

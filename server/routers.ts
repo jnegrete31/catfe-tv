@@ -116,7 +116,8 @@ import {
 import { storagePut } from "./storage";
 import { invokeLLM } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
-import { getProductAvailability, searchBookings } from "./roller";
+import { getProductAvailability, searchBookings, testConnection } from "./roller";
+import { getRollerPollingStatus } from "./rollerPolling";
 
 // Screen type enum values
 const screenTypes = [
@@ -1975,6 +1976,18 @@ Extract as much information as possible from the documents. For the bio, write a
         });
         return bookings;
       }),
+
+    // Get integration status (polling + webhook + connection)
+    getStatus: protectedProcedure.query(async () => {
+      const pollingStatus = getRollerPollingStatus();
+      const connectionTest = await testConnection();
+      return {
+        ...pollingStatus,
+        connectionOk: connectionTest.success,
+        productCount: connectionTest.productCount,
+        connectionError: connectionTest.error,
+      };
+    }),
   }),
 });
 
