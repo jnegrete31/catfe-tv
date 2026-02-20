@@ -235,7 +235,7 @@ function SnapAndPurrScreen({ screen, settings }: ScreenRendererProps) {
               style={{ background: 'linear-gradient(135deg, #F5E6D3 0%, #EDE0D4 100%)' }}
             >
               <QRCodeSVG value={screen.qrUrl} size={200} level="M" fgColor="#2d2d2d" />
-              <p className="mt-3 text-sm font-medium" style={{ color: '#5a5a5a' }}>Scan to share your photos!</p>
+              <p className="mt-3 text-sm font-medium" style={{ color: '#5a5a5a' }}>{screen.qrLabel || 'Scan to share your photos!'}</p>
             </motion.div>
           )}
         </motion.div>
@@ -350,7 +350,7 @@ function EventScreen({ screen, settings }: ScreenRendererProps) {
                 style={{ background: '#FFFEF9' }}
               >
                 <div className="text-center mb-2">
-                  <p className="text-lg font-semibold" style={{ color: '#3d3d3d' }}>Scan to Book</p>
+                  <p className="text-lg font-semibold" style={{ color: '#3d3d3d' }}>{screen.qrLabel || 'Scan to Book'}</p>
                 </div>
                 <QRCodeSVG value={screen.qrUrl} size={150} level="M" fgColor="#2d2d2d" />
               </motion.div>
@@ -429,6 +429,9 @@ function TodayAtCatfeScreen({ screen, settings }: ScreenRendererProps) {
                 className="inline-block rounded-2xl p-5 shadow-xl"
                 style={{ background: '#FFFEF9' }}
               >
+                {screen.qrLabel && (
+                  <p className="text-center mb-2 text-base font-semibold" style={{ color: '#3d3d3d' }}>{screen.qrLabel}</p>
+                )}
                 <QRCodeSVG value={screen.qrUrl} size={160} level="M" fgColor="#2d2d2d" />
               </motion.div>
             )}
@@ -509,7 +512,7 @@ function MembershipScreen({ screen, settings }: ScreenRendererProps) {
               style={{ background: 'linear-gradient(135deg, #F5E6D3 0%, #EDE0D4 100%)' }}
             >
               <QRCodeSVG value={screen.qrUrl} size={200} level="M" fgColor="#2d2d2d" />
-              <p className="mt-3 text-center text-sm font-medium" style={{ color: '#5a5a5a' }}>Scan to join</p>
+              <p className="mt-3 text-center text-sm font-medium" style={{ color: '#5a5a5a' }}>{screen.qrLabel || 'Scan to join'}</p>
             </motion.div>
           )}
         </motion.div>
@@ -737,7 +740,7 @@ function AdoptionScreen({ screen, settings }: ScreenRendererProps) {
                 style={{ background: 'linear-gradient(135deg, #F5E6D3 0%, #EDE0D4 100%)' }}
               >
                 <div className="text-center mb-3">
-                  <p className="text-base font-semibold" style={{ color: '#3d3d3d' }}>Scan to Adopt Me</p>
+                  <p className="text-base font-semibold" style={{ color: '#3d3d3d' }}>{screen.qrLabel || 'Scan to Adopt Me'}</p>
                 </div>
                 <QRCodeSVG value={screen.qrUrl} size={150} level="M" fgColor="#2d2d2d" />
               </motion.div>
@@ -2760,7 +2763,10 @@ export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendere
               </div>
             )}
             {screen.qrUrl && (
-              <div className="mt-8 bg-white p-4 rounded-lg shadow-xl">
+              <div className="mt-8 bg-white p-4 rounded-lg shadow-xl text-center">
+                {screen.qrLabel && (
+                  <p className="mb-2 text-sm font-semibold text-gray-700">{screen.qrLabel}</p>
+                )}
                 <QRCodeSVG value={screen.qrUrl} size={150} level="M" />
               </div>
             )}

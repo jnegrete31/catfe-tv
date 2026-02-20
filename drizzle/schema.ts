@@ -55,6 +55,7 @@ export const screens = mysqlTable("screens", {
   imagePath: varchar("imagePath", { length: 1024 }), // GitHub path or full raw URL
   imageDisplayMode: varchar("imageDisplayMode", { length: 16 }).default("cover"), // "cover" or "contain"
   qrUrl: varchar("qrUrl", { length: 1024 }),
+  qrLabel: varchar("qrLabel", { length: 255 }), // Custom label displayed near QR code (e.g., "Scan to Adopt", "RSVP Here")
   // Scheduling fields
   startAt: timestamp("startAt"),
   endAt: timestamp("endAt"),

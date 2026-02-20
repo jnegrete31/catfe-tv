@@ -2127,6 +2127,7 @@ export function catToVirtualScreen(cat: Cat): Screen {
     imagePath: cat.photoUrl || null,
     imageDisplayMode: 'cover',
     qrUrl: null,
+    qrLabel: null,
     startAt: null,
     endAt: null,
     daysOfWeek: null,

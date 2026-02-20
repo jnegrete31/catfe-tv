@@ -35,6 +35,7 @@ const screenSchema = z.object({
   imagePath: z.string().optional().nullable(),
   imageDisplayMode: z.enum(["cover", "contain"]).optional().nullable(),
   qrUrl: z.string().url("Invalid URL").optional().nullable().or(z.literal("")),
+  qrLabel: z.string().max(255).optional().nullable(),
   startAt: z.date().optional().nullable(),
   endAt: z.date().optional().nullable(),
   daysOfWeek: z.array(z.number()).optional().nullable(),
@@ -45,7 +46,6 @@ const screenSchema = z.object({
   isActive: z.boolean(),
   schedulingEnabled: z.boolean(),
   isAdopted: z.boolean(),
-  eventDate: z.string().max(100).optional().nullable(),
   eventTime: z.string().max(100).optional().nullable(),
   eventLocation: z.string().max(255).optional().nullable(),
 });
@@ -122,6 +122,7 @@ export function ScreenForm({ screen, onSuccess, onCancel }: ScreenFormProps) {
       imagePath: screen?.imagePath || "",
       imageDisplayMode: (screen as any)?.imageDisplayMode || "cover",
       qrUrl: screen?.qrUrl || "",
+      qrLabel: screen?.qrLabel || "",
       startAt: screen?.startAt ? new Date(screen.startAt) : null,
       endAt: screen?.endAt ? new Date(screen.endAt) : null,
       daysOfWeek: screen?.daysOfWeek || [],
@@ -132,7 +133,6 @@ export function ScreenForm({ screen, onSuccess, onCancel }: ScreenFormProps) {
       isActive: screen?.isActive ?? true,
       schedulingEnabled: screen?.schedulingEnabled ?? false,
       isAdopted: (screen as any)?.isAdopted ?? false,
-      eventDate: (screen as any)?.eventDate || "",
       eventTime: (screen as any)?.eventTime || "",
       eventLocation: (screen as any)?.eventLocation || "",
     },
@@ -263,10 +263,10 @@ export function ScreenForm({ screen, onSuccess, onCancel }: ScreenFormProps) {
       imagePath: data.imagePath || imagePreview || null,
       imageDisplayMode: data.imageDisplayMode || "cover",
       qrUrl: data.qrUrl || null,
+      qrLabel: data.qrLabel || null,
       timeStart: data.timeStart || null,
       timeEnd: data.timeEnd || null,
       daysOfWeek: data.daysOfWeek?.length ? data.daysOfWeek : null,
-      eventDate: data.eventDate || null,
       eventTime: data.eventTime || null,
       eventLocation: data.eventLocation || null,
     };
@@ -490,14 +490,6 @@ export function ScreenForm({ screen, onSuccess, onCancel }: ScreenFormProps) {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="eventDate">Event Date</Label>
-              <Input
-                id="eventDate"
-                {...register("eventDate")}
-                placeholder="e.g., Saturday, Feb 15"
-              />
-            </div>
-            <div className="space-y-2">
               <Label htmlFor="eventTime">Event Time</Label>
               <Input
                 id="eventTime"
@@ -533,6 +525,19 @@ export function ScreenForm({ screen, onSuccess, onCancel }: ScreenFormProps) {
           </span>
         )}
       </div>
+
+      {/* QR Label - only show when QR URL has a value */}
+      {watch("qrUrl") && (
+        <div className="space-y-2">
+          <Label htmlFor="qrLabel">QR Code Label</Label>
+          <Input
+            id="qrLabel"
+            {...register("qrLabel")}
+            placeholder="e.g., Scan to Adopt, RSVP Here, Sign Waiver"
+          />
+          <p className="text-xs text-muted-foreground">Optional label displayed near the QR code on the TV</p>
+        </div>
+      )}
       
       {/* Duration & Priority */}
       <div className="grid grid-cols-2 gap-4">
