@@ -1,0 +1,129 @@
+{
+  "query": "SELECT id, name, catStatus, adoptedDate, LEFT(photoUrl, 60) as photoUrl_short FROM cats WHERE catStatus IN ('adopted', 'adopted_in_lounge') ORDER BY adoptedDate DESC LIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2KjT5kGWaGHMws6.75433b4e530a --database aMDMXCoQ2ycSYTjhkKKJzm --execute SELECT id, name, catStatus, adoptedDate, LEFT(photoUrl, 60) as photoUrl_short FROM cats WHERE catStatus IN ('adopted', 'adopted_in_lounge') ORDER BY adoptedDate DESC LIMIT 20;",
+  "rows": [
+    {
+      "id": "30004",
+      "name": "Lemon",
+      "catStatus": "adopted",
+      "adoptedDate": "2026-02-15 00:00:00",
+      "photoUrl_short": "https://d2xsxph8kpxj0f.cloudfront.net/310519663322973980/aMD"
+    },
+    {
+      "id": "30024",
+      "name": "Elvira",
+      "catStatus": "adopted",
+      "adoptedDate": "2026-02-13 00:00:00",
+      "photoUrl_short": "https://d2xsxph8kpxj0f.cloudfront.net/310519663322973980/aMD"
+    },
+    {
+      "id": "30023",
+      "name": "Chun-Li",
+      "catStatus": "adopted",
+      "adoptedDate": "2026-02-07 00:00:00",
+      "photoUrl_short": "https://d2xsxph8kpxj0f.cloudfront.net/310519663322973980/aMD"
+    },
+    {
+      "id": "30018",
+      "name": "Bella",
+      "catStatus": "adopted",
+      "adoptedDate": "2026-01-22 00:00:00",
+      "photoUrl_short": "NULL"
+    },
+    {
+      "id": "30017",
+      "name": "Goose",
+      "catStatus": "adopted",
+      "adoptedDate": "2026-01-19 00:00:00",
+      "photoUrl_short": "NULL"
+    },
+    {
+      "id": "30013",
+      "name": "Zangief",
+      "catStatus": "adopted",
+      "adoptedDate": "2026-01-17 00:00:00",
+      "photoUrl_short": "NULL"
+    },
+    {
+      "id": "30012",
+      "name": "Cammy",
+      "catStatus": "adopted",
+      "adoptedDate": "2026-01-16 00:00:00",
+      "photoUrl_short": "NULL"
+    },
+    {
+      "id": "30014",
+      "name": "Dublin",
+      "catStatus": "adopted",
+      "adoptedDate": "2026-01-02 00:00:00",
+      "photoUrl_short": "NULL"
+    },
+    {
+      "id": "30016",
+      "name": "Tallinn",
+      "catStatus": "adopted",
+      "adoptedDate": "2026-01-02 00:00:00",
+      "photoUrl_short": "NULL"
+    },
+    {
+      "id": "30015",
+      "name": "Milan",
+      "catStatus": "adopted",
+      "adoptedDate": "2026-01-02 00:00:00",
+      "photoUrl_short": "NULL"
+    },
+    {
+      "id": "30019",
+      "name": "Ziggy",
+      "catStatus": "adopted",
+      "adoptedDate": "2026-01-02 00:00:00",
+      "photoUrl_short": "NULL"
+    },
+    {
+      "id": "60001",
+      "name": "Tulip",
+      "catStatus": "adopted",
+      "adoptedDate": "2025-12-22 00:00:00",
+      "photoUrl_short": "NULL"
+    },
+    {
+      "id": "30028",
+      "name": "SUSAN",
+      "catStatus": "adopted",
+      "adoptedDate": "2025-12-22 00:00:00",
+      "photoUrl_short": "NULL"
+    },
+    {
+      "id": "30029",
+      "name": "Timmy",
+      "catStatus": "adopted",
+      "adoptedDate": "2025-12-20 00:00:00",
+      "photoUrl_short": "NULL"
+    },
+    {
+      "id": "30026",
+      "name": "Peanut",
+      "catStatus": "adopted",
+      "adoptedDate": "2025-12-17 00:00:00",
+      "photoUrl_short": "NULL"
+    },
+    {
+      "id": "30022",
+      "name": "Bruce",
+      "catStatus": "adopted",
+      "adoptedDate": "2025-02-16 00:00:00",
+      "photoUrl_short": "https://d2xsxph8kpxj0f.cloudfront.net/310519663322973980/aMD"
+    },
+    {
+      "id": "30011",
+      "name": "Guile",
+      "catStatus": "adopted",
+      "adoptedDate": "NULL",
+      "photoUrl_short": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tcatStatus\tadoptedDate\tphotoUrl_short\n30004\tLemon\tadopted\t2026-02-15 00:00:00\thttps://d2xsxph8kpxj0f.cloudfront.net/310519663322973980/aMD\n30024\tElvira\tadopted\t2026-02-13 00:00:00\thttps://d2xsxph8kpxj0f.cloudfront.net/310519663322973980/aMD\n30023\tChun-Li\tadopted\t2026-02-07 00:00:00\thttps://d2xsxph8kpxj0f.cloudfront.net/310519663322973980/aMD\n30018\tBella\tadopted\t2026-01-22 00:00:00\tNULL\n30017\tGoose\tadopted\t2026-01-19 00:00:00\tNULL\n30013\tZangief\tadopted\t2026-01-17 00:00:00\tNULL\n30012\tCammy\tadopted\t2026-01-16 00:00:00\tNULL\n30014\tDublin\tadopted\t2026-01-02 00:00:00\tNULL\n30016\tTallinn\tadopted\t2026-01-02 00:00:00\tNULL\n30015\tMilan\tadopted\t2026-01-02 00:00:00\tNULL\n30019\tZiggy\tadopted\t2026-01-02 00:00:00\tNULL\n60001\tTulip\tadopted\t2025-12-22 00:00:00\tNULL\n30028\tSUSAN\tadopted\t2025-12-22 00:00:00\tNULL\n30029\tTimmy\tadopted\t2025-12-20 00:00:00\tNULL\n30026\tPeanut\tadopted\t2025-12-17 00:00:00\tNULL\n30022\tBruce\tadopted\t2025-02-16 00:00:00\thttps://d2xsxph8kpxj0f.cloudfront.net/310519663322973980/aMD\n30011\tGuile\tadopted\tNULL\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 49
+}

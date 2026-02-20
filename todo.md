@@ -1432,3 +1432,10 @@
 - [x] Replace Save/Cancel with Close button when editing (auto-save handles it)
 - [x] Keep Add Cat button for new cat creation
 - [x] All 186 tests passing, tsc --noEmit clean
+
+## Bug Fix - Apple TV Adoption Counter Shows "More Happy Tails Coming Soon" Instead of Adopted Cat Photos
+- [x] Confirmed web version works fine (3 adopted cats with photos: Lemon, Elvira, Chun-Li)
+- [x] Investigate Apple TV AdoptionCounterScreenView.swift — adoptionCats passed from ContentView only had available cats, none with isAdopted=true
+- [x] Fix tvOS code: Added fetchRecentlyAdoptedCats() to APIClient, combined with available cats in ContentView
+- [x] Push updated Swift code to GitHub
+- [ ] Test the fix on Apple TV (requires Xcode rebuild)

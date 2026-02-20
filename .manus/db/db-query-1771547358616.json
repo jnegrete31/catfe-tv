@@ -1,0 +1,234 @@
+{
+  "query": "SHOW COLUMNS FROM cats;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2KjT5kGWaGHMws6.75433b4e530a --database aMDMXCoQ2ycSYTjhkKKJzm --execute SHOW COLUMNS FROM cats;",
+  "rows": [
+    {
+      "Field": "id",
+      "Type": "int(11)",
+      "Null": "NO",
+      "Key": "PRI",
+      "Default": "NULL",
+      "Extra": "auto_increment"
+    },
+    {
+      "Field": "name",
+      "Type": "varchar(255)",
+      "Null": "NO",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "photoUrl",
+      "Type": "varchar(1024)",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "breed",
+      "Type": "varchar(255)",
+      "Null": "YES",
+      "Key": "",
+      "Default": "Domestic Shorthair",
+      "Extra": ""
+    },
+    {
+      "Field": "colorPattern",
+      "Type": "varchar(255)",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "dob",
+      "Type": "timestamp",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "catSex",
+      "Type": "enum('female','male','unknown')",
+      "Null": "NO",
+      "Key": "",
+      "Default": "unknown",
+      "Extra": ""
+    },
+    {
+      "Field": "weight",
+      "Type": "varchar(50)",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "personalityTags",
+      "Type": "json",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "bio",
+      "Type": "text",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "adoptionFee",
+      "Type": "varchar(50)",
+      "Null": "YES",
+      "Key": "",
+      "Default": "$150.00",
+      "Extra": ""
+    },
+    {
+      "Field": "isAltered",
+      "Type": "tinyint(1)",
+      "Null": "NO",
+      "Key": "",
+      "Default": "0",
+      "Extra": ""
+    },
+    {
+      "Field": "felvFivStatus",
+      "Type": "enum('negative','positive','unknown','not_tested')",
+      "Null": "NO",
+      "Key": "",
+      "Default": "not_tested",
+      "Extra": ""
+    },
+    {
+      "Field": "catStatus",
+      "Type": "enum('available','adopted','adopted_in_lounge','medical_hold','foster','trial')",
+      "Null": "NO",
+      "Key": "",
+      "Default": "available",
+      "Extra": ""
+    },
+    {
+      "Field": "rescueId",
+      "Type": "varchar(100)",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "shelterluvId",
+      "Type": "varchar(100)",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "microchipNumber",
+      "Type": "varchar(100)",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "arrivalDate",
+      "Type": "timestamp",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "intakeType",
+      "Type": "varchar(100)",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "medicalNotes",
+      "Type": "text",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "vaccinationsDue",
+      "Type": "json",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "fleaTreatmentDue",
+      "Type": "timestamp",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "adoptedDate",
+      "Type": "timestamp",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "adoptedBy",
+      "Type": "varchar(255)",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "isFeatured",
+      "Type": "tinyint(1)",
+      "Null": "NO",
+      "Key": "",
+      "Default": "0",
+      "Extra": ""
+    },
+    {
+      "Field": "sortOrder",
+      "Type": "int(11)",
+      "Null": "NO",
+      "Key": "",
+      "Default": "0",
+      "Extra": ""
+    },
+    {
+      "Field": "createdAt",
+      "Type": "timestamp",
+      "Null": "NO",
+      "Key": "",
+      "Default": "CURRENT_TIMESTAMP",
+      "Extra": ""
+    },
+    {
+      "Field": "updatedAt",
+      "Type": "timestamp",
+      "Null": "NO",
+      "Key": "",
+      "Default": "CURRENT_TIMESTAMP",
+      "Extra": "DEFAULT_GENERATED on update CURRENT_TIMESTAMP"
+    }
+  ],
+  "messages": [],
+  "stdout": "Field\tType\tNull\tKey\tDefault\tExtra\nid\tint(11)\tNO\tPRI\tNULL\tauto_increment\nname\tvarchar(255)\tNO\t\tNULL\t\nphotoUrl\tvarchar(1024)\tYES\t\tNULL\t\nbreed\tvarchar(255)\tYES\t\tDomestic Shorthair\t\ncolorPattern\tvarchar(255)\tYES\t\tNULL\t\ndob\ttimestamp\tYES\t\tNULL\t\ncatSex\tenum('female','male','unknown')\tNO\t\tunknown\t\nweight\tvarchar(50)\tYES\t\tNULL\t\npersonalityTags\tjson\tYES\t\tNULL\t\nbio\ttext\tYES\t\tNULL\t\nadoptionFee\tvarchar(50)\tYES\t\t$150.00\t\nisAltered\ttinyint(1)\tNO\t\t0\t\nfelvFivStatus\tenum('negative','positive','unknown','not_tested')\tNO\t\tnot_tested\t\ncatStatus\tenum('available','adopted','adopted_in_lounge','medical_hold','foster','trial')\tNO\t\tavailable\t\nrescueId\tvarchar(100)\tYES\t\tNULL\t\nshelterluvId\tvarchar(100)\tYES\t\tNULL\t\nmicrochipNumber\tvarchar(100)\tYES\t\tNULL\t\narrivalDate\ttimestamp\tYES\t\tNULL\t\nintakeType\tvarchar(100)\tYES\t\tNULL\t\nmedicalNotes\ttext\tYES\t\tNULL\t\nvaccinationsDue\tjson\tYES\t\tNULL\t\nfleaTreatmentDue\ttimestamp\tYES\t\tNULL\t\nadoptedDate\ttimestamp\tYES\t\tNULL\t\nadoptedBy\tvarchar(255)\tYES\t\tNULL\t\nisFeatured\ttinyint(1)\tNO\t\t0\t\nsortOrder\tint(11)\tNO\t\t0\t\ncreatedAt\ttimestamp\tNO\t\tCURRENT_TIMESTAMP\t\nupdatedAt\ttimestamp\tNO\t\tCURRENT_TIMESTAMP\tDEFAULT_GENERATED on update CURRENT_TIMESTAMP\n",
+  "stderr": "",
+  "execution_time_ms": 55
+}
