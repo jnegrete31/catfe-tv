@@ -183,7 +183,7 @@ struct AdoptionScreenView: View {
                             
                             // QR Code
                             if let qrURL = screen.qrCodeURL, !qrURL.isEmpty {
-                                QRCodeView(url: qrURL, size: 160)
+                                QRCodeView(url: qrURL, size: 160, label: screen.qrLabel)
                                     .opacity(appeared ? 1 : 0)
                                     .scaleEffect(appeared ? 1 : 0.8)
                                     .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.6), value: appeared)

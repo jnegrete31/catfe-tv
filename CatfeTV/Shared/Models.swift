@@ -91,6 +91,7 @@ struct Screen: Identifiable, Codable, Equatable {
     var imageURL: String?
     var imageDisplayMode: String?
     var qrCodeURL: String?
+    var qrLabel: String?
     var duration: Int // seconds
     var priority: Int
     var isActive: Bool
@@ -125,6 +126,7 @@ struct Screen: Identifiable, Codable, Equatable {
         imageURL: String? = nil,
         imageDisplayMode: String? = "cover",
         qrCodeURL: String? = nil,
+        qrLabel: String? = nil,
         duration: Int = 10,
         priority: Int = 0,
         isActive: Bool = true,
@@ -152,6 +154,7 @@ struct Screen: Identifiable, Codable, Equatable {
         self.imageURL = imageURL
         self.imageDisplayMode = imageDisplayMode
         self.qrCodeURL = qrCodeURL
+        self.qrLabel = qrLabel
         self.duration = duration
         self.priority = priority
         self.isActive = isActive
@@ -189,6 +192,7 @@ struct APIScreen: Codable {
     var imagePath: String?
     var imageDisplayMode: String?
     var qrUrl: String?
+    var qrLabel: String?
     var startAt: String?
     var endAt: String?
     var daysOfWeek: [Int]?
@@ -248,6 +252,7 @@ struct APIScreen: Codable {
             imageURL: imagePath,
             imageDisplayMode: imageDisplayMode,
             qrCodeURL: qrUrl,
+            qrLabel: qrLabel,
             duration: durationSeconds,
             priority: priority,
             isActive: isActive,

@@ -76,7 +76,7 @@ struct SnapPurrScreenView: View {
                             Spacer()
                             
                             if let qrURL = screen.qrCodeURL, !qrURL.isEmpty {
-                                QRCodeView(url: qrURL, size: 140)
+                                QRCodeView(url: qrURL, size: 140, label: screen.qrLabel)
                             }
                             
                             Spacer()
@@ -153,7 +153,7 @@ struct SnapPurrScreenView: View {
                         Spacer()
                         
                         if let qrURL = screen.qrCodeURL, !qrURL.isEmpty {
-                            QRCodeView(url: qrURL, size: 180)
+                            QRCodeView(url: qrURL, size: 180, label: screen.qrLabel)
                                 .opacity(appeared ? 1 : 0)
                                 .scaleEffect(appeared ? 1 : 0.85)
                                 .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.4), value: appeared)

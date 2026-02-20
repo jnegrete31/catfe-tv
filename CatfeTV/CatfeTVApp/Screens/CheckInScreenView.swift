@@ -47,7 +47,7 @@ struct CheckInScreenView: View {
                                 
                                 // Use waiverUrl from settings, fall back to screen qrCodeURL
                                 if let qrURL = settings.waiverUrl ?? screen.qrCodeURL, !qrURL.isEmpty {
-                                    QRCodeView(url: qrURL, size: 180)
+                                    QRCodeView(url: qrURL, size: 180, label: screen.qrLabel)
                                 } else {
                                     Text("Ask staff for waiver")
                                         .font(CatfeTypography.caption)

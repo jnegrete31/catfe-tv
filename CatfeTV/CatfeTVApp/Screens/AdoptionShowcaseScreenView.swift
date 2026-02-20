@@ -109,7 +109,7 @@ struct AdoptionShowcaseScreenView: View {
                     if let qrURL = screen.qrCodeURL, !qrURL.isEmpty {
                         HStack {
                             Spacer()
-                            QRCodeView(url: qrURL, size: 110)
+                            QRCodeView(url: qrURL, size: 110, label: screen.qrLabel)
                         }
                         .opacity(appeared ? 1 : 0)
                         .animation(.easeOut(duration: 0.5).delay(0.5), value: appeared)

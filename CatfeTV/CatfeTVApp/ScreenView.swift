@@ -184,7 +184,7 @@ struct GenericScreenView: View {
                 
                 // QR Code
                 if let qrUrl = screen.qrCodeURL, !qrUrl.isEmpty {
-                    QRCodeView(url: qrUrl, size: 200)
+                    QRCodeView(url: qrUrl, size: 200, label: screen.qrLabel)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -298,6 +298,7 @@ struct BaseScreenLayout<Content: View>: View {
 struct QRCodeView: View {
     let url: String
     let size: CGFloat
+    var label: String?
     
     @State private var qrImage: UIImage?
     
@@ -310,7 +311,7 @@ struct QRCodeView: View {
                         .resizable()
                         .frame(width: size, height: size)
                     
-                    Text("Scan to learn more")
+                    Text(label ?? "Scan to learn more")
                         .font(CatfeTypography.caption)
                         .foregroundColor(.loungeCharcoal)
                 }

@@ -81,7 +81,7 @@ struct TodayScreenView: View {
                             Spacer()
                             
                             if let qrURL = screen.qrCodeURL, !qrURL.isEmpty {
-                                QRCodeView(url: qrURL, size: 130)
+                                QRCodeView(url: qrURL, size: 130, label: screen.qrLabel)
                             }
                             
                             Spacer()

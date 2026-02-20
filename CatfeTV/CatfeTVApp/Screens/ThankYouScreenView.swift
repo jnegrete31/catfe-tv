@@ -73,7 +73,7 @@ struct ThankYouScreenView: View {
                         Spacer()
                         
                         if let qrURL = screen.qrCodeURL, !qrURL.isEmpty {
-                            QRCodeView(url: qrURL, size: 140)
+                            QRCodeView(url: qrURL, size: 140, label: screen.qrLabel)
                         }
                         
                         Spacer()
