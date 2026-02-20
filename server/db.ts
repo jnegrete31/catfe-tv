@@ -116,6 +116,13 @@ export async function getAllScreens() {
   return db.select().from(screens).orderBy(asc(screens.sortOrder), desc(screens.priority));
 }
 
+export async function getScreensByType(type: string) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db.select().from(screens).where(eq(screens.type, type as any)).orderBy(asc(screens.sortOrder), desc(screens.createdAt));
+}
+
 export async function getActiveScreens() {
   const db = await getDb();
   if (!db) return [];
@@ -2135,6 +2142,7 @@ export function catToVirtualScreen(cat: Cat): Screen {
     livestreamUrl: null,
     eventTime: null,
     eventLocation: null,
+    templateOverride: null,
     createdAt: cat.createdAt,
     updatedAt: cat.updatedAt,
   } as Screen;

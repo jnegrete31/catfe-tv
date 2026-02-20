@@ -7,6 +7,7 @@ import { TRPCError } from "@trpc/server";
 import {
   getAllScreens,
   getActiveScreens,
+  getScreensByType,
   getScreenById,
   createScreen,
   updateScreen,
@@ -163,6 +164,7 @@ const screenInput = z.object({
   livestreamUrl: z.string().url().max(1024).nullable().optional().or(z.literal("")),
   eventTime: z.string().max(100).nullable().optional(),
   eventLocation: z.string().max(255).nullable().optional(),
+  templateOverride: z.string().nullable().optional(), // JSON string for per-screen layout override
 });
 
 // Update schema: same fields but NO defaults, so partial updates don't overwrite existing values
@@ -189,6 +191,7 @@ const screenUpdateInput = z.object({
   livestreamUrl: z.string().url().max(1024).nullable().optional().or(z.literal("")),
   eventTime: z.string().max(100).nullable().optional(),
   eventLocation: z.string().max(255).nullable().optional(),
+  templateOverride: z.string().nullable().optional(), // JSON string for per-screen layout override
 });
 
 const timeSlotInput = z.object({
@@ -263,6 +266,7 @@ async function generateCatSlides() {
       priority: 1, durationSeconds: 10, sortOrder: 0,
       isActive: true, schedulingEnabled: false, isProtected: false, isAdopted: cat.status === 'adopted' || cat.status === 'adopted_in_lounge',
       livestreamUrl: null, eventTime: null, eventLocation: null,
+      templateOverride: null,
       createdAt: new Date(), updatedAt: new Date(),
     };
   });
@@ -322,12 +326,33 @@ export const appRouter = router({
       }
       
       // Attach template overlay data to each screen
+      // For CUSTOM screens with per-screen templateOverride, use that instead of shared template
       return screens.map(screen => {
+        // Check for per-screen override first (used by individual custom slides)
+        if (screen.templateOverride) {
+          try {
+            const override = JSON.parse(screen.templateOverride);
+            return {
+              ...screen,
+              templateOverlay: {
+                elements: override.elements || '[]',
+                backgroundColor: override.backgroundColor || '#1a1a2e',
+                backgroundGradient: override.backgroundGradient || null,
+                backgroundImageUrl: override.backgroundImageUrl || null,
+                defaultFontFamily: override.defaultFontFamily || 'Inter',
+                defaultFontColor: override.defaultFontColor || '#ffffff',
+                widgetOverrides: override.widgetOverrides || null,
+              },
+            };
+          } catch (e) {
+            // Fall through to type-level template
+          }
+        }
         const template = templateMap.get(screen.type);
         return {
           ...screen,
           templateOverlay: template ? {
-            elements: template.elements, // JSON string of TemplateElement[]
+            elements: template.elements,
             backgroundColor: template.backgroundColor,
             backgroundGradient: template.backgroundGradient,
             backgroundImageUrl: template.backgroundImageUrl,
@@ -449,6 +474,11 @@ export const appRouter = router({
       return getScreenViewCounts();
     }),
 
+    // Get all CUSTOM type screens (for the slide editor to list individual custom slides)
+    getCustomSlides: protectedProcedure.query(async () => {
+      return getScreensByType('CUSTOM');
+    }),
+
     // Get random adoption screens for showcase (8 cats for 4x2 grid)
     getRandomAdoptions: publicProcedure
       .input(z.object({ count: z.number().min(1).max(12).default(8) }))
@@ -500,6 +530,7 @@ export const appRouter = router({
             isActive: true, schedulingEnabled: false, isProtected: false,
             isAdopted: true,
             livestreamUrl: null, eventTime: null, eventLocation: null,
+            templateOverride: null,
             createdAt: new Date(), updatedAt: new Date(),
           };
         });
@@ -1345,7 +1376,28 @@ export const appRouter = router({
       }
       
       // Attach template overlay data to each screen
+      // For CUSTOM screens with per-screen templateOverride, use that instead of shared template
       return allScreens.map(screen => {
+        // Check for per-screen override first (used by individual custom slides)
+        if ('templateOverride' in screen && (screen as any).templateOverride) {
+          try {
+            const override = JSON.parse((screen as any).templateOverride);
+            return {
+              ...screen,
+              templateOverlay: {
+                elements: override.elements || '[]',
+                backgroundColor: override.backgroundColor || '#1a1a2e',
+                backgroundGradient: override.backgroundGradient || null,
+                backgroundImageUrl: override.backgroundImageUrl || null,
+                defaultFontFamily: override.defaultFontFamily || 'Inter',
+                defaultFontColor: override.defaultFontColor || '#ffffff',
+                widgetOverrides: override.widgetOverrides || null,
+              },
+            };
+          } catch (e) {
+            // Fall through to type-level template
+          }
+        }
         const template = templateMap.get(screen.type);
         return {
           ...screen,
@@ -1505,6 +1557,24 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         const template = await upsertSlideTemplate(input as any);
         return template;
+      }),
+
+    // Admin: Save per-screen template override (for individual custom slides)
+    saveForScreen: adminProcedure
+      .input(z.object({
+        screenId: z.number(),
+        elements: z.string(), // JSON string of TemplateElement[]
+        backgroundColor: z.string().optional(),
+        widgetOverrides: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const override = JSON.stringify({
+          elements: input.elements,
+          backgroundColor: input.backgroundColor || '#1a1a2e',
+          widgetOverrides: input.widgetOverrides || null,
+        });
+        await updateScreen(input.screenId, { templateOverride: override });
+        return { success: true };
       }),
 
     // Admin: Delete template (resets to default)

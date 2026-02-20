@@ -1439,3 +1439,11 @@
 - [x] Fix tvOS code: Added fetchRecentlyAdoptedCats() to APIClient, combined with available cats in ContentView
 - [x] Push updated Swift code to GitHub
 - [ ] Test the fix on Apple TV (requires Xcode rebuild)
+- [x] Fix Xcode build error: 'Cannot convert value of type String to expected argument type Date' in APIClient.swift buildScreenInput
+- [x] Fix Apple TV clock widget not updating in real time — replaced Timer.publish with TimelineView
+- [x] Fix Slide Editor: creating/editing a custom slide should save as an individual slide, not update the shared template for all slides of that type
+  - Added templateOverride column to screens table
+  - Added getCustomSlides endpoint and saveForScreen mutation
+  - Updated SlideEditor with custom slide picker (select individual slides to edit)
+  - Updated ScreenRenderer to use per-screen templateOverride for CUSTOM slides
+  - Pushed all changes to GitHub

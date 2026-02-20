@@ -70,6 +70,8 @@ export const screens = mysqlTable("screens", {
   isProtected: boolean("isProtected").notNull().default(false), // Prevent deletion of core screens
   isAdopted: boolean("isAdopted").notNull().default(false), // Mark adoption cats as adopted
   livestreamUrl: varchar("livestreamUrl", { length: 1024 }), // HLS stream URL for livestream screen type
+  // Per-screen template override (JSON) - allows individual custom layouts instead of shared type-level templates
+  templateOverride: text("templateOverride"), // JSON: { elements, backgroundColor, widgetOverrides, ... }
   // Event-specific fields
   eventTime: varchar("eventTime", { length: 100 }), // e.g., "5:30pm - 7:30pm" for event screens
   eventLocation: varchar("eventLocation", { length: 255 }), // e.g., "Catfé Santa Clarita" for event screens

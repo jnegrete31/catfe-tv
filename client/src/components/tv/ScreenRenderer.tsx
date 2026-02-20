@@ -2596,6 +2596,24 @@ export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendere
     { staleTime: 60000 }
   );
   
+  // For CUSTOM screens, check per-screen templateOverride first
+  let hasPerScreenOverride = false;
+  let perScreenElements: any[] = [];
+  let perScreenBg = '';
+  if (screen.type === 'CUSTOM' && screen.templateOverride) {
+    try {
+      const override = JSON.parse(screen.templateOverride);
+      const parsed = JSON.parse(override.elements || '[]');
+      if (parsed.length > 0) {
+        hasPerScreenOverride = true;
+        perScreenElements = parsed;
+        perScreenBg = override.backgroundColor || '#1a1a2e';
+      }
+    } catch {
+      hasPerScreenOverride = false;
+    }
+  }
+
   // Check if this screen type has a saved template with elements
   let hasSavedTemplate = false;
   try {
@@ -2605,6 +2623,67 @@ export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendere
     hasSavedTemplate = false;
   }
   
+  // Per-screen override takes priority for CUSTOM slides
+  if (hasPerScreenOverride) {
+    return (
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={screen.id}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-full h-full"
+        >
+          <div className="tv-screen relative overflow-hidden w-full h-full" style={{ background: perScreenBg }}>
+            <div className="absolute inset-0">
+              {perScreenElements.map((el: any) => {
+                if (el.visible === false) return null;
+                const style: React.CSSProperties = {
+                  position: 'absolute',
+                  left: `${el.x}%`,
+                  top: `${el.y}%`,
+                  width: `${el.width}%`,
+                  height: `${el.height}%`,
+                  opacity: el.opacity || 1,
+                  transform: el.rotation ? `rotate(${el.rotation}deg)` : undefined,
+                  zIndex: el.zIndex || 1,
+                  borderRadius: el.borderRadius || 0,
+                  overflow: 'hidden',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: el.textAlign === 'left' ? 'flex-start' : el.textAlign === 'right' ? 'flex-end' : 'center',
+                  padding: el.padding || 0,
+                  backgroundColor: el.backgroundColor || 'transparent',
+                };
+                const textStyle: React.CSSProperties = {
+                  fontSize: `${el.fontSize || 24}px`,
+                  fontWeight: el.fontWeight || 'normal',
+                  fontFamily: el.fontFamily || 'inherit',
+                  color: el.color || '#ffffff',
+                  textAlign: (el.textAlign || 'center') as any,
+                  width: '100%',
+                  textShadow: '0 2px 4px rgba(0,0,0,0.5)',
+                };
+                let content: React.ReactNode = null;
+                switch (el.type) {
+                  case 'title': content = <span style={textStyle}>{screen.title}</span>; break;
+                  case 'subtitle': content = <span style={textStyle}>{screen.subtitle || ''}</span>; break;
+                  case 'body': content = <span style={textStyle}>{screen.body || ''}</span>; break;
+                  case 'photo': content = screen.imagePath ? <img src={screen.imagePath} alt="" className="w-full h-full object-cover" /> : null; break;
+                  case 'qrCode': content = screen.qrUrl ? <div className="bg-white p-3 rounded-lg"><QRCodeSVG value={screen.qrUrl} size={Math.min(el.width, el.height) * 5} level="M" /></div> : null; break;
+                  default: return null;
+                }
+                if (!content) return null;
+                return <div key={el.id} style={style}>{content}</div>;
+              })}
+            </div>
+          </div>
+        </motion.div>
+      </AnimatePresence>
+    );
+  }
+
   // If ANY screen type has a saved template, use TemplateRenderer as full replacement
   // This prevents doubling: template elements replace the default design entirely
   if (hasSavedTemplate) {
