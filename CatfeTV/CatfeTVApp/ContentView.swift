@@ -26,10 +26,12 @@ struct ContentView: View {
                 
                 // Current Screen
                 if let currentScreen = screenRotator.currentScreen {
-                    // Get adoption cats for showcase screen
+                    // Get adoption cats for showcase screen (available cats from playlist)
                     let adoptionCats = screenRotator.screens.filter { $0.type == .adoption }
+                    // Combine with recently adopted cats for the adoption counter
+                    let allAdoptionCats = adoptionCats + apiClient.cachedRecentlyAdoptedCats
                     
-                    ScreenView(screen: currentScreen, adoptionCats: adoptionCats, settings: apiClient.settings)
+                    ScreenView(screen: currentScreen, adoptionCats: allAdoptionCats, settings: apiClient.settings)
                         .id(currentScreen.id)
                         .transition(.opacity.animation(.easeInOut(duration: apiClient.settings.transitionDuration)))
                 } else {
@@ -126,6 +128,7 @@ struct ContentView: View {
             // Pre-fetch photos at startup so gallery screens display instantly
             Task { @MainActor in
                 await apiClient.refreshPhotos()
+                await apiClient.fetchRecentlyAdoptedCats()
             }
         }
     }
@@ -180,10 +183,11 @@ struct ContentView: View {
             }
         }
         
-        // Refresh photos every 60 seconds (separate from screen refresh)
+        // Refresh photos and adopted cats every 60 seconds (separate from screen refresh)
         Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { _ in
             Task { @MainActor in
                 await apiClient.refreshPhotos()
+                await apiClient.fetchRecentlyAdoptedCats()
             }
         }
     }

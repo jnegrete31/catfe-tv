@@ -27,6 +27,9 @@ class APIClient: ObservableObject {
     @Published var cachedHappyTailsPhotos: [PhotoSubmission] = []
     private var photosLastFetched: Date?
     
+    // Cached recently adopted cats for adoption counter screen
+    @Published var cachedRecentlyAdoptedCats: [Screen] = []
+    
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
     
@@ -317,7 +320,8 @@ class APIClient: ObservableObject {
         
         // Event fields
         if let eventDate = screen.eventDate {
-            input["startAt"] = eventDate
+            let formatter = ISO8601DateFormatter()
+            input["startAt"] = formatter.string(from: eventDate)
         }
         
         return input
@@ -502,6 +506,36 @@ class APIClient: ObservableObject {
         }
         
         photosLastFetched = Date()
+    }
+    
+    // MARK: - Recently Adopted Cats (for Adoption Counter)
+    
+    /// Fetch recently adopted cats from the screens.getRecentlyAdopted endpoint.
+    /// Returns Screen objects with isAdopted=true and valid image URLs.
+    func fetchRecentlyAdoptedCats() async {
+        do {
+            let inputJSON = "{\"json\":{\"limit\":6}}"
+            let encodedInput = inputJSON.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? inputJSON
+            let url = URL(string: "\(baseURL)/api/trpc/screens.getRecentlyAdopted?input=\(encodedInput)")!
+            var request = URLRequest(url: url)
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            
+            let (data, response) = try await URLSession.shared.data(for: request)
+            
+            guard let httpResponse = response as? HTTPURLResponse,
+                  httpResponse.statusCode == 200 else {
+                let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
+                print("[AdoptedCats] HTTP \(statusCode) fetching recently adopted cats")
+                return
+            }
+            
+            let trpcResponse = try JSONDecoder().decode(TRPCResponse<[APIScreen]>.self, from: data)
+            let apiScreens = trpcResponse.result.data.json
+            cachedRecentlyAdoptedCats = apiScreens.map { $0.toScreen() }
+            print("[AdoptedCats] Cached \(cachedRecentlyAdoptedCats.count) recently adopted cats")
+        } catch {
+            print("[AdoptedCats] Failed to fetch recently adopted cats: \(error)")
+        }
     }
     
     // MARK: - Active Screens
