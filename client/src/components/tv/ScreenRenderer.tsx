@@ -3,7 +3,7 @@ import type { Screen, Settings, Cat } from "@shared/types";
 import { SCREEN_TYPE_CONFIG } from "@shared/types";
 import { QRCodeSVG } from "qrcode.react";
 import { trpc } from "@/lib/trpc";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { PollScreen } from "./PollScreen";
 import { TemplateRenderer } from "./TemplateRenderer";
 
@@ -340,29 +340,6 @@ function EventScreen({ screen, settings }: ScreenRendererProps) {
               <p className="text-2xl leading-relaxed" style={{ color: '#6a6a6a' }}>
                 {screen.body}
               </p>
-            )}
-            {/* Event details: date, time, location */}
-            {((screen as any).eventDate || (screen as any).eventTime || (screen as any).eventLocation) && (
-              <div className="mt-6 space-y-3">
-                {(screen as any).eventDate && (
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">📅</span>
-                    <span className="text-2xl" style={{ color: '#4a4a4a' }}>{(screen as any).eventDate}</span>
-                  </div>
-                )}
-                {(screen as any).eventTime && (
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">🕐</span>
-                    <span className="text-2xl" style={{ color: '#4a4a4a' }}>{(screen as any).eventTime}</span>
-                  </div>
-                )}
-                {(screen as any).eventLocation && (
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">📍</span>
-                    <span className="text-2xl" style={{ color: '#4a4a4a' }}>{(screen as any).eventLocation}</span>
-                  </div>
-                )}
-              </div>
             )}
             {screen.qrUrl && (
               <motion.div 
@@ -890,13 +867,20 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats, catDbCats }: S
                       </div>
                     )}
                     <div className="absolute inset-0" style={{ boxShadow: 'inset 0 0 60px rgba(0,0,0,0.15)' }} />
+                    {cat.status === 'adopted_in_lounge' && (
+                      <div className="absolute top-3 right-3 px-4 py-2 rounded-full shadow-lg" style={{ background: 'linear-gradient(135deg, #86C5A9, #5fa88a)' }}>
+                        <span className="text-white text-sm font-bold tracking-wide">
+                          🎉 Adopted{cat.adoptedDate ? ` ${new Date(cat.adoptedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : ''}!
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <div className="absolute bottom-2 left-2 right-2 text-center">
                     <p className="text-gray-800 text-2xl font-semibold truncate" style={{ fontFamily: 'Georgia, serif' }}>
-                      Meet {cat.name}
+                      {cat.status === 'adopted_in_lounge' ? cat.name : `Meet ${cat.name}`}
                     </p>
                     <p className="text-gray-600 text-lg truncate">
-                      {cat.breed}{cat.colorPattern ? ` · ${cat.colorPattern}` : ''}
+                      {cat.status === 'adopted_in_lounge' ? 'Found their forever home!' : `${cat.breed}${cat.colorPattern ? ` \u00b7 ${cat.colorPattern}` : ''}`}
                     </p>
                   </div>
                 </div>
@@ -967,7 +951,12 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats, catDbCats }: S
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20">
         <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
           <span className="text-orange-400 text-lg">🐾</span>
-          <span className="text-white/80 text-sm">{useDbCats ? availableCats.length : displayCats.length} cats looking for homes</span>
+          <span className="text-white/80 text-sm">
+            {useDbCats 
+              ? `${availableCats.filter(c => c.status === 'available').length} looking for homes${availableCats.filter(c => c.status === 'adopted_in_lounge').length > 0 ? ` \u00b7 ${availableCats.filter(c => c.status === 'adopted_in_lounge').length} recently adopted!` : ''}`
+              : `${displayCats.length} cats looking for homes`
+            }
+          </span>
         </div>
       </div>
       
@@ -997,128 +986,385 @@ function AdoptionShowcaseScreen({ screen, settings, adoptionCats, catDbCats }: S
   );
 }
 
-// ADOPTION_COUNTER - Full-screen celebration of total adoptions
+// ADOPTION_COUNTER - Hybrid split layout: counter on left, photo mosaic + carousel on right
+// Milestone detection helper
+function getMilestoneInfo(count: number): { isMilestone: boolean; label: string; tier: 'bronze' | 'silver' | 'gold' | 'diamond' } {
+  if (count > 0 && count % 100 === 0) return { isMilestone: true, label: `${count} Forever Homes!`, tier: 'diamond' };
+  if (count > 0 && count % 50 === 0) return { isMilestone: true, label: `${count} Milestone!`, tier: 'gold' };
+  if (count > 0 && count % 25 === 0) return { isMilestone: true, label: `${count} and Counting!`, tier: 'silver' };
+  if (count > 0 && count % 10 === 0) return { isMilestone: true, label: `${count} Cats Loved!`, tier: 'bronze' };
+  return { isMilestone: false, label: '', tier: 'bronze' };
+}
+
+// Confetti particle component
+function ConfettiParticle({ index, tier }: { index: number; tier: string }) {
+  const colors: Record<string, string[]> = {
+    diamond: ['#FFD700', '#FF69B4', '#00CED1', '#FF6347', '#7B68EE', '#FFD700'],
+    gold: ['#FFD700', '#DAA520', '#FFA500', '#E8913A', '#F5DEB3', '#FFD700'],
+    silver: ['#C0C0C0', '#86C5A9', '#DAA520', '#E8913A', '#B8D4C8', '#C0C0C0'],
+    bronze: ['#E8913A', '#DAA520', '#86C5A9', '#F5E6D3', '#CD853F', '#E8913A'],
+  };
+  const palette = colors[tier] || colors.gold;
+  const color = palette[index % palette.length];
+  const size = 6 + Math.random() * 10;
+  const left = Math.random() * 100;
+  const delay = Math.random() * 2;
+  const duration = 3 + Math.random() * 3;
+  const rotation = Math.random() * 720 - 360;
+  const shapes = ['rounded-none', 'rounded-full', 'rounded-sm'];
+  const shape = shapes[index % shapes.length];
+
+  return (
+    <motion.div
+      className={`absolute ${shape}`}
+      style={{
+        width: size,
+        height: size * (shape === 'rounded-none' ? 0.6 : 1),
+        backgroundColor: color,
+        left: `${left}%`,
+        top: '-5%',
+      }}
+      initial={{ y: 0, opacity: 1, rotate: 0, scale: 0 }}
+      animate={{
+        y: ['0vh', '110vh'],
+        opacity: [0, 1, 1, 0.8, 0],
+        rotate: [0, rotation],
+        scale: [0, 1, 1, 0.8],
+        x: [0, (Math.random() - 0.5) * 100],
+      }}
+      transition={{
+        duration,
+        delay,
+        repeat: Infinity,
+        repeatDelay: Math.random() * 2,
+        ease: 'easeIn',
+      }}
+    />
+  );
+}
+
 function AdoptionCounterScreen({ screen, settings }: ScreenRendererProps) {
   const { data: settingsData } = trpc.settings.get.useQuery();
+  const { data: recentlyAdopted } = trpc.cats.getRecentlyAdopted.useQuery({ days: 90 });
+  const { data: availableCats } = trpc.cats.getAvailable.useQuery();
   const totalCount = settingsData?.totalAdoptionCount || 0;
-  
+
+  // Milestone detection
+  const milestone = useMemo(() => getMilestoneInfo(totalCount), [totalCount]);
+
+  // Cats with photos for the mosaic background
+  const allCatsWithPhotos = useMemo(() => {
+    const adopted = (recentlyAdopted || []).filter((c: Cat) => c.photoUrl);
+    const available = (availableCats || []).filter((c: Cat) => c.photoUrl);
+    return [...adopted, ...available];
+  }, [recentlyAdopted, availableCats]);
+
+  // Recently adopted cats for the carousel
+  const adoptedCats = useMemo(() => {
+    return (recentlyAdopted || []).filter((c: Cat) => c.photoUrl);
+  }, [recentlyAdopted]);
+
+  // Rotating carousel index
+  const [currentCatIndex, setCurrentCatIndex] = useState(0);
+  useEffect(() => {
+    if (adoptedCats.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentCatIndex(prev => (prev + 1) % adoptedCats.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [adoptedCats.length]);
+
+  // Animate counter up
+  const [displayCount, setDisplayCount] = useState(0);
+  const [countUpDone, setCountUpDone] = useState(false);
+  useEffect(() => {
+    if (totalCount === 0) return;
+    setCountUpDone(false);
+    const duration = 2000;
+    const steps = 60;
+    const increment = totalCount / steps;
+    let current = 0;
+    const timer = setInterval(() => {
+      current += increment;
+      if (current >= totalCount) {
+        setDisplayCount(totalCount);
+        setCountUpDone(true);
+        clearInterval(timer);
+      } else {
+        setDisplayCount(Math.floor(current));
+      }
+    }, duration / steps);
+    return () => clearInterval(timer);
+  }, [totalCount]);
+
+  const formatAdoptionDate = (date: Date | string | null) => {
+    if (!date) return "";
+    return new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  };
+
+  // Milestone tier colors
+  const tierGlow: Record<string, string> = {
+    diamond: 'rgba(0, 206, 209, 0.4)',
+    gold: 'rgba(255, 215, 0, 0.4)',
+    silver: 'rgba(192, 192, 192, 0.3)',
+    bronze: 'rgba(232, 145, 58, 0.3)',
+  };
+
+  const currentCat = adoptedCats[currentCatIndex];
+
   return (
-    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
-      {/* Animated background pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-10 left-10 w-32 h-32 border-2 border-white/30 rounded-full animate-pulse" />
-        <div className="absolute top-1/4 right-20 w-24 h-24 border-2 border-green-400/30 rounded-full" style={{ animationDelay: '1s' }} />
-        <div className="absolute bottom-20 left-1/4 w-40 h-40 border-2 border-emerald-400/30 rounded-full" />
-        <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-green-400/10 rounded-full" />
-      </div>
-      
-      {/* Subtle light rays */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] h-[200%] opacity-5" 
-           style={{ background: 'radial-gradient(ellipse at center top, rgba(100,255,150,0.3) 0%, transparent 50%)' }} />
-      
-      {/* Floating celebration elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div 
-          className="absolute top-16 left-16 text-5xl"
-          animate={{ y: [0, -10, 0], rotate: [0, 5, 0] }}
-          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-        >
-          🎉
-        </motion.div>
-        <motion.div 
-          className="absolute top-24 right-24 text-4xl"
-          animate={{ y: [0, -15, 0], rotate: [0, -5, 0] }}
-          transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-        >
-          🎊
-        </motion.div>
-        <motion.div 
-          className="absolute bottom-32 left-24 text-4xl"
-          animate={{ y: [0, -12, 0], scale: [1, 1.1, 1] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
-        >
-          ❤️
-        </motion.div>
-        <motion.div 
-          className="absolute bottom-24 right-20 text-5xl"
-          animate={{ y: [0, -8, 0], rotate: [0, 10, 0] }}
-          transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut", delay: 0.7 }}
-        >
-          🐱
-        </motion.div>
-        <motion.div 
-          className="absolute top-1/3 left-1/5 text-3xl"
-          animate={{ scale: [1, 1.2, 1], opacity: [0.6, 1, 0.6] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-        >
-          ⭐
-        </motion.div>
-        <motion.div 
-          className="absolute top-1/4 right-1/4 text-3xl"
-          animate={{ scale: [1, 1.3, 1], opacity: [0.5, 1, 0.5] }}
-          transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
-        >
-          🌟
-        </motion.div>
-      </div>
-      
-      {/* Main content */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center"
-        >
-          {/* Badge */}
-          <motion.div 
-            initial={{ scale: 0.8 }}
-            animate={{ scale: 1 }}
-            className="inline-flex items-center gap-2 px-6 py-2 mb-8 rounded-full bg-green-500/20 border border-green-400/30"
-          >
-            <span className="text-2xl">🏠</span>
-            <span className="text-green-300 text-xl font-medium tracking-wide">Forever Homes Found</span>
-          </motion.div>
+    <div className="tv-screen relative overflow-hidden" style={{ background: '#2d2d2d' }}>
+      {/* Confetti layer — covers full screen when milestone */}
+      {milestone.isMilestone && countUpDone && (
+        <div className="absolute inset-0 z-50 pointer-events-none overflow-hidden">
+          {Array.from({ length: 60 }).map((_, i) => (
+            <ConfettiParticle key={i} index={i} tier={milestone.tier} />
+          ))}
+        </div>
+      )}
+
+      {/* Split layout */}
+      <div className="absolute inset-0 flex">
+        {/* LEFT SIDE — Counter & branding (cream warm tones) */}
+        <div className="w-1/2 relative flex flex-col items-center justify-center"
+             style={{ background: 'linear-gradient(160deg, #F5E6D3 0%, #EDE0D4 50%, #E8DDD0 100%)' }}>
           
-          {/* Big counter number */}
-          <div className="my-6">
-            <motion.span 
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: 'spring', stiffness: 100, delay: 0.2 }}
-              className="text-[14rem] font-black leading-none inline-block"
-              style={{ 
-                fontFamily: 'Georgia, serif',
-                background: 'linear-gradient(180deg, #4ade80 0%, #22c55e 50%, #16a34a 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                filter: 'drop-shadow(0 4px 20px rgba(74, 222, 128, 0.3))'
-              }}
-            >
-              {totalCount}
-            </motion.span>
-          </div>
+          {/* Warm light glow — enhanced at milestones */}
+          <div className="absolute top-0 left-1/3 w-64 h-64 rounded-full transition-opacity duration-1000"
+               style={{
+                 opacity: milestone.isMilestone && countUpDone ? 0.7 : 0.4,
+                 background: `radial-gradient(circle, ${milestone.isMilestone ? tierGlow[milestone.tier] : 'rgba(218, 165, 32, 0.3)'} 0%, transparent 70%)`,
+               }} />
           
-          <h1 className="text-5xl font-light tracking-wider text-white mb-4" style={{ fontFamily: 'Georgia, serif' }}>
-            <span className="text-green-400">{screen.title || "Cats"}</span> <span className="text-white/80">Adopted</span>
-          </h1>
-          
-          {screen.subtitle && (
-            <p className="text-2xl text-white/60 mb-6">
-              {screen.subtitle}
-            </p>
+          {/* Extra milestone glow pulse */}
+          {milestone.isMilestone && countUpDone && (
+            <motion.div
+              className="absolute inset-0 pointer-events-none"
+              animate={{ opacity: [0, 0.15, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+              style={{ background: `radial-gradient(circle at center, ${tierGlow[milestone.tier]} 0%, transparent 60%)` }}
+            />
           )}
           
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="mt-8 inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white/10 backdrop-blur-sm border border-white/20"
+          {/* Mint accent bar at top — gold shimmer at milestones */}
+          <div className="absolute top-0 left-0 right-0 h-2 transition-colors duration-1000"
+               style={{ background: milestone.isMilestone && countUpDone ? '#DAA520' : '#86C5A9' }} />
+          
+          {/* Decorative cat silhouette */}
+          <div className="absolute bottom-8 left-8 opacity-[0.06]">
+            <svg className="w-32 h-32" viewBox="0 0 100 100" fill="#2d2d2d">
+              <ellipse cx="50" cy="60" rx="35" ry="30" />
+              <circle cx="50" cy="30" r="22" />
+              <polygon points="30,15 35,35 25,30" />
+              <polygon points="70,15 65,35 75,30" />
+            </svg>
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="relative z-10 text-center px-8"
           >
-            <span className="text-green-400">💚</span>
-            <span className="text-white/80 text-lg">Thank you for making a difference!</span>
-            <span className="text-green-400">💚</span>
+            {/* Milestone badge — appears above the label when at a milestone */}
+            {milestone.isMilestone && countUpDone && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ type: 'spring', stiffness: 120, delay: 0.5 }}
+                className="mb-4"
+              >
+                <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full shadow-lg"
+                     style={{
+                       background: milestone.tier === 'diamond'
+                         ? 'linear-gradient(135deg, #00CED1, #7B68EE, #FFD700)'
+                         : milestone.tier === 'gold'
+                         ? 'linear-gradient(135deg, #FFD700, #FFA500, #DAA520)'
+                         : milestone.tier === 'silver'
+                         ? 'linear-gradient(135deg, #C0C0C0, #86C5A9, #DAA520)'
+                         : 'linear-gradient(135deg, #E8913A, #DAA520, #86C5A9)',
+                     }}>
+                  <span className="text-lg">🎉</span>
+                  <span className="text-white font-bold text-sm tracking-wider uppercase"
+                        style={{ fontFamily: 'Georgia, serif', textShadow: '0 1px 3px rgba(0,0,0,0.3)' }}>
+                    {milestone.label}
+                  </span>
+                  <span className="text-lg">🎉</span>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Top label */}
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <div className="h-px w-12" style={{ background: '#DAA520' }} />
+              <span className="text-sm tracking-[0.3em] uppercase" style={{ color: '#86C5A9', fontFamily: 'Georgia, serif' }}>
+                Forever Homes
+              </span>
+              <div className="h-px w-12" style={{ background: '#DAA520' }} />
+            </div>
+
+            {/* Big number — with shimmer at milestones */}
+            <motion.span
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{
+                scale: milestone.isMilestone && countUpDone ? [1, 1.05, 1] : 1,
+                opacity: 1,
+              }}
+              transition={milestone.isMilestone && countUpDone
+                ? { scale: { duration: 1.5, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 0.5 } }
+                : { type: 'spring', stiffness: 80, delay: 0.3 }
+              }
+              className="text-[8rem] font-black leading-[0.9] block relative"
+              style={{
+                fontFamily: 'Georgia, serif',
+                background: milestone.isMilestone && countUpDone
+                  ? 'linear-gradient(135deg, #FFD700 0%, #E8913A 30%, #FFD700 50%, #DAA520 70%, #FFD700 100%)'
+                  : 'linear-gradient(180deg, #E8913A 0%, #DAA520 50%, #86C5A9 100%)',
+                backgroundSize: milestone.isMilestone && countUpDone ? '200% 200%' : '100% 100%',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                filter: milestone.isMilestone && countUpDone
+                  ? 'drop-shadow(0 4px 20px rgba(255, 215, 0, 0.4))'
+                  : 'drop-shadow(0 4px 15px rgba(218, 165, 32, 0.2))',
+              }}
+            >
+              {displayCount}
+            </motion.span>
+
+            <h2 className="text-2xl tracking-wider mt-3" style={{ fontFamily: 'Georgia, serif', color: '#2d2d2d' }}>
+              Cats Adopted
+            </h2>
+
+            <p className="text-sm mt-2" style={{ color: 'rgba(45, 45, 45, 0.5)' }}>
+              {milestone.isMilestone ? 'Thank you for making this possible!' : 'Every visit helps us find forever homes'}
+            </p>
           </motion.div>
-        </motion.div>
+        </div>
+
+        {/* RIGHT SIDE — Photo mosaic background + carousel */}
+        <div className="w-1/2 relative flex items-center justify-center"
+             style={{ background: 'linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%)' }}>
+          
+          {/* Photo mosaic background */}
+          <div className="absolute inset-0 grid grid-cols-4 grid-rows-3 gap-0.5 opacity-20">
+            {Array.from({ length: 12 }).map((_, i) => {
+              const cat = allCatsWithPhotos[i % Math.max(allCatsWithPhotos.length, 1)];
+              return (
+                <motion.div
+                  key={i}
+                  className="relative overflow-hidden"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: i * 0.08, duration: 0.5 }}
+                >
+                  {cat?.photoUrl ? (
+                    <img
+                      src={cat.photoUrl}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full" style={{ background: 'linear-gradient(135deg, #3a3a3a, #2a2a2a)' }} />
+                  )}
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* Dark overlay to make carousel pop */}
+          <div className="absolute inset-0" style={{ 
+            background: 'radial-gradient(ellipse at center, rgba(30,30,30,0.5) 0%, rgba(26,26,26,0.8) 70%)' 
+          }} />
+
+          {/* Amber glow */}
+          <div className="absolute top-0 left-0 w-64 h-64 rounded-full opacity-20"
+               style={{ background: 'radial-gradient(circle, rgba(218, 165, 32, 0.5) 0%, transparent 70%)' }} />
+          
+          {/* Mint floor reflection */}
+          <div className="absolute bottom-0 left-0 right-0 h-1/4"
+               style={{ background: 'linear-gradient(to top, rgba(134, 197, 169, 0.1) 0%, transparent 100%)' }} />
+
+          {/* "Recently Adopted" label */}
+          <div className="absolute top-8 left-0 right-0 text-center z-10">
+            <span className="text-sm tracking-[0.3em] uppercase" style={{ color: 'rgba(134, 197, 169, 0.6)' }}>
+              Recently Adopted
+            </span>
+          </div>
+
+          {/* Cat card carousel */}
+          <AnimatePresence mode="wait">
+            {currentCat ? (
+              <motion.div
+                key={currentCat.id}
+                initial={{ opacity: 0, x: 60, rotateY: -10 }}
+                animate={{ opacity: 1, x: 0, rotateY: 0 }}
+                exit={{ opacity: 0, x: -60, rotateY: 10 }}
+                transition={{ duration: 0.6, ease: 'easeInOut' }}
+                className="relative w-72 z-10"
+              >
+                {/* Polaroid-style card */}
+                <div className="rounded-xl overflow-hidden shadow-2xl"
+                     style={{ background: '#F5E6D3' }}>
+                  {/* Photo */}
+                  <div className="aspect-square relative overflow-hidden">
+                    <img
+                      src={currentCat.photoUrl!}
+                      alt={currentCat.name}
+                      className="w-full h-full object-cover"
+                    />
+                    {/* "Adopted!" ribbon */}
+                    <div className="absolute top-4 right-4 px-4 py-1.5 rounded-full shadow-lg"
+                         style={{ background: 'linear-gradient(135deg, #86C5A9, #6BAF92)' }}>
+                      <span className="text-white font-bold text-sm tracking-wide">Adopted!</span>
+                    </div>
+                  </div>
+                  {/* Info */}
+                  <div className="p-5 text-center">
+                    <h3 className="text-2xl font-bold mb-1" style={{ fontFamily: 'Georgia, serif', color: '#2d2d2d' }}>
+                      {currentCat.name}
+                    </h3>
+                    {currentCat.adoptedDate && (
+                      <p className="text-sm" style={{ color: '#E8913A' }}>
+                        Adopted {formatAdoptionDate(currentCat.adoptedDate)}
+                      </p>
+                    )}
+                    {currentCat.breed && (
+                      <p className="text-xs mt-1" style={{ color: 'rgba(45,45,45,0.5)' }}>
+                        {currentCat.breed}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center px-8 z-10"
+              >
+                <div className="text-6xl mb-4">🐱</div>
+                <p className="text-xl" style={{ color: 'rgba(245, 230, 211, 0.5)', fontFamily: 'Georgia, serif' }}>
+                  More happy tails coming soon
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Dot indicators */}
+          {adoptedCats.length > 1 && (
+            <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-2 z-10">
+              {adoptedCats.slice(0, 8).map((_: Cat, i: number) => (
+                <div
+                  key={i}
+                  className="w-2 h-2 rounded-full transition-all duration-300"
+                  style={{
+                    background: i === currentCatIndex % Math.min(adoptedCats.length, 8) ? '#DAA520' : 'rgba(245, 230, 211, 0.2)',
+                    transform: i === currentCatIndex % Math.min(adoptedCats.length, 8) ? 'scale(1.3)' : 'scale(1)',
+                  }}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -2350,6 +2596,24 @@ export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendere
     { staleTime: 60000 }
   );
   
+  // For CUSTOM screens, check per-screen templateOverride first
+  let hasPerScreenOverride = false;
+  let perScreenElements: any[] = [];
+  let perScreenBg = '';
+  if (screen.type === 'CUSTOM' && screen.templateOverride) {
+    try {
+      const override = JSON.parse(screen.templateOverride);
+      const parsed = JSON.parse(override.elements || '[]');
+      if (parsed.length > 0) {
+        hasPerScreenOverride = true;
+        perScreenElements = parsed;
+        perScreenBg = override.backgroundColor || '#1a1a2e';
+      }
+    } catch {
+      hasPerScreenOverride = false;
+    }
+  }
+
   // Check if this screen type has a saved template with elements
   let hasSavedTemplate = false;
   try {
@@ -2359,6 +2623,67 @@ export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendere
     hasSavedTemplate = false;
   }
   
+  // Per-screen override takes priority for CUSTOM slides
+  if (hasPerScreenOverride) {
+    return (
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={screen.id}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-full h-full"
+        >
+          <div className="tv-screen relative overflow-hidden w-full h-full" style={{ background: perScreenBg }}>
+            <div className="absolute inset-0">
+              {perScreenElements.map((el: any) => {
+                if (el.visible === false) return null;
+                const style: React.CSSProperties = {
+                  position: 'absolute',
+                  left: `${el.x}%`,
+                  top: `${el.y}%`,
+                  width: `${el.width}%`,
+                  height: `${el.height}%`,
+                  opacity: el.opacity || 1,
+                  transform: el.rotation ? `rotate(${el.rotation}deg)` : undefined,
+                  zIndex: el.zIndex || 1,
+                  borderRadius: el.borderRadius || 0,
+                  overflow: 'hidden',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: el.textAlign === 'left' ? 'flex-start' : el.textAlign === 'right' ? 'flex-end' : 'center',
+                  padding: el.padding || 0,
+                  backgroundColor: el.backgroundColor || 'transparent',
+                };
+                const textStyle: React.CSSProperties = {
+                  fontSize: `${el.fontSize || 24}px`,
+                  fontWeight: el.fontWeight || 'normal',
+                  fontFamily: el.fontFamily || 'inherit',
+                  color: el.color || '#ffffff',
+                  textAlign: (el.textAlign || 'center') as any,
+                  width: '100%',
+                  textShadow: '0 2px 4px rgba(0,0,0,0.5)',
+                };
+                let content: React.ReactNode = null;
+                switch (el.type) {
+                  case 'title': content = <span style={textStyle}>{screen.title}</span>; break;
+                  case 'subtitle': content = <span style={textStyle}>{screen.subtitle || ''}</span>; break;
+                  case 'body': content = <span style={textStyle}>{screen.body || ''}</span>; break;
+                  case 'photo': content = screen.imagePath ? <img src={screen.imagePath} alt="" className="w-full h-full object-cover" /> : null; break;
+                  case 'qrCode': content = screen.qrUrl ? <div className="bg-white p-3 rounded-lg"><QRCodeSVG value={screen.qrUrl} size={Math.min(el.width, el.height) * 5} level="M" /></div> : null; break;
+                  default: return null;
+                }
+                if (!content) return null;
+                return <div key={el.id} style={style}>{content}</div>;
+              })}
+            </div>
+          </div>
+        </motion.div>
+      </AnimatePresence>
+    );
+  }
+
   // If ANY screen type has a saved template, use TemplateRenderer as full replacement
   // This prevents doubling: template elements replace the default design entirely
   if (hasSavedTemplate) {

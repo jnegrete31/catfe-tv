@@ -122,6 +122,7 @@ export default function SlideEditor() {
   const [newSlideTitle, setNewSlideTitle] = useState("");
   const [isCreatingSlide, setIsCreatingSlide] = useState(false);
   const [templateName, setTemplateName] = useState<string>("");
+  const [selectedCustomSlideId, setSelectedCustomSlideId] = useState<number | null>(null);
   const [widgetOverrides, setWidgetOverrides] = useState<WidgetOverrides>({
     logo: { visible: true, x: 2, y: 2, width: 8, height: 8, opacity: 1 },
     weather: { visible: true, x: 85, y: 2, fontSize: 18, color: "#ffffff", opacity: 1 },
@@ -144,11 +145,29 @@ export default function SlideEditor() {
     return Math.round(value / GRID_SIZE) * GRID_SIZE;
   };
 
-  // Fetch template for selected screen type
+  // Fetch template for selected screen type (used for non-CUSTOM types)
   const { data: template, refetch: refetchTemplate, isLoading: isLoadingTemplate } = trpc.templates.getByScreenType.useQuery(
     { screenType: selectedScreenType },
-    { enabled: !!selectedScreenType, staleTime: 0 } // Always fetch fresh data
+    { enabled: !!selectedScreenType && selectedScreenType !== 'CUSTOM', staleTime: 0 }
   );
+
+  // Fetch list of custom slides when CUSTOM is selected
+  const { data: customSlides, refetch: refetchCustomSlides } = trpc.screens.getCustomSlides.useQuery(
+    undefined,
+    { enabled: selectedScreenType === 'CUSTOM', staleTime: 0 }
+  );
+
+  // Save per-screen template override mutation (for individual custom slides)
+  const saveForScreenMutation = trpc.templates.saveForScreen.useMutation({
+    onSuccess: () => {
+      toast.success("Custom slide saved!");
+      setHasChanges(false);
+      refetchCustomSlides();
+    },
+    onError: (error: any) => {
+      toast.error(`Failed to save: ${error.message}`);
+    },
+  });
 
   // Handle screen type change - reset state and refetch
   const handleScreenTypeChange = (newScreenType: string) => {
@@ -157,6 +176,7 @@ export default function SlideEditor() {
     setBackgroundColor("#1a1a2e");
     setSelectedElementId(null);
     setTemplateName("");
+    setSelectedCustomSlideId(null);
     setWidgetOverrides({
       logo: { visible: true, x: 2, y: 2, width: 8, height: 8, opacity: 1 },
       weather: { visible: true, x: 85, y: 2, fontSize: 18, color: "#ffffff", opacity: 1 },
@@ -165,6 +185,32 @@ export default function SlideEditor() {
     });
     setHasChanges(false);
     setSelectedScreenType(newScreenType);
+  };
+
+  // Handle selecting a specific custom slide to edit
+  const handleSelectCustomSlide = (slide: any) => {
+    setSelectedCustomSlideId(slide.id);
+    setTemplateName(slide.title);
+    setSelectedElementId(null);
+    setHasChanges(false);
+    // Load the per-screen templateOverride if it exists
+    if (slide.templateOverride) {
+      try {
+        const override = JSON.parse(slide.templateOverride);
+        setElements(JSON.parse(override.elements || '[]'));
+        setBackgroundColor(override.backgroundColor || '#1a1a2e');
+        if (override.widgetOverrides) {
+          const parsedOverrides = typeof override.widgetOverrides === 'string' ? JSON.parse(override.widgetOverrides) : override.widgetOverrides;
+          setWidgetOverrides(prev => ({ ...prev, ...parsedOverrides }));
+        }
+      } catch (e) {
+        setElements([]);
+        setBackgroundColor('#1a1a2e');
+      }
+    } else {
+      setElements([]);
+      setBackgroundColor('#1a1a2e');
+    }
   };
 
   // Save template mutation
@@ -187,9 +233,9 @@ export default function SlideEditor() {
     },
   });
 
-  // Load template when it changes
+  // Load template when it changes (for non-CUSTOM types)
   useEffect(() => {
-    if (template) {
+    if (template && selectedScreenType !== 'CUSTOM') {
       try {
         const parsedElements = JSON.parse(template.elements || "[]");
         setElements(parsedElements);
@@ -210,7 +256,7 @@ export default function SlideEditor() {
         setElements([]);
       }
     }
-  }, [template]);
+  }, [template, selectedScreenType]);
 
   // Get selected element
   const selectedElement = elements.find((el) => el.id === selectedElementId);
@@ -386,15 +432,26 @@ export default function SlideEditor() {
     setHasChanges(true);
   };
 
-  // Save template
+  // Save template (or per-screen override for custom slides)
   const handleSave = () => {
-    saveMutation.mutate({
-      screenType: selectedScreenType,
-      name: templateName || undefined,
-      elements: JSON.stringify(elements),
-      backgroundColor,
-      widgetOverrides: JSON.stringify(widgetOverrides),
-    });
+    if (selectedScreenType === 'CUSTOM' && selectedCustomSlideId) {
+      // Save as per-screen override for this specific custom slide
+      saveForScreenMutation.mutate({
+        screenId: selectedCustomSlideId,
+        elements: JSON.stringify(elements),
+        backgroundColor,
+        widgetOverrides: JSON.stringify(widgetOverrides),
+      });
+    } else {
+      // Save as shared type-level template
+      saveMutation.mutate({
+        screenType: selectedScreenType,
+        name: templateName || undefined,
+        elements: JSON.stringify(elements),
+        backgroundColor,
+        widgetOverrides: JSON.stringify(widgetOverrides),
+      });
+    }
   };
 
   // Update widget override property
@@ -597,9 +654,9 @@ export default function SlideEditor() {
               <RotateCcw className="h-4 w-4 mr-2" />
               Reset
             </Button>
-            <Button onClick={handleSave} disabled={!hasChanges || saveMutation.isPending}>
+            <Button onClick={handleSave} disabled={!hasChanges || saveMutation.isPending || saveForScreenMutation.isPending || (selectedScreenType === 'CUSTOM' && !selectedCustomSlideId)}>
               <Save className="h-4 w-4 mr-2" />
-              {saveMutation.isPending ? "Saving..." : "Save"}
+              {saveMutation.isPending || saveForScreenMutation.isPending ? "Saving..." : "Save"}
             </Button>
           </div>
         </div>
@@ -796,22 +853,56 @@ export default function SlideEditor() {
 
           {/* Right sidebar - Properties */}
           <div className="space-y-4">
-            {/* Template Name for CUSTOM slides */}
+            {/* Custom Slide Picker - shows list of individual custom slides */}
             {selectedScreenType === "CUSTOM" && (
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">Slide Name</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm">Custom Slides</CardTitle>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2 text-xs"
+                      onClick={() => setShowNewSlideDialog(true)}
+                    >
+                      <PlusCircle className="h-3 w-3 mr-1" />
+                      New
+                    </Button>
+                  </div>
                 </CardHeader>
-                <CardContent>
-                  <Input
-                    value={templateName}
-                    onChange={(e) => {
-                      setTemplateName(e.target.value);
-                      setHasChanges(true);
-                    }}
-                    placeholder="Enter slide name"
-                    className="h-8 text-sm"
-                  />
+                <CardContent className="space-y-1">
+                  {!customSlides || customSlides.length === 0 ? (
+                    <p className="text-xs text-muted-foreground text-center py-4">
+                      No custom slides yet. Create one to get started.
+                    </p>
+                  ) : (
+                    customSlides.map((slide: any) => (
+                      <button
+                        key={slide.id}
+                        onClick={() => handleSelectCustomSlide(slide)}
+                        className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
+                          selectedCustomSlideId === slide.id
+                            ? 'bg-primary text-primary-foreground'
+                            : 'hover:bg-accent hover:text-accent-foreground'
+                        }`}
+                      >
+                        <div className="font-medium truncate">{slide.title}</div>
+                        <div className={`text-xs mt-0.5 ${
+                          selectedCustomSlideId === slide.id
+                            ? 'text-primary-foreground/70'
+                            : 'text-muted-foreground'
+                        }`}>
+                          {slide.templateOverride ? 'Customized' : 'Default layout'}
+                          {slide.isActive ? '' : ' · Inactive'}
+                        </div>
+                      </button>
+                    ))
+                  )}
+                  {selectedScreenType === 'CUSTOM' && !selectedCustomSlideId && customSlides && customSlides.length > 0 && (
+                    <p className="text-xs text-amber-500 text-center pt-2">
+                      Select a slide above to edit it
+                    </p>
+                  )}
                 </CardContent>
               </Card>
             )}
@@ -1407,15 +1498,24 @@ export default function SlideEditor() {
                     isActive: true,
                   });
                   toast.success(`Custom slide "${newSlideTitle}" created!`);
-                  // Store the name for saving with the template
-                  setTemplateName(newSlideTitle.trim());
                   setNewSlideTitle("");
                   setShowNewSlideDialog(false);
-                  // Switch to editing the new custom slide template
+                  // Switch to CUSTOM type and select the new slide
                   setSelectedScreenType("CUSTOM");
-                  // Clear elements for fresh start
-                  setElements([]);
-                  setHasChanges(true); // Mark as having changes so the name gets saved
+                  // Refetch custom slides list, then auto-select the new one
+                  const refreshed = await refetchCustomSlides();
+                  if (refreshed.data && result) {
+                    const newSlide = refreshed.data.find((s: any) => s.id === (result as any).id);
+                    if (newSlide) {
+                      handleSelectCustomSlide(newSlide);
+                    } else {
+                      // Fallback: select by matching title
+                      setSelectedCustomSlideId((result as any).id);
+                      setTemplateName(newSlideTitle.trim());
+                      setElements([]);
+                      setBackgroundColor('#1a1a2e');
+                    }
+                  }
                 } catch (error) {
                   toast.error("Failed to create custom slide");
                 } finally {

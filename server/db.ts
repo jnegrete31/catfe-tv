@@ -1,4 +1,4 @@
-import { eq, and, gte, lte, gt, or, isNull, asc, desc, sql } from "drizzle-orm";
+import { eq, and, gte, lte, gt, or, isNull, asc, desc, sql, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { 
   InsertUser, users, 
@@ -114,6 +114,13 @@ export async function getAllScreens() {
   if (!db) return [];
   
   return db.select().from(screens).orderBy(asc(screens.sortOrder), desc(screens.priority));
+}
+
+export async function getScreensByType(type: string) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db.select().from(screens).where(eq(screens.type, type as any)).orderBy(asc(screens.sortOrder), desc(screens.createdAt));
 }
 
 export async function getActiveScreens() {
@@ -562,6 +569,14 @@ export async function togglePhotoFeatured(id: number, isFeatured: boolean) {
   if (!db) throw new Error("Database not available");
   
   await db.update(photoSubmissions).set({ isFeatured }).where(eq(photoSubmissions.id, id));
+  return { success: true };
+}
+
+export async function updatePhotoCaption(id: number, caption: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(photoSubmissions).set({ caption }).where(eq(photoSubmissions.id, id));
   return { success: true };
 }
 
@@ -1982,7 +1997,7 @@ export async function getAvailableCats(): Promise<Cat[]> {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(cats)
-    .where(eq(cats.status, "available"))
+    .where(inArray(cats.status, ["available", "adopted_in_lounge"]))
     .orderBy(cats.sortOrder, cats.name);
 }
 
@@ -1990,7 +2005,7 @@ export async function getAdoptedCats(): Promise<Cat[]> {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(cats)
-    .where(eq(cats.status, "adopted"))
+    .where(inArray(cats.status, ["adopted", "adopted_in_lounge"]))
     .orderBy(desc(cats.adoptedDate));
 }
 
@@ -2032,6 +2047,15 @@ export async function deleteCat(id: number): Promise<boolean> {
   return true;
 }
 
+export async function bulkUpdateCatStatus(ids: number[], status: string): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  const result = await db.update(cats)
+    .set({ status: status as any, updatedAt: new Date() })
+    .where(inArray(cats.id, ids));
+  return (result as any)[0]?.affectedRows || ids.length;
+}
+
 export async function getCatsByStatus(status: string): Promise<Cat[]> {
   const db = await getDb();
   if (!db) return [];
@@ -2047,7 +2071,7 @@ export async function getRecentlyAdoptedCatsFromTable(days: number = 30): Promis
   cutoff.setDate(cutoff.getDate() - days);
   return db.select().from(cats)
     .where(and(
-      eq(cats.status, "adopted"),
+      inArray(cats.status, ["adopted", "adopted_in_lounge"]),
       gte(cats.adoptedDate, cutoff)
     ))
     .orderBy(desc(cats.adoptedDate));
@@ -2059,6 +2083,67 @@ export async function getCatCount(): Promise<{ available: number; adopted: numbe
   
   const allCats = await db.select({ status: cats.status }).from(cats);
   const available = allCats.filter(c => c.status === "available").length;
-  const adopted = allCats.filter(c => c.status === "adopted").length;
+  const adopted = allCats.filter(c => c.status === "adopted" || c.status === "adopted_in_lounge").length;
   return { available, adopted, total: allCats.length };
+}
+
+/**
+ * Convert a Cat record to a virtual Screen object for TV display.
+ * This allows cats from the Cats tab to automatically appear as ADOPTION slides
+ * on both the web TV and Apple TV without needing manual screen entries.
+ */
+export function catToVirtualScreen(cat: Cat): Screen {
+  // Build personality tags as body text (tag1 · tag2 · tag3)
+  const tags = (cat.personalityTags || []) as string[];
+  const bodyText = tags.length > 0 ? tags.join(' · ') : undefined;
+  
+  // Build subtitle from breed, age, and sex
+  const parts: string[] = [];
+  if (cat.breed) parts.push(cat.breed);
+  if (cat.dob) {
+    const ageMs = Date.now() - new Date(cat.dob).getTime();
+    const ageYears = Math.floor(ageMs / (365.25 * 24 * 60 * 60 * 1000));
+    const ageMonths = Math.floor(ageMs / (30.44 * 24 * 60 * 60 * 1000));
+    if (ageYears >= 1) {
+      parts.push(`${ageYears} year${ageYears > 1 ? 's' : ''} old`);
+    } else {
+      parts.push(`${ageMonths} month${ageMonths !== 1 ? 's' : ''} old`);
+    }
+  }
+  if (cat.sex && cat.sex !== 'unknown') {
+    parts.push(cat.sex === 'male' ? 'Male' : 'Female');
+  }
+  const subtitle = parts.length > 0 ? parts.join(' · ') : undefined;
+  
+  // Use a large negative ID to avoid collision with real screen IDs
+  const virtualId = -(cat.id + 100000);
+  
+  return {
+    id: virtualId,
+    type: 'ADOPTION' as any,
+    title: cat.name,
+    subtitle: subtitle || null,
+    body: bodyText || cat.bio || null,
+    imagePath: cat.photoUrl || null,
+    imageDisplayMode: 'cover',
+    qrUrl: null,
+    startAt: null,
+    endAt: null,
+    daysOfWeek: null,
+    timeStart: null,
+    timeEnd: null,
+    priority: 1,
+    durationSeconds: 10,
+    sortOrder: cat.sortOrder,
+    isActive: true,
+    schedulingEnabled: false,
+    isProtected: false,
+    isAdopted: cat.status === 'adopted' || cat.status === 'adopted_in_lounge',
+    livestreamUrl: null,
+    eventTime: null,
+    eventLocation: null,
+    templateOverride: null,
+    createdAt: cat.createdAt,
+    updatedAt: cat.updatedAt,
+  } as Screen;
 }
