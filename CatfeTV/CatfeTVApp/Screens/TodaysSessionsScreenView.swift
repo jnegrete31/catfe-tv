@@ -207,7 +207,7 @@ struct TodaysSessionsScreenView: View {
             }
         }
         .padding(20)
-        .frame(width: 260, minHeight: 200)
+        .frame(width: 260, height: 280)
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .fill(cardBgColor)
