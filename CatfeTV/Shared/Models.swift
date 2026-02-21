@@ -32,6 +32,9 @@ enum ScreenType: String, Codable, CaseIterable, Identifiable {
     case guestStatusBoard = "GUEST_STATUS_BOARD"
     case liveAvailability = "LIVE_AVAILABILITY"
     case sessionBoard = "SESSION_BOARD"
+    case socialFeed = "SOCIAL_FEED"
+    case birthdayCelebration = "BIRTHDAY_CELEBRATION"
+    case volunteerSpotlight = "VOLUNTEER_SPOTLIGHT"
     case custom = "CUSTOM"
     
     var id: String { rawValue }
@@ -58,6 +61,9 @@ enum ScreenType: String, Codable, CaseIterable, Identifiable {
         case .guestStatusBoard: return "Guest Status Board"
         case .liveAvailability: return "Live Availability"
         case .sessionBoard: return "Today's Sessions"
+        case .socialFeed: return "Social Feed"
+        case .birthdayCelebration: return "Birthday Celebration"
+        case .volunteerSpotlight: return "Volunteer Spotlight"
         case .custom: return "Custom"
         }
     }
@@ -80,6 +86,9 @@ enum ScreenType: String, Codable, CaseIterable, Identifiable {
         case .guestStatusBoard: return "person.3.fill"
         case .liveAvailability: return "clock.badge.checkmark.fill"
         case .sessionBoard: return "calendar.badge.clock"
+        case .socialFeed: return "photo.on.rectangle.angled"
+        case .birthdayCelebration: return "birthday.cake.fill"
+        case .volunteerSpotlight: return "person.2.fill"
         case .custom: return "star.fill"
         }
     }
@@ -785,5 +794,66 @@ struct RollerSession: Codable, Identifiable {
         case productName, productId, description, cost
         case sessionName, startTime, endTime
         case capacityRemaining, ticketCapacityRemaining, onlineSalesOpen
+    }
+}
+
+// MARK: - Social Feed Post Model (from instagram.getPosts API)
+
+struct SocialPost: Codable, Identifiable {
+    var id: Int
+    var mediaUrl: String
+    var caption: String?
+    var permalink: String?
+    var mediaType: String
+    var instagramId: String
+    var thumbnailUrl: String?
+    var postedAt: Date?
+    var isHidden: Bool
+    
+    enum CodingKeys: String, CodingKey {
+        case id, mediaUrl, caption, permalink, mediaType
+        case instagramId, thumbnailUrl, postedAt, isHidden
+    }
+}
+
+// MARK: - Birthday Cat Model (from birthdays.getToday API)
+
+struct BirthdayCat: Codable, Identifiable {
+    var id: Int
+    var name: String
+    var breed: String?
+    var photoUrl: String?
+    var dob: Date?
+    var description: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case id, name, breed, photoUrl, dob, description
+    }
+    
+    /// Calculate age in years from dob
+    var ageYears: Int? {
+        guard let dob = dob else { return nil }
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.year], from: dob, to: Date())
+        return components.year
+    }
+}
+
+// MARK: - Volunteer Model (from volunteers.getFeatured API)
+
+struct Volunteer: Codable, Identifiable {
+    var id: Int
+    var name: String
+    var role: String?
+    var bio: String?
+    var photoUrl: String?
+    var isFeatured: Bool
+    var isActive: Bool
+    var startDate: Date?
+    var sortOrder: Int
+    
+    enum CodingKeys: String, CodingKey {
+        case id, name, role, bio, photoUrl
+        case isFeatured, isActive, startDate, sortOrder
     }
 }

@@ -34,6 +34,12 @@ class APIClient: ObservableObject {
     @Published var cachedRollerSessions: [RollerSession] = []
     private var rollerSessionsLastFetched: Date?
     
+    // Cached data for new screen types
+    @Published var cachedSocialPosts: [SocialPost] = []
+    @Published var cachedBirthdayCats: [BirthdayCat] = []
+    @Published var cachedUpcomingBirthdays: [BirthdayCat] = []
+    @Published var cachedFeaturedVolunteers: [Volunteer] = []
+    
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
     
@@ -567,6 +573,68 @@ class APIClient: ObservableObject {
             print("[Roller] Cached \(cachedRollerSessions.count) sessions for today")
         } catch {
             print("[Roller] Failed to fetch today's sessions: \(error)")
+        }
+    }
+    
+    // MARK: - Social Feed
+    
+    func fetchSocialPosts() async {
+        do {
+            let url = URL(string: "\(baseURL)/api/trpc/instagram.getPosts")!
+            let request = URLRequest(url: url)
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else { return }
+            let trpcResponse = try JSONDecoder().decode(TRPCResponse<[SocialPost]>.self, from: data)
+            cachedSocialPosts = trpcResponse.result.data.json
+            print("[Social] Cached \(cachedSocialPosts.count) posts")
+        } catch {
+            print("[Social] Failed to fetch posts: \(error)")
+        }
+    }
+    
+    // MARK: - Birthday Cats
+    
+    func fetchBirthdayCats() async {
+        do {
+            // Fetch today's birthdays
+            let todayUrl = URL(string: "\(baseURL)/api/trpc/birthdays.getToday")!
+            let todayRequest = URLRequest(url: todayUrl)
+            let (todayData, todayResponse) = try await URLSession.shared.data(for: todayRequest)
+            if let httpResponse = todayResponse as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                let trpcResponse = try JSONDecoder().decode(TRPCResponse<[BirthdayCat]>.self, from: todayData)
+                cachedBirthdayCats = trpcResponse.result.data.json
+                print("[Birthdays] \(cachedBirthdayCats.count) cats have birthdays today")
+            }
+            
+            // Fetch upcoming birthdays (next 30 days)
+            let inputJSON = "{\"json\":{\"days\":30}}"
+            let encodedInput = inputJSON.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? inputJSON
+            let upcomingUrl = URL(string: "\(baseURL)/api/trpc/birthdays.getUpcoming?input=\(encodedInput)")!
+            let upcomingRequest = URLRequest(url: upcomingUrl)
+            let (upcomingData, upcomingResponse) = try await URLSession.shared.data(for: upcomingRequest)
+            if let httpResponse = upcomingResponse as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                let trpcResponse = try JSONDecoder().decode(TRPCResponse<[BirthdayCat]>.self, from: upcomingData)
+                cachedUpcomingBirthdays = trpcResponse.result.data.json
+                print("[Birthdays] \(cachedUpcomingBirthdays.count) upcoming birthdays")
+            }
+        } catch {
+            print("[Birthdays] Failed to fetch: \(error)")
+        }
+    }
+    
+    // MARK: - Featured Volunteers
+    
+    func fetchFeaturedVolunteers() async {
+        do {
+            let url = URL(string: "\(baseURL)/api/trpc/volunteers.getFeatured")!
+            let request = URLRequest(url: url)
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else { return }
+            let trpcResponse = try JSONDecoder().decode(TRPCResponse<[Volunteer]>.self, from: data)
+            cachedFeaturedVolunteers = trpcResponse.result.data.json
+            print("[Volunteers] Cached \(cachedFeaturedVolunteers.count) featured volunteers")
+        } catch {
+            print("[Volunteers] Failed to fetch: \(error)")
         }
     }
     

@@ -133,6 +133,9 @@ struct ContentView: View {
                 await apiClient.refreshPhotos()
                 await apiClient.fetchRecentlyAdoptedCats()
                 await apiClient.fetchRollerSessions()
+                await apiClient.fetchSocialPosts()
+                await apiClient.fetchBirthdayCats()
+                await apiClient.fetchFeaturedVolunteers()
             }
         }
     }
@@ -199,6 +202,15 @@ struct ContentView: View {
         Timer.scheduledTimer(withTimeInterval: 300, repeats: true) { _ in
             Task { @MainActor in
                 await apiClient.fetchRollerSessions()
+            }
+        }
+        
+        // Refresh social posts, birthdays, and volunteers every 5 minutes
+        Timer.scheduledTimer(withTimeInterval: 300, repeats: true) { _ in
+            Task { @MainActor in
+                await apiClient.fetchSocialPosts()
+                await apiClient.fetchBirthdayCats()
+                await apiClient.fetchFeaturedVolunteers()
             }
         }
     }
