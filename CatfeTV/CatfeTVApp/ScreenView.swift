@@ -58,6 +58,10 @@ struct ScreenView: View {
                     CheckInScreenView(screen: screen, settings: settings)
                 case .guestStatusBoard:
                     GuestStatusBoardScreenView(screen: screen, settings: settings)
+                case .liveAvailability:
+                    LiveAvailabilityScreenView(screen: screen, settings: settings)
+                case .sessionBoard:
+                    TodaysSessionsScreenView(screen: screen, settings: settings)
                 case .custom, .poll, .pollQR:
                     GenericScreenView(screen: screen)
                 }

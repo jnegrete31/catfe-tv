@@ -1488,3 +1488,11 @@
 - [x] Add getRollerPollingStatus endpoint for monitoring
 - [x] Extract shared helpers into rollerWebhookHelpers.ts for testability
 - [x] Write tests for polling service (5 tests passing, 194 total)
+
+## Feature - tvOS Roller-Powered Screens + GitHub Push
+- [ ] Create LiveAvailabilityScreenView.swift for tvOS (session times + remaining capacity)
+- [ ] Create TodaysSessionsScreenView.swift for tvOS (all sessions in grid layout)
+- [ ] Add LIVE_AVAILABILITY and TODAYS_SESSIONS to tvOS ScreenType enum
+- [ ] Update ScreenView.swift routing for new screen types
+- [ ] Update project.pbxproj with new Swift files
+- [ ] Push all changes to GitHub (jnegrete31/catfe-tv)
