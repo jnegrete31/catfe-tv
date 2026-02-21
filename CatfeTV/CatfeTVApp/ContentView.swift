@@ -39,40 +39,43 @@ struct ContentView: View {
                     LoadingView()
                 }
                 
-                // Weather and Clock Overlay
-                VStack {
-                    HStack {
-                        Spacer()
-                        WeatherWidget()
-                            .padding(.top, 40)
-                            .padding(.trailing, 60)
-                    }
-                    Spacer()
-                }
-                
-                // Top-left overlay: Waiver QR widget
-                VStack {
-                    HStack {
-                        WaiverWidget()
-                            .padding(.top, 40)
-                            .padding(.leading, 60)
+                // Overlay widgets - hidden when screen has hideOverlay enabled
+                if !(screenRotator.currentScreen?.hideOverlay ?? false) {
+                    // Weather and Clock Overlay
+                    VStack {
+                        HStack {
+                            Spacer()
+                            WeatherWidget()
+                                .padding(.top, 40)
+                                .padding(.trailing, 60)
+                        }
                         Spacer()
                     }
-                    Spacer()
-                }
-                
-                // Logo Widget (bottom-right corner)
-                VStack {
-                    Spacer()
-                    HStack {
+                    
+                    // Top-left overlay: Waiver QR widget
+                    VStack {
+                        HStack {
+                            WaiverWidget()
+                                .padding(.top, 40)
+                                .padding(.leading, 60)
+                            Spacer()
+                        }
                         Spacer()
-                        LogoWidget()
-                            .padding(.bottom, 40)
-                            .padding(.trailing, 60)
+                    }
+                    
+                    // Logo Widget (bottom-right corner)
+                    VStack {
+                        Spacer()
+                        HStack {
+                            Spacer()
+                            LogoWidget()
+                                .padding(.bottom, 40)
+                                .padding(.trailing, 60)
+                        }
                     }
                 }
                 
-                // Guest Session Reminder Widget (bottom-left corner)
+                // Guest Session Reminder Widget - always shown regardless of hideOverlay
                 VStack {
                     Spacer()
                     HStack {
