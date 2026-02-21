@@ -786,6 +786,7 @@ export function ScreenForm({ screen, onSuccess, onCancel }: ScreenFormProps) {
             imageDisplayMode: watch("imageDisplayMode") || "cover",
             qrUrl: watch("qrUrl") || null,
             isAdopted: watch("isAdopted") || false,
+            hideOverlay: watch("hideOverlay") || false,
           }}
           onClose={() => setShowPreview(false)}
         />

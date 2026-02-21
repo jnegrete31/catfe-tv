@@ -1510,3 +1510,10 @@
 - [x] Update tvOS ContentView to hide overlay when current screen has hideOverlay=true
 - [x] Push tvOS changes to GitHub
 - [x] Write tests for hideOverlay (4 tests, all 198 passing)
+
+## Feature - Safe-Zone Preview in Screen Editor
+- [x] Understand current screen editor preview and widget positions
+- [x] Create SafeZoneOverlay component showing widget placement zones
+- [x] Add toggle button to show/hide safe-zone preview in screen editor
+- [x] Style zones to match actual widget sizes and positions
+- [x] Integrate with hideOverlay toggle (dim zones when hideOverlay is on)

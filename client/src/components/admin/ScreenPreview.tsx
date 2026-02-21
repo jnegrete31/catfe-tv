@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScreenRenderer } from "@/components/tv/ScreenRenderer";
 import type { Screen, Settings } from "@shared/types";
-import { Play, ChevronLeft, ChevronRight, X, Maximize2, Monitor, Tablet, Smartphone } from "lucide-react";
+import { Play, ChevronLeft, ChevronRight, X, Maximize2, Monitor, Tablet, Smartphone, Eye, EyeOff, Grid3X3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // Simplified screen type for form preview - only needs display fields
@@ -18,6 +18,7 @@ interface FormPreviewScreen {
   imageDisplayMode?: string | null;
   qrUrl?: string | null;
   isAdopted?: boolean;
+  hideOverlay?: boolean;
 }
 
 interface ScreenPreviewProps {
@@ -42,6 +43,7 @@ const viewportSizes: Record<ViewportSize, { width: number; height: number; label
 // Form preview component - shows preview dialog when editing a screen
 export function FormScreenPreview({ screen, onClose }: FormScreenPreviewProps) {
   const [viewport, setViewport] = useState<ViewportSize>("tv");
+  const [showSafeZones, setShowSafeZones] = useState(true);
   const currentSize = viewportSizes[viewport];
   
   // Calculate scale to fit in dialog
@@ -58,7 +60,18 @@ export function FormScreenPreview({ screen, onClose }: FormScreenPreviewProps) {
               <Monitor className="w-5 h-5" />
               Screen Preview
             </span>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant={showSafeZones ? "default" : "outline"}
+                size="sm"
+                onClick={() => setShowSafeZones(!showSafeZones)}
+                title="Toggle safe-zone overlay"
+              >
+                <Grid3X3 className="w-4 h-4 mr-1" />
+                Safe Zones
+              </Button>
+              <div className="w-px h-6 bg-border" />
               <Button
                 type="button"
                 variant={viewport === "tv" ? "default" : "ghost"}
@@ -108,18 +121,39 @@ export function FormScreenPreview({ screen, onClose }: FormScreenPreviewProps) {
                   height: currentSize.height,
                   transform: `scale(${scale})`,
                   transformOrigin: "top left",
+                  position: "relative",
                 }}
               >
                 <FormScreenContent screen={screen} />
+                {showSafeZones && <SafeZoneOverlay hideOverlay={screen.hideOverlay} />}
               </div>
             </div>
           </div>
           
-          {/* Tips */}
-          <div className="mt-4 p-3 bg-muted/50 rounded-lg text-center">
-            <p className="text-sm text-muted-foreground">
-              This preview shows how your screen will appear on the TV display. 
-              The actual appearance may vary slightly based on TV settings.
+          {/* Legend */}
+          <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+            <div className="flex items-center justify-center gap-6 flex-wrap">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded border-2 border-cyan-400 bg-cyan-400/20" />
+                <span className="text-sm text-muted-foreground">Clock / Weather</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded border-2 border-blue-400 bg-blue-400/20" />
+                <span className="text-sm text-muted-foreground">Waiver QR</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded border-2 border-amber-400 bg-amber-400/20" />
+                <span className="text-sm text-muted-foreground">Logo</span>
+              </div>
+              {screen.hideOverlay && (
+                <div className="flex items-center gap-2">
+                  <EyeOff className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground italic">Overlay hidden on this screen</span>
+                </div>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground text-center mt-2">
+              Dashed zones show where widgets appear. Avoid placing important content in these areas.
             </p>
           </div>
         </div>
@@ -509,5 +543,130 @@ export function PlaylistPreview({ screens, settings }: PlaylistPreviewProps) {
         </DialogContent>
       </Dialog>
     </>
+  );
+}
+
+// Safe-zone overlay showing where widgets appear on the TV display
+function SafeZoneOverlay({ hideOverlay }: { hideOverlay?: boolean }) {
+  const dimmed = hideOverlay === true;
+  
+  return (
+    <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 100 }}>
+      {/* Clock / Weather — top-right */}
+      <div
+        className="absolute flex items-center gap-2"
+        style={{ top: "2%", right: "2%" }}
+      >
+        {/* Weather pill */}
+        <div
+          className={cn(
+            "rounded-2xl border-2 border-dashed flex items-center justify-center",
+            dimmed
+              ? "border-cyan-400/30 bg-cyan-400/5"
+              : "border-cyan-400 bg-cyan-400/15"
+          )}
+          style={{ width: 200, height: 64, position: "relative" }}
+        >
+          <span className={cn(
+            "text-xs font-medium",
+            dimmed ? "text-cyan-300/40" : "text-cyan-200"
+          )}>
+            Weather
+          </span>
+          {dimmed && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-full border-t border-cyan-400/30" style={{ transform: "rotate(-15deg)" }} />
+            </div>
+          )}
+        </div>
+        {/* Clock pill */}
+        <div
+          className={cn(
+            "rounded-2xl border-2 border-dashed flex items-center justify-center",
+            dimmed
+              ? "border-cyan-400/30 bg-cyan-400/5"
+              : "border-cyan-400 bg-cyan-400/15"
+          )}
+          style={{ width: 120, height: 64, position: "relative" }}
+        >
+          <span className={cn(
+            "text-xs font-medium",
+            dimmed ? "text-cyan-300/40" : "text-cyan-200"
+          )}>
+            Clock
+          </span>
+          {dimmed && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-full border-t border-cyan-400/30" style={{ transform: "rotate(-15deg)" }} />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Waiver QR — top-left */}
+      <div
+        className={cn(
+          "absolute rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-1",
+          dimmed
+            ? "border-blue-400/30 bg-blue-400/5"
+            : "border-blue-400 bg-blue-400/15"
+        )}
+        style={{ top: "2%", left: "2%", width: 160, height: 200, position: "relative" }}
+      >
+        <div className={cn(
+          "w-16 h-16 rounded border-2 border-dashed flex items-center justify-center",
+          dimmed ? "border-blue-300/30" : "border-blue-300/60"
+        )}>
+          <span className={cn(
+            "text-[10px]",
+            dimmed ? "text-blue-300/30" : "text-blue-200/80"
+          )}>QR</span>
+        </div>
+        <span className={cn(
+          "text-xs font-medium",
+          dimmed ? "text-blue-300/40" : "text-blue-200"
+        )}>
+          Waiver
+        </span>
+        {dimmed && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-full border-t border-blue-400/30" style={{ transform: "rotate(-20deg)" }} />
+          </div>
+        )}
+      </div>
+
+      {/* Logo — bottom-right */}
+      <div
+        className={cn(
+          "absolute rounded-full border-2 border-dashed flex items-center justify-center",
+          dimmed
+            ? "border-amber-400/30 bg-amber-400/5"
+            : "border-amber-400 bg-amber-400/15"
+        )}
+        style={{ bottom: "2%", right: "2%", width: 80, height: 80, position: "relative" }}
+      >
+        <span className={cn(
+          "text-xs font-medium",
+          dimmed ? "text-amber-300/40" : "text-amber-200"
+        )}>
+          Logo
+        </span>
+        {dimmed && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-full border-t border-amber-400/30" style={{ transform: "rotate(-20deg)" }} />
+          </div>
+        )}
+      </div>
+
+      {/* "Hidden" badge when hideOverlay is on */}
+      {dimmed && (
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+          <div className="bg-black/60 backdrop-blur-sm rounded-xl px-6 py-3 flex items-center gap-2">
+            <EyeOff className="w-5 h-5 text-white/70" />
+            <span className="text-white/80 text-sm font-medium">Overlay Hidden</span>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
