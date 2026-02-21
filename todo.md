@@ -1552,3 +1552,45 @@
 ## Bug - Test screens persisting in production database
 - [x] Delete leftover "Test HideOverlay" screens from database (6 records removed)
 - [x] Fix hideOverlay.test.ts to clean up test screens via afterAll hook
+
+## Bug - Adoption counter design regression
+- [x] Confirmed web hybrid Concept C design is intact in ScreenRenderer.tsx
+- [x] Issue was tvOS-only — the Swift view still had the old centered design
+
+## Bug - tvOS Adoption Counter missing hybrid Concept C design
+- [x] Rewrote AdoptionCounterScreenView.swift with full hybrid Concept C design
+- [x] Split layout: counter + branding on left (cream), photo mosaic + carousel on right (dark)
+- [x] Added milestone detection (bronze/silver/gold/diamond tiers)
+- [x] Added confetti animation at milestones
+- [x] Added polaroid-style cat carousel with 4s auto-rotation
+- [x] Added photo mosaic background from all cats with photos
+- [x] Pushed to GitHub (commit 3c69173)
+
+## Session Continuation - TypeScript & Test Fixes
+- [x] Add SOCIAL_FEED, BIRTHDAY_CELEBRATION, VOLUNTEER_SPOTLIGHT to screenTypes enum in routers.ts
+- [x] Verify tRPC router registration for birthdays, volunteers, instagram routers (all present in appRouter)
+- [x] Clear stale TypeScript LSP cache (tsc --noEmit passes cleanly)
+- [x] Verify no test pollution in production database (no leftover test screens)
+- [x] Write 16 new tests for birthdays, volunteers, instagram routers and new screen type enum validation
+- [x] All 214 tests passing (19 test files)
+
+## Bug - Apple TV still showing old centered Adoption Counter design
+- [x] Verify AdoptionCounterScreenView.swift in GitHub has Concept C split layout code
+- [x] Check Xcode project file includes the correct file reference
+- [x] Verify ScreenView.swift routing dispatches to AdoptionCounterScreenView correctly
+- [x] Check for any Swift compilation issues (all clean)
+- [x] Provide build instructions for deploying updated code to Apple TV
+
+## Bug - tvOS app crashing with SIGTERM (Adoption Counter not showing)
+- [x] Investigate SIGTERM crash in CatfeTVApp (SIGTERM was external kill signal, not code crash)
+- [x] Check for potential crash in new screen type Swift views (all safe, no force unwraps)
+- [x] Check for missing ScreenType cases (all cases handled)
+- [x] Check ContentView data fetching (all error handling in place)
+- [x] Fix crash and push to GitHub (no code fix needed, user needs to git pull)
+
+## Bug - Create screen validation missing new types
+- [x] Add SOCIAL_FEED, BIRTHDAY_CELEBRATION, VOLUNTEER_SPOTLIGHT to Zod validation enum (already present, issue is stale published version)
+
+## Fix - TypeScript type inference failure for new routers
+- [x] Fix TS errors: birthdays and volunteers routers not recognized by tRPC type system (confirmed tsc passes clean, errors were from stale dev server watcher)
+- [x] Ensure published version includes all new screen types (production build verified, needs republish)
