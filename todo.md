@@ -1477,7 +1477,7 @@
 - [x] Build auto guest check-in via Roller redemption webhook (POST /api/webhooks/roller)
 - [x] Added 90-minute session duration for Study Sessions
 - [ ] Build waiver status integration (requires live webhook to get guest IDs — future enhancement)
-- [ ] Update Apple TV with new Roller-powered slides (future enhancement)
+- [x] Update Apple TV with new Roller-powered slides
 - [x] Push changes to GitHub
 
 ## Feature - Roller Polling-Based Auto Check-in (Webhook Alternative)
@@ -1490,9 +1490,13 @@
 - [x] Write tests for polling service (5 tests passing, 194 total)
 
 ## Feature - tvOS Roller-Powered Screens + GitHub Push
-- [ ] Create LiveAvailabilityScreenView.swift for tvOS (session times + remaining capacity)
-- [ ] Create TodaysSessionsScreenView.swift for tvOS (all sessions in grid layout)
-- [ ] Add LIVE_AVAILABILITY and TODAYS_SESSIONS to tvOS ScreenType enum
-- [ ] Update ScreenView.swift routing for new screen types
-- [ ] Update project.pbxproj with new Swift files
-- [ ] Push all changes to GitHub (jnegrete31/catfe-tv)
+- [x] Create LiveAvailabilityScreenView.swift for tvOS (emerald gradient, capacity bars, upcoming sessions)
+- [x] Create TodaysSessionsScreenView.swift for tvOS (cyan/sky gradient, session grid with past/current/future states)
+- [x] Add LIVE_AVAILABILITY and SESSION_BOARD to tvOS ScreenType enum
+- [x] Add RollerSession model to Models.swift
+- [x] Add fetchRollerSessions() to APIClient.swift (polls roller.getTodaySessions)
+- [x] Auto-fetch Roller sessions on startup + refresh every 5 minutes
+- [x] Update ScreenView.swift routing for new screen types
+- [x] Update project.pbxproj with new Swift files
+- [x] Update Theme.swift accent colors for new types
+- [x] Push all changes to GitHub (jnegrete31/catfe-tv) — commit 4167185
