@@ -1,0 +1,34 @@
+{
+  "query": "SELECT id, title FROM screens WHERE title LIKE '%Test HideOverlay%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2KjT5kGWaGHMws6.75433b4e530a --database aMDMXCoQ2ycSYTjhkKKJzm --execute SELECT id, title FROM screens WHERE title LIKE '%Test HideOverlay%';",
+  "rows": [
+    {
+      "id": "450019",
+      "title": "Test HideOverlay Default"
+    },
+    {
+      "id": "450020",
+      "title": "Test HideOverlay True"
+    },
+    {
+      "id": "450021",
+      "title": "Test HideOverlay Update"
+    },
+    {
+      "id": "450022",
+      "title": "Test HideOverlay Default"
+    },
+    {
+      "id": "450023",
+      "title": "Test HideOverlay True"
+    },
+    {
+      "id": "450024",
+      "title": "Test HideOverlay Update"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\ttitle\n450019\tTest HideOverlay Default\n450020\tTest HideOverlay True\n450021\tTest HideOverlay Update\n450022\tTest HideOverlay Default\n450023\tTest HideOverlay True\n450024\tTest HideOverlay Update\n",
+  "stderr": "",
+  "execution_time_ms": 53
+}

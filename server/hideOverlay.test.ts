@@ -1,8 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, afterAll } from "vitest";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 
 type AuthenticatedUser = NonNullable<TrpcContext["user"]>;
+
+// Track created screen IDs for cleanup
+const createdScreenIds: number[] = [];
 
 function createAdminContext(): TrpcContext {
   const user: AuthenticatedUser = {
@@ -29,6 +32,19 @@ function createAdminContext(): TrpcContext {
   };
 }
 
+// Clean up all test screens after all tests complete
+afterAll(async () => {
+  const ctx = createAdminContext();
+  const caller = appRouter.createCaller(ctx);
+  for (const id of createdScreenIds) {
+    try {
+      await caller.screens.delete({ id });
+    } catch {
+      // Screen may already be deleted, ignore
+    }
+  }
+});
+
 describe("hideOverlay field", () => {
   it("creates a screen with hideOverlay defaulting to false and verifies via getAll", async () => {
     const ctx = createAdminContext();
@@ -41,6 +57,7 @@ describe("hideOverlay field", () => {
 
     expect(result).toBeDefined();
     expect(result.id).toBeDefined();
+    createdScreenIds.push(result.id);
 
     // Verify the field via getAll
     const allScreens = await caller.screens.getAll();
@@ -60,6 +77,7 @@ describe("hideOverlay field", () => {
     });
 
     expect(result).toBeDefined();
+    createdScreenIds.push(result.id);
 
     const allScreens = await caller.screens.getAll();
     const created = allScreens.find((s: any) => s.id === result.id);
@@ -76,6 +94,7 @@ describe("hideOverlay field", () => {
       title: "Test HideOverlay Update",
       type: "EVENT",
     });
+    createdScreenIds.push(result.id);
 
     // Update to true
     await caller.screens.update({

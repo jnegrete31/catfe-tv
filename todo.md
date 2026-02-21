@@ -1548,3 +1548,7 @@
 ### Shared
 - [x] All 198 tests passing (0 new test failures)
 - [x] Push tvOS changes to GitHub (commit 02aad50)
+
+## Bug - Test screens persisting in production database
+- [x] Delete leftover "Test HideOverlay" screens from database (6 records removed)
+- [x] Fix hideOverlay.test.ts to clean up test screens via afterAll hook
