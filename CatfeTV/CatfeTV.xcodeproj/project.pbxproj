@@ -22,8 +22,8 @@
 		TV012 /* TodayScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF012 /* TodayScreenView.swift */; };
 		TV013 /* ThankYouScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF013 /* ThankYouScreenView.swift */; };
 		TV014 /* AdoptionShowcaseScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF015 /* AdoptionShowcaseScreenView.swift */; };
-		TV015 /* PollWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF016 /* PollWidget.swift */; };
-			TV016 /* PollResultsWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF017 /* PollResultsWidget.swift */; };
+
+
 			TV017 /* TemplateOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF018 /* TemplateOverlayView.swift */; };
 			TV018 /* GuestReminderWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF019 /* GuestReminderWidget.swift */; };
 			TV020 /* WaiverWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF020 /* WaiverWidget.swift */; };
@@ -85,8 +85,6 @@
 		TVF013 /* ThankYouScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThankYouScreenView.swift; sourceTree = "<group>"; };
 		TVF014 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		TVF015 /* AdoptionShowcaseScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdoptionShowcaseScreenView.swift; sourceTree = "<group>"; };
-		TVF016 /* PollWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PollWidget.swift; sourceTree = "<group>"; };
-			TVF017 /* PollResultsWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PollResultsWidget.swift; sourceTree = "<group>"; };
 			TVF018 /* TemplateOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateOverlayView.swift; sourceTree = "<group>"; };
 			TVF019 /* GuestReminderWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestReminderWidget.swift; sourceTree = "<group>"; };
 			TVF020 /* WaiverWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaiverWidget.swift; sourceTree = "<group>"; };
@@ -211,8 +209,8 @@
 		TVGRP003 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				TVF016 /* PollWidget.swift */,
-				TVF017 /* PollResultsWidget.swift */,
+
+
 					TVF018 /* TemplateOverlayView.swift */,
 					TVF019 /* GuestReminderWidget.swift */,
 					TVF020 /* WaiverWidget.swift */,
@@ -374,8 +372,8 @@
 					117C38FFEFEB49CE8690FA9D /* SnapPurrQRScreenView.swift in Sources */,
 					LAV00001 /* LiveAvailabilityScreenView.swift in Sources */,
 					TSB00001 /* TodaysSessionsScreenView.swift in Sources */,
-				TV015 /* PollWidget.swift in Sources */,
-					TV016 /* PollResultsWidget.swift in Sources */,
+
+
 					TV017 /* TemplateOverlayView.swift in Sources */,
 					TV018 /* GuestReminderWidget.swift in Sources */,
 					TV020 /* WaiverWidget.swift in Sources */,
