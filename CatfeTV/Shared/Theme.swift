@@ -270,6 +270,9 @@ extension ScreenType {
         case .guestStatusBoard: return .loungeAmber
         case .liveAvailability: return .loungeMintGreen
         case .sessionBoard: return .loungeAmber
+        case .socialFeed: return .loungeWarmOrange
+        case .birthdayCelebration: return .catfeGold
+        case .volunteerSpotlight: return .catfeSage
         case .custom: return .loungeWarmOrange
         }
     }

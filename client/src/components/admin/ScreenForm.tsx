@@ -271,7 +271,8 @@ export function ScreenForm({ screen, onSuccess, onCancel }: ScreenFormProps) {
       daysOfWeek: data.daysOfWeek?.length ? data.daysOfWeek : null,
       eventTime: data.eventTime || null,
       eventLocation: data.eventLocation || null,
-    };
+      hideOverlay: data.hideOverlay ?? false,
+    } as any;
     
     if (screen) {
       // For updates, only include imagePath if it changed or was explicitly cleared

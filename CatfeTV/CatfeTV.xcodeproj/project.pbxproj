@@ -60,6 +60,9 @@
 			GSB00001 /* GuestStatusBoardScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = GSB00002 /* GuestStatusBoardScreenView.swift */; };
 			LAV00001 /* LiveAvailabilityScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LAV00002 /* LiveAvailabilityScreenView.swift */; };
 			TSB00001 /* TodaysSessionsScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSB00002 /* TodaysSessionsScreenView.swift */; };
+			SFD00001 /* SocialFeedScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SFD00002 /* SocialFeedScreenView.swift */; };
+			BDC00001 /* BirthdayCelebrationScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDC00002 /* BirthdayCelebrationScreenView.swift */; };
+			VSP00001 /* VolunteerSpotlightScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = VSP00002 /* VolunteerSpotlightScreenView.swift */; };
 		22810065BDE340519254637D /* CosmicHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86CB68B09382437D9B459095 /* CosmicHelpers.swift */; };
 		303610EFC664458D9517DB33 /* HappyTailsQRScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95CD9A1BFCB64E6BB89476CB /* HappyTailsQRScreenView.swift */; };
 		160E26B617F844B9A485E8BA /* HappyTailsScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18F4708A52AA458882948CFB /* HappyTailsScreenView.swift */; };
@@ -125,6 +128,9 @@
 			703BA8C8A61D4DC9907F0324 /* SnapPurrQRScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapPurrQRScreenView.swift; sourceTree = "<group>"; };
 			LAV00002 /* LiveAvailabilityScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveAvailabilityScreenView.swift; sourceTree = "<group>"; };
 			TSB00002 /* TodaysSessionsScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodaysSessionsScreenView.swift; sourceTree = "<group>"; };
+			SFD00002 /* SocialFeedScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocialFeedScreenView.swift; sourceTree = "<group>"; };
+			BDC00002 /* BirthdayCelebrationScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BirthdayCelebrationScreenView.swift; sourceTree = "<group>"; };
+			VSP00002 /* VolunteerSpotlightScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolunteerSpotlightScreenView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -202,6 +208,9 @@
 					703BA8C8A61D4DC9907F0324 /* SnapPurrQRScreenView.swift */,
 					LAV00002 /* LiveAvailabilityScreenView.swift */,
 					TSB00002 /* TodaysSessionsScreenView.swift */,
+					SFD00002 /* SocialFeedScreenView.swift */,
+					BDC00002 /* BirthdayCelebrationScreenView.swift */,
+					VSP00002 /* VolunteerSpotlightScreenView.swift */,
 			);
 			path = Screens;
 			sourceTree = "<group>";
@@ -372,6 +381,9 @@
 					117C38FFEFEB49CE8690FA9D /* SnapPurrQRScreenView.swift in Sources */,
 					LAV00001 /* LiveAvailabilityScreenView.swift in Sources */,
 					TSB00001 /* TodaysSessionsScreenView.swift in Sources */,
+					SFD00001 /* SocialFeedScreenView.swift in Sources */,
+					BDC00001 /* BirthdayCelebrationScreenView.swift in Sources */,
+					VSP00001 /* VolunteerSpotlightScreenView.swift in Sources */,
 
 
 					TV017 /* TemplateOverlayView.swift in Sources */,

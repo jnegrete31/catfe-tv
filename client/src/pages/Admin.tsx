@@ -14,6 +14,8 @@ import PhotoModeration from "@/components/admin/PhotoModeration";
 
 import { PlaylistManager } from "@/components/admin/PlaylistManager";
 import { CatManager } from "@/components/admin/CatManager";
+import { VolunteerManager } from "@/components/admin/VolunteerManager";
+import { SocialFeedManager } from "@/components/admin/SocialFeedManager";
 import { trpc } from "@/lib/trpc";
 import type { Screen } from "@shared/types";
 import { 
@@ -27,7 +29,8 @@ import {
   Users,
   Image,
   Heart,
-
+  HandHeart,
+  Instagram,
   ListMusic,
   Palette,
   EyeOff,
@@ -149,6 +152,8 @@ export default function Admin() {
     { value: "guests", icon: Users, label: "Guests" },
     { value: "photos", icon: Image, label: "Photos" },
     { value: "playlists", icon: ListMusic, label: "Playlists" },
+    { value: "volunteers", icon: HandHeart, label: "Volunteers" },
+    { value: "social", icon: Instagram, label: "Social" },
     { value: "settings", icon: Settings, label: "Settings" },
   ];
   
@@ -365,6 +370,16 @@ export default function Admin() {
           {/* Playlists Tab */}
           <TabsContent value="playlists">
             <PlaylistManager />
+          </TabsContent>
+
+          {/* Volunteers Tab */}
+          <TabsContent value="volunteers">
+            <VolunteerManager />
+          </TabsContent>
+
+          {/* Social Feed Tab */}
+          <TabsContent value="social">
+            <SocialFeedManager />
           </TabsContent>
 
           {/* Settings Tab */}

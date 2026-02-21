@@ -1520,3 +1520,31 @@
 
 ## Bug - hideOverlay toggle not persisting
 - [x] Fix hideOverlay not saving/loading correctly when editing a screen (missing from Zod schema + defaultValues)
+
+## Feature - New Screen Types (SOCIAL_FEED, BIRTHDAY_CELEBRATION, VOLUNTEER_SPOTLIGHT)
+
+### SOCIAL_FEED (Instagram)
+- [x] Research Instagram API / Graph API for pulling posts
+- [x] Add SOCIAL_FEED to screen type enum in schema
+- [x] Create Instagram integration backend (manual post management + future API)
+- [x] Build admin UI for managing social feed posts (Social Feed tab)
+- [x] Build web TV renderer for Social Feed screen (photo grid with captions)
+- [x] Build tvOS Swift view for Social Feed screen (SocialFeedScreenView.swift)
+
+### BIRTHDAY_CELEBRATION (Cat Birthdays)
+- [x] Add BIRTHDAY_CELEBRATION to screen type enum in schema
+- [x] Uses existing dob field from cats table (no new fields needed)
+- [x] Birthday data auto-generated from cats table (no separate admin needed)
+- [x] Build web TV renderer with festive golden celebration design (confetti, cake icon)
+- [x] Build tvOS Swift view for Birthday Celebration screen (BirthdayCelebrationScreenView.swift)
+
+### VOLUNTEER_SPOTLIGHT
+- [x] Add VOLUNTEER_SPOTLIGHT to screen type enum in schema
+- [x] Create volunteers table (name, photoUrl, bio, role, startDate, isFeatured, isActive)
+- [x] Build admin UI for managing volunteers (Volunteers tab with add/edit/feature/delete)
+- [x] Build web TV renderer for Volunteer Spotlight screen (featured volunteer cards)
+- [x] Build tvOS Swift view for Volunteer Spotlight screen (VolunteerSpotlightScreenView.swift)
+
+### Shared
+- [x] All 198 tests passing (0 new test failures)
+- [x] Push tvOS changes to GitHub (commit 02aad50)

@@ -16,7 +16,9 @@ import {
   playlists, InsertPlaylist, Playlist,
   playlistScreens, InsertPlaylistScreen, PlaylistScreen,
   slideTemplates, InsertSlideTemplate, SlideTemplate, TemplateElement,
-  cats, InsertCat, Cat
+  cats, InsertCat, Cat,
+  volunteers, InsertVolunteer, Volunteer,
+  instagramPosts, InsertInstagramPost, InstagramPost
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -2144,7 +2146,165 @@ export function catToVirtualScreen(cat: Cat): Screen {
     eventTime: null,
     eventLocation: null,
     templateOverride: null,
+    hideOverlay: false,
     createdAt: cat.createdAt,
     updatedAt: cat.updatedAt,
   } as Screen;
+}
+
+
+// ============ VOLUNTEER QUERIES ============
+
+export async function getAllVolunteers(): Promise<Volunteer[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(volunteers).orderBy(volunteers.sortOrder, volunteers.name);
+}
+
+export async function getActiveVolunteers(): Promise<Volunteer[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(volunteers)
+    .where(eq(volunteers.isActive, true))
+    .orderBy(volunteers.sortOrder, volunteers.name);
+}
+
+export async function getFeaturedVolunteers(): Promise<Volunteer[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(volunteers)
+    .where(and(eq(volunteers.isFeatured, true), eq(volunteers.isActive, true)))
+    .orderBy(volunteers.sortOrder);
+}
+
+export async function getVolunteerById(id: number): Promise<Volunteer | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(volunteers).where(eq(volunteers.id, id));
+  return result[0] || null;
+}
+
+export async function createVolunteer(data: InsertVolunteer): Promise<Volunteer | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.insert(volunteers).values(data);
+  return getVolunteerById(result[0].insertId);
+}
+
+export async function updateVolunteer(id: number, data: Partial<InsertVolunteer>): Promise<Volunteer | null> {
+  const db = await getDb();
+  if (!db) return null;
+  await db.update(volunteers).set(data).where(eq(volunteers.id, id));
+  return getVolunteerById(id);
+}
+
+export async function deleteVolunteer(id: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  await db.delete(volunteers).where(eq(volunteers.id, id));
+  return true;
+}
+
+// ============ INSTAGRAM POST QUERIES ============
+
+export async function getAllInstagramPosts(): Promise<InstagramPost[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(instagramPosts).orderBy(desc(instagramPosts.postedAt));
+}
+
+export async function getVisibleInstagramPosts(): Promise<InstagramPost[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(instagramPosts)
+    .where(eq(instagramPosts.isHidden, false))
+    .orderBy(desc(instagramPosts.postedAt))
+    .limit(20);
+}
+
+export async function upsertInstagramPost(data: InsertInstagramPost): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(instagramPosts).values(data).onDuplicateKeyUpdate({
+    set: {
+      mediaUrl: data.mediaUrl,
+      thumbnailUrl: data.thumbnailUrl,
+      caption: data.caption,
+      updatedAt: new Date(),
+    },
+  });
+}
+
+export async function hideInstagramPost(id: number, hidden: boolean): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(instagramPosts).set({ isHidden: hidden }).where(eq(instagramPosts.id, id));
+}
+
+export async function deleteInstagramPost(id: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  await db.delete(instagramPosts).where(eq(instagramPosts.id, id));
+  return true;
+}
+
+// ============ BIRTHDAY QUERIES (uses cats table) ============
+
+export async function getCatsWithUpcomingBirthdays(days: number = 30): Promise<Cat[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  // Get all available cats with a DOB set
+  const allCats = await db.select().from(cats)
+    .where(and(
+      inArray(cats.status, ["available", "adopted_in_lounge"]),
+      sql`${cats.dob} IS NOT NULL`
+    ));
+  
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  
+  // Filter cats whose birthday is within the next N days
+  return allCats.filter(cat => {
+    if (!cat.dob) return false;
+    const dob = new Date(cat.dob);
+    // Create this year's birthday
+    const birthday = new Date(currentYear, dob.getMonth(), dob.getDate());
+    // If birthday already passed this year, check next year
+    if (birthday < now) {
+      birthday.setFullYear(currentYear + 1);
+    }
+    const diffDays = Math.ceil((birthday.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    return diffDays >= 0 && diffDays <= days;
+  }).sort((a, b) => {
+    // Sort by closest birthday first
+    const aDate = new Date(a.dob!);
+    const bDate = new Date(b.dob!);
+    const aBday = new Date(currentYear, aDate.getMonth(), aDate.getDate());
+    const bBday = new Date(currentYear, bDate.getMonth(), bDate.getDate());
+    if (aBday < now) aBday.setFullYear(currentYear + 1);
+    if (bBday < now) bBday.setFullYear(currentYear + 1);
+    return aBday.getTime() - bBday.getTime();
+  });
+}
+
+export async function getTodaysBirthdayCats(): Promise<Cat[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const allCats = await db.select().from(cats)
+    .where(and(
+      inArray(cats.status, ["available", "adopted_in_lounge"]),
+      sql`${cats.dob} IS NOT NULL`
+    ));
+  
+  const now = new Date();
+  const todayMonth = now.getMonth();
+  const todayDate = now.getDate();
+  
+  return allCats.filter(cat => {
+    if (!cat.dob) return false;
+    const dob = new Date(cat.dob);
+    return dob.getMonth() === todayMonth && dob.getDate() === todayDate;
+  });
 }

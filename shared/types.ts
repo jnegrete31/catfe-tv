@@ -28,6 +28,9 @@ export const SCREEN_TYPES = [
   "GUEST_STATUS_BOARD",
   "LIVE_AVAILABILITY",
   "SESSION_BOARD",
+  "SOCIAL_FEED",
+  "BIRTHDAY_CELEBRATION",
+  "VOLUNTEER_SPOTLIGHT",
   "CUSTOM",
 ] as const;
 
@@ -55,6 +58,9 @@ export const SCREEN_TYPE_CONFIG: Record<ScreenType, { label: string; color: stri
   GUEST_STATUS_BOARD: { label: "Guest Status Board", color: "#0d9488", bgColor: "#ccfbf1" },
   LIVE_AVAILABILITY: { label: "Live Availability", color: "#059669", bgColor: "#d1fae5" },
   SESSION_BOARD: { label: "Session Board", color: "#0284c7", bgColor: "#e0f2fe" },
+  SOCIAL_FEED: { label: "Social Feed", color: "#e1306c", bgColor: "#fce4ec" },
+  BIRTHDAY_CELEBRATION: { label: "Birthday Celebration", color: "#ff6f00", bgColor: "#fff3e0" },
+  VOLUNTEER_SPOTLIGHT: { label: "Volunteer Spotlight", color: "#2e7d32", bgColor: "#e8f5e9" },
   CUSTOM: { label: "Custom Slide", color: "#6b7280", bgColor: "#f3f4f6" },
 };
 
@@ -96,4 +102,7 @@ export const SCREEN_TYPE_DURATIONS: Partial<Record<ScreenType, number>> = {
   GUEST_STATUS_BOARD: 20,
   LIVE_AVAILABILITY: 15,
   SESSION_BOARD: 20,
+  SOCIAL_FEED: 15,
+  BIRTHDAY_CELEBRATION: 15,
+  VOLUNTEER_SPOTLIGHT: 15,
 };

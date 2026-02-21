@@ -42,6 +42,9 @@ export const screenTypeEnum = mysqlEnum("screenType", [
   "GUEST_STATUS_BOARD",
   "LIVE_AVAILABILITY",
   "SESSION_BOARD",
+  "SOCIAL_FEED",
+  "BIRTHDAY_CELEBRATION",
+  "VOLUNTEER_SPOTLIGHT",
   "CUSTOM"
 ]);
 
@@ -546,3 +549,44 @@ export const cats = mysqlTable("cats", {
 
 export type Cat = typeof cats.$inferSelect;
 export type InsertCat = typeof cats.$inferInsert;
+
+
+/**
+ * Volunteers table - tracks volunteers for spotlight feature
+ */
+export const volunteers = mysqlTable("volunteers", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  photoUrl: varchar("photoUrl", { length: 1024 }), // S3 URL for volunteer photo
+  bio: text("bio"), // Short bio or quote
+  role: varchar("role", { length: 255 }), // e.g., "Cat Care Volunteer", "Weekend Helper"
+  startDate: timestamp("startDate"), // When they started volunteering
+  isFeatured: boolean("isFeatured").notNull().default(false), // Currently featured spotlight
+  isActive: boolean("isActive").notNull().default(true), // Still an active volunteer
+  sortOrder: int("sortOrder").notNull().default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Volunteer = typeof volunteers.$inferSelect;
+export type InsertVolunteer = typeof volunteers.$inferInsert;
+
+/**
+ * Instagram posts cache - stores fetched Instagram posts for the Social Feed screen
+ */
+export const instagramPosts = mysqlTable("instagramPosts", {
+  id: int("id").autoincrement().primaryKey(),
+  instagramId: varchar("instagramId", { length: 255 }).notNull().unique(), // Instagram media ID for dedup
+  mediaType: varchar("mediaType", { length: 50 }).notNull(), // IMAGE, VIDEO, CAROUSEL_ALBUM
+  mediaUrl: varchar("mediaUrl", { length: 1024 }).notNull(), // Direct URL to the media
+  thumbnailUrl: varchar("thumbnailUrl", { length: 1024 }), // Thumbnail for videos
+  caption: text("caption"),
+  permalink: varchar("permalink", { length: 1024 }), // Link back to Instagram post
+  postedAt: timestamp("postedAt"), // When it was posted on Instagram
+  isHidden: boolean("isHidden").notNull().default(false), // Admin can hide specific posts
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type InstagramPost = typeof instagramPosts.$inferSelect;
+export type InsertInstagramPost = typeof instagramPosts.$inferInsert;

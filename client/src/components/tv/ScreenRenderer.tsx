@@ -2784,6 +2784,433 @@ function SessionBoardScreen({ screen, settings }: ScreenRendererProps) {
   );
 }
 
+// ============ SOCIAL FEED SCREEN ============
+function SocialFeedScreen({ screen, settings }: ScreenRendererProps) {
+  const { data: posts } = trpc.instagram.getPosts.useQuery(undefined, {
+    refetchInterval: 60 * 1000,
+    staleTime: 30 * 1000,
+  });
+  const [currentPage, setCurrentPage] = useState(0);
+  const postsPerPage = 4;
+
+  const visiblePosts = posts || [];
+  const totalPages = Math.max(1, Math.ceil(visiblePosts.length / postsPerPage));
+
+  useEffect(() => {
+    if (totalPages <= 1) return;
+    const timer = setInterval(() => {
+      setCurrentPage(p => (p + 1) % totalPages);
+    }, 8000);
+    return () => clearInterval(timer);
+  }, [totalPages]);
+
+  const pagePosts = visiblePosts.slice(currentPage * postsPerPage, (currentPage + 1) * postsPerPage);
+
+  return (
+    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%)' }}>
+      {/* Subtle pattern overlay */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-10 left-10 w-40 h-40 border-2 border-white/30 rounded-full" />
+        <div className="absolute bottom-20 right-20 w-32 h-32 border-2 border-white/20 rounded-full" />
+        <div className="absolute top-1/3 right-1/4 w-24 h-24 border-2 border-white/20 rounded-full" />
+      </div>
+
+      {/* Header */}
+      <div className="absolute top-0 left-0 right-0 z-20 pt-8 text-center">
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
+          <div className="flex items-center justify-center gap-4 mb-2">
+            <svg className="w-10 h-10 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="2" y="2" width="20" height="20" rx="5" />
+              <circle cx="12" cy="12" r="5" />
+              <circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" />
+            </svg>
+            <h1 className="text-5xl font-bold text-white tracking-wide" style={{ fontFamily: 'Georgia, serif' }}>
+              {screen.title || 'Follow Us'}
+            </h1>
+          </div>
+          <p className="text-xl text-white/70 tracking-widest uppercase">
+            {screen.subtitle || '@catfescv'}
+          </p>
+        </motion.div>
+      </div>
+
+      {/* Photo Grid */}
+      <div className="absolute inset-0 flex items-center justify-center px-12 pt-32 pb-16">
+        {visiblePosts.length === 0 ? (
+          <div className="text-center">
+            <p className="text-3xl text-white/80 mb-4">No posts yet</p>
+            <p className="text-xl text-white/50">Add photos in the admin panel</p>
+          </div>
+        ) : (
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentPage}
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -50 }}
+              transition={{ duration: 0.5 }}
+              className="grid grid-cols-2 gap-6 w-full max-w-5xl"
+            >
+              {pagePosts.map((post, idx) => (
+                <motion.div
+                  key={post.id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: idx * 0.1 }}
+                  className="relative rounded-2xl overflow-hidden shadow-2xl bg-white/10 backdrop-blur-sm"
+                  style={{ aspectRatio: '1' }}
+                >
+                  <img
+                    src={post.mediaUrl}
+                    alt={post.caption || 'Social post'}
+                    className="w-full h-full object-cover"
+                  />
+                  {/* Caption overlay */}
+                  {post.caption && (
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4">
+                      <p className="text-white text-sm line-clamp-2" style={{ fontFamily: 'Georgia, serif' }}>
+                        {post.caption}
+                      </p>
+                    </div>
+                  )}
+                </motion.div>
+              ))}
+            </motion.div>
+          </AnimatePresence>
+        )}
+      </div>
+
+      {/* Page dots */}
+      {totalPages > 1 && (
+        <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-2 z-20">
+          {Array.from({ length: totalPages }).map((_: unknown, i: number) => (
+            <div
+              key={i}
+              className={`w-3 h-3 rounded-full transition-all duration-300 ${i === currentPage ? 'bg-white scale-125' : 'bg-white/40'}`}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* QR code */}
+      {screen.qrUrl && (
+        <div className="absolute bottom-6 right-6 bg-white p-3 rounded-xl shadow-xl z-20">
+          {screen.qrLabel && <p className="text-xs font-semibold text-gray-700 text-center mb-1">{screen.qrLabel}</p>}
+          <QRCodeSVG value={screen.qrUrl} size={100} level="M" />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============ BIRTHDAY CELEBRATION SCREEN ============
+function BirthdayCelebrationScreen({ screen, settings }: ScreenRendererProps) {
+  const { data: todayBirthdays } = trpc.birthdays.getToday.useQuery(undefined, {
+    refetchInterval: 5 * 60 * 1000,
+    staleTime: 2 * 60 * 1000,
+  });
+  const { data: upcomingBirthdays } = trpc.birthdays.getUpcoming.useQuery({ days: 14 }, {
+    refetchInterval: 5 * 60 * 1000,
+    staleTime: 2 * 60 * 1000,
+  });
+
+  const todayCats = todayBirthdays || [];
+  const upcomingCats = (upcomingBirthdays || []).filter(
+    (cat: any) => !todayCats.find((t: any) => t.id === cat.id)
+  ).slice(0, 6);
+
+  const getAge = (dob: string | Date) => {
+    const birthDate = new Date(dob);
+    const now = new Date();
+    const years = now.getFullYear() - birthDate.getFullYear();
+    return years;
+  };
+
+  const getNextBirthdayLabel = (dob: string | Date) => {
+    const birthDate = new Date(dob);
+    const now = new Date();
+    const thisYearBday = new Date(now.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+    if (thisYearBday < now) thisYearBday.setFullYear(now.getFullYear() + 1);
+    const diffDays = Math.ceil((thisYearBday.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) return 'Today!';
+    if (diffDays === 1) return 'Tomorrow!';
+    return `In ${diffDays} days`;
+  };
+
+  return (
+    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #FF6B9D 0%, #C44569 30%, #F8B500 70%, #FF6348 100%)' }}>
+      {/* Confetti-like decorations */}
+      <div className="absolute inset-0 overflow-hidden">
+        {[...Array(20)].map((_: unknown, i: number) => (
+          <motion.div
+            key={i}
+            className="absolute rounded-full"
+            style={{
+              width: 8 + Math.random() * 16,
+              height: 8 + Math.random() * 16,
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              background: ['#FFD700', '#FF69B4', '#87CEEB', '#98FB98', '#DDA0DD', '#F0E68C'][i % 6],
+              opacity: 0.3,
+            }}
+            animate={{
+              y: [0, -20, 0],
+              rotate: [0, 360],
+              scale: [1, 1.2, 1],
+            }}
+            transition={{
+              duration: 3 + Math.random() * 4,
+              repeat: Infinity,
+              delay: Math.random() * 2,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Header */}
+      <div className="absolute top-0 left-0 right-0 z-20 pt-8 text-center">
+        <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring' }}>
+          <h1 className="text-6xl font-bold text-white mb-2" style={{ fontFamily: 'Georgia, serif', textShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
+            {todayCats.length > 0 ? '🎂 Happy Birthday! 🎂' : (screen.title || '🎂 Upcoming Birthdays')}
+          </h1>
+          <p className="text-2xl text-white/80">
+            {todayCats.length > 0 ? 'Celebrating our furry friends today!' : 'Mark your calendars!'}
+          </p>
+        </motion.div>
+      </div>
+
+      {/* Content */}
+      <div className="absolute inset-0 flex items-center justify-center px-12 pt-32 pb-12">
+        {todayCats.length === 0 && upcomingCats.length === 0 ? (
+          <div className="text-center">
+            <p className="text-4xl text-white/80 mb-4">No upcoming birthdays</p>
+            <p className="text-xl text-white/50">Add dates of birth to your cats in the admin panel</p>
+          </div>
+        ) : (
+          <div className="w-full max-w-6xl">
+            {/* Today's birthday cats - featured large */}
+            {todayCats.length > 0 && (
+              <div className="flex items-center justify-center gap-8 mb-8">
+                {todayCats.map((cat: any, idx: number) => (
+                  <motion.div
+                    key={cat.id}
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.2, type: 'spring' }}
+                    className="text-center"
+                  >
+                    <div className="relative inline-block">
+                      {/* Glowing ring */}
+                      <motion.div
+                        className="absolute -inset-3 rounded-full"
+                        style={{ background: 'linear-gradient(135deg, #FFD700, #FF69B4, #FFD700)' }}
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
+                      />
+                      <div className="relative w-40 h-40 rounded-full overflow-hidden border-4 border-white shadow-2xl">
+                        {cat.photoUrl ? (
+                          <img src={cat.photoUrl} alt={cat.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full bg-pink-200 flex items-center justify-center">
+                            <span className="text-6xl">🐱</span>
+                          </div>
+                        )}
+                      </div>
+                      {/* Age badge */}
+                      <div className="absolute -bottom-2 -right-2 bg-yellow-400 text-yellow-900 rounded-full w-14 h-14 flex items-center justify-center font-bold text-lg shadow-lg border-2 border-white">
+                        {cat.dob ? getAge(cat.dob) : '?'}yr
+                      </div>
+                    </div>
+                    <h2 className="text-3xl font-bold text-white mt-4" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>
+                      {cat.name}
+                    </h2>
+                    <p className="text-xl text-white/70">{cat.breed || 'Kitty'}</p>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+
+            {/* Upcoming birthdays */}
+            {upcomingCats.length > 0 && (
+              <div>
+                {todayCats.length > 0 && (
+                  <h3 className="text-2xl font-semibold text-white/90 text-center mb-4">Coming Up Next...</h3>
+                )}
+                <div className="grid grid-cols-3 gap-4">
+                  {upcomingCats.map((cat: any, idx: number) => (
+                    <motion.div
+                      key={cat.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.3 + idx * 0.1 }}
+                      className="flex items-center gap-4 bg-white/15 backdrop-blur-sm rounded-xl p-4"
+                    >
+                      <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-white/50 flex-shrink-0">
+                        {cat.photoUrl ? (
+                          <img src={cat.photoUrl} alt={cat.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full bg-pink-200/50 flex items-center justify-center">
+                            <span className="text-2xl">🐱</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-lg font-bold text-white truncate">{cat.name}</p>
+                        <p className="text-sm text-white/60">
+                          {cat.dob ? `Turning ${getAge(cat.dob) + 1}` : ''}
+                          {cat.dob ? ` · ${getNextBirthdayLabel(cat.dob)}` : ''}
+                        </p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============ VOLUNTEER SPOTLIGHT SCREEN ============
+function VolunteerSpotlightScreen({ screen, settings }: ScreenRendererProps) {
+  const { data: volunteers } = trpc.volunteers.getFeatured.useQuery(undefined, {
+    refetchInterval: 5 * 60 * 1000,
+    staleTime: 2 * 60 * 1000,
+  });
+  const [currentIdx, setCurrentIdx] = useState(0);
+
+  const featuredVolunteers = volunteers || [];
+
+  useEffect(() => {
+    if (featuredVolunteers.length <= 1) return;
+    const timer = setInterval(() => {
+      setCurrentIdx(i => (i + 1) % featuredVolunteers.length);
+    }, 10000);
+    return () => clearInterval(timer);
+  }, [featuredVolunteers.length]);
+
+  const current = featuredVolunteers[currentIdx];
+
+  const getVolunteerDuration = (startDate: Date | string | null) => {
+    if (!startDate) return null;
+    const start = new Date(startDate);
+    const now = new Date();
+    const months = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth());
+    if (months < 1) return 'Just started!';
+    if (months < 12) return `${months} month${months > 1 ? 's' : ''}`;
+    const years = Math.floor(months / 12);
+    const rem = months % 12;
+    return rem > 0 ? `${years}yr ${rem}mo` : `${years} year${years > 1 ? 's' : ''}`;
+  };
+
+  return (
+    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)' }}>
+      {/* Decorative elements */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-20 left-10 w-48 h-48 border-2 border-white/40 rounded-full" />
+        <div className="absolute bottom-10 right-10 w-36 h-36 border-2 border-white/30 rounded-full" />
+        <svg className="absolute bottom-20 left-8 w-24 h-24 opacity-30" viewBox="0 0 100 100" fill="white">
+          <path d="M50 10 L61 35 L88 35 L67 52 L73 78 L50 63 L27 78 L33 52 L12 35 L39 35 Z" />
+        </svg>
+        <svg className="absolute top-16 right-20 w-16 h-16 opacity-20" viewBox="0 0 100 100" fill="white">
+          <path d="M50 10 L61 35 L88 35 L67 52 L73 78 L50 63 L27 78 L33 52 L12 35 L39 35 Z" />
+        </svg>
+      </div>
+
+      {/* Header */}
+      <div className="absolute top-0 left-0 right-0 z-20 pt-8 text-center">
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
+          <h1 className="text-5xl font-bold text-white tracking-wide mb-2" style={{ fontFamily: 'Georgia, serif', textShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
+            {screen.title || 'Volunteer Spotlight'}
+          </h1>
+          <p className="text-xl text-white/70 tracking-widest uppercase">
+            {screen.subtitle || 'Thank you for making a difference'}
+          </p>
+        </motion.div>
+      </div>
+
+      {/* Content */}
+      <div className="absolute inset-0 flex items-center justify-center px-16 pt-32 pb-12">
+        {featuredVolunteers.length === 0 ? (
+          <div className="text-center">
+            <p className="text-3xl text-white/80 mb-4">No featured volunteers yet</p>
+            <p className="text-xl text-white/50">Add volunteers in the admin panel and mark them as featured</p>
+          </div>
+        ) : current ? (
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={current.id}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.5 }}
+              className="flex items-center gap-16 max-w-5xl w-full"
+            >
+              {/* Photo */}
+              <div className="flex-shrink-0">
+                <div className="relative">
+                  {/* Glow effect */}
+                  <div className="absolute -inset-4 rounded-3xl bg-white/20 blur-xl" />
+                  <div className="relative w-64 h-64 rounded-3xl overflow-hidden border-4 border-white/50 shadow-2xl">
+                    {current.photoUrl ? (
+                      <img src={current.photoUrl} alt={current.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-purple-300/50 flex items-center justify-center">
+                        <span className="text-8xl">👤</span>
+                      </div>
+                    )}
+                  </div>
+                  {/* Star badge */}
+                  <div className="absolute -top-3 -right-3 w-14 h-14 bg-yellow-400 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
+                    <span className="text-2xl">⭐</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Info */}
+              <div className="flex-1 min-w-0">
+                <h2 className="text-5xl font-bold text-white mb-3" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>
+                  {current.name}
+                </h2>
+                {current.role && (
+                  <p className="text-2xl text-white/80 mb-4 font-medium">
+                    {current.role}
+                  </p>
+                )}
+                {current.bio && (
+                  <p className="text-xl text-white/70 leading-relaxed mb-6 line-clamp-4" style={{ fontFamily: 'Georgia, serif' }}>
+                    "{current.bio}"
+                  </p>
+                )}
+                {current.startDate && (
+                  <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm rounded-full px-6 py-3">
+                    <span className="text-white/60 text-lg">Volunteering for</span>
+                    <span className="text-white font-bold text-lg">{getVolunteerDuration(current.startDate)}</span>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        ) : null}
+      </div>
+
+      {/* Page indicator */}
+      {featuredVolunteers.length > 1 && (
+        <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-2 z-20">
+          {featuredVolunteers.map((_: unknown, i: number) => (
+            <div
+              key={i}
+              className={`w-3 h-3 rounded-full transition-all duration-300 ${i === currentIdx ? 'bg-white scale-125' : 'bg-white/40'}`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Lightweight overlay that renders only template elements on top of the default screen
 // This preserves the original screen design while allowing element additions from the Slide Editor
 function TemplateElementsOverlay({ screenType, screen, settings }: { screenType: string; screen: Screen; settings: Settings | null }) {
@@ -3028,6 +3455,9 @@ export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendere
     GUEST_STATUS_BOARD: GuestStatusBoardScreen,
     LIVE_AVAILABILITY: LiveAvailabilityScreen,
     SESSION_BOARD: SessionBoardScreen,
+    SOCIAL_FEED: SocialFeedScreen,
+    BIRTHDAY_CELEBRATION: BirthdayCelebrationScreen,
+    VOLUNTEER_SPOTLIGHT: VolunteerSpotlightScreen,
     // Custom slides always use TemplateRenderer with their saved template
     CUSTOM: ({ screen }) => {
       // For CUSTOM screens, render with dark elegant theme

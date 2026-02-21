@@ -67,10 +67,10 @@ export default function TVDisplay() {
   // Store all adoption cats when fetched
   useEffect(() => {
     if (allAdoptions && allAdoptions.length > 0) {
-      setAllAdoptionCats(allAdoptions);
+      setAllAdoptionCats(allAdoptions as any);
       // Initialize display cats with first 4
       if (adoptionCats.length === 0) {
-        setAdoptionCats(allAdoptions.slice(0, 4));
+        setAdoptionCats(allAdoptions.slice(0, 4) as any);
       }
     }
   }, [allAdoptions]);

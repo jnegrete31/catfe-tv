@@ -112,6 +112,20 @@ import {
   getCatCount,
   bulkUpdateCatStatus,
   catToVirtualScreen,
+  getAllVolunteers,
+  getActiveVolunteers,
+  getFeaturedVolunteers,
+  getVolunteerById,
+  createVolunteer,
+  updateVolunteer,
+  deleteVolunteer,
+  getAllInstagramPosts,
+  getVisibleInstagramPosts,
+  upsertInstagramPost,
+  hideInstagramPost,
+  deleteInstagramPost,
+  getCatsWithUpcomingBirthdays,
+  getTodaysBirthdayCats,
 } from "./db";
 import { storagePut } from "./storage";
 import { invokeLLM } from "./_core/llm";
@@ -1990,6 +2004,167 @@ Extract as much information as possible from the documents. For the bio, write a
         connectionError: connectionTest.error,
       };
     }),
+  }),
+
+  // ============ VOLUNTEERS ============
+  volunteers: router({
+    getAll: protectedProcedure.query(async () => {
+      return getAllVolunteers();
+    }),
+
+    getActive: publicProcedure.query(async () => {
+      return getActiveVolunteers();
+    }),
+
+    getFeatured: publicProcedure.query(async () => {
+      return getFeaturedVolunteers();
+    }),
+
+    getById: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        return getVolunteerById(input.id);
+      }),
+
+    create: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1).max(255),
+        photoUrl: z.string().max(1024).optional().nullable(),
+        bio: z.string().optional().nullable(),
+        role: z.string().max(255).optional().nullable(),
+        startDate: z.date().optional().nullable(),
+        isFeatured: z.boolean().optional(),
+        isActive: z.boolean().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        return createVolunteer(input);
+      }),
+
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        data: z.object({
+          name: z.string().min(1).max(255).optional(),
+          photoUrl: z.string().max(1024).optional().nullable(),
+          bio: z.string().optional().nullable(),
+          role: z.string().max(255).optional().nullable(),
+          startDate: z.date().optional().nullable(),
+          isFeatured: z.boolean().optional(),
+          isActive: z.boolean().optional(),
+          sortOrder: z.number().optional(),
+        }),
+      }))
+      .mutation(async ({ input }) => {
+        return updateVolunteer(input.id, input.data);
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        return deleteVolunteer(input.id);
+      }),
+
+    // Upload volunteer photo
+    uploadPhoto: protectedProcedure
+      .input(z.object({
+        fileName: z.string(),
+        fileData: z.string(), // base64
+        contentType: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        const buffer = Buffer.from(input.fileData, "base64");
+        const key = `volunteers/${Date.now()}-${input.fileName}`;
+        const { url } = await storagePut(key, buffer, input.contentType);
+        return { url };
+      }),
+  }),
+
+  // ============ INSTAGRAM / SOCIAL FEED ============
+  instagram: router({
+    // Public: Get visible posts for TV display
+    getPosts: publicProcedure.query(async () => {
+      return getVisibleInstagramPosts();
+    }),
+
+    // Admin: Get all posts including hidden
+    getAll: protectedProcedure.query(async () => {
+      return getAllInstagramPosts();
+    }),
+
+    // Admin: Toggle post visibility
+    toggleVisibility: protectedProcedure
+      .input(z.object({ id: z.number(), hidden: z.boolean() }))
+      .mutation(async ({ input }) => {
+        await hideInstagramPost(input.id, input.hidden);
+        return { success: true };
+      }),
+
+    // Admin: Delete a cached post
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        return deleteInstagramPost(input.id);
+      }),
+
+    // Admin: Manually add an Instagram post by URL (for when API isn't connected)
+    addManual: protectedProcedure
+      .input(z.object({
+        mediaUrl: z.string().url(),
+        caption: z.string().optional().nullable(),
+        permalink: z.string().url().optional().nullable(),
+        mediaType: z.string().default("IMAGE"),
+      }))
+      .mutation(async ({ input }) => {
+        const instagramId = `manual-${Date.now()}`;
+        await upsertInstagramPost({
+          instagramId,
+          mediaType: input.mediaType,
+          mediaUrl: input.mediaUrl,
+          caption: input.caption || null,
+          permalink: input.permalink || null,
+          postedAt: new Date(),
+        });
+        return { success: true };
+      }),
+
+    // Admin: Upload a social media image directly (no Instagram API needed)
+    uploadImage: protectedProcedure
+      .input(z.object({
+        fileName: z.string(),
+        fileData: z.string(), // base64
+        contentType: z.string(),
+        caption: z.string().optional().nullable(),
+      }))
+      .mutation(async ({ input }) => {
+        const buffer = Buffer.from(input.fileData, "base64");
+        const key = `social-feed/${Date.now()}-${input.fileName}`;
+        const { url } = await storagePut(key, buffer, input.contentType);
+        const instagramId = `upload-${Date.now()}`;
+        await upsertInstagramPost({
+          instagramId,
+          mediaType: "IMAGE",
+          mediaUrl: url,
+          caption: input.caption || null,
+          postedAt: new Date(),
+        });
+        return { url };
+      }),
+  }),
+
+  // ============ BIRTHDAYS ============
+  birthdays: router({
+    // Public: Get today's birthday cats for TV display
+    getToday: publicProcedure.query(async () => {
+      return getTodaysBirthdayCats();
+    }),
+
+    // Public: Get upcoming birthdays (next 30 days)
+    getUpcoming: publicProcedure
+      .input(z.object({ days: z.number().min(1).max(365).optional() }).optional())
+      .query(async ({ input }) => {
+        const days = input?.days ?? 30;
+        return getCatsWithUpcomingBirthdays(days);
+      }),
   }),
 });
 
