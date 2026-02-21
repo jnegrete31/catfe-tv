@@ -165,9 +165,7 @@ struct TodaysSessionsScreenView: View {
     // MARK: - Session Grid
     
     private var sessionGrid: some View {
-        let columns: [GridItem] = Array(repeating: GridItem(.flexible(), spacing: 16), count: min(timeSlots.count, 6))
-        
-        return ScrollView(.horizontal, showsIndicators: false) {
+        ScrollView(.horizontal, showsIndicators: false) {
             LazyHGrid(rows: [GridItem(.flexible())], spacing: 16) {
                 ForEach(Array(timeSlots.enumerated()), id: \.offset) { index, slot in
                     sessionCard(slot: slot, index: index)
@@ -186,70 +184,90 @@ struct TodaysSessionsScreenView: View {
         let isCurrent = currentMinutes >= slotStart && currentMinutes < slotEnd
         let totalCapacity = slot.products.reduce(0) { $0 + $1.capacityRemaining }
         
+        let cardBgColor: Color = isPast ? Color.white.opacity(0.03) : isCurrent ? Color.white.opacity(0.15) : Color.white.opacity(0.08)
+        let cardBorderColor: Color = isCurrent ? Color(hex: "34d399").opacity(0.5) : Color.white.opacity(isPast ? 0.03 : 0.08)
+        let cardBorderWidth: CGFloat = isCurrent ? 2 : 1
+        let cardOpacity: Double = isPast ? 0.4 : 1.0
+        let titleColor: Color = isPast ? .white.opacity(0.5) : .white
+        
         return VStack(alignment: .leading, spacing: 12) {
             // Session name + current indicator
-            HStack {
-                Text(slot.products.first?.sessionName ?? slot.time)
-                    .font(.system(size: 26, weight: .bold, design: .rounded))
-                    .foregroundColor(isPast ? .white.opacity(0.5) : .white)
-                    .lineLimit(1)
-                
-                Spacer()
-                
-                if isCurrent {
-                    Circle()
-                        .fill(Color(hex: "34d399"))
-                        .frame(width: 10, height: 10)
-                        .shadow(color: Color(hex: "34d399").opacity(0.6), radius: 4)
-                }
-            }
+            sessionCardHeader(slot: slot, isPast: isPast, isCurrent: isCurrent, titleColor: titleColor)
             
             // Products in this slot
             ForEach(slot.products, id: \.id) { product in
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(cleanProductName(product.productName))
-                        .font(.system(size: 18, weight: .regular, design: .rounded))
-                        .foregroundColor(isPast ? .white.opacity(0.3) : .white.opacity(0.6))
-                        .lineLimit(1)
-                    
-                    Text(isPast ? "Ended" : "\(product.capacityRemaining) spots")
-                        .font(.system(size: 20, weight: .semibold, design: .rounded))
-                        .foregroundColor(isPast ? .white.opacity(0.3) : capacityColor(product.capacityRemaining))
-                }
+                sessionProductRow(product: product, isPast: isPast)
             }
             
             Spacer()
             
             // Total capacity badge (if not past)
             if !isPast {
-                HStack {
-                    Spacer()
-                    Text("\(totalCapacity) total")
-                        .font(.system(size: 16, weight: .medium, design: .rounded))
-                        .foregroundColor(capacityColor(totalCapacity))
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(capacityColor(totalCapacity).opacity(0.15))
-                        .cornerRadius(8)
-                }
+                sessionCapacityBadge(totalCapacity: totalCapacity)
             }
         }
         .padding(20)
         .frame(width: 260, minHeight: 200)
         .background(
             RoundedRectangle(cornerRadius: 20)
-                .fill(isPast ? Color.white.opacity(0.03) : isCurrent ? Color.white.opacity(0.15) : Color.white.opacity(0.08))
+                .fill(cardBgColor)
                 .overlay(
                     RoundedRectangle(cornerRadius: 20)
-                        .stroke(
-                            isCurrent ? Color(hex: "34d399").opacity(0.5) : Color.white.opacity(isPast ? 0.03 : 0.08),
-                            lineWidth: isCurrent ? 2 : 1
-                        )
+                        .stroke(cardBorderColor, lineWidth: cardBorderWidth)
                 )
         )
-        .opacity(isPast ? 0.4 : 1.0)
+        .opacity(cardOpacity)
         .opacity(appeared ? 1 : 0)
         .animation(.easeOut(duration: 0.4).delay(Double(index) * 0.08 + 0.2), value: appeared)
+    }
+    
+    private func sessionCardHeader(slot: (time: String, startTime: String, endTime: String, products: [RollerSession]), isPast: Bool, isCurrent: Bool, titleColor: Color) -> some View {
+        HStack {
+            Text(slot.products.first?.sessionName ?? slot.time)
+                .font(.system(size: 26, weight: .bold, design: .rounded))
+                .foregroundColor(titleColor)
+                .lineLimit(1)
+            
+            Spacer()
+            
+            if isCurrent {
+                Circle()
+                    .fill(Color(hex: "34d399"))
+                    .frame(width: 10, height: 10)
+                    .shadow(color: Color(hex: "34d399").opacity(0.6), radius: 4)
+            }
+        }
+    }
+    
+    private func sessionProductRow(product: RollerSession, isPast: Bool) -> some View {
+        let labelColor: Color = isPast ? .white.opacity(0.3) : .white.opacity(0.6)
+        let valueColor: Color = isPast ? .white.opacity(0.3) : capacityColor(product.capacityRemaining)
+        let valueText: String = isPast ? "Ended" : "\(product.capacityRemaining) spots"
+        
+        return VStack(alignment: .leading, spacing: 2) {
+            Text(cleanProductName(product.productName))
+                .font(.system(size: 18, weight: .regular, design: .rounded))
+                .foregroundColor(labelColor)
+                .lineLimit(1)
+            
+            Text(valueText)
+                .font(.system(size: 20, weight: .semibold, design: .rounded))
+                .foregroundColor(valueColor)
+        }
+    }
+    
+    private func sessionCapacityBadge(totalCapacity: Int) -> some View {
+        let badgeColor = capacityColor(totalCapacity)
+        return HStack {
+            Spacer()
+            Text("\(totalCapacity) total")
+                .font(.system(size: 16, weight: .medium, design: .rounded))
+                .foregroundColor(badgeColor)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(badgeColor.opacity(0.15))
+                .cornerRadius(8)
+        }
     }
     
     // MARK: - Empty State
