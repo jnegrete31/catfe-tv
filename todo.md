@@ -1517,3 +1517,6 @@
 - [x] Add toggle button to show/hide safe-zone preview in screen editor
 - [x] Style zones to match actual widget sizes and positions
 - [x] Integrate with hideOverlay toggle (dim zones when hideOverlay is on)
+
+## Bug - hideOverlay toggle not persisting
+- [x] Fix hideOverlay not saving/loading correctly when editing a screen (missing from Zod schema + defaultValues)

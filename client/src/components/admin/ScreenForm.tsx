@@ -46,6 +46,7 @@ const screenSchema = z.object({
   isActive: z.boolean(),
   schedulingEnabled: z.boolean(),
   isAdopted: z.boolean(),
+  hideOverlay: z.boolean(),
   eventTime: z.string().max(100).optional().nullable(),
   eventLocation: z.string().max(255).optional().nullable(),
 });
@@ -133,6 +134,7 @@ export function ScreenForm({ screen, onSuccess, onCancel }: ScreenFormProps) {
       isActive: screen?.isActive ?? true,
       schedulingEnabled: screen?.schedulingEnabled ?? false,
       isAdopted: (screen as any)?.isAdopted ?? false,
+      hideOverlay: (screen as any)?.hideOverlay ?? false,
       eventTime: (screen as any)?.eventTime || "",
       eventLocation: (screen as any)?.eventLocation || "",
     },
