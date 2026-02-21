@@ -30,6 +30,10 @@ class APIClient: ObservableObject {
     // Cached recently adopted cats for adoption counter screen
     @Published var cachedRecentlyAdoptedCats: [Screen] = []
     
+    // Cached Roller sessions for Live Availability and Today's Sessions screens
+    @Published var cachedRollerSessions: [RollerSession] = []
+    private var rollerSessionsLastFetched: Date?
+    
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
     
@@ -535,6 +539,34 @@ class APIClient: ObservableObject {
             print("[AdoptedCats] Cached \(cachedRecentlyAdoptedCats.count) recently adopted cats")
         } catch {
             print("[AdoptedCats] Failed to fetch recently adopted cats: \(error)")
+        }
+    }
+    
+    // MARK: - Roller Sessions (Live Availability & Today's Sessions)
+    
+    /// Fetch today's sessions from Roller via the roller.getTodaySessions endpoint.
+    /// Returns flattened session data with product info, capacity, and time slots.
+    func fetchRollerSessions() async {
+        do {
+            let url = URL(string: "\(baseURL)/api/trpc/roller.getTodaySessions")!
+            var request = URLRequest(url: url)
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            
+            let (data, response) = try await URLSession.shared.data(for: request)
+            
+            guard let httpResponse = response as? HTTPURLResponse,
+                  httpResponse.statusCode == 200 else {
+                let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
+                print("[Roller] HTTP \(statusCode) fetching today's sessions")
+                return
+            }
+            
+            let trpcResponse = try JSONDecoder().decode(TRPCResponse<[RollerSession]>.self, from: data)
+            cachedRollerSessions = trpcResponse.result.data.json
+            rollerSessionsLastFetched = Date()
+            print("[Roller] Cached \(cachedRollerSessions.count) sessions for today")
+        } catch {
+            print("[Roller] Failed to fetch today's sessions: \(error)")
         }
     }
     

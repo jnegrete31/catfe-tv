@@ -125,10 +125,11 @@ struct ContentView: View {
         .onAppear {
             isFocused = true
             startAutoRefresh()
-            // Pre-fetch photos at startup so gallery screens display instantly
+            // Pre-fetch photos and Roller sessions at startup so screens display instantly
             Task { @MainActor in
                 await apiClient.refreshPhotos()
                 await apiClient.fetchRecentlyAdoptedCats()
+                await apiClient.fetchRollerSessions()
             }
         }
     }
@@ -188,6 +189,13 @@ struct ContentView: View {
             Task { @MainActor in
                 await apiClient.refreshPhotos()
                 await apiClient.fetchRecentlyAdoptedCats()
+            }
+        }
+        
+        // Refresh Roller sessions every 5 minutes for Live Availability & Today's Sessions
+        Timer.scheduledTimer(withTimeInterval: 300, repeats: true) { _ in
+            Task { @MainActor in
+                await apiClient.fetchRollerSessions()
             }
         }
     }

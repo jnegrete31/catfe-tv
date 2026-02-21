@@ -30,6 +30,8 @@ enum ScreenType: String, Codable, CaseIterable, Identifiable {
     case pollQR = "POLL_QR"
     case checkIn = "CHECK_IN"
     case guestStatusBoard = "GUEST_STATUS_BOARD"
+    case liveAvailability = "LIVE_AVAILABILITY"
+    case sessionBoard = "SESSION_BOARD"
     case custom = "CUSTOM"
     
     var id: String { rawValue }
@@ -54,6 +56,8 @@ enum ScreenType: String, Codable, CaseIterable, Identifiable {
         case .pollQR: return "Poll QR"
         case .checkIn: return "Check In"
         case .guestStatusBoard: return "Guest Status Board"
+        case .liveAvailability: return "Live Availability"
+        case .sessionBoard: return "Today's Sessions"
         case .custom: return "Custom"
         }
     }
@@ -74,6 +78,8 @@ enum ScreenType: String, Codable, CaseIterable, Identifiable {
         case .poll, .pollQR: return "chart.bar.fill"
         case .checkIn: return "person.badge.plus"
         case .guestStatusBoard: return "person.3.fill"
+        case .liveAvailability: return "clock.badge.checkmark.fill"
+        case .sessionBoard: return "calendar.badge.clock"
         case .custom: return "star.fill"
         }
     }
@@ -752,5 +758,27 @@ struct GuestSession: Codable, Identifiable {
         case "60": return "Full Meow"
         default: return "Session"
         }
+    }
+}
+
+// MARK: - Roller Session Model (from roller.getTodaySessions API)
+
+struct RollerSession: Codable, Identifiable {
+    var id: String { "\(productId)-\(startTime)" }
+    var productName: String
+    var productId: String
+    var description: String
+    var cost: Double
+    var sessionName: String
+    var startTime: String  // "HH:mm" format
+    var endTime: String    // "HH:mm" format
+    var capacityRemaining: Int
+    var ticketCapacityRemaining: Int?
+    var onlineSalesOpen: Bool?
+    
+    enum CodingKeys: String, CodingKey {
+        case productName, productId, description, cost
+        case sessionName, startTime, endTime
+        case capacityRemaining, ticketCapacityRemaining, onlineSalesOpen
     }
 }

@@ -268,6 +268,8 @@ extension ScreenType {
         case .poll, .pollQR: return .loungeAmber
         case .checkIn: return .loungeMintGreen
         case .guestStatusBoard: return .loungeAmber
+        case .liveAvailability: return .loungeMintGreen
+        case .sessionBoard: return .loungeAmber
         case .custom: return .loungeWarmOrange
         }
     }
