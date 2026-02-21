@@ -1500,3 +1500,13 @@
 - [x] Update project.pbxproj with new Swift files
 - [x] Update Theme.swift accent colors for new types
 - [x] Push all changes to GitHub (jnegrete31/catfe-tv) — commit 4167185
+
+## Feature - Per-Screen Hide Overlay Toggle
+- [x] Add hideOverlay boolean field to screens database schema
+- [x] Update backend routers to handle hideOverlay in create/update
+- [x] Add Hide Overlay toggle to admin screen editor UI
+- [x] Update web TV display to respect hideOverlay flag (hide clock/weather widget)
+- [x] Update tvOS Swift app Screen model with hideOverlay field
+- [x] Update tvOS ContentView to hide overlay when current screen has hideOverlay=true
+- [x] Push tvOS changes to GitHub
+- [x] Write tests for hideOverlay (4 tests, all 198 passing)

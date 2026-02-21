@@ -72,6 +72,7 @@ export const screens = mysqlTable("screens", {
   schedulingEnabled: boolean("schedulingEnabled").notNull().default(false), // When false, screen always shows (if active); when true, follows schedule rules
   isProtected: boolean("isProtected").notNull().default(false), // Prevent deletion of core screens
   isAdopted: boolean("isAdopted").notNull().default(false), // Mark adoption cats as adopted
+  hideOverlay: boolean("hideOverlay").notNull().default(false), // Hide clock/weather overlay widget on this screen
   livestreamUrl: varchar("livestreamUrl", { length: 1024 }), // HLS stream URL for livestream screen type
   // Per-screen template override (JSON) - allows individual custom layouts instead of shared type-level templates
   templateOverride: text("templateOverride"), // JSON: { elements, backgroundColor, widgetOverrides, ... }

@@ -102,6 +102,7 @@ struct Screen: Identifiable, Codable, Equatable {
     var priority: Int
     var isActive: Bool
     var isAdopted: Bool // For adoption screens
+    var hideOverlay: Bool // Hide clock/weather overlay on this screen
     var isProtected: Bool
     var sortOrder: Int
     var schedule: ScreenSchedule?
@@ -137,6 +138,7 @@ struct Screen: Identifiable, Codable, Equatable {
         priority: Int = 0,
         isActive: Bool = true,
         isAdopted: Bool = false,
+        hideOverlay: Bool = false,
         isProtected: Bool = false,
         sortOrder: Int = 0,
         schedule: ScreenSchedule? = nil,
@@ -165,6 +167,7 @@ struct Screen: Identifiable, Codable, Equatable {
         self.priority = priority
         self.isActive = isActive
         self.isAdopted = isAdopted
+        self.hideOverlay = hideOverlay
         self.isProtected = isProtected
         self.sortOrder = sortOrder
         self.schedule = schedule
@@ -210,6 +213,7 @@ struct APIScreen: Codable {
     var isActive: Bool
     var isProtected: Bool
     var isAdopted: Bool
+    var hideOverlay: Bool?
     var livestreamUrl: String?
     var templateOverlay: TemplateOverlay? // Template data from Slide Editor
     var createdAt: String
@@ -263,6 +267,7 @@ struct APIScreen: Codable {
             priority: priority,
             isActive: isActive,
             isAdopted: isAdopted,
+            hideOverlay: hideOverlay ?? false,
             isProtected: isProtected,
             sortOrder: sortOrder,
             schedule: schedule,

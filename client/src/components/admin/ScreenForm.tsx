@@ -712,6 +712,21 @@ export function ScreenForm({ screen, onSuccess, onCancel }: ScreenFormProps) {
         />
       </div>
       
+      {/* Hide Overlay Toggle */}
+      <div className="flex items-center justify-between">
+        <div>
+          <Label htmlFor="hideOverlay">Hide Overlay</Label>
+          <p className="text-sm text-muted-foreground">
+            Hide clock & weather widget on this screen
+          </p>
+        </div>
+        <Switch
+          id="hideOverlay"
+          checked={watch("hideOverlay")}
+          onCheckedChange={(checked) => setValue("hideOverlay", checked)}
+        />
+      </div>
+      
       {/* Actions */}
       <div className="flex gap-3 pt-4">
         <Button

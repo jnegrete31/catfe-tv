@@ -323,24 +323,25 @@ export default function TVDisplay() {
         adoptionCats={currentScreen.type === "ADOPTION_SHOWCASE" ? adoptionCats : undefined}
       />
       
-      {/* Weather and Clock Overlay - always visible */}
-      <WeatherClockOverlay />
+      {/* Overlay widgets - hidden when screen has hideOverlay enabled */}
+      {!currentScreen?.hideOverlay && (
+        <>
+          {/* Weather and Clock Overlay */}
+          <WeatherClockOverlay />
+          
+          {/* Waiver QR Code Widget - top-left corner when configured */}
+          <WaiverWidget />
+          
+          {/* Logo Widget - bottom-left corner */}
+          <LogoWidget />
+        </>
+      )}
       
-      {/* Guest Session Reminder Overlay */}
+      {/* Guest Session Reminder Overlay - always shown regardless of hideOverlay */}
       <GuestReminderOverlay />
       
-      {/* Welcome Overlay for newly checked-in guests */}
+      {/* Welcome Overlay for newly checked-in guests - always shown */}
       <WelcomeOverlay />
-      
-      {/* Poll Widget - DISABLED for now
-      <PollWidget />
-      */}
-      
-      {/* Waiver QR Code Widget - top-left corner when configured */}
-      <WaiverWidget />
-      
-      {/* Logo Widget - bottom-left corner */}
-      <LogoWidget />
       
       {/* Recently Adopted Banner - DISABLED (wonky behavior on tvOS)
       {recentlyAdopted && recentlyAdopted.length > 0 && (
