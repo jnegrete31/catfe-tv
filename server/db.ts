@@ -437,7 +437,8 @@ export async function getRecentlyCheckedIn() {
   const now = new Date();
   const sixtySecondsAgo = new Date(now.getTime() - 60 * 1000);
   
-  // Get sessions checked in within the last 60 seconds (wider window for tvOS polling)
+  // Get sessions checked in within the last 60 seconds
+  // Check both checkInAt (for walk-ins) and createdAt (for Roller sessions where checkInAt is the booked start time)
   return db.select().from(guestSessions)
     .where(
       and(
@@ -445,10 +446,13 @@ export async function getRecentlyCheckedIn() {
           eq(guestSessions.status, "active"),
           eq(guestSessions.status, "extended")
         ),
-        gte(guestSessions.checkInAt, sixtySecondsAgo)
+        or(
+          gte(guestSessions.checkInAt, sixtySecondsAgo),
+          gte(guestSessions.createdAt, sixtySecondsAgo)
+        )
       )
     )
-    .orderBy(desc(guestSessions.checkInAt));
+    .orderBy(desc(guestSessions.createdAt));
 }
 
 export async function markReminderShown(id: number) {

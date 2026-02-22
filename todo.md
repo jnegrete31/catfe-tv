@@ -1705,3 +1705,12 @@
 - [x] Duration auto-detected: 60min Cat Lounge, 90min Study, 30min Mini Meow
 - [x] Walk-Ins tab shows Roller sessions with orange "Roller" badge
 - [x] 34 tests passing
+
+## Feature - Welcome notice on TV for Roller guest arrivals
+- [x] Investigated: WelcomeOverlay polls getRecentlyCheckedIn every 5s, detects new session IDs
+- [x] Root cause: Roller sessions had future checkInAt (booked start time), not current time
+- [x] Fix: Updated getRecentlyCheckedIn to also check createdAt within last 60 seconds
+- [x] Trigger the same welcome notice when Mark Arrived is tapped for Roller guests
+- [x] Show guest first name and party size on the TV welcome screen
+- [x] Updated SESSION_LABELS: added 90min Study Session, renamed 60min to Cat Lounge Session
+- [x] Verified: Welcome notice appears on TV display ("Welcome, Cody! Party of 5")

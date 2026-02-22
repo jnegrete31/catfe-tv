@@ -20,7 +20,8 @@ interface WelcomeEntry {
 const SESSION_LABELS: Record<string, string> = {
   "15": "Guest Pass",
   "30": "Mini Meow Session",
-  "60": "Full Meow Session",
+  "60": "Cat Lounge Session",
+  "90": "Study Session",
 };
 
 const WELCOME_DISPLAY_MS = 12000; // Show welcome for 12 seconds
