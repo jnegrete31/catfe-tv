@@ -91,10 +91,12 @@ function isSessionActiveOrImminent(
   }
   
   // Session is active or about to start (within 5 minutes)
+  // Always use the actual booking session start time as the check-in time
+  // so the Guest Status Board shows the correct arrival time
   return {
     ready: true,
     reason: "session_active",
-    checkInAt: startTime > now ? startTime : now,
+    checkInAt: startTime,
     sessionEnd: endTime || undefined,
   };
 }

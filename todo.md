@@ -1616,3 +1616,10 @@
 - [x] Added admin toggle in Settings → Roller Integration (with connection status indicators)
 - [x] Added lastPollTime tracking to polling status
 - [x] All 217 tests passing, production build verified
+
+## Bug - Roller guest sessions all start at same time instead of booking time
+- [x] Investigated: checkInAt was using `now` instead of booking's session start time when session had already started
+- [x] Fixed isSessionActiveOrImminent to always return the actual booking session start time
+- [x] Session duration/expiry already correctly calculated from booking's session end time
+- [x] Cleaned up all existing Roller sessions from database (will re-sync with correct times)
+- [x] All 217 tests passing
