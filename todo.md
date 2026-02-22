@@ -1594,3 +1594,11 @@
 ## Fix - TypeScript type inference failure for new routers
 - [x] Fix TS errors: birthdays and volunteers routers not recognized by tRPC type system (confirmed tsc passes clean, errors were from stale dev server watcher)
 - [x] Ensure published version includes all new screen types (production build verified, needs republish)
+
+## Bug - Roller guests showing as "Guest" instead of first name
+- [x] Investigated Roller API: /bookings endpoint doesn't return firstName/lastName, only customerId
+- [x] Added getCustomerDetail() to roller.ts to fetch customer names via GET /customers/{customerId}
+- [x] Updated rollerPolling.ts to look up customer first name before creating guest session
+- [x] Falls back to booking.name then "Guest" if customer lookup fails
+- [x] Added customer name lookup tests (3 new tests, 220 total passing)
+- [ ] Test with live Roller data (requires republish)

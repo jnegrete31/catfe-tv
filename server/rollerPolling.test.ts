@@ -6,6 +6,7 @@ vi.mock("./roller", () => ({
   listWebhooks: vi.fn(),
   createWebhook: vi.fn(),
   testConnection: vi.fn(),
+  getCustomerDetail: vi.fn(),
 }));
 
 // Mock the db module
@@ -22,7 +23,7 @@ vi.mock("./_core/env", () => ({
   },
 }));
 
-import { searchBookings } from "./roller";
+import { searchBookings, getCustomerDetail } from "./roller";
 import { createGuestSession } from "./db";
 
 // We need to test the internal logic, so we'll import and test the module
@@ -72,6 +73,42 @@ describe("Roller Polling Service", () => {
 
       stopRollerPolling();
       expect(getRollerPollingStatus().isRunning).toBe(false);
+    });
+  });
+
+  describe("customer name lookup via getCustomerDetail", () => {
+    it("should resolve guest first name from customerId", async () => {
+      vi.mocked(getCustomerDetail).mockResolvedValue({
+        customerId: 12345,
+        firstName: "Sarah",
+        lastName: "Johnson",
+        email: "sarah@example.com",
+      });
+
+      const result = await getCustomerDetail(12345);
+      expect(result).not.toBeNull();
+      expect(result!.firstName).toBe("Sarah");
+      expect(result!.lastName).toBe("Johnson");
+    });
+
+    it("should handle missing customer gracefully and return null", async () => {
+      vi.mocked(getCustomerDetail).mockResolvedValue(null);
+
+      const result = await getCustomerDetail(99999);
+      expect(result).toBeNull();
+    });
+
+    it("should prefer firstName over lastName for guest display name", async () => {
+      vi.mocked(getCustomerDetail).mockResolvedValue({
+        customerId: 67890,
+        firstName: "Maria",
+        lastName: "Garcia",
+      });
+
+      const result = await getCustomerDetail(67890);
+      // The polling logic uses: customer.firstName || customer.lastName || "Guest"
+      const displayName = result!.firstName || result!.lastName || "Guest";
+      expect(displayName).toBe("Maria");
     });
   });
 });

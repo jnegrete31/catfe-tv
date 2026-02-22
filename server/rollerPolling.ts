@@ -8,7 +8,7 @@
  * This replaces the need for manual webhook configuration in Roller's dashboard.
  * The webhook endpoint still exists as a secondary path if Roller sends events.
  */
-import { searchBookings, listWebhooks, createWebhook } from "./roller";
+import { searchBookings, listWebhooks, createWebhook, getCustomerDetail } from "./roller";
 import { createGuestSession } from "./db";
 import { guestSessions } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
@@ -69,11 +69,29 @@ async function pollForNewBookings() {
       const status = (bookingAny.status || "").toLowerCase();
       if (status === "cancelled" || status === "deleted" || status === "draft") continue;
 
+      // Look up customer name from Roller's customer API
+      let guestName = "Guest";
+      const bookingAnyForCustomer = booking as any;
+      const customerId = bookingAnyForCustomer.customerId;
+      if (customerId) {
+        try {
+          const customer = await getCustomerDetail(customerId);
+          if (customer) {
+            guestName = customer.firstName || customer.lastName || "Guest";
+          }
+        } catch (err: any) {
+          console.warn(`[Roller Poll] Could not fetch customer ${customerId}:`, err.message);
+        }
+      }
+      // Fallback: try booking-level name fields (some endpoints may include them)
+      if (guestName === "Guest") {
+        guestName = bookingAnyForCustomer.firstName || bookingAnyForCustomer.lastName || bookingAnyForCustomer.name || "Guest";
+      }
+
       // Process each booking item
       for (const item of items) {
         const productName = item.productName || "Session";
         const quantity = item.quantity || 1;
-        const guestName = booking.firstName || booking.lastName || "Guest";
         const duration = getSessionDuration(productName);
         const durationMinutes = parseInt(duration);
 

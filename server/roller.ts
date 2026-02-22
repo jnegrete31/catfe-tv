@@ -121,13 +121,37 @@ export interface RollerBookingItem {
 export interface RollerBooking {
   bookingId: number;
   bookingReference: string;
+  uniqueId?: string;
+  name?: string; // Booking title, NOT customer name
+  customerId?: number; // Use this to look up customer details
+  firstName?: string; // Not returned by /bookings search, only by /customers/{id}
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  total: number;
+  status?: string;
+  items: RollerBookingItem[];
+  createdDate: string;
+}
+
+export interface RollerCustomerDetail {
+  customerId: number;
   firstName: string;
   lastName: string;
   email?: string;
   phone?: string;
-  total: number;
-  items: RollerBookingItem[];
-  createdDate: string;
+  dateOfBirth?: string;
+  gender?: string;
+  acceptMarketing?: boolean;
+  address?: {
+    street?: string;
+    suburb?: string;
+    state?: string;
+    postcode?: string;
+    city?: string;
+    country?: string;
+  };
+  flags?: Array<{ type: string; comment?: string; expiryDate?: string }>;
 }
 
 /**
@@ -211,7 +235,45 @@ export async function deleteWebhook(webhookId: number): Promise<void> {
   await rollerFetch(`/webhooks/${webhookId}`, { method: "DELETE" });
 }
 
-// ---- Guest / Waiver ----
+// ---- Guest / Customer Detail ----
+
+// In-memory cache for customer details to avoid repeated API calls
+const customerCache = new Map<number, { data: RollerCustomerDetail; cachedAt: number }>();
+const CUSTOMER_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+
+/**
+ * Get customer/guest detail by customerId.
+ * Returns firstName, lastName, email, phone, etc.
+ * Results are cached for 10 minutes to avoid excessive API calls.
+ */
+export async function getCustomerDetail(customerId: number): Promise<RollerCustomerDetail | null> {
+  // Check cache first
+  const cached = customerCache.get(customerId);
+  if (cached && Date.now() - cached.cachedAt < CUSTOMER_CACHE_TTL) {
+    return cached.data;
+  }
+
+  try {
+    const data = await rollerFetch(`/customers/${customerId}`);
+    const detail: RollerCustomerDetail = {
+      customerId: data.customerId || customerId,
+      firstName: data.firstName || "",
+      lastName: data.lastName || "",
+      email: data.email,
+      phone: data.phone,
+      dateOfBirth: data.dateOfBirth,
+      gender: data.gender,
+      acceptMarketing: data.acceptMarketing,
+      address: data.address,
+      flags: data.flags,
+    };
+    customerCache.set(customerId, { data: detail, cachedAt: Date.now() });
+    return detail;
+  } catch (error: any) {
+    console.warn(`[Roller] Failed to fetch customer ${customerId}:`, error.message);
+    return null;
+  }
+}
 
 /**
  * Get signed waivers for a guest.
