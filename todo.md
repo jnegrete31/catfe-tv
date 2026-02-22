@@ -1714,3 +1714,12 @@
 - [x] Show guest first name and party size on the TV welcome screen
 - [x] Updated SESSION_LABELS: added 90min Study Session, renamed 60min to Cat Lounge Session
 - [x] Verified: Welcome notice appears on TV display ("Welcome, Cody! Party of 5")
+
+## Bug (FIXED) - 2 x 30-min Mini Meow Sessions counted as single 60-min session
+- [x] Investigated: quantity=2 means 2 guests, not 2 sessions. Duration was wrong due to two bugs:
+- [x] Root cause 1: productNameMap used numeric keys but Roller API productId is a string → Map lookup always missed
+- [x] Root cause 2: Fallback only checked for "study" (90min), defaulted everything else to 60min → Mini Meow got 60min
+- [x] Fix: Convert all Map keys to String() for consistent lookups
+- [x] Fix: Added Mini Meow detection in fallback ("mini" or "meow escape" → 30min)
+- [x] Verified: Armen 2:00-2:30 PM Mini Meow Escape (30 mins) ✓, Julia 12:00-12:30 PM ✓, Kristy 12:00-12:30 PM ✓
+- [x] Also fixed: Product names now show correctly ("Mini Meow Escape (30 mins)" instead of "Cat Lounge Session")

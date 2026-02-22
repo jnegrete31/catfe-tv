@@ -322,7 +322,7 @@ function BookingCard({ booking, showDate }: { booking: RollerBookingEntry; showD
     onSuccess: () => {
       toast.success(`${booking.customerName} marked as arrived! Session started.`);
       utils.roller.getTodayBookings.invalidate();
-      utils.guests.getAll.invalidate(); // Refresh Walk-Ins tab too
+      utils.guestSessions.getAll.invalidate(); // Refresh Walk-Ins tab too
     },
     onError: (err) => {
       toast.error(err.message || "Failed to mark as arrived");
@@ -332,7 +332,7 @@ function BookingCard({ booking, showDate }: { booking: RollerBookingEntry; showD
     onSuccess: () => {
       toast.success(`Arrival undone for ${booking.customerName}`);
       utils.roller.getTodayBookings.invalidate();
-      utils.guests.getAll.invalidate(); // Refresh Walk-Ins tab too
+      utils.guestSessions.getAll.invalidate(); // Refresh Walk-Ins tab too
     },
     onError: (err) => {
       toast.error(err.message || "Failed to undo arrival");

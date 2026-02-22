@@ -2065,7 +2065,8 @@ Extract as much information as possible from the documents. For the bio, write a
       });
 
       // Build product name + session endTime lookups from availability API
-      let productNameMap = new Map<number, string>();
+      // Use string keys to avoid number/string type mismatch with Roller API
+      let productNameMap = new Map<string, string>();
       // Key: "productId:startTime" -> endTime from availability sessions
       let sessionEndTimeMap = new Map<string, string>();
       try {
@@ -2077,15 +2078,15 @@ Extract as much information as possible from the documents. For the bio, write a
         }
         if (uniqueDates.size === 0) uniqueDates.add(dateFrom);
         const availResults = await Promise.all(
-          [...uniqueDates].map((d) => getProductAvailability(d).catch(() => []))
+          Array.from(uniqueDates).map((d) => getProductAvailability(d).catch(() => []))
         );
         for (const products of availResults) {
           for (const p of products) {
             const pid = p.id || p.parentProductId;
             const pname = p.parentProductName || p.name;
-            if (pid && pname) productNameMap.set(pid, pname);
+            if (pid && pname) productNameMap.set(String(pid), pname);
             for (const child of (p.products || [])) {
-              if (child.id) productNameMap.set(child.id, pname);
+              if (child.id) productNameMap.set(String(child.id), pname);
             }
             // Extract session start/end times for accurate duration
             for (const session of (p.sessions || [])) {
@@ -2093,12 +2094,12 @@ Extract as much information as possible from the documents. For the bio, write a
                 // Map each child product's startTime to its endTime
                 for (const child of (p.products || [])) {
                   if (child.id) {
-                    sessionEndTimeMap.set(`${child.id}:${session.startTime}`, session.endTime);
+                    sessionEndTimeMap.set(`${String(child.id)}:${session.startTime}`, session.endTime);
                   }
                 }
                 // Also map parent product ID
                 if (pid) {
-                  sessionEndTimeMap.set(`${pid}:${session.startTime}`, session.endTime);
+                  sessionEndTimeMap.set(`${String(pid)}:${session.startTime}`, session.endTime);
                 }
               }
             }
@@ -2128,21 +2129,23 @@ Extract as much information as possible from the documents. For the bio, write a
           const quantity = sessionItem?.quantity || 1;
 
           const productId = sessionItem?.productId;
-          const productName = (productId && productNameMap.get(productId)) || sessionItem?.productName || "Cat Lounge Session";
+          const productName = (productId && productNameMap.get(String(productId))) || sessionItem?.productName || "Cat Lounge Session";
           
           const sessionStartTime = rawStartTime || null;
           let sessionEndTime: string | null = null;
           if (rawStartTime && productId) {
             // First try: exact endTime from availability sessions
-            const lookupKey = `${productId}:${rawStartTime}`;
+            const lookupKey = `${String(productId)}:${rawStartTime}`;
             const exactEnd = sessionEndTimeMap.get(lookupKey);
             if (exactEnd) {
               sessionEndTime = exactEnd;
             } else {
               // Fallback: determine duration from product name
-              // Study sessions = 90 min, Cat Lounge sessions = 60 min
-              const isStudy = productName.toLowerCase().includes("study");
-              const durationMin = isStudy ? 90 : 60;
+              // Mini Meow = 30 min, Study sessions = 90 min, Cat Lounge = 60 min
+              const nameLower = productName.toLowerCase();
+              const isMiniMeow = nameLower.includes("mini") || nameLower.includes("meow escape");
+              const isStudy = nameLower.includes("study");
+              const durationMin = isMiniMeow ? 30 : isStudy ? 90 : 60;
               const [h, m] = rawStartTime.split(":").map(Number);
               const totalMin = h * 60 + m + durationMin;
               const endH = Math.floor(totalMin / 60) % 24;
@@ -2150,9 +2153,11 @@ Extract as much information as possible from the documents. For the bio, write a
               sessionEndTime = `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`;
             }
           } else if (rawStartTime) {
-            // No productId: default to 60 min
+            // No productId: use product name to determine duration
+            const nameLower2 = productName.toLowerCase();
+            const fallbackMin = nameLower2.includes("mini") || nameLower2.includes("meow escape") ? 30 : nameLower2.includes("study") ? 90 : 60;
             const [h, m] = rawStartTime.split(":").map(Number);
-            const totalMin = h * 60 + m + 60;
+            const totalMin = h * 60 + m + fallbackMin;
             const endH = Math.floor(totalMin / 60) % 24;
             const endM = totalMin % 60;
             sessionEndTime = `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`;
