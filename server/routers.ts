@@ -2109,13 +2109,13 @@ Extract as much information as possible from the documents. For the bio, write a
       // Enrich each booking with customer name and time-based status
       const enriched = await Promise.all(
         filteredBookings.map(async (booking: any) => {
-          let customerName = booking.name || "Guest";
+          // Only show first name for guest privacy/safety
+          let customerName = booking.name?.split(" ")[0] || "Guest";
           if (booking.customerId) {
             try {
               const customer = await getCustomerDetail(booking.customerId);
               if (customer?.firstName) {
                 customerName = customer.firstName;
-                if (customer.lastName) customerName += " " + customer.lastName;
               }
             } catch { /* keep fallback name */ }
           }

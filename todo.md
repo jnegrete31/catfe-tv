@@ -1691,3 +1691,7 @@
 - [x] Verified: Roller availability API correctly reflects real-time booking capacity
 - [x] Example: 10 AM slot shows 7 remaining (12 max - 5 booked by Cody Pitts) ✓
 - [x] All 34 existing tests still passing
+
+## Feature - Show only first names for Roller guests (privacy)
+- [x] Update backend to return only first names for Roller booking guests
+- [x] Verify booking cards show first names only (Cody, Katherine, Sophia, Julia, Regina)
