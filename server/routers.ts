@@ -2001,22 +2001,23 @@ Extract as much information as possible from the documents. For the bio, write a
 
     // Get today's bookings enriched with customer names and check-in status
     getTodayBookings: protectedProcedure.query(async () => {
-      const today = new Date().toISOString().split("T")[0];
-      const bookings = await searchBookings({ dateFrom: today });
+      // Use PST date since Catfé is in Santa Clarita, CA
+      const nowPST = new Date().toLocaleDateString("en-CA", { timeZone: "America/Los_Angeles" }); // "YYYY-MM-DD"
+      const nowTimePST = new Date().toLocaleTimeString("en-US", { timeZone: "America/Los_Angeles", hour12: false, hour: "2-digit", minute: "2-digit" }); // "HH:mm"
       
-      // Get all active/completed guest sessions with roller refs for today
-      const allSessions = await getAllGuestSessions();
-      const rollerRefMap = new Map<string, { status: string; id: number }>();
-      for (const s of allSessions) {
-        if (s.rollerBookingRef) {
-          rollerRefMap.set(s.rollerBookingRef, { status: s.status, id: s.id });
-        }
-      }
+      const bookings = await searchBookings({ dateFrom: nowPST });
+      
+      // Filter to only bookings for today (not future dates)
+      const todayBookings = bookings.filter((b: any) => {
+        const items = b.items || [];
+        const bookingDate = items[0]?.bookingDate;
+        return !bookingDate || bookingDate === nowPST;
+      });
 
       // Build a product name lookup from availability API
       let productNameMap = new Map<number, string>();
       try {
-        const products = await getProductAvailability(today);
+        const products = await getProductAvailability(nowPST);
         for (const p of products) {
           const pid = p.id || p.parentProductId;
           const pname = p.parentProductName || p.name;
@@ -2028,9 +2029,9 @@ Extract as much information as possible from the documents. For the bio, write a
         }
       } catch { /* availability lookup is optional */ }
       
-      // Enrich each booking with customer name and check-in status
+      // Enrich each booking with customer name and time-based status
       const enriched = await Promise.all(
-        bookings.map(async (booking: any) => {
+        todayBookings.map(async (booking: any) => {
           // Look up customer name
           let customerName = booking.name || "Guest";
           if (booking.customerId) {
@@ -2043,16 +2044,13 @@ Extract as much information as possible from the documents. For the bio, write a
             } catch { /* keep fallback name */ }
           }
           
-          // Determine check-in status from guest sessions
           const ref = booking.bookingReference || booking.uniqueId || String(booking.bookingId);
-          const sessionMatch = rollerRefMap.get(ref);
           
           // Get session times from booking items
           // Roller items have: { productId, quantity, bookingDate, startTime: "HH:mm" }
           const items = booking.items || [];
           const sessionItem = items[0]; // Primary session
           const rawStartTime = sessionItem?.startTime || null; // e.g. "11:00"
-          const bookingDate = sessionItem?.bookingDate || today; // e.g. "2026-02-22"
           const quantity = sessionItem?.quantity || 1;
 
           // Look up product name from availability data
@@ -2060,7 +2058,6 @@ Extract as much information as possible from the documents. For the bio, write a
           const productName = (productId && productNameMap.get(productId)) || sessionItem?.productName || "Cat Lounge Session";
           
           // Pass the raw HH:mm time from Roller directly
-          // The frontend will format it for display
           const sessionStartTime = rawStartTime || null; // e.g. "11:00"
           // Roller doesn't provide end times; estimate 90 min from start
           let sessionEndTime: string | null = null;
@@ -2072,16 +2069,20 @@ Extract as much information as possible from the documents. For the bio, write a
             sessionEndTime = `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`;
           }
           
-          // Determine status
+          // Determine status based purely on TIME, not guest session DB
+          // The Roller API booking.status is a payment status (Paid, NoPaymentRequired), not a check-in status
+          // So we use time-based logic:
+          //   - Session hasn't started yet → "upcoming"
+          //   - Session is currently in progress (start <= now < end) → "checked_in" 
+          //   - Session end time has passed → "completed"
           let status: "upcoming" | "checked_in" | "completed" | "expired" = "upcoming";
-          if (sessionMatch) {
-            if (sessionMatch.status === "completed") status = "completed";
-            else status = "checked_in";
-          } else if (sessionEndTime) {
-            // Compare HH:mm strings with current local time (PST for Catfé)
-            // Use America/Los_Angeles since Catfé is in Santa Clarita, CA
-            const nowPST = new Date().toLocaleTimeString("en-US", { timeZone: "America/Los_Angeles", hour12: false, hour: "2-digit", minute: "2-digit" });
-            if (sessionEndTime < nowPST) status = "expired";
+          if (sessionStartTime && sessionEndTime) {
+            if (nowTimePST >= sessionEndTime) {
+              status = "completed";
+            } else if (nowTimePST >= sessionStartTime) {
+              status = "checked_in";
+            }
+            // else: upcoming (default)
           }
           
           return {
@@ -2094,16 +2095,16 @@ Extract as much information as possible from the documents. For the bio, write a
             sessionStartTime,
             sessionEndTime,
             status,
-            guestSessionId: sessionMatch?.id || null,
+            guestSessionId: null, // Not tracking individual check-ins from Roller bookings tab
             total: booking.total || 0,
             bookingStatus: booking.status || "unknown",
           };
         })
       );
       
-      // Sort by session start time (upcoming first, then checked in, then completed)
+      // Sort by session start time (upcoming first, then in-progress, then completed)
       enriched.sort((a, b) => {
-        // Primary sort: status priority (upcoming > checked_in > completed/expired)
+        // Primary sort: status priority (upcoming > checked_in > completed)
         const statusOrder = { upcoming: 0, checked_in: 1, expired: 2, completed: 3 };
         const statusDiff = statusOrder[a.status] - statusOrder[b.status];
         if (statusDiff !== 0) return statusDiff;

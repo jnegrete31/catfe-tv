@@ -136,34 +136,50 @@ describe("getTodayBookings data enrichment logic", () => {
     expect(productNameMap.get(999)).toBeUndefined();
   });
 
-  it("should determine status based on guest session match", () => {
-    const rollerRefMap = new Map<string, { status: string; id: number }>();
-    rollerRefMap.set("REF001", { status: "active", id: 1 });
-    rollerRefMap.set("REF002", { status: "completed", id: 2 });
-
-    // Active session -> checked_in
-    const match1 = rollerRefMap.get("REF001");
-    let status1: string = "upcoming";
-    if (match1) {
-      status1 = match1.status === "completed" ? "completed" : "checked_in";
+  it("should determine status based on time (upcoming before start)", () => {
+    // Replicate the new time-based status logic from getTodayBookings
+    function getStatus(sessionStartTime: string | null, sessionEndTime: string | null, nowTimePST: string): string {
+      let status = "upcoming";
+      if (sessionStartTime && sessionEndTime) {
+        if (nowTimePST >= sessionEndTime) {
+          status = "completed";
+        } else if (nowTimePST >= sessionStartTime) {
+          status = "checked_in";
+        }
+      }
+      return status;
     }
-    expect(status1).toBe("checked_in");
 
-    // Completed session -> completed
-    const match2 = rollerRefMap.get("REF002");
-    let status2: string = "upcoming";
-    if (match2) {
-      status2 = match2.status === "completed" ? "completed" : "checked_in";
-    }
-    expect(status2).toBe("completed");
+    // Before session starts → upcoming
+    expect(getStatus("14:00", "15:30", "13:00")).toBe("upcoming");
+    // During session → checked_in
+    expect(getStatus("14:00", "15:30", "14:30")).toBe("checked_in");
+    // Exactly at start time → checked_in
+    expect(getStatus("14:00", "15:30", "14:00")).toBe("checked_in");
+    // After session ends → completed
+    expect(getStatus("14:00", "15:30", "16:00")).toBe("completed");
+    // Exactly at end time → completed
+    expect(getStatus("14:00", "15:30", "15:30")).toBe("completed");
+    // No times → upcoming (default)
+    expect(getStatus(null, null, "14:00")).toBe("upcoming");
+  });
 
-    // No match -> upcoming
-    const match3 = rollerRefMap.get("REF999");
-    let status3: string = "upcoming";
-    if (match3) {
-      status3 = match3.status === "completed" ? "completed" : "checked_in";
-    }
-    expect(status3).toBe("upcoming");
+  it("should filter bookings to only today's date (PST)", () => {
+    const todayPST = "2026-02-21";
+    const bookings = [
+      { items: [{ bookingDate: "2026-02-21", startTime: "11:00" }] },
+      { items: [{ bookingDate: "2026-02-22", startTime: "12:00" }] },
+      { items: [{ bookingDate: "2026-02-21", startTime: "14:00" }] },
+    ];
+
+    const todayBookings = bookings.filter((b) => {
+      const bookingDate = b.items[0]?.bookingDate;
+      return !bookingDate || bookingDate === todayPST;
+    });
+
+    expect(todayBookings).toHaveLength(2);
+    expect(todayBookings[0].items[0].startTime).toBe("11:00");
+    expect(todayBookings[1].items[0].startTime).toBe("14:00");
   });
 
   it("should sort bookings by status priority then by start time", () => {

@@ -1635,3 +1635,13 @@
 - [x] Fixed timezone issue: end time calculation uses pure HH:mm math instead of Date objects
 - [x] Product name lookup from availability API (shows "Cat Lounge Session" instead of generic "Session")
 - [x] Added 17 vitest tests for booking enrichment, time formatting, and sorting logic
+
+## Bug - Roller bookings showing as Checked In before session time
+- [x] Investigate: bookings show "Checked In" even when date/time hasn't happened yet
+- [x] Root cause 1: Date calculation used UTC (toISOString) instead of PST — at 6 PM PST it was already "tomorrow" in UTC
+- [x] Root cause 2: Status relied on guest session DB — Roller polling had created sessions for all bookings
+- [x] Fix: Use PST date (toLocaleDateString with America/Los_Angeles) and filter to only today's bookings
+- [x] Fix: Status is now purely time-based — upcoming before start, checked_in during session, completed after end
+- [x] Cleaned up stale Roller guest sessions from database
+- [x] Updated tests: 18 passing (added time-based status tests and date filtering test)
+- [x] Verify fix in browser — shows "No bookings for today" correctly on Friday evening
