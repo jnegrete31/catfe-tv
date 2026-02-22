@@ -68,11 +68,14 @@ type RollerBookingEntry = {
   quantity: number;
   sessionStartTime: string | null;
   sessionEndTime: string | null;
+  bookingDate: string;
   status: "upcoming" | "checked_in" | "completed" | "expired";
   guestSessionId: number | null;
   total: number;
   bookingStatus: string;
 };
+
+type DateFilter = "today" | "tomorrow" | "week" | "month";
 
 function formatTimeRemaining(expiresAt: Date): string {
   const now = new Date();
@@ -160,32 +163,96 @@ function BookingStatusBadge({ status }: { status: RollerBookingEntry["status"] }
   }
 }
 
+const FILTER_LABELS: Record<DateFilter, string> = {
+  today: "Today",
+  tomorrow: "Tomorrow",
+  week: "This Week",
+  month: "This Month",
+};
+
+function formatDateLabel(dateStr: string): string {
+  const d = new Date(dateStr + "T12:00:00");
+  const today = new Date();
+  // Use PST for comparison
+  const todayPST = today.toLocaleDateString("en-CA", { timeZone: "America/Los_Angeles" });
+  const tomorrowDate = new Date(todayPST + "T12:00:00");
+  tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+  const tomorrowPST = tomorrowDate.toISOString().split("T")[0];
+
+  if (dateStr === todayPST) return "Today";
+  if (dateStr === tomorrowPST) return "Tomorrow";
+  return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+}
+
 // ============ ROLLER BOOKINGS SECTION ============
 function RollerBookingsSection() {
-  const bookingsQuery = trpc.roller.getTodayBookings.useQuery(undefined, {
-    refetchInterval: 30000, // Refresh every 30s
-  });
+  const [filter, setFilter] = useState<DateFilter>("today");
+  const bookingsQuery = trpc.roller.getTodayBookings.useQuery(
+    { filter },
+    { refetchInterval: filter === "today" ? 30000 : 60000 }
+  );
 
   const bookings = (bookingsQuery.data || []) as RollerBookingEntry[];
   const upcomingCount = bookings.filter(b => b.status === "upcoming").length;
   const checkedInCount = bookings.filter(b => b.status === "checked_in").length;
+  const totalGuests = bookings.reduce((sum, b) => sum + (b.quantity || 1), 0);
+
+  // Group bookings by date for multi-day views
+  const groupedByDate = useMemo(() => {
+    const groups = new Map<string, RollerBookingEntry[]>();
+    for (const b of bookings) {
+      const date = b.bookingDate || "unknown";
+      if (!groups.has(date)) groups.set(date, []);
+      groups.get(date)!.push(b);
+    }
+    return Array.from(groups.entries()).sort(([a], [b]) => a.localeCompare(b));
+  }, [bookings]);
+
+  const showDateHeaders = filter === "week" || filter === "month";
 
   return (
     <div className="space-y-3">
+      {/* Date filter pills */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+        {(["today", "tomorrow", "week", "month"] as DateFilter[]).map((f) => (
+          <Button
+            key={f}
+            variant={filter === f ? "default" : "outline"}
+            size="sm"
+            className={`h-7 text-xs px-3 shrink-0 rounded-full ${
+              filter === f ? "" : "bg-transparent"
+            }`}
+            onClick={() => setFilter(f)}
+          >
+            {FILTER_LABELS[f]}
+          </Button>
+        ))}
+      </div>
+
       {/* Summary bar */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h3 className="font-semibold text-sm sm:text-base">Today's Bookings</h3>
+          <h3 className="font-semibold text-sm sm:text-base">
+            {bookings.length} {bookings.length === 1 ? "Booking" : "Bookings"}
+          </h3>
           {bookings.length > 0 && (
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
-                <CalendarClock className="w-3 h-3 text-blue-500" />
-                {upcomingCount} upcoming
+                <Users className="w-3 h-3" />
+                {totalGuests} guests
               </span>
-              <span className="flex items-center gap-1">
-                <CircleDot className="w-3 h-3 text-green-500" />
-                {checkedInCount} active
-              </span>
+              {filter === "today" && upcomingCount > 0 && (
+                <span className="flex items-center gap-1">
+                  <CalendarClock className="w-3 h-3 text-blue-500" />
+                  {upcomingCount} upcoming
+                </span>
+              )}
+              {filter === "today" && checkedInCount > 0 && (
+                <span className="flex items-center gap-1">
+                  <CircleDot className="w-3 h-3 text-green-500" />
+                  {checkedInCount} active
+                </span>
+              )}
             </div>
           )}
         </div>
@@ -215,58 +282,84 @@ function RollerBookingsSection() {
         <Card>
           <CardContent className="py-6 text-center text-muted-foreground">
             <Ticket className="w-8 h-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">No bookings for today</p>
+            <p className="text-sm">No bookings {filter === "today" ? "for today" : filter === "tomorrow" ? "for tomorrow" : `this ${filter}`}</p>
           </CardContent>
         </Card>
+      ) : showDateHeaders ? (
+        <div className="space-y-4">
+          {groupedByDate.map(([date, dateBookings]) => (
+            <div key={date} className="space-y-2">
+              <div className="flex items-center gap-2">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                  {formatDateLabel(date)}
+                </h4>
+                <Badge variant="secondary" className="text-[10px]">
+                  {dateBookings.length} {dateBookings.length === 1 ? "booking" : "bookings"} · {dateBookings.reduce((s, b) => s + (b.quantity || 1), 0)} guests
+                </Badge>
+              </div>
+              {dateBookings.map((booking) => (
+                <BookingCard key={booking.bookingReference} booking={booking} showDate={false} />
+              ))}
+            </div>
+          ))}
+        </div>
       ) : (
         <div className="space-y-2">
           {bookings.map((booking) => (
-            <Card 
-              key={booking.bookingId} 
-              className={
-                booking.status === "checked_in" ? "border-green-200 bg-green-50/30" :
-                booking.status === "upcoming" ? "border-blue-200 bg-blue-50/20" :
-                booking.status === "expired" ? "border-red-200 bg-red-50/20 opacity-60" :
-                "opacity-50"
-              }
-            >
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <h4 className="font-semibold text-sm sm:text-base truncate">
-                        {booking.customerName}
-                      </h4>
-                      {booking.quantity > 1 && (
-                        <Badge variant="secondary" className="text-[10px] sm:text-xs shrink-0">
-                          {booking.quantity} {booking.quantity === 1 ? "guest" : "guests"}
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2 sm:gap-3 mt-1 text-xs sm:text-sm text-muted-foreground flex-wrap">
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {formatTimeRange(booking.sessionStartTime, booking.sessionEndTime)}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Ticket className="w-3 h-3" />
-                        {booking.productName}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 mt-1.5 text-[10px] sm:text-xs text-muted-foreground">
-                      <span>Ref: {booking.bookingReference}</span>
-                    </div>
-                  </div>
-                  <div className="shrink-0">
-                    <BookingStatusBadge status={booking.status} />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <BookingCard key={booking.bookingReference} booking={booking} showDate={false} />
           ))}
         </div>
       )}
     </div>
+  );
+}
+
+function BookingCard({ booking, showDate }: { booking: RollerBookingEntry; showDate: boolean }) {
+  return (
+    <Card 
+      className={
+        booking.status === "checked_in" ? "border-green-200 bg-green-50/30" :
+        booking.status === "upcoming" ? "border-blue-200 bg-blue-50/20" :
+        booking.status === "expired" ? "border-red-200 bg-red-50/20 opacity-60" :
+        "opacity-50"
+      }
+    >
+      <CardContent className="p-3 sm:p-4">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <h4 className="font-semibold text-sm sm:text-base truncate">
+                {booking.customerName}
+              </h4>
+              {booking.quantity > 1 && (
+                <Badge variant="secondary" className="text-[10px] sm:text-xs shrink-0">
+                  {booking.quantity} {booking.quantity === 1 ? "guest" : "guests"}
+                </Badge>
+              )}
+            </div>
+            <div className="flex items-center gap-2 sm:gap-3 mt-1 text-xs sm:text-sm text-muted-foreground flex-wrap">
+              <span className="flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                {formatTimeRange(booking.sessionStartTime, booking.sessionEndTime)}
+              </span>
+              <span className="flex items-center gap-1">
+                <Ticket className="w-3 h-3" />
+                {booking.productName}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 mt-1.5 text-[10px] sm:text-xs text-muted-foreground">
+              <span>Ref: {booking.bookingReference}</span>
+              {showDate && booking.bookingDate && (
+                <span>· {formatDateLabel(booking.bookingDate)}</span>
+              )}
+            </div>
+          </div>
+          <div className="shrink-0">
+            <BookingStatusBadge status={booking.status} />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 

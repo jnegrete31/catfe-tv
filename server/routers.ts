@@ -2000,29 +2000,74 @@ Extract as much information as possible from the documents. For the bio, write a
       }),
 
     // Get today's bookings enriched with customer names and check-in status
-    getTodayBookings: protectedProcedure.query(async () => {
+    getTodayBookings: protectedProcedure
+      .input(z.object({
+        filter: z.enum(["today", "tomorrow", "week", "month"]).default("today"),
+      }).optional())
+      .query(async ({ input }) => {
+      const filter = input?.filter || "today";
       // Use PST date since Catfé is in Santa Clarita, CA
-      const nowPST = new Date().toLocaleDateString("en-CA", { timeZone: "America/Los_Angeles" }); // "YYYY-MM-DD"
-      const nowTimePST = new Date().toLocaleTimeString("en-US", { timeZone: "America/Los_Angeles", hour12: false, hour: "2-digit", minute: "2-digit" }); // "HH:mm"
+      const nowDate = new Date();
+      const nowPST = nowDate.toLocaleDateString("en-CA", { timeZone: "America/Los_Angeles" }); // "YYYY-MM-DD"
+      const nowTimePST = nowDate.toLocaleTimeString("en-US", { timeZone: "America/Los_Angeles", hour12: false, hour: "2-digit", minute: "2-digit" }); // "HH:mm"
+
+      // Helper to add days to a PST date string
+      function addDaysPST(dateStr: string, days: number): string {
+        const d = new Date(dateStr + "T12:00:00"); // noon to avoid DST issues
+        d.setDate(d.getDate() + days);
+        return d.toISOString().split("T")[0];
+      }
+
+      // Compute date range based on filter
+      let dateFrom = nowPST;
+      let dateTo = nowPST;
+      if (filter === "tomorrow") {
+        dateFrom = addDaysPST(nowPST, 1);
+        dateTo = dateFrom;
+      } else if (filter === "week") {
+        dateTo = addDaysPST(nowPST, 6); // next 7 days including today
+      } else if (filter === "month") {
+        dateTo = addDaysPST(nowPST, 29); // next 30 days including today
+      }
       
-      const bookings = await searchBookings({ dateFrom: nowPST });
+      // Roller API only returns bookings for the specific `date` param.
+      // For multi-day ranges, we need to fetch each day individually.
+      let allBookings: any[] = [];
+      if (dateFrom === dateTo) {
+        // Single day: one API call
+        allBookings = await searchBookings({ dateFrom });
+      } else {
+        // Multi-day: fetch each day in parallel (cap at 7 for week, 30 for month)
+        const dates: string[] = [];
+        let cursor = dateFrom;
+        while (cursor <= dateTo) {
+          dates.push(cursor);
+          cursor = addDaysPST(cursor, 1);
+          if (dates.length > 30) break; // safety cap
+        }
+        const results = await Promise.all(
+          dates.map((d) => searchBookings({ dateFrom: d }).catch(() => []))
+        );
+        allBookings = results.flat();
+      }
       
-      // Filter to only bookings for today (not future dates)
-      const todayBookings = bookings.filter((b: any) => {
-        const items = b.items || [];
-        const bookingDate = items[0]?.bookingDate;
-        return !bookingDate || bookingDate === nowPST;
+      // Deduplicate by bookingId in case of overlap
+      const seen = new Set<number>();
+      const filteredBookings = allBookings.filter((b: any) => {
+        const id = b.bookingId;
+        if (id && seen.has(id)) return false;
+        if (id) seen.add(id);
+        return true;
       });
 
-      // Build a product name lookup from availability API
+      // Build a product name lookup from availability API (use dateFrom)
       let productNameMap = new Map<number, string>();
       try {
-        const products = await getProductAvailability(nowPST);
+        const products = await getProductAvailability(dateFrom);
         for (const p of products) {
           const pid = p.id || p.parentProductId;
           const pname = p.parentProductName || p.name;
           if (pid && pname) productNameMap.set(pid, pname);
-          // Also map child product IDs
           for (const child of (p.products || [])) {
             if (child.id) productNameMap.set(child.id, pname);
           }
@@ -2031,8 +2076,7 @@ Extract as much information as possible from the documents. For the bio, write a
       
       // Enrich each booking with customer name and time-based status
       const enriched = await Promise.all(
-        todayBookings.map(async (booking: any) => {
-          // Look up customer name
+        filteredBookings.map(async (booking: any) => {
           let customerName = booking.name || "Guest";
           if (booking.customerId) {
             try {
@@ -2045,21 +2089,16 @@ Extract as much information as possible from the documents. For the bio, write a
           }
           
           const ref = booking.bookingReference || booking.uniqueId || String(booking.bookingId);
-          
-          // Get session times from booking items
-          // Roller items have: { productId, quantity, bookingDate, startTime: "HH:mm" }
           const items = booking.items || [];
-          const sessionItem = items[0]; // Primary session
-          const rawStartTime = sessionItem?.startTime || null; // e.g. "11:00"
+          const sessionItem = items[0];
+          const rawStartTime = sessionItem?.startTime || null;
+          const bookingDate = sessionItem?.bookingDate || dateFrom;
           const quantity = sessionItem?.quantity || 1;
 
-          // Look up product name from availability data
           const productId = sessionItem?.productId;
           const productName = (productId && productNameMap.get(productId)) || sessionItem?.productName || "Cat Lounge Session";
           
-          // Pass the raw HH:mm time from Roller directly
-          const sessionStartTime = rawStartTime || null; // e.g. "11:00"
-          // Roller doesn't provide end times; estimate 90 min from start
+          const sessionStartTime = rawStartTime || null;
           let sessionEndTime: string | null = null;
           if (rawStartTime) {
             const [h, m] = rawStartTime.split(":").map(Number);
@@ -2069,20 +2108,15 @@ Extract as much information as possible from the documents. For the bio, write a
             sessionEndTime = `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`;
           }
           
-          // Determine status based purely on TIME, not guest session DB
-          // The Roller API booking.status is a payment status (Paid, NoPaymentRequired), not a check-in status
-          // So we use time-based logic:
-          //   - Session hasn't started yet → "upcoming"
-          //   - Session is currently in progress (start <= now < end) → "checked_in" 
-          //   - Session end time has passed → "completed"
+          // Time-based status only applies to today's bookings
+          // Future bookings are always "upcoming"
           let status: "upcoming" | "checked_in" | "completed" | "expired" = "upcoming";
-          if (sessionStartTime && sessionEndTime) {
+          if (bookingDate === nowPST && sessionStartTime && sessionEndTime) {
             if (nowTimePST >= sessionEndTime) {
               status = "completed";
             } else if (nowTimePST >= sessionStartTime) {
               status = "checked_in";
             }
-            // else: upcoming (default)
           }
           
           return {
@@ -2094,22 +2128,26 @@ Extract as much information as possible from the documents. For the bio, write a
             quantity,
             sessionStartTime,
             sessionEndTime,
+            bookingDate,
             status,
-            guestSessionId: null, // Not tracking individual check-ins from Roller bookings tab
+            guestSessionId: null,
             total: booking.total || 0,
             bookingStatus: booking.status || "unknown",
           };
         })
       );
       
-      // Sort by session start time (upcoming first, then in-progress, then completed)
+      // Sort: by date first, then by status priority, then by start time
       enriched.sort((a, b) => {
-        // Primary sort: status priority (upcoming > checked_in > completed)
+        // Primary: date
+        if (a.bookingDate && b.bookingDate && a.bookingDate !== b.bookingDate) {
+          return a.bookingDate.localeCompare(b.bookingDate);
+        }
+        // Secondary: status priority (upcoming > checked_in > completed)
         const statusOrder = { upcoming: 0, checked_in: 1, expired: 2, completed: 3 };
         const statusDiff = statusOrder[a.status] - statusOrder[b.status];
         if (statusDiff !== 0) return statusDiff;
-        
-        // Secondary sort: by session start time
+        // Tertiary: by session start time
         if (a.sessionStartTime && b.sessionStartTime) {
           return a.sessionStartTime.localeCompare(b.sessionStartTime);
         }

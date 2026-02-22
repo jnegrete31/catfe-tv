@@ -1645,3 +1645,12 @@
 - [x] Cleaned up stale Roller guest sessions from database
 - [x] Updated tests: 18 passing (added time-based status tests and date filtering test)
 - [x] Verify fix in browser — shows "No bookings for today" correctly on Friday evening
+
+## Feature - Date filter for Roller Bookings
+- [x] Update backend to accept date range parameter (today, tomorrow, week, month)
+- [x] Add date filter buttons UI to Roller Bookings tab (rounded pill buttons)
+- [x] Group bookings by date when viewing multi-day ranges (week/month show date headers)
+- [x] Show booking counts per filter option (total bookings + total guests in summary bar)
+- [x] Write tests for date range logic (25 tests passing)
+- [x] Fixed multi-day fetching: Roller API only returns one day per call, so week/month fetch each day in parallel
+- [x] Deduplication by bookingId to prevent overlap

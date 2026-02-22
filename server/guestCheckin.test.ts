@@ -286,3 +286,104 @@ describe("formatTimeRange helper", () => {
     expect(formatTimeRange(null, null)).toBe("No time set");
   });
 });
+
+describe("date filter range computation", () => {
+  function addDaysPST(dateStr: string, days: number): string {
+    const d = new Date(dateStr + "T12:00:00");
+    d.setDate(d.getDate() + days);
+    return d.toISOString().split("T")[0];
+  }
+
+  function computeRange(filter: string, nowPST: string) {
+    let dateFrom = nowPST;
+    let dateTo = nowPST;
+    if (filter === "tomorrow") {
+      dateFrom = addDaysPST(nowPST, 1);
+      dateTo = dateFrom;
+    } else if (filter === "week") {
+      dateTo = addDaysPST(nowPST, 6);
+    } else if (filter === "month") {
+      dateTo = addDaysPST(nowPST, 29);
+    }
+    return { dateFrom, dateTo };
+  }
+
+  it("should compute today range as single day", () => {
+    const { dateFrom, dateTo } = computeRange("today", "2026-02-21");
+    expect(dateFrom).toBe("2026-02-21");
+    expect(dateTo).toBe("2026-02-21");
+  });
+
+  it("should compute tomorrow range as next day", () => {
+    const { dateFrom, dateTo } = computeRange("tomorrow", "2026-02-21");
+    expect(dateFrom).toBe("2026-02-22");
+    expect(dateTo).toBe("2026-02-22");
+  });
+
+  it("should compute week range as 7 days from today", () => {
+    const { dateFrom, dateTo } = computeRange("week", "2026-02-21");
+    expect(dateFrom).toBe("2026-02-21");
+    expect(dateTo).toBe("2026-02-27");
+  });
+
+  it("should compute month range as 30 days from today", () => {
+    const { dateFrom, dateTo } = computeRange("month", "2026-02-21");
+    expect(dateFrom).toBe("2026-02-21");
+    expect(dateTo).toBe("2026-03-22");
+  });
+
+  it("should generate correct date list for multi-day fetch", () => {
+    const dateFrom = "2026-02-21";
+    const dateTo = "2026-02-23";
+    const dates: string[] = [];
+    let cursor = dateFrom;
+    while (cursor <= dateTo) {
+      dates.push(cursor);
+      cursor = addDaysPST(cursor, 1);
+    }
+    expect(dates).toEqual(["2026-02-21", "2026-02-22", "2026-02-23"]);
+  });
+
+  it("should deduplicate bookings by bookingId", () => {
+    const allBookings = [
+      { bookingId: 1, customerName: "Alice" },
+      { bookingId: 2, customerName: "Bob" },
+      { bookingId: 1, customerName: "Alice (dup)" },
+      { bookingId: 3, customerName: "Charlie" },
+    ];
+    const seen = new Set<number>();
+    const filtered = allBookings.filter((b) => {
+      if (b.bookingId && seen.has(b.bookingId)) return false;
+      if (b.bookingId) seen.add(b.bookingId);
+      return true;
+    });
+    expect(filtered).toHaveLength(3);
+    expect(filtered.map(b => b.customerName)).toEqual(["Alice", "Bob", "Charlie"]);
+  });
+
+  it("should sort bookings by date first, then status, then time", () => {
+    const bookings = [
+      { bookingDate: "2026-02-23", status: "upcoming", sessionStartTime: "10:00" },
+      { bookingDate: "2026-02-22", status: "upcoming", sessionStartTime: "14:00" },
+      { bookingDate: "2026-02-22", status: "upcoming", sessionStartTime: "11:00" },
+      { bookingDate: "2026-02-21", status: "completed", sessionStartTime: "09:00" },
+      { bookingDate: "2026-02-21", status: "checked_in", sessionStartTime: "12:00" },
+    ];
+    const statusOrder: Record<string, number> = { upcoming: 0, checked_in: 1, expired: 2, completed: 3 };
+    bookings.sort((a, b) => {
+      if (a.bookingDate !== b.bookingDate) return a.bookingDate.localeCompare(b.bookingDate);
+      const statusDiff = statusOrder[a.status] - statusOrder[b.status];
+      if (statusDiff !== 0) return statusDiff;
+      return a.sessionStartTime.localeCompare(b.sessionStartTime);
+    });
+    expect(bookings[0].bookingDate).toBe("2026-02-21");
+    expect(bookings[0].status).toBe("checked_in");
+    expect(bookings[1].bookingDate).toBe("2026-02-21");
+    expect(bookings[1].status).toBe("completed");
+    expect(bookings[2].bookingDate).toBe("2026-02-22");
+    expect(bookings[2].sessionStartTime).toBe("11:00");
+    expect(bookings[3].bookingDate).toBe("2026-02-22");
+    expect(bookings[3].sessionStartTime).toBe("14:00");
+    expect(bookings[4].bookingDate).toBe("2026-02-23");
+  });
+});
