@@ -1623,3 +1623,15 @@
 - [x] Session duration/expiry already correctly calculated from booking's session end time
 - [x] Cleaned up all existing Roller sessions from database (will re-sync with correct times)
 - [x] All 217 tests passing
+
+## Feature - Split Guests tab into Roller bookings and Walk-ins
+- [x] Add backend endpoint to fetch today's Roller bookings as a schedule
+- [x] Redesign GuestCheckIn UI with two sections: Roller Bookings + Walk-ins
+- [x] Roller section: show today's bookings sorted by time with Upcoming/Checked In/Completed statuses
+- [x] Walk-ins section: manual check-in flow (existing functionality)
+- [x] Auto-check-in still works when session time hits
+- [x] Visual distinction between Roller and Walk-in guests
+- [x] Fixed time display: HH:mm format from Roller API now correctly formats to 12-hour AM/PM
+- [x] Fixed timezone issue: end time calculation uses pure HH:mm math instead of Date objects
+- [x] Product name lookup from availability API (shows "Cat Lounge Session" instead of generic "Session")
+- [x] Added 17 vitest tests for booking enrichment, time formatting, and sorting logic

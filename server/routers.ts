@@ -131,7 +131,7 @@ import {
 import { storagePut } from "./storage";
 import { invokeLLM } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
-import { getProductAvailability, searchBookings, testConnection } from "./roller";
+import { getProductAvailability, searchBookings, testConnection, getCustomerDetail } from "./roller";
 import { getRollerPollingStatus } from "./rollerPolling";
 import { settings } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
@@ -1998,6 +1998,125 @@ Extract as much information as possible from the documents. For the bio, write a
         });
         return bookings;
       }),
+
+    // Get today's bookings enriched with customer names and check-in status
+    getTodayBookings: protectedProcedure.query(async () => {
+      const today = new Date().toISOString().split("T")[0];
+      const bookings = await searchBookings({ dateFrom: today });
+      
+      // Get all active/completed guest sessions with roller refs for today
+      const allSessions = await getAllGuestSessions();
+      const rollerRefMap = new Map<string, { status: string; id: number }>();
+      for (const s of allSessions) {
+        if (s.rollerBookingRef) {
+          rollerRefMap.set(s.rollerBookingRef, { status: s.status, id: s.id });
+        }
+      }
+
+      // Build a product name lookup from availability API
+      let productNameMap = new Map<number, string>();
+      try {
+        const products = await getProductAvailability(today);
+        for (const p of products) {
+          const pid = p.id || p.parentProductId;
+          const pname = p.parentProductName || p.name;
+          if (pid && pname) productNameMap.set(pid, pname);
+          // Also map child product IDs
+          for (const child of (p.products || [])) {
+            if (child.id) productNameMap.set(child.id, pname);
+          }
+        }
+      } catch { /* availability lookup is optional */ }
+      
+      // Enrich each booking with customer name and check-in status
+      const enriched = await Promise.all(
+        bookings.map(async (booking: any) => {
+          // Look up customer name
+          let customerName = booking.name || "Guest";
+          if (booking.customerId) {
+            try {
+              const customer = await getCustomerDetail(booking.customerId);
+              if (customer?.firstName) {
+                customerName = customer.firstName;
+                if (customer.lastName) customerName += " " + customer.lastName;
+              }
+            } catch { /* keep fallback name */ }
+          }
+          
+          // Determine check-in status from guest sessions
+          const ref = booking.bookingReference || booking.uniqueId || String(booking.bookingId);
+          const sessionMatch = rollerRefMap.get(ref);
+          
+          // Get session times from booking items
+          // Roller items have: { productId, quantity, bookingDate, startTime: "HH:mm" }
+          const items = booking.items || [];
+          const sessionItem = items[0]; // Primary session
+          const rawStartTime = sessionItem?.startTime || null; // e.g. "11:00"
+          const bookingDate = sessionItem?.bookingDate || today; // e.g. "2026-02-22"
+          const quantity = sessionItem?.quantity || 1;
+
+          // Look up product name from availability data
+          const productId = sessionItem?.productId;
+          const productName = (productId && productNameMap.get(productId)) || sessionItem?.productName || "Cat Lounge Session";
+          
+          // Pass the raw HH:mm time from Roller directly
+          // The frontend will format it for display
+          const sessionStartTime = rawStartTime || null; // e.g. "11:00"
+          // Roller doesn't provide end times; estimate 90 min from start
+          let sessionEndTime: string | null = null;
+          if (rawStartTime) {
+            const [h, m] = rawStartTime.split(":").map(Number);
+            const totalMin = h * 60 + m + 90;
+            const endH = Math.floor(totalMin / 60) % 24;
+            const endM = totalMin % 60;
+            sessionEndTime = `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`;
+          }
+          
+          // Determine status
+          let status: "upcoming" | "checked_in" | "completed" | "expired" = "upcoming";
+          if (sessionMatch) {
+            if (sessionMatch.status === "completed") status = "completed";
+            else status = "checked_in";
+          } else if (sessionEndTime) {
+            // Compare HH:mm strings with current local time (PST for Catfé)
+            // Use America/Los_Angeles since Catfé is in Santa Clarita, CA
+            const nowPST = new Date().toLocaleTimeString("en-US", { timeZone: "America/Los_Angeles", hour12: false, hour: "2-digit", minute: "2-digit" });
+            if (sessionEndTime < nowPST) status = "expired";
+          }
+          
+          return {
+            bookingId: booking.bookingId || null,
+            bookingReference: ref,
+            customerName,
+            customerId: booking.customerId,
+            productName,
+            quantity,
+            sessionStartTime,
+            sessionEndTime,
+            status,
+            guestSessionId: sessionMatch?.id || null,
+            total: booking.total || 0,
+            bookingStatus: booking.status || "unknown",
+          };
+        })
+      );
+      
+      // Sort by session start time (upcoming first, then checked in, then completed)
+      enriched.sort((a, b) => {
+        // Primary sort: status priority (upcoming > checked_in > completed/expired)
+        const statusOrder = { upcoming: 0, checked_in: 1, expired: 2, completed: 3 };
+        const statusDiff = statusOrder[a.status] - statusOrder[b.status];
+        if (statusDiff !== 0) return statusDiff;
+        
+        // Secondary sort: by session start time
+        if (a.sessionStartTime && b.sessionStartTime) {
+          return a.sessionStartTime.localeCompare(b.sessionStartTime);
+        }
+        return 0;
+      });
+      
+      return enriched;
+    }),
 
     // Get integration status (polling + webhook + connection)
     getStatus: protectedProcedure.query(async () => {
