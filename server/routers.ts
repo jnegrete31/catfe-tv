@@ -2233,12 +2233,17 @@ Extract as much information as possible from the documents. For the bio, write a
     }),
 
     // Mark a Roller booking guest as physically arrived
+    // Also auto-creates a guest session using the booked start/end times
+    // (Roller guests get their booked slot only — no makeup time for late arrivals)
     markArrived: protectedProcedure
       .input(z.object({
         bookingId: z.number(),
         bookingRef: z.string().optional(),
         guestName: z.string().optional(),
         partySize: z.number().optional(),
+        startTime: z.string().optional(), // "HH:mm" booked start
+        endTime: z.string().optional(),   // "HH:mm" booked end
+        productName: z.string().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
         const arrival = await markBookingArrived({
@@ -2248,16 +2253,79 @@ Extract as much information as possible from the documents. For the bio, write a
           guestName: input.guestName,
           partySize: input.partySize,
         });
-        return { success: !!arrival, arrival };
+
+        // Auto-create a guest session using the booked time slot
+        let sessionId: number | null = null;
+        if (input.startTime && input.endTime && input.guestName) {
+          // Build Date objects from the booked HH:mm times in PST/PDT
+          const todayPST = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
+          const [startH, startM] = input.startTime.split(':').map(Number);
+          const [endH, endM] = input.endTime.split(':').map(Number);
+          
+          // Determine if we're in PST (-08:00) or PDT (-07:00)
+          // Check by comparing UTC offset for today's date in LA
+          const testDate = new Date(`${todayPST}T12:00:00Z`);
+          const laTime = new Date(testDate.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+          const utcTime = new Date(testDate.toLocaleString('en-US', { timeZone: 'UTC' }));
+          const offsetHours = (utcTime.getTime() - laTime.getTime()) / (1000 * 60 * 60);
+          const tzOffset = offsetHours >= 8 ? '-08:00' : '-07:00'; // PST or PDT
+          
+          const checkInAt = new Date(`${todayPST}T${input.startTime}:00${tzOffset}`);
+          const expiresAt = new Date(`${todayPST}T${input.endTime}:00${tzOffset}`);
+          
+          // Calculate duration in minutes for the enum
+          const durationMinutes = (endH * 60 + endM) - (startH * 60 + startM);
+          let duration: "15" | "30" | "60" | "90" = "60";
+          if (durationMinutes <= 15) duration = "15";
+          else if (durationMinutes <= 30) duration = "30";
+          else if (durationMinutes <= 60) duration = "60";
+          else duration = "90";
+
+          try {
+            const session = await createGuestSession({
+              guestName: input.guestName,
+              guestCount: input.partySize || 1,
+              duration,
+              checkInAt,
+              expiresAt,
+              notes: `Roller: ${input.productName || 'Session'} (Ref #${input.bookingRef || input.bookingId})`,
+              rollerBookingRef: input.bookingRef || String(input.bookingId),
+            });
+            sessionId = session.id;
+          } catch (err: any) {
+            console.error('[Mark Arrived] Failed to create guest session:', err.message);
+          }
+        }
+
+        return { success: !!arrival, arrival, sessionId };
       }),
 
     // Undo marking a booking as arrived
+    // Also removes the auto-created guest session
     unmarkArrived: protectedProcedure
       .input(z.object({
         bookingId: z.number(),
+        bookingRef: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
         const success = await unmarkBookingArrived(input.bookingId);
+        
+        // Remove the auto-created guest session for this booking
+        if (input.bookingRef) {
+          try {
+            const { getDb } = await import('./db');
+            const db = await getDb();
+            if (db) {
+              const { guestSessions } = await import('../drizzle/schema');
+              const { eq, and } = await import('drizzle-orm');
+              await db.delete(guestSessions)
+                .where(eq(guestSessions.rollerBookingRef, input.bookingRef));
+            }
+          } catch (err: any) {
+            console.error('[Unmark Arrived] Failed to remove guest session:', err.message);
+          }
+        }
+        
         return { success };
       }),
 

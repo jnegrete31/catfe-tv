@@ -1695,3 +1695,13 @@
 ## Feature - Show only first names for Roller guests (privacy)
 - [x] Update backend to return only first names for Roller booking guests
 - [x] Verify booking cards show first names only (Cody, Katherine, Sophia, Julia, Regina)
+
+## Feature - Roller guests use booked time slot (no makeup time)
+- [x] Mark Arrived auto-creates a guest session using booked start/end times (not arrival time)
+- [x] Session timer in Walk-Ins shows remaining time in their fixed slot (93m remaining for 10-11 AM slot at 9:26 AM)
+- [x] If guest arrives late, timer still counts down from booked end time
+- [x] Undo arrival also removes the auto-created guest session (deletes by rollerBookingRef)
+- [x] Fixed timezone: PST/PDT offset detection for correct Date construction
+- [x] Duration auto-detected: 60min Cat Lounge, 90min Study, 30min Mini Meow
+- [x] Walk-Ins tab shows Roller sessions with orange "Roller" badge
+- [x] 34 tests passing

@@ -320,8 +320,9 @@ function BookingCard({ booking, showDate }: { booking: RollerBookingEntry; showD
   const utils = trpc.useUtils();
   const markArrivedMutation = trpc.roller.markArrived.useMutation({
     onSuccess: () => {
-      toast.success(`${booking.customerName} marked as arrived!`);
+      toast.success(`${booking.customerName} marked as arrived! Session started.`);
       utils.roller.getTodayBookings.invalidate();
+      utils.guests.getAll.invalidate(); // Refresh Walk-Ins tab too
     },
     onError: (err) => {
       toast.error(err.message || "Failed to mark as arrived");
@@ -331,6 +332,7 @@ function BookingCard({ booking, showDate }: { booking: RollerBookingEntry; showD
     onSuccess: () => {
       toast.success(`Arrival undone for ${booking.customerName}`);
       utils.roller.getTodayBookings.invalidate();
+      utils.guests.getAll.invalidate(); // Refresh Walk-Ins tab too
     },
     onError: (err) => {
       toast.error(err.message || "Failed to undo arrival");
@@ -347,12 +349,18 @@ function BookingCard({ booking, showDate }: { booking: RollerBookingEntry; showD
       bookingRef: booking.bookingReference,
       guestName: booking.customerName,
       partySize: booking.quantity,
+      startTime: booking.sessionStartTime || undefined,
+      endTime: booking.sessionEndTime || undefined,
+      productName: booking.productName,
     });
   }
 
   function handleUnmarkArrived() {
     if (!booking.bookingId) return;
-    unmarkArrivedMutation.mutate({ bookingId: booking.bookingId });
+    unmarkArrivedMutation.mutate({ 
+      bookingId: booking.bookingId,
+      bookingRef: booking.bookingReference,
+    });
   }
 
   return (
