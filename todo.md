@@ -1672,3 +1672,22 @@
 - [x] Fixed: now uses availability API endTime lookup for correct durations
 - [x] Cat Lounge Session = 60 min, Study Session = 90 min, Mini Meow Session = 30 min
 - [x] Fallback: if no availability match, uses product name to determine duration
+
+## Feature - Waiver status for Roller guests
+- [x] Investigate Roller API for waiver signing data (customerFlags, booking details, etc.)
+- [x] Result: Roller REST API does NOT expose waiver signing status via any endpoint
+- [x] customerFlags and customer.flags are always empty arrays
+- [x] /guests/{id}/signed-waiver returns 404
+- [x] No waiver fields on bookings or booking items
+- [ ] Option A: Set up signedWaiver webhook to receive real-time waiver events and store in DB
+- [ ] Option B: Track waivers manually via staff marking on booking cards
+
+## Bug - Live availability screen not syncing with Roller bookings
+- [x] Investigate how the live availability screen fetches its data
+- [x] Root cause: UTC vs PST date bug in getTodaySessions (same as getTodayBookings)
+- [x] After 4 PM PST, toISOString() returned tomorrow's date, showing wrong day's availability
+- [x] Fixed: Use toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' }) for PST date
+- [x] Also fixed same UTC bug in: getAvailability default date, addDaysPST helper, rollerPolling.ts
+- [x] Verified: Roller availability API correctly reflects real-time booking capacity
+- [x] Example: 10 AM slot shows 7 remaining (12 max - 5 booked by Cody Pitts) ✓
+- [x] All 34 existing tests still passing

@@ -1930,7 +1930,7 @@ Extract as much information as possible from the documents. For the bio, write a
     getAvailability: publicProcedure
       .input(z.object({ date: z.string().optional() }))
       .query(async ({ input }) => {
-        const date = input.date || new Date().toISOString().split("T")[0];
+        const date = input.date || new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
         const products = await getProductAvailability(date);
         
         // Filter to session products and format for TV display
@@ -1960,7 +1960,8 @@ Extract as much information as possible from the documents. For the bio, write a
       }),
 
     getTodaySessions: publicProcedure.query(async () => {
-      const today = new Date().toISOString().split("T")[0];
+      // Use PST date to avoid UTC offset issues (after 4 PM PST, UTC is already tomorrow)
+      const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
       const products = await getProductAvailability(today);
       const sessionProducts = products.filter((p: any) => p.type === "sessionpass");
       
@@ -2015,10 +2016,10 @@ Extract as much information as possible from the documents. For the bio, write a
       const nowTimePST = nowDate.toLocaleTimeString("en-US", { timeZone: "America/Los_Angeles", hour12: false, hour: "2-digit", minute: "2-digit" }); // "HH:mm"
 
       // Helper to add days to a PST date string
-      function addDaysPST(dateStr: string, days: number): string {
+       function addDaysPST(dateStr: string, days: number): string {
         const d = new Date(dateStr + "T12:00:00"); // noon to avoid DST issues
         d.setDate(d.getDate() + days);
-        return d.toISOString().split("T")[0];
+        return d.toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
       }
 
       // Compute date range based on filter

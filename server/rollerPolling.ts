@@ -111,7 +111,8 @@ async function pollForNewBookings() {
   lastPollTime = new Date().toISOString();
 
   try {
-    const today = new Date().toISOString().split("T")[0];
+    // Use PST date to avoid UTC offset issues (after 4 PM PST, UTC is already tomorrow)
+    const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
     const bookings = await searchBookings({ dateFrom: today });
 
     if (!Array.isArray(bookings)) {
