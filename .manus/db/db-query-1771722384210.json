@@ -1,0 +1,18 @@
+{
+  "query": "SELECT DATE(checkInAt) as d, COUNT(*) as c FROM guestSessions WHERE rollerBookingRef IS NOT NULL GROUP BY d ORDER BY d DESC;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2KjT5kGWaGHMws6.75433b4e530a --database aMDMXCoQ2ycSYTjhkKKJzm --execute SELECT DATE(checkInAt) as d, COUNT(*) as c FROM guestSessions WHERE rollerBookingRef IS NOT NULL GROUP BY d ORDER BY d DESC;",
+  "rows": [
+    {
+      "d": "2026-02-22",
+      "c": "114"
+    },
+    {
+      "d": "2026-02-20",
+      "c": "2"
+    }
+  ],
+  "messages": [],
+  "stdout": "d\tc\n2026-02-22\t114\n2026-02-20\t2\n",
+  "stderr": "",
+  "execution_time_ms": 55
+}

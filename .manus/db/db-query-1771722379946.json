@@ -1,0 +1,20 @@
+{
+  "query": "SELECT DATE(checkInAt) as checkin_date, COUNT(*) as cnt, GROUP_CONCAT(guestName SEPARATOR ', ') as names FROM guestSessions WHERE rollerBookingRef IS NOT NULL GROUP BY DATE(checkInAt) ORDER BY checkin_date DESC LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2KjT5kGWaGHMws6.75433b4e530a --database aMDMXCoQ2ycSYTjhkKKJzm --execute SELECT DATE(checkInAt) as checkin_date, COUNT(*) as cnt, GROUP_CONCAT(guestName SEPARATOR ', ') as names FROM guestSessions WHERE rollerBookingRef IS NOT NULL GROUP BY DATE(checkInAt) ORDER BY checkin_date DESC LIMIT 10;",
+  "rows": [
+    {
+      "checkin_date": "2026-02-22",
+      "cnt": "114",
+      "names": "Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest"
+    },
+    {
+      "checkin_date": "2026-02-20",
+      "cnt": "2",
+      "names": "Guest, Guest"
+    }
+  ],
+  "messages": [],
+  "stdout": "checkin_date\tcnt\tnames\n2026-02-22\t114\tGuest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest, Guest\n2026-02-20\t2\tGuest, Guest\n",
+  "stderr": "",
+  "execution_time_ms": 59
+}

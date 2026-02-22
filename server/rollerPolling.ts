@@ -2,8 +2,8 @@
  * Roller Polling Service
  * 
  * Polls the Roller API every 30 seconds for today's bookings.
- * When a new booking is detected (by bookingReference), it automatically
- * creates a guest session on the Guest Status Board.
+ * Only creates guest sessions when a booking's session time window is active
+ * (session has started or starts within 5 minutes).
  * 
  * This replaces the need for manual webhook configuration in Roller's dashboard.
  * The webhook endpoint still exists as a secondary path if Roller sends events.
@@ -11,7 +11,7 @@
 import { searchBookings, listWebhooks, createWebhook, getCustomerDetail } from "./roller";
 import { createGuestSession } from "./db";
 import { guestSessions } from "../drizzle/schema";
-import { eq } from "drizzle-orm";
+import { eq, and, or, isNotNull } from "drizzle-orm";
 import { ENV } from "./_core/env";
 
 // Track processed booking references to avoid duplicates
@@ -38,11 +38,75 @@ function getProductDisplayName(productName: string): string {
 }
 
 /**
- * Poll Roller for today's bookings and auto-create guest sessions for new ones.
+ * Parse a time string (e.g., "14:30") into a Date object for today.
+ * Returns null if the time string is invalid.
+ */
+function parseSessionTime(timeStr: string | undefined | null): Date | null {
+  if (!timeStr || typeof timeStr !== "string") return null;
+  const parts = timeStr.split(":");
+  if (parts.length < 2) return null;
+  const hours = parseInt(parts[0], 10);
+  const minutes = parseInt(parts[1], 10);
+  if (isNaN(hours) || isNaN(minutes)) return null;
+  
+  const date = new Date();
+  date.setHours(hours, minutes, 0, 0);
+  return date;
+}
+
+/**
+ * Check if a booking's session is currently active or about to start.
+ * A session is considered "ready for check-in" when:
+ * - The session start time has already passed, OR
+ * - The session starts within the next 5 minutes
+ * 
+ * A session is considered "expired" (don't create) when:
+ * - The session end time has already passed
+ */
+function isSessionActiveOrImminent(
+  sessionStartTime: string | undefined | null,
+  sessionEndTime: string | undefined | null
+): { ready: boolean; reason: string; checkInAt?: Date; sessionEnd?: Date } {
+  const now = new Date();
+  
+  const startTime = parseSessionTime(sessionStartTime);
+  const endTime = parseSessionTime(sessionEndTime);
+  
+  // If no start time is available, we can't determine the session window
+  // Don't auto-create — require explicit check-in or webhook
+  if (!startTime) {
+    return { ready: false, reason: "no_start_time" };
+  }
+  
+  // If the session has already ended, don't create a session
+  if (endTime && endTime.getTime() < now.getTime()) {
+    return { ready: false, reason: "session_ended" };
+  }
+  
+  const minutesUntilStart = (startTime.getTime() - now.getTime()) / (60 * 1000);
+  
+  // Session starts more than 5 minutes from now — not ready yet
+  if (minutesUntilStart > 5) {
+    return { ready: false, reason: "too_early" };
+  }
+  
+  // Session is active or about to start (within 5 minutes)
+  return {
+    ready: true,
+    reason: "session_active",
+    checkInAt: startTime > now ? startTime : now,
+    sessionEnd: endTime || undefined,
+  };
+}
+
+/**
+ * Poll Roller for today's bookings and auto-create guest sessions
+ * only for bookings whose session time is active or imminent.
  */
 async function pollForNewBookings() {
   if (isPolling) return; // Prevent overlapping polls
   isPolling = true;
+  lastPollTime = new Date().toISOString();
 
   try {
     const today = new Date().toISOString().split("T")[0];
@@ -57,9 +121,6 @@ async function pollForNewBookings() {
       const ref = String(booking.bookingReference || booking.bookingId || "");
       if (!ref || processedBookings.has(ref)) continue;
 
-      // Mark as processed immediately to avoid race conditions
-      processedBookings.add(ref);
-
       // Get booking items to determine session type and time
       const items = booking.items || [];
       if (items.length === 0) continue;
@@ -69,59 +130,57 @@ async function pollForNewBookings() {
       const status = (bookingAny.status || "").toLowerCase();
       if (status === "cancelled" || status === "deleted" || status === "draft") continue;
 
-      // Look up customer name from Roller's customer API
-      let guestName = "Guest";
-      const bookingAnyForCustomer = booking as any;
-      const customerId = bookingAnyForCustomer.customerId;
-      if (customerId) {
-        try {
-          const customer = await getCustomerDetail(customerId);
-          if (customer) {
-            guestName = customer.firstName || customer.lastName || "Guest";
-          }
-        } catch (err: any) {
-          console.warn(`[Roller Poll] Could not fetch customer ${customerId}:`, err.message);
-        }
-      }
-      // Fallback: try booking-level name fields (some endpoints may include them)
-      if (guestName === "Guest") {
-        guestName = bookingAnyForCustomer.firstName || bookingAnyForCustomer.lastName || bookingAnyForCustomer.name || "Guest";
-      }
+      // Process each booking item — check if its session time is active
+      let anyItemProcessed = false;
+      let allItemsTooEarly = true;
 
-      // Process each booking item
       for (const item of items) {
+        // Use sessionStartTime/sessionEndTime from Roller API (the correct field names)
+        const itemAny = item as any;
+        const sessionStart = itemAny.sessionStartTime || itemAny.startTime;
+        const sessionEnd = itemAny.sessionEndTime || itemAny.endTime;
+
+        const { ready, reason, checkInAt, sessionEnd: parsedEnd } = isSessionActiveOrImminent(
+          sessionStart,
+          sessionEnd
+        );
+
+        if (!ready) {
+          if (reason !== "too_early") {
+            allItemsTooEarly = false; // session_ended or no_start_time
+          }
+          continue;
+        }
+
+        allItemsTooEarly = false;
+        anyItemProcessed = true;
+
+        // Look up customer name from Roller's customer API
+        let guestName = "Guest";
+        const customerId = bookingAny.customerId;
+        if (customerId) {
+          try {
+            const customer = await getCustomerDetail(customerId);
+            if (customer) {
+              guestName = customer.firstName || customer.lastName || "Guest";
+            }
+          } catch (err: any) {
+            console.warn(`[Roller Poll] Could not fetch customer ${customerId}:`, err.message);
+          }
+        }
+        // Fallback: try booking-level name field
+        if (guestName === "Guest") {
+          guestName = bookingAny.name || "Guest";
+        }
+
         const productName = item.productName || "Session";
         const quantity = item.quantity || 1;
         const duration = getSessionDuration(productName);
         const durationMinutes = parseInt(duration);
 
-        // Calculate check-in time based on session start time
-        let checkInAt = new Date();
-        let expiresAt = new Date(checkInAt.getTime() + durationMinutes * 60 * 1000);
-
-        // If the booking has a specific session start time, use it
-        if (item.startTime) {
-          const timeStr = item.startTime;
-          const [hours, minutes] = timeStr.split(":").map(Number);
-          const sessionStart = new Date();
-          sessionStart.setHours(hours, minutes, 0, 0);
-          
-          // Only auto-check-in if the session is within 15 minutes of starting or already started
-          const now = new Date();
-          const minutesUntilStart = (sessionStart.getTime() - now.getTime()) / (60 * 1000);
-          
-          if (minutesUntilStart > 15) {
-            // Session hasn't started yet - skip for now, will be picked up in a future poll
-            processedBookings.delete(ref); // Allow re-processing later
-            continue;
-          }
-
-          // Use session start time for check-in
-          if (sessionStart > now) {
-            checkInAt = sessionStart;
-          }
-          expiresAt = new Date(checkInAt.getTime() + durationMinutes * 60 * 1000);
-        }
+        // Use the session start time for check-in, calculate expiry
+        const actualCheckIn = checkInAt || new Date();
+        const expiresAt = parsedEnd || new Date(actualCheckIn.getTime() + durationMinutes * 60 * 1000);
 
         try {
           const session = await createGuestSession({
@@ -129,7 +188,7 @@ async function pollForNewBookings() {
             guestCount: quantity,
             duration,
             notes: `Auto: ${getProductDisplayName(productName)} (Roller #${ref})`,
-            checkInAt,
+            checkInAt: actualCheckIn,
             expiresAt,
             rollerBookingRef: ref,
           });
@@ -140,6 +199,12 @@ async function pollForNewBookings() {
         } catch (err: any) {
           console.error(`[Roller Poll] Failed to create session for booking #${ref}:`, err.message);
         }
+      }
+
+      // Mark as processed if any item was handled, or if all items have ended
+      // Don't mark if all items are "too_early" — we want to re-check later
+      if (anyItemProcessed || !allItemsTooEarly) {
+        processedBookings.add(ref);
       }
     }
   } catch (error: any) {
@@ -155,6 +220,8 @@ async function pollForNewBookings() {
 /**
  * Initialize the processed bookings set with existing sessions that have rollerBookingRef.
  * This prevents re-creating sessions for bookings that were already processed.
+ * Loads ALL sessions with a rollerBookingRef (not just active ones) to prevent
+ * re-processing of completed/expired sessions.
  */
 async function initializeProcessedBookings() {
   try {
@@ -165,7 +232,7 @@ async function initializeProcessedBookings() {
     const existingSessions = await db
       .select({ rollerBookingRef: guestSessions.rollerBookingRef })
       .from(guestSessions)
-      .where(eq(guestSessions.status, "active"));
+      .where(isNotNull(guestSessions.rollerBookingRef));
 
     for (const session of existingSessions) {
       if (session.rollerBookingRef) {
@@ -233,8 +300,29 @@ async function tryRegisterWebhook(siteUrl: string) {
 }
 
 /**
+ * Check if Roller polling is enabled in settings.
+ */
+async function isRollerPollingEnabled(): Promise<boolean> {
+  try {
+    const { getDb } = await import("./db");
+    const db = await getDb();
+    if (!db) return false;
+    const { settings } = await import("../drizzle/schema");
+    const rows = await db.select({ rollerPollingEnabled: settings.rollerPollingEnabled }).from(settings).limit(1);
+    return rows.length > 0 ? rows[0].rollerPollingEnabled : false;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Start the Roller polling service.
- * Polls every 30 seconds for new bookings and auto-creates guest sessions.
+ * Only starts if:
+ * 1. Roller credentials are configured
+ * 2. rollerPollingEnabled is true in settings (admin toggle)
+ * 
+ * Polls every 30 seconds for new bookings and auto-creates guest sessions
+ * only when their session time window is active.
  */
 export async function startRollerPolling(siteUrl?: string) {
   // Don't start if no credentials
@@ -243,7 +331,14 @@ export async function startRollerPolling(siteUrl?: string) {
     return;
   }
 
-  // Initialize with existing booking refs
+  // Check if polling is enabled in admin settings
+  const enabled = await isRollerPollingEnabled();
+  if (!enabled) {
+    console.log("[Roller Poll] Polling disabled in admin settings (Settings → Roller Sync toggle)");
+    return;
+  }
+
+  // Initialize with existing booking refs (all statuses, not just active)
   await initializeProcessedBookings();
 
   // Try to register webhook (best-effort)
@@ -262,6 +357,28 @@ export async function startRollerPolling(siteUrl?: string) {
 }
 
 /**
+ * Enable Roller polling (called from admin toggle).
+ */
+export async function enableRollerPolling(siteUrl?: string) {
+  if (pollingInterval) {
+    console.log("[Roller Poll] Already running");
+    return;
+  }
+  // Force-start without checking settings (admin just enabled it)
+  if (!ENV.rollerClientId || !ENV.rollerClientSecret) {
+    console.log("[Roller Poll] No credentials configured");
+    return;
+  }
+  await initializeProcessedBookings();
+  if (siteUrl) {
+    tryRegisterWebhook(siteUrl).catch(() => {});
+  }
+  console.log("[Roller Poll] Enabled and starting polling service (every 30 seconds)");
+  setTimeout(() => pollForNewBookings(), 2000);
+  pollingInterval = setInterval(() => pollForNewBookings(), 30 * 1000);
+}
+
+/**
  * Stop the polling service.
  */
 export function stopRollerPolling() {
@@ -275,10 +392,13 @@ export function stopRollerPolling() {
 /**
  * Get the current polling status.
  */
+let lastPollTime: string | null = null;
+
 export function getRollerPollingStatus() {
   return {
     isRunning: pollingInterval !== null,
     processedBookingsCount: processedBookings.size,
     hasCredentials: !!(ENV.rollerClientId && ENV.rollerClientSecret),
+    lastPollTime,
   };
 }

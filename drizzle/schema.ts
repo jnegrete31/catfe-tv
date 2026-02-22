@@ -120,6 +120,7 @@ export const settings = mysqlTable("settings", {
   wifiName: varchar("wifiName", { length: 255 }), // WiFi network name for guests
   wifiPassword: varchar("wifiPassword", { length: 255 }), // WiFi password for guests
   houseRules: json("houseRules").$type<string[]>(), // Array of house rules for check-in screen
+  rollerPollingEnabled: boolean("rollerPollingEnabled").notNull().default(false), // Whether Roller auto-sync is enabled (off by default)
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 

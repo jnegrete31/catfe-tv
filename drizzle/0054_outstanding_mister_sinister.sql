@@ -1,0 +1,1 @@
+ALTER TABLE `settings` ADD `rollerPollingEnabled` boolean DEFAULT false NOT NULL;

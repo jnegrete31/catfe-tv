@@ -1,0 +1,8 @@
+{
+  "query": "SELECT id, guest_name, status, roller_booking_ref, notes, check_in_at, expires_at FROM guest_sessions WHERE roller_booking_ref IS NOT NULL ORDER BY check_in_at DESC LIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2KjT5kGWaGHMws6.75433b4e530a --database aMDMXCoQ2ycSYTjhkKKJzm --execute SELECT id, guest_name, status, roller_booking_ref, notes, check_in_at, expires_at FROM guest_sessions WHERE roller_booking_ref IS NOT NULL ORDER BY check_in_at DESC LIMIT 20;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1146 (42S02) at line 1: Table 'amdmxcoq2ycsytjhkkkjzm.guest_sessions' doesn't exist"
+  ]
+}

@@ -5,6 +5,7 @@ import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import {
+  getDb,
   getAllScreens,
   getActiveScreens,
   getScreensByType,
@@ -132,6 +133,8 @@ import { invokeLLM } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
 import { getProductAvailability, searchBookings, testConnection } from "./roller";
 import { getRollerPollingStatus } from "./rollerPolling";
+import { settings } from "../drizzle/schema";
+import { eq } from "drizzle-orm";
 
 // Screen type enum values
 const screenTypes = [
@@ -2000,13 +2003,38 @@ Extract as much information as possible from the documents. For the bio, write a
     getStatus: protectedProcedure.query(async () => {
       const pollingStatus = getRollerPollingStatus();
       const connectionTest = await testConnection();
+      // Also get the settings toggle value
+      const settingsRow = await getSettings();
       return {
         ...pollingStatus,
+        pollingEnabled: settingsRow?.rollerPollingEnabled ?? false,
         connectionOk: connectionTest.success,
         productCount: connectionTest.productCount,
         connectionError: connectionTest.error,
       };
     }),
+
+    // Toggle Roller polling on/off
+    togglePolling: protectedProcedure
+      .input(z.object({ enabled: z.boolean() }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new Error("Database not available");
+        
+        await db.update(settings).set({ rollerPollingEnabled: input.enabled }).where(eq(settings.id, 1));
+        
+        if (input.enabled) {
+          // Start polling immediately
+          const { enableRollerPolling } = await import("./rollerPolling");
+          await enableRollerPolling();
+        } else {
+          // Stop polling
+          const { stopRollerPolling } = await import("./rollerPolling");
+          stopRollerPolling();
+        }
+        
+        return { enabled: input.enabled };
+      }),
   }),
 
   // ============ VOLUNTEERS ============

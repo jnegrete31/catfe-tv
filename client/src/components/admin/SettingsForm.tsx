@@ -10,8 +10,65 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import type { Settings } from "@shared/types";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { Save, Github, Upload, X, Image as ImageIcon, Video, FileText, Wifi, ClipboardList, Plus, Trash2 } from "lucide-react";
+import { Save, Github, Upload, X, Image as ImageIcon, Video, FileText, Wifi, ClipboardList, Plus, Trash2, RefreshCw } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+
+// Roller Sync Toggle - separate from main form since it uses its own mutation
+function RollerSyncToggle() {
+  const statusQuery = trpc.roller.getStatus.useQuery(undefined, {
+    refetchInterval: 10000, // Refresh every 10s
+  });
+  const toggleMutation = trpc.roller.togglePolling.useMutation({
+    onSuccess: (data) => {
+      statusQuery.refetch();
+      toast.success(data.enabled ? "Roller sync enabled" : "Roller sync disabled");
+    },
+    onError: (err) => {
+      toast.error(`Failed to toggle: ${err.message}`);
+    },
+  });
+
+  const isEnabled = statusQuery.data?.pollingEnabled ?? false;
+  const isRunning = statusQuery.data?.isRunning ?? false;
+  const connectionOk = statusQuery.data?.connectionOk ?? false;
+  const lastPollTime = statusQuery.data?.lastPollTime;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="space-y-0.5">
+          <Label className="text-base">Auto-Sync Guests</Label>
+          <p className="text-sm text-muted-foreground">
+            Automatically create guest sessions from Roller bookings when their session time starts
+          </p>
+        </div>
+        <Switch
+          checked={isEnabled}
+          onCheckedChange={(checked) => toggleMutation.mutate({ enabled: checked })}
+          disabled={toggleMutation.isPending || statusQuery.isLoading}
+        />
+      </div>
+      
+      {/* Status indicators */}
+      <div className="p-3 bg-muted rounded-lg text-sm space-y-1">
+        <div className="flex items-center gap-2">
+          <div className={`w-2 h-2 rounded-full ${connectionOk ? 'bg-green-500' : 'bg-red-500'}`} />
+          <span>Roller API: {connectionOk ? 'Connected' : 'Not connected'}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className={`w-2 h-2 rounded-full ${isRunning ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
+          <span>Polling: {isRunning ? 'Active' : 'Stopped'}</span>
+        </div>
+        {lastPollTime && (
+          <p className="text-muted-foreground text-xs">
+            Last poll: {new Date(lastPollTime).toLocaleTimeString()}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
 
 const settingsSchema = z.object({
   locationName: z.string().min(1).max(255),
@@ -575,6 +632,22 @@ export function SettingsForm({ settings, onSuccess }: SettingsFormProps) {
         </CardContent>
       </Card>
       
+      {/* Roller Integration */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <RefreshCw className="w-5 h-5 text-purple-600" />
+            Roller Integration
+          </CardTitle>
+          <CardDescription>
+            Auto-sync guest check-ins from Roller booking system
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <RollerSyncToggle />
+        </CardContent>
+      </Card>
+
       {/* Save Button */}
       <Button
         type="submit"

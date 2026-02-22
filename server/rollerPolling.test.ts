@@ -12,7 +12,19 @@ vi.mock("./roller", () => ({
 // Mock the db module
 vi.mock("./db", () => ({
   createGuestSession: vi.fn().mockResolvedValue({ id: 1 }),
-  getDb: vi.fn().mockResolvedValue(null),
+  getDb: vi.fn().mockResolvedValue({
+    select: vi.fn().mockReturnValue({
+      from: vi.fn().mockReturnValue({
+        limit: vi.fn().mockResolvedValue([{ rollerPollingEnabled: true }]),
+      }),
+    }),
+  }),
+}));
+
+// Mock the drizzle schema
+vi.mock("../drizzle/schema", () => ({
+  settings: { rollerPollingEnabled: "rollerPollingEnabled" },
+  guestSessions: { rollerBookingRef: "rollerBookingRef" },
 }));
 
 // Mock the ENV
@@ -24,7 +36,7 @@ vi.mock("./_core/env", () => ({
 }));
 
 import { searchBookings, getCustomerDetail } from "./roller";
-import { createGuestSession } from "./db";
+import { createGuestSession, getDb } from "./db";
 
 // We need to test the internal logic, so we'll import and test the module
 // Since the polling functions use module-level state, we test via the exported functions

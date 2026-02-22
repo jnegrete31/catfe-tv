@@ -1602,3 +1602,17 @@
 - [x] Falls back to booking.name then "Guest" if customer lookup fails
 - [x] Added customer name lookup tests (3 new tests, 220 total passing)
 - [ ] Test with live Roller data (requires republish)
+
+## Bug - Roller polling creating too many guest check-ins
+- [x] Investigated: polling was pulling ALL bookings for today, not just checked-in ones
+- [x] Root cause: Roller API doesn't have redemption status; startTime field was undefined so time check was skipped
+- [x] Fixed polling to only create sessions when booking's sessionStartTime is within 5 min window
+- [x] Added proper time-window filtering (5 min before to session end)
+- [x] Cleaned up all excess Roller-created guest sessions from database
+
+## Cleanup - Roller auto-created guest sessions
+- [x] Deleted all Roller-created guest sessions from database
+- [x] Disabled auto-start of Roller polling (off by default via rollerPollingEnabled setting)
+- [x] Added admin toggle in Settings → Roller Integration (with connection status indicators)
+- [x] Added lastPollTime tracking to polling status
+- [x] All 217 tests passing, production build verified
