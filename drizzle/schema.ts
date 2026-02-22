@@ -591,3 +591,19 @@ export const instagramPosts = mysqlTable("instagramPosts", {
 
 export type InstagramPost = typeof instagramPosts.$inferSelect;
 export type InsertInstagramPost = typeof instagramPosts.$inferInsert;
+
+/**
+ * Roller booking arrivals - tracks when staff marks a Roller booking guest as physically arrived
+ */
+export const bookingArrivals = mysqlTable("bookingArrivals", {
+  id: int("id").autoincrement().primaryKey(),
+  bookingId: int("bookingId").notNull().unique(), // Roller booking ID
+  bookingRef: varchar("bookingRef", { length: 64 }), // Roller booking reference string
+  arrivedAt: timestamp("arrivedAt").defaultNow().notNull(), // When staff marked them as arrived
+  markedByUserId: int("markedByUserId"), // User ID of the staff member who marked arrival
+  guestName: varchar("guestName", { length: 255 }), // Snapshot of guest name at time of arrival
+  partySize: int("partySize"), // Snapshot of party size
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type BookingArrival = typeof bookingArrivals.$inferSelect;
+export type InsertBookingArrival = typeof bookingArrivals.$inferInsert;

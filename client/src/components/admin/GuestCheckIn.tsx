@@ -73,6 +73,8 @@ type RollerBookingEntry = {
   guestSessionId: number | null;
   total: number;
   bookingStatus: string;
+  arrivedAt: string | null;
+  markedByUserId: number | null;
 };
 
 type DateFilter = "today" | "tomorrow" | "week" | "month";
@@ -315,9 +317,48 @@ function RollerBookingsSection() {
 }
 
 function BookingCard({ booking, showDate }: { booking: RollerBookingEntry; showDate: boolean }) {
+  const utils = trpc.useUtils();
+  const markArrivedMutation = trpc.roller.markArrived.useMutation({
+    onSuccess: () => {
+      toast.success(`${booking.customerName} marked as arrived!`);
+      utils.roller.getTodayBookings.invalidate();
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to mark as arrived");
+    },
+  });
+  const unmarkArrivedMutation = trpc.roller.unmarkArrived.useMutation({
+    onSuccess: () => {
+      toast.success(`Arrival undone for ${booking.customerName}`);
+      utils.roller.getTodayBookings.invalidate();
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to undo arrival");
+    },
+  });
+
+  const isArrived = !!booking.arrivedAt;
+  const isPast = booking.status === "completed" || booking.status === "expired";
+
+  function handleMarkArrived() {
+    if (!booking.bookingId) return;
+    markArrivedMutation.mutate({
+      bookingId: booking.bookingId,
+      bookingRef: booking.bookingReference,
+      guestName: booking.customerName,
+      partySize: booking.quantity,
+    });
+  }
+
+  function handleUnmarkArrived() {
+    if (!booking.bookingId) return;
+    unmarkArrivedMutation.mutate({ bookingId: booking.bookingId });
+  }
+
   return (
     <Card 
       className={
+        isArrived ? "border-green-300 bg-green-50/40" :
         booking.status === "checked_in" ? "border-green-200 bg-green-50/30" :
         booking.status === "upcoming" ? "border-blue-200 bg-blue-50/20" :
         booking.status === "expired" ? "border-red-200 bg-red-50/20 opacity-60" :
@@ -336,6 +377,12 @@ function BookingCard({ booking, showDate }: { booking: RollerBookingEntry; showD
                   {booking.quantity} {booking.quantity === 1 ? "guest" : "guests"}
                 </Badge>
               )}
+              {isArrived && (
+                <Badge variant="outline" className="text-[10px] sm:text-xs gap-0.5 border-green-400 text-green-700 bg-green-100">
+                  <CheckCircle2 className="w-3 h-3" />
+                  Arrived
+                </Badge>
+              )}
             </div>
             <div className="flex items-center gap-2 sm:gap-3 mt-1 text-xs sm:text-sm text-muted-foreground flex-wrap">
               <span className="flex items-center gap-1">
@@ -352,10 +399,46 @@ function BookingCard({ booking, showDate }: { booking: RollerBookingEntry; showD
               {showDate && booking.bookingDate && (
                 <span>· {formatDateLabel(booking.bookingDate)}</span>
               )}
+              {isArrived && booking.arrivedAt && (
+                <span className="text-green-600">
+                  · Arrived at {new Date(booking.arrivedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", timeZone: "America/Los_Angeles" })}
+                </span>
+              )}
             </div>
           </div>
-          <div className="shrink-0">
+          <div className="shrink-0 flex flex-col items-end gap-1.5">
             <BookingStatusBadge status={booking.status} />
+            {!isArrived && !isPast && booking.bookingId && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs gap-1 border-green-300 text-green-700 hover:bg-green-50 hover:text-green-800"
+                onClick={handleMarkArrived}
+                disabled={markArrivedMutation.isPending}
+              >
+                {markArrivedMutation.isPending ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : (
+                  <Footprints className="w-3 h-3" />
+                )}
+                Mark Arrived
+              </Button>
+            )}
+            {isArrived && !isPast && booking.bookingId && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 text-[10px] text-muted-foreground hover:text-red-600"
+                onClick={handleUnmarkArrived}
+                disabled={unmarkArrivedMutation.isPending}
+              >
+                {unmarkArrivedMutation.isPending ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : (
+                  "Undo"
+                )}
+              </Button>
+            )}
           </div>
         </div>
       </CardContent>

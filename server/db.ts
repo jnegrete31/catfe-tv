@@ -18,7 +18,8 @@ import {
   slideTemplates, InsertSlideTemplate, SlideTemplate, TemplateElement,
   cats, InsertCat, Cat,
   volunteers, InsertVolunteer, Volunteer,
-  instagramPosts, InsertInstagramPost, InstagramPost
+  instagramPosts, InsertInstagramPost, InstagramPost,
+  bookingArrivals, InsertBookingArrival, BookingArrival
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -2307,4 +2308,44 @@ export async function getTodaysBirthdayCats(): Promise<Cat[]> {
     const dob = new Date(cat.dob);
     return dob.getMonth() === todayMonth && dob.getDate() === todayDate;
   });
+}
+
+
+// ---- Booking Arrivals ----
+
+export async function markBookingArrived(data: {
+  bookingId: number;
+  bookingRef?: string;
+  markedByUserId?: number;
+  guestName?: string;
+  partySize?: number;
+}): Promise<BookingArrival | null> {
+  const db = await getDb();
+  if (!db) return null;
+  await db.insert(bookingArrivals).values({
+    bookingId: data.bookingId,
+    bookingRef: data.bookingRef || null,
+    markedByUserId: data.markedByUserId || null,
+    guestName: data.guestName || null,
+    partySize: data.partySize || null,
+  });
+  const [arrival] = await db.select().from(bookingArrivals)
+    .where(eq(bookingArrivals.bookingId, data.bookingId));
+  return arrival || null;
+}
+
+export async function unmarkBookingArrived(bookingId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  await db.delete(bookingArrivals)
+    .where(eq(bookingArrivals.bookingId, bookingId));
+  return true;
+}
+
+export async function getBookingArrivals(bookingIds: number[]): Promise<BookingArrival[]> {
+  const db = await getDb();
+  if (!db) return [];
+  if (bookingIds.length === 0) return [];
+  return db.select().from(bookingArrivals)
+    .where(inArray(bookingArrivals.bookingId, bookingIds));
 }

@@ -127,6 +127,9 @@ import {
   deleteInstagramPost,
   getCatsWithUpcomingBirthdays,
   getTodaysBirthdayCats,
+  markBookingArrived,
+  unmarkBookingArrived,
+  getBookingArrivals,
 } from "./db";
 import { storagePut } from "./storage";
 import { invokeLLM } from "./_core/llm";
@@ -2060,16 +2063,44 @@ Extract as much information as possible from the documents. For the bio, write a
         return true;
       });
 
-      // Build a product name lookup from availability API (use dateFrom)
+      // Build product name + session endTime lookups from availability API
       let productNameMap = new Map<number, string>();
+      // Key: "productId:startTime" -> endTime from availability sessions
+      let sessionEndTimeMap = new Map<string, string>();
       try {
-        const products = await getProductAvailability(dateFrom);
-        for (const p of products) {
-          const pid = p.id || p.parentProductId;
-          const pname = p.parentProductName || p.name;
-          if (pid && pname) productNameMap.set(pid, pname);
-          for (const child of (p.products || [])) {
-            if (child.id) productNameMap.set(child.id, pname);
+        // Fetch availability for each unique date in the range
+        const uniqueDates = new Set<string>();
+        for (const b of filteredBookings) {
+          const bd = b.items?.[0]?.bookingDate;
+          if (bd) uniqueDates.add(bd);
+        }
+        if (uniqueDates.size === 0) uniqueDates.add(dateFrom);
+        const availResults = await Promise.all(
+          [...uniqueDates].map((d) => getProductAvailability(d).catch(() => []))
+        );
+        for (const products of availResults) {
+          for (const p of products) {
+            const pid = p.id || p.parentProductId;
+            const pname = p.parentProductName || p.name;
+            if (pid && pname) productNameMap.set(pid, pname);
+            for (const child of (p.products || [])) {
+              if (child.id) productNameMap.set(child.id, pname);
+            }
+            // Extract session start/end times for accurate duration
+            for (const session of (p.sessions || [])) {
+              if (session.startTime && session.endTime) {
+                // Map each child product's startTime to its endTime
+                for (const child of (p.products || [])) {
+                  if (child.id) {
+                    sessionEndTimeMap.set(`${child.id}:${session.startTime}`, session.endTime);
+                  }
+                }
+                // Also map parent product ID
+                if (pid) {
+                  sessionEndTimeMap.set(`${pid}:${session.startTime}`, session.endTime);
+                }
+              }
+            }
           }
         }
       } catch { /* availability lookup is optional */ }
@@ -2100,9 +2131,27 @@ Extract as much information as possible from the documents. For the bio, write a
           
           const sessionStartTime = rawStartTime || null;
           let sessionEndTime: string | null = null;
-          if (rawStartTime) {
+          if (rawStartTime && productId) {
+            // First try: exact endTime from availability sessions
+            const lookupKey = `${productId}:${rawStartTime}`;
+            const exactEnd = sessionEndTimeMap.get(lookupKey);
+            if (exactEnd) {
+              sessionEndTime = exactEnd;
+            } else {
+              // Fallback: determine duration from product name
+              // Study sessions = 90 min, Cat Lounge sessions = 60 min
+              const isStudy = productName.toLowerCase().includes("study");
+              const durationMin = isStudy ? 90 : 60;
+              const [h, m] = rawStartTime.split(":").map(Number);
+              const totalMin = h * 60 + m + durationMin;
+              const endH = Math.floor(totalMin / 60) % 24;
+              const endM = totalMin % 60;
+              sessionEndTime = `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`;
+            }
+          } else if (rawStartTime) {
+            // No productId: default to 60 min
             const [h, m] = rawStartTime.split(":").map(Number);
-            const totalMin = h * 60 + m + 90;
+            const totalMin = h * 60 + m + 60;
             const endH = Math.floor(totalMin / 60) % 24;
             const endM = totalMin % 60;
             sessionEndTime = `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`;
@@ -2120,7 +2169,7 @@ Extract as much information as possible from the documents. For the bio, write a
           }
           
           return {
-            bookingId: booking.bookingId || null,
+            bookingId: booking.bookingReference ? parseInt(booking.bookingReference) : null,
             bookingReference: ref,
             customerName,
             customerId: booking.customerId,
@@ -2133,9 +2182,34 @@ Extract as much information as possible from the documents. For the bio, write a
             guestSessionId: null,
             total: booking.total || 0,
             bookingStatus: booking.status || "unknown",
+            arrivedAt: null as string | null,
+            markedByUserId: null as number | null,
           };
         })
       );
+
+      // Look up arrival records for all bookings
+      const bookingIds = enriched
+        .map((b) => b.bookingId)
+        .filter((id): id is number => id != null);
+      let arrivalMap = new Map<number, { arrivedAt: Date; markedByUserId: number | null }>();
+      if (bookingIds.length > 0) {
+        try {
+          const arrivals = await getBookingArrivals(bookingIds);
+          for (const a of arrivals) {
+            arrivalMap.set(a.bookingId, { arrivedAt: a.arrivedAt, markedByUserId: a.markedByUserId });
+          }
+        } catch { /* arrival lookup is optional */ }
+      }
+
+      // Merge arrival data into enriched bookings
+      for (const b of enriched) {
+        if (b.bookingId && arrivalMap.has(b.bookingId)) {
+          const arrival = arrivalMap.get(b.bookingId)!;
+          b.arrivedAt = arrival.arrivedAt.toISOString();
+          b.markedByUserId = arrival.markedByUserId;
+        }
+      }
       
       // Sort: by date first, then by status priority, then by start time
       enriched.sort((a, b) => {
@@ -2156,6 +2230,35 @@ Extract as much information as possible from the documents. For the bio, write a
       
       return enriched;
     }),
+
+    // Mark a Roller booking guest as physically arrived
+    markArrived: protectedProcedure
+      .input(z.object({
+        bookingId: z.number(),
+        bookingRef: z.string().optional(),
+        guestName: z.string().optional(),
+        partySize: z.number().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const arrival = await markBookingArrived({
+          bookingId: input.bookingId,
+          bookingRef: input.bookingRef,
+          markedByUserId: ctx.user.id,
+          guestName: input.guestName,
+          partySize: input.partySize,
+        });
+        return { success: !!arrival, arrival };
+      }),
+
+    // Undo marking a booking as arrived
+    unmarkArrived: protectedProcedure
+      .input(z.object({
+        bookingId: z.number(),
+      }))
+      .mutation(async ({ input }) => {
+        const success = await unmarkBookingArrived(input.bookingId);
+        return { success };
+      }),
 
     // Get integration status (polling + webhook + connection)
     getStatus: protectedProcedure.query(async () => {

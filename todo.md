@@ -1654,3 +1654,21 @@
 - [x] Write tests for date range logic (25 tests passing)
 - [x] Fixed multi-day fetching: Roller API only returns one day per call, so week/month fetch each day in parallel
 - [x] Deduplication by bookingId to prevent overlap
+
+## Feature - Mark as Arrived button for Roller bookings
+- [x] Add database table to track Roller booking arrivals (bookingId, arrivedAt, markedBy)
+- [x] Add backend endpoint to mark a booking as arrived (roller.markArrived)
+- [x] Add backend endpoint to undo arrival (roller.unmarkArrived)
+- [x] Add backend endpoint to fetch arrival status for bookings (merged into getTodayBookings)
+- [x] Add "Mark as Arrived" button on each Roller booking card
+- [x] Show green "Arrived" badge and arrival timestamp (PST) when guest has been marked
+- [x] Show "Undo" button to reverse arrival marking
+- [x] Hide Mark Arrived button for completed/expired bookings
+- [x] Fixed bookingId NaN bug: use bookingReference (numeric) instead of uniqueId (UUID)
+- [x] Write tests for arrival tracking logic (34 tests passing)
+
+## Bug - Session end time hardcoded to 90 minutes
+- [x] Investigated Roller API: availability API provides startTime/endTime per session slot
+- [x] Fixed: now uses availability API endTime lookup for correct durations
+- [x] Cat Lounge Session = 60 min, Study Session = 90 min, Mini Meow Session = 30 min
+- [x] Fallback: if no availability match, uses product name to determine duration

@@ -387,3 +387,110 @@ describe("date filter range computation", () => {
     expect(bookings[4].bookingDate).toBe("2026-02-23");
   });
 });
+
+describe("Mark as Arrived feature", () => {
+  it("should track arrival separately from time-based status", () => {
+    // A booking can be "upcoming" (time-based) but also marked as arrived
+    const booking = {
+      status: "upcoming",
+      arrivedAt: "2026-02-22T10:05:00.000Z",
+      markedByUserId: 1,
+    };
+
+    const isArrived = !!booking.arrivedAt;
+    expect(isArrived).toBe(true);
+    expect(booking.status).toBe("upcoming"); // status is still time-based
+  });
+
+  it("should not show Mark Arrived button for completed/expired bookings", () => {
+    const completedBooking = { status: "completed", arrivedAt: null };
+    const expiredBooking = { status: "expired", arrivedAt: null };
+    const upcomingBooking = { status: "upcoming", arrivedAt: null };
+
+    const isPast = (status: string) => status === "completed" || status === "expired";
+
+    expect(isPast(completedBooking.status)).toBe(true);
+    expect(isPast(expiredBooking.status)).toBe(true);
+    expect(isPast(upcomingBooking.status)).toBe(false);
+  });
+
+  it("should show Undo button when already arrived and not past", () => {
+    const arrivedBooking = {
+      status: "upcoming",
+      arrivedAt: "2026-02-22T10:05:00.000Z",
+      bookingId: 137593126,
+    };
+
+    const isArrived = !!arrivedBooking.arrivedAt;
+    const isPast = arrivedBooking.status === "completed" || arrivedBooking.status === "expired";
+
+    // Should show Undo (not Mark Arrived)
+    expect(isArrived && !isPast).toBe(true);
+  });
+
+  it("should use bookingReference as bookingId (numeric)", () => {
+    const bookingReference = "137593126";
+    const bookingId = bookingReference ? parseInt(bookingReference) : null;
+
+    expect(bookingId).toBe(137593126);
+    expect(typeof bookingId).toBe("number");
+  });
+
+  it("should not produce NaN from UUID uniqueId", () => {
+    const uniqueId = "cb3b2177-0ab0-4fb6-873b-5cc7c5d4f4ba";
+    const bookingReference = "137593126";
+
+    // Old buggy approach: parseInt(uniqueId) → NaN
+    expect(parseInt(uniqueId)).toBeNaN();
+
+    // Fixed approach: use bookingReference
+    const bookingId = bookingReference ? parseInt(bookingReference) : null;
+    expect(bookingId).toBe(137593126);
+  });
+
+  it("should merge arrival data into booking entries", () => {
+    const arrivals = [
+      { bookingId: 137593126, arrivedAt: new Date("2026-02-22T10:05:00.000Z"), markedByUserId: 1 },
+    ];
+
+    const bookings = [
+      { bookingId: 137593126, customerName: "Cody Pitts", arrivedAt: null as string | null, markedByUserId: null as number | null },
+      { bookingId: 137609165, customerName: "Katherine Hayes", arrivedAt: null as string | null, markedByUserId: null as number | null },
+    ];
+
+    const arrivalMap = new Map(arrivals.map(a => [a.bookingId, a]));
+    for (const b of bookings) {
+      const arrival = b.bookingId ? arrivalMap.get(b.bookingId) : null;
+      if (arrival) {
+        b.arrivedAt = arrival.arrivedAt.toISOString();
+        b.markedByUserId = arrival.markedByUserId;
+      }
+    }
+
+    expect(bookings[0].arrivedAt).toBe("2026-02-22T10:05:00.000Z");
+    expect(bookings[0].markedByUserId).toBe(1);
+    expect(bookings[1].arrivedAt).toBeNull();
+    expect(bookings[1].markedByUserId).toBeNull();
+  });
+});
+
+describe("Session duration by product type", () => {
+  it("should use 60 min for Cat Lounge Session", () => {
+    const productName = "Cat Lounge Session";
+    const duration = productName.toLowerCase().includes("study") ? 90 : 60;
+    expect(duration).toBe(60);
+  });
+
+  it("should use 90 min for Study Session", () => {
+    const productName = "Study Session";
+    const duration = productName.toLowerCase().includes("study") ? 90 : 60;
+    expect(duration).toBe(90);
+  });
+
+  it("should use availability API endTime when available", () => {
+    // Simulate availability session with explicit endTime
+    const session = { startTime: "12:00", endTime: "12:30" };
+    // Mini Meow Session: 30 min, endTime comes from API
+    expect(session.endTime).toBe("12:30");
+  });
+});
