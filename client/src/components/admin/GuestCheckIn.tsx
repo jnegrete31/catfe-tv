@@ -1157,9 +1157,16 @@ function WalkInsSection() {
   };
 
   const renderSessionCard = (session: GuestSession, isRoller: boolean) => {
-    const timeRemaining = formatTimeRemaining(new Date(session.expiresAt));
-    const isExpired = new Date(session.expiresAt).getTime() <= Date.now();
-    const isWarning = !isExpired && new Date(session.expiresAt).getTime() - Date.now() <= 5 * 60 * 1000;
+    const now = Date.now();
+    const checkInTime = new Date(session.checkInAt).getTime();
+    const expiresTime = new Date(session.expiresAt).getTime();
+    // For Roller guests: session hasn't started yet if checkInAt is in the future
+    const isNotStarted = isRoller && checkInTime > now;
+    const timeRemaining = isNotStarted
+      ? `Starts ${new Date(session.checkInAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", timeZone: "America/Los_Angeles" })}`
+      : formatTimeRemaining(new Date(session.expiresAt));
+    const isExpired = !isNotStarted && expiresTime <= now;
+    const isWarning = !isNotStarted && !isExpired && expiresTime - now <= 5 * 60 * 1000;
     
     return (
       <Card key={session.id} className={isExpired ? "border-red-300" : isWarning ? "border-amber-300" : ""}>
@@ -1198,8 +1205,12 @@ function WalkInsSection() {
             </div>
             
             <div className="shrink-0">
-              <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs sm:text-sm font-medium ${getStatusColor(session)}`}>
-                {isExpired ? (
+              <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs sm:text-sm font-medium ${
+                isNotStarted ? "bg-blue-50 text-blue-700" : getStatusColor(session)
+              }`}>
+                {isNotStarted ? (
+                  <CalendarClock className="w-3 h-3" />
+                ) : isExpired ? (
                   <AlertCircle className="w-3 h-3" />
                 ) : (
                   <Timer className="w-3 h-3" />

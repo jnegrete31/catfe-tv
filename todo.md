@@ -1780,3 +1780,7 @@
 - [x] Persist custom tab order in localStorage
 - [x] Add reset-to-default option
 - [x] Ensure tabs stay centered per design preference
+
+## Bug Fix - Roller guest countdown starts before session
+- [x] Fix countdown timer for Roller guests to only start at booked session start time
+- [x] Show "Starts at X:XX" instead of countdown before session begins
