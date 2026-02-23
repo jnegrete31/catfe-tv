@@ -1731,3 +1731,17 @@
 - [x] Summary auto-refreshes (Roller every 30s, Walk-In stats every 10s)
 - [x] Loading skeleton while data fetches
 - [x] Verified in browser, 34 tests passing
+
+## Feature - Visual timeline for Roller Bookings
+- [x] Add a horizontal timeline showing the day's time slots (10 AM – 6 PM, auto-scaled)
+- [x] Show booking blocks positioned by their start/end times on the timeline
+- [x] Add a "now" indicator line (red line + dot) with live "Now: 4:45 PM" badge
+- [x] Color-code blocks: blue=upcoming, green=arrived, gray=completed, red=no show
+- [x] Show guest name and party size on each block, checkmark icon for arrived
+- [x] Hover tooltip with full details (name, time range, product, arrival status)
+- [x] Stack overlapping bookings in multiple rows (auto-layout)
+- [x] Timeline auto-scrolls to center on current time
+- [x] Only show on "Today" filter
+- [x] Legend bar: Upcoming, Arrived, Completed, Now
+- [x] Hour grid lines with dashed separators
+- [x] Verified in browser, 34 tests passing

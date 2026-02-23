@@ -186,6 +186,222 @@ function formatDateLabel(dateStr: string): string {
   return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
 }
 
+// ============ BOOKING TIMELINE ============
+function parseHHMM(timeStr: string | null): number | null {
+  if (!timeStr) return null;
+  const m = timeStr.match(/^(\d{1,2}):(\d{2})$/);
+  if (!m) return null;
+  return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+}
+
+function BookingTimeline({ bookings }: { bookings: RollerBookingEntry[] }) {
+  const [, setTick] = useState(0);
+  const timelineRef = useRef<HTMLDivElement>(null);
+
+  // Update every 30 seconds for the "now" line
+  useEffect(() => {
+    const interval = setInterval(() => setTick(t => t + 1), 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Determine timeline range from bookings
+  const timeSlots = bookings
+    .filter(b => b.sessionStartTime && b.sessionEndTime)
+    .map(b => ({
+      start: parseHHMM(b.sessionStartTime)!,
+      end: parseHHMM(b.sessionEndTime)!,
+    }))
+    .filter(s => s.start !== null && s.end !== null);
+
+  if (timeSlots.length === 0) return null;
+
+  const earliestBooking = Math.min(...timeSlots.map(s => s.start));
+  const latestBooking = Math.max(...timeSlots.map(s => s.end));
+
+  // Pad to full hours and add buffer
+  const timelineStartMin = Math.floor(earliestBooking / 60) * 60;
+  const timelineEndMin = Math.ceil(latestBooking / 60) * 60;
+  const totalMinutes = timelineEndMin - timelineStartMin;
+
+  if (totalMinutes <= 0) return null;
+
+  // Current time in PST
+  const now = new Date();
+  const pstStr = now.toLocaleTimeString("en-US", { timeZone: "America/Los_Angeles", hour12: false, hour: "2-digit", minute: "2-digit" });
+  const nowMinutes = parseHHMM(pstStr);
+  const nowPercent = nowMinutes !== null ? ((nowMinutes - timelineStartMin) / totalMinutes) * 100 : null;
+  const isNowVisible = nowPercent !== null && nowPercent >= 0 && nowPercent <= 100;
+
+  // Generate hour labels
+  const hourLabels: { label: string; percent: number }[] = [];
+  for (let m = timelineStartMin; m <= timelineEndMin; m += 60) {
+    const h = m / 60;
+    const ampm = h >= 12 ? "PM" : "AM";
+    const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+    hourLabels.push({
+      label: `${h12}${ampm}`,
+      percent: ((m - timelineStartMin) / totalMinutes) * 100,
+    });
+  }
+
+  // Build booking rows (stack overlapping bookings)
+  type TimelineBlock = {
+    booking: RollerBookingEntry;
+    startPct: number;
+    widthPct: number;
+  };
+
+  const rows: TimelineBlock[][] = [];
+  const sortedBookings = [...bookings]
+    .filter(b => b.sessionStartTime && b.sessionEndTime)
+    .sort((a, b) => (parseHHMM(a.sessionStartTime) || 0) - (parseHHMM(b.sessionStartTime) || 0));
+
+  for (const booking of sortedBookings) {
+    const startMin = parseHHMM(booking.sessionStartTime)!;
+    const endMin = parseHHMM(booking.sessionEndTime)!;
+    const startPct = ((startMin - timelineStartMin) / totalMinutes) * 100;
+    const widthPct = ((endMin - startMin) / totalMinutes) * 100;
+    const block: TimelineBlock = { booking, startPct, widthPct };
+
+    // Find a row where this block doesn't overlap
+    let placed = false;
+    for (const row of rows) {
+      const lastBlock = row[row.length - 1];
+      if (lastBlock.startPct + lastBlock.widthPct <= startPct + 0.5) {
+        row.push(block);
+        placed = true;
+        break;
+      }
+    }
+    if (!placed) {
+      rows.push([block]);
+    }
+  }
+
+  function getBlockColor(booking: RollerBookingEntry): string {
+    if (booking.arrivedAt) return "bg-green-500/90 border-green-600";
+    switch (booking.status) {
+      case "upcoming": return "bg-blue-400/80 border-blue-500";
+      case "checked_in": return "bg-green-400/80 border-green-500";
+      case "completed": return "bg-gray-300/80 border-gray-400";
+      case "expired": return "bg-red-300/60 border-red-400";
+      default: return "bg-gray-300/80 border-gray-400";
+    }
+  }
+
+  // Auto-scroll to current time
+  useEffect(() => {
+    if (isNowVisible && timelineRef.current) {
+      const container = timelineRef.current;
+      const scrollTarget = (nowPercent! / 100) * container.scrollWidth - container.clientWidth / 2;
+      container.scrollLeft = Math.max(0, scrollTarget);
+    }
+  }, [isNowVisible, nowPercent]);
+
+  return (
+    <Card className="overflow-hidden">
+      <CardContent className="p-3 sm:p-4">
+        <div className="flex items-center gap-2 mb-2">
+          <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+          <span className="text-xs font-medium text-muted-foreground">Today's Timeline</span>
+          {isNowVisible && (
+            <Badge variant="outline" className="text-[10px] gap-1 border-red-300 text-red-600 bg-red-50 ml-auto">
+              <CircleDot className="w-2.5 h-2.5 animate-pulse" />
+              Now: {formatTime(pstStr)}
+            </Badge>
+          )}
+        </div>
+        <div ref={timelineRef} className="overflow-x-auto">
+          <div className="relative" style={{ minWidth: Math.max(400, totalMinutes * 2) + "px" }}>
+            {/* Hour grid lines and labels */}
+            <div className="relative h-5 mb-1">
+              {hourLabels.map((h, i) => (
+                <div
+                  key={i}
+                  className="absolute text-[10px] text-muted-foreground font-medium"
+                  style={{ left: `${h.percent}%`, transform: "translateX(-50%)" }}
+                >
+                  {h.label}
+                </div>
+              ))}
+            </div>
+
+            {/* Timeline body */}
+            <div className="relative bg-muted/30 rounded-lg border" style={{ minHeight: rows.length * 32 + 8 + "px" }}>
+              {/* Hour grid lines */}
+              {hourLabels.map((h, i) => (
+                <div
+                  key={i}
+                  className="absolute top-0 bottom-0 border-l border-dashed border-muted-foreground/15"
+                  style={{ left: `${h.percent}%` }}
+                />
+              ))}
+
+              {/* Booking blocks */}
+              {rows.map((row, rowIdx) =>
+                row.map((block) => (
+                  <div
+                    key={block.booking.bookingReference}
+                    className={`absolute rounded-md border text-white text-[10px] font-medium px-1.5 py-0.5 truncate cursor-default transition-all hover:brightness-110 hover:shadow-sm ${getBlockColor(block.booking)}`}
+                    style={{
+                      left: `${block.startPct}%`,
+                      width: `${Math.max(block.widthPct, 2)}%`,
+                      top: rowIdx * 32 + 4 + "px",
+                      height: "26px",
+                      lineHeight: "16px",
+                    }}
+                    title={`${block.booking.customerName} (${block.booking.quantity} guest${block.booking.quantity !== 1 ? "s" : ""})\n${formatTimeRange(block.booking.sessionStartTime, block.booking.sessionEndTime)}\n${block.booking.productName}${block.booking.arrivedAt ? "\n✓ Arrived" : ""}`}
+                  >
+                    <span className="flex items-center gap-1">
+                      {block.booking.arrivedAt && <CheckCircle2 className="w-2.5 h-2.5 shrink-0" />}
+                      {block.booking.customerName}
+                      {block.booking.quantity > 1 && (
+                        <span className="opacity-75">({block.booking.quantity})</span>
+                      )}
+                    </span>
+                  </div>
+                ))
+              )}
+
+              {/* Now indicator */}
+              {isNowVisible && (
+                <div
+                  className="absolute top-0 bottom-0 z-10"
+                  style={{ left: `${nowPercent}%` }}
+                >
+                  <div className="w-0.5 h-full bg-red-500 relative">
+                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white shadow-sm" />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Legend */}
+            <div className="flex items-center gap-3 mt-2 text-[10px] text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <div className="w-2.5 h-2.5 rounded-sm bg-blue-400/80" />
+                Upcoming
+              </span>
+              <span className="flex items-center gap-1">
+                <div className="w-2.5 h-2.5 rounded-sm bg-green-500/90" />
+                Arrived
+              </span>
+              <span className="flex items-center gap-1">
+                <div className="w-2.5 h-2.5 rounded-sm bg-gray-300/80" />
+                Completed
+              </span>
+              <span className="flex items-center gap-1">
+                <div className="w-0.5 h-3 bg-red-500" />
+                Now
+              </span>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 // ============ ROLLER BOOKINGS SECTION ============
 function RollerBookingsSection() {
   const [filter, setFilter] = useState<DateFilter>("today");
@@ -267,6 +483,11 @@ function RollerBookingsSection() {
           <RefreshCw className={`w-4 h-4 ${bookingsQuery.isFetching ? "animate-spin" : ""}`} />
         </Button>
       </div>
+
+      {/* Timeline (only for Today filter) */}
+      {filter === "today" && bookings.length > 0 && !bookingsQuery.isLoading && (
+        <BookingTimeline bookings={bookings} />
+      )}
 
       {bookingsQuery.isLoading ? (
         <div className="flex items-center justify-center py-8">
