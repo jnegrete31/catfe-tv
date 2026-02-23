@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { Button } from "@/components/ui/button";
@@ -38,8 +38,104 @@ import {
   Menu,
   X,
   Cat,
+  GripVertical,
+  RotateCcw,
 } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  horizontalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { IOSInstallPrompt } from "@/components/IOSInstallPrompt";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
+const TAB_ORDER_KEY = "catfe-admin-tab-order";
+
+const DEFAULT_TABS = [
+  { value: "cats", icon: Cat, label: "Cats" },
+  { value: "screens", icon: LayoutGrid, label: "Screens" },
+  { value: "guests", icon: Users, label: "Guests" },
+  { value: "photos", icon: Image, label: "Photos" },
+  { value: "playlists", icon: ListMusic, label: "Playlists" },
+  { value: "volunteers", icon: HandHeart, label: "Volunteers" },
+  { value: "social", icon: Instagram, label: "Social" },
+  { value: "settings", icon: Settings, label: "Settings" },
+];
+
+function getStoredTabOrder(): string[] | null {
+  try {
+    const stored = localStorage.getItem(TAB_ORDER_KEY);
+    if (!stored) return null;
+    const order = JSON.parse(stored) as string[];
+    // Validate that all default tab values are present
+    const defaultValues = DEFAULT_TABS.map(t => t.value);
+    if (order.length !== defaultValues.length) return null;
+    if (!defaultValues.every(v => order.includes(v))) return null;
+    return order;
+  } catch {
+    return null;
+  }
+}
+
+function applyTabOrder(order: string[]) {
+  return order.map(value => DEFAULT_TABS.find(t => t.value === value)!).filter(Boolean);
+}
+
+// Sortable tab trigger component
+function SortableTab({ tab, isActive, isReordering }: {
+  tab: typeof DEFAULT_TABS[number];
+  isActive: boolean;
+  isReordering: boolean;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: tab.value, disabled: !isReordering });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : undefined,
+    opacity: isDragging ? 0.8 : 1,
+  };
+
+  return (
+    <TabsTrigger
+      ref={setNodeRef}
+      style={style}
+      value={tab.value}
+      className={`flex-1 flex items-center justify-center gap-1 px-1 text-[10px] sm:text-sm whitespace-nowrap min-h-[36px] ${
+        isReordering ? "cursor-grab active:cursor-grabbing" : ""
+      } ${isDragging ? "shadow-lg ring-2 ring-primary/30 rounded-md bg-background" : ""}`}
+      {...(isReordering ? { ...attributes, ...listeners } : {})}
+    >
+      {isReordering && <GripVertical className="w-3 h-3 text-muted-foreground shrink-0 hidden sm:block" />}
+      <tab.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+      <span className="hidden sm:inline">{tab.label}</span>
+    </TabsTrigger>
+  );
+}
 
 export default function Admin() {
   const { user, loading, isAuthenticated, logout } = useAuth();
@@ -48,6 +144,36 @@ export default function Admin() {
   const [editingScreen, setEditingScreen] = useState<Screen | null>(null);
   const [screenFilter, setScreenFilter] = useState<"active" | "all" | "inactive" | "adopted">("active");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isReordering, setIsReordering] = useState(false);
+  const [tabOrder, setTabOrder] = useState<string[]>(() => {
+    return getStoredTabOrder() || DEFAULT_TABS.map(t => t.value);
+  });
+
+  const tabs = applyTabOrder(tabOrder);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    setTabOrder(prev => {
+      const oldIndex = prev.indexOf(active.id as string);
+      const newIndex = prev.indexOf(over.id as string);
+      const newOrder = arrayMove(prev, oldIndex, newIndex);
+      localStorage.setItem(TAB_ORDER_KEY, JSON.stringify(newOrder));
+      return newOrder;
+    });
+  }, []);
+
+  const handleResetOrder = useCallback(() => {
+    const defaultOrder = DEFAULT_TABS.map(t => t.value);
+    setTabOrder(defaultOrder);
+    localStorage.removeItem(TAB_ORDER_KEY);
+    setIsReordering(false);
+  }, []);
   
   // Fetch data
   const screensQuery = trpc.screens.getAll.useQuery(undefined, {
@@ -145,17 +271,7 @@ export default function Admin() {
     : screenFilter === "adopted" ? adoptedScreens
     : screens;
 
-  // Tab configuration for rendering
-  const tabs = [
-    { value: "cats", icon: Cat, label: "Cats" },
-    { value: "screens", icon: LayoutGrid, label: "Screens" },
-    { value: "guests", icon: Users, label: "Guests" },
-    { value: "photos", icon: Image, label: "Photos" },
-    { value: "playlists", icon: ListMusic, label: "Playlists" },
-    { value: "volunteers", icon: HandHeart, label: "Volunteers" },
-    { value: "social", icon: Instagram, label: "Social" },
-    { value: "settings", icon: Settings, label: "Settings" },
-  ];
+  // tabs is now computed from tabOrder state above
   
   return (
     <div className="min-h-screen bg-background">
@@ -253,20 +369,72 @@ export default function Admin() {
       {/* Main Content */}
       <main className="container py-4 pb-24 sm:pb-8">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          {/* Tab bar - fits all tabs in one row */}
+          {/* Tab bar - draggable reorder */}
           <div className="mb-4">
-            <TabsList className="flex w-full h-10 justify-center">
-              {tabs.map((tab) => (
-                <TabsTrigger
-                  key={tab.value}
-                  value={tab.value}
-                  className="flex-1 flex items-center justify-center gap-1 px-1 text-[10px] sm:text-sm whitespace-nowrap min-h-[36px]"
-                >
-                  <tab.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-                  <span className="hidden sm:inline">{tab.label}</span>
-                </TabsTrigger>
-              ))}
-            </TabsList>
+            <div className="flex items-center gap-1 mb-1 justify-end">
+              {isReordering ? (
+                <>
+                  <TooltipProvider delayDuration={200}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs gap-1 text-muted-foreground"
+                          onClick={handleResetOrder}
+                        >
+                          <RotateCcw className="w-3 h-3" />
+                          Reset
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Reset to default order</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => setIsReordering(false)}
+                  >
+                    Done
+                  </Button>
+                </>
+              ) : (
+                <TooltipProvider delayDuration={200}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                        onClick={() => setIsReordering(true)}
+                      >
+                        <GripVertical className="w-4 h-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Reorder tabs</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </div>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext items={tabOrder} strategy={horizontalListSortingStrategy}>
+                <TabsList className={`flex w-full h-10 justify-center ${isReordering ? "ring-2 ring-primary/20 ring-offset-2" : ""}`}>
+                  {tabs.map((tab) => (
+                    <SortableTab
+                      key={tab.value}
+                      tab={tab}
+                      isActive={activeTab === tab.value}
+                      isReordering={isReordering}
+                    />
+                  ))}
+                </TabsList>
+              </SortableContext>
+            </DndContext>
           </div>
           
           {/* Screens Tab */}

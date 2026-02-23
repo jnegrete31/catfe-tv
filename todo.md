@@ -1774,3 +1774,9 @@
 - [x] Link minor waivers to parent/guardian waiver via parentSignedWaiverId
 - [x] Show waiver expiry warnings for waivers expiring within 30 days
 - [x] Write tests for waiver endpoints and logic (15 tests, 284 total passing)
+
+## UI - Reorder Admin Dashboard Sidebar
+- [x] Add drag-to-reorder for admin dashboard tabs
+- [x] Persist custom tab order in localStorage
+- [x] Add reset-to-default option
+- [x] Ensure tabs stay centered per design preference
