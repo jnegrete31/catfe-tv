@@ -1765,3 +1765,12 @@
 ## Bug Fix - Timeline first hour label cut off
 - [x] Fix 10AM (or first hour label) getting clipped at the left edge of the timeline
 - [x] Change timeline to fixed 8 AM – 8 PM range (instead of dynamic based on bookings)
+
+## Feature - Waiver Status Integration (Roller API)
+- [x] Add server-side endpoint to fetch signed waiver by signedWaiverId from Roller API
+- [x] Add batch waiver status lookup for all tickets in a booking (via booking detail API)
+- [x] Display waiver status badge on each booking card (valid/expired/missing)
+- [x] Detect and flag minors using isForMinor field
+- [x] Link minor waivers to parent/guardian waiver via parentSignedWaiverId
+- [x] Show waiver expiry warnings for waivers expiring within 30 days
+- [x] Write tests for waiver endpoints and logic (15 tests, 284 total passing)

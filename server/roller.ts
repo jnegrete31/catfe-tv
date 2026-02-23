@@ -282,6 +282,270 @@ export async function getGuestWaivers(guestId: string): Promise<any> {
   return rollerFetch(`/guests/${guestId}/signed-waiver`);
 }
 
+// ---- Signed Waiver ----
+
+export interface RollerSignedWaiver {
+  signedWaiverId: number;
+  parentSignedWaiverId: number | null;
+  waiverId: number;
+  firstName: string;
+  lastName: string;
+  guestId: number | null;
+  dateOfBirth: string;
+  email?: string;
+  contactNumber?: string;
+  isForMinor: boolean;
+  expiryDate: string;
+  isValid: boolean | null;
+  createdDate: string;
+}
+
+export interface WaiverStatus {
+  signedWaiverId: number;
+  firstName: string;
+  lastName: string;
+  isValid: boolean;
+  isExpired: boolean;
+  isExpiringSoon: boolean; // within 30 days
+  expiryDate: string;
+  isForMinor: boolean;
+  parentSignedWaiverId: number | null;
+  status: "valid" | "expired" | "expiring_soon" | "invalid" | "missing";
+}
+
+/**
+ * Get a signed waiver by its ID.
+ */
+export async function getSignedWaiver(signedWaiverId: number): Promise<RollerSignedWaiver | null> {
+  try {
+    const data = await rollerFetch(`/signed-waivers/${signedWaiverId}`);
+    return data as RollerSignedWaiver;
+  } catch (error: any) {
+    console.warn(`[Roller] Failed to fetch signed waiver ${signedWaiverId}:`, error.message);
+    return null;
+  }
+}
+
+// In-memory cache for waiver statuses to avoid repeated API calls
+const waiverCache = new Map<number, { data: WaiverStatus; cachedAt: number }>();
+const WAIVER_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+/**
+ * Compute waiver status from a signed waiver record.
+ */
+export function computeWaiverStatus(waiver: RollerSignedWaiver): WaiverStatus {
+  const now = new Date();
+  const expiry = new Date(waiver.expiryDate);
+  const isExpired = expiry < now;
+  const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+  const isExpiringSoon = !isExpired && expiry < thirtyDaysFromNow;
+  const isValid = waiver.isValid !== false && !isExpired;
+
+  let status: WaiverStatus["status"] = "valid";
+  if (isExpired) status = "expired";
+  else if (waiver.isValid === false) status = "invalid";
+  else if (isExpiringSoon) status = "expiring_soon";
+
+  return {
+    signedWaiverId: waiver.signedWaiverId,
+    firstName: waiver.firstName,
+    lastName: waiver.lastName,
+    isValid,
+    isExpired,
+    isExpiringSoon,
+    expiryDate: waiver.expiryDate,
+    isForMinor: waiver.isForMinor,
+    parentSignedWaiverId: waiver.parentSignedWaiverId,
+    status,
+  };
+}
+
+/**
+ * Get waiver status for a single signedWaiverId (with caching).
+ */
+export async function getWaiverStatus(signedWaiverId: number): Promise<WaiverStatus | null> {
+  const cached = waiverCache.get(signedWaiverId);
+  if (cached && Date.now() - cached.cachedAt < WAIVER_CACHE_TTL) {
+    return cached.data;
+  }
+
+  const waiver = await getSignedWaiver(signedWaiverId);
+  if (!waiver) return null;
+
+  const status = computeWaiverStatus(waiver);
+  waiverCache.set(signedWaiverId, { data: status, cachedAt: Date.now() });
+  return status;
+}
+
+// ---- Booking Detail (with tickets/waivers) ----
+
+export interface RollerBookingTicket {
+  ticketId: string;
+  customTicketId?: string;
+  ticketHolderName?: string;
+  membershipStatus?: string;
+  photoUrl?: string;
+  locations?: number[];
+  customerId?: number;
+  signedWaiverId?: number;
+  externalTicketId?: string;
+  name?: string;
+}
+
+export interface RollerBookingDetail {
+  bookingReference: string;
+  uniqueId: string;
+  createdDate: string;
+  channel: string;
+  status: string;
+  name: string;
+  customerId: number;
+  total: number;
+  items: {
+    bookingItemId: number;
+    productId: number;
+    quantity: number;
+    bookingDate: string;
+    bookingEndDate: string;
+    sessionStartTime: string;
+    sessionEndTime: string;
+    tickets: RollerBookingTicket | RollerBookingTicket[];
+    cost: number;
+  } | Array<{
+    bookingItemId: number;
+    productId: number;
+    quantity: number;
+    bookingDate: string;
+    bookingEndDate: string;
+    sessionStartTime: string;
+    sessionEndTime: string;
+    tickets: RollerBookingTicket | RollerBookingTicket[];
+    cost: number;
+  }>;
+}
+
+/**
+ * Get full booking detail by bookingReference or uniqueId.
+ * This returns ticket-level data including signedWaiverId for each guest.
+ */
+export async function getBookingDetail(bookingRef: string): Promise<RollerBookingDetail | null> {
+  try {
+    const data = await rollerFetch(`/bookings/${bookingRef}`);
+    return data as RollerBookingDetail;
+  } catch (error: any) {
+    console.warn(`[Roller] Failed to fetch booking detail ${bookingRef}:`, error.message);
+    return null;
+  }
+}
+
+/**
+ * Extract all signedWaiverIds from a booking detail response.
+ */
+export function extractWaiverIdsFromBooking(detail: RollerBookingDetail): number[] {
+  const ids: number[] = [];
+  const items = Array.isArray(detail.items) ? detail.items : [detail.items];
+  for (const item of items) {
+    if (!item.tickets) continue;
+    const tickets = Array.isArray(item.tickets) ? item.tickets : [item.tickets];
+    for (const ticket of tickets) {
+      if (ticket.signedWaiverId) {
+        ids.push(ticket.signedWaiverId);
+      }
+    }
+  }
+  return Array.from(new Set(ids));
+}
+
+export interface BookingWaiverSummary {
+  bookingReference: string;
+  totalTickets: number;
+  waiverStatuses: WaiverStatus[];
+  missingWaiverCount: number;
+  hasMinors: boolean;
+  hasExpiringSoon: boolean;
+  hasExpired: boolean;
+  allValid: boolean;
+  overallStatus: "all_valid" | "has_issues" | "no_waivers";
+}
+
+/**
+ * Get waiver status for all guests in a booking.
+ * Fetches booking detail, extracts signedWaiverIds, then looks up each waiver.
+ */
+export async function getBookingWaiverSummary(bookingRef: string): Promise<BookingWaiverSummary> {
+  const detail = await getBookingDetail(bookingRef);
+  if (!detail) {
+    return {
+      bookingReference: bookingRef,
+      totalTickets: 0,
+      waiverStatuses: [],
+      missingWaiverCount: 0,
+      hasMinors: false,
+      hasExpiringSoon: false,
+      hasExpired: false,
+      allValid: false,
+      overallStatus: "no_waivers",
+    };
+  }
+
+  const items = Array.isArray(detail.items) ? detail.items : [detail.items];
+  let totalTickets = 0;
+  const waiverIds: number[] = [];
+
+  for (const item of items) {
+    if (!item.tickets) {
+      totalTickets += item.quantity || 1;
+      continue;
+    }
+    const tickets = Array.isArray(item.tickets) ? item.tickets : [item.tickets];
+    totalTickets += tickets.length;
+    for (const ticket of tickets) {
+      if (ticket.signedWaiverId) {
+        waiverIds.push(ticket.signedWaiverId);
+      }
+    }
+  }
+
+  const uniqueIds = Array.from(new Set(waiverIds));
+  const waiverStatuses: WaiverStatus[] = [];
+
+  // Fetch all waiver statuses in parallel
+  const results = await Promise.allSettled(
+    uniqueIds.map((id) => getWaiverStatus(id))
+  );
+
+  for (const result of results) {
+    if (result.status === "fulfilled" && result.value) {
+      waiverStatuses.push(result.value);
+    }
+  }
+
+  const missingWaiverCount = totalTickets - waiverStatuses.length;
+  const hasMinors = waiverStatuses.some((w) => w.isForMinor);
+  const hasExpiringSoon = waiverStatuses.some((w) => w.isExpiringSoon);
+  const hasExpired = waiverStatuses.some((w) => w.isExpired);
+  const allValid = waiverStatuses.length > 0 && waiverStatuses.every((w) => w.isValid) && missingWaiverCount === 0;
+
+  let overallStatus: BookingWaiverSummary["overallStatus"] = "all_valid";
+  if (waiverStatuses.length === 0 && totalTickets > 0) {
+    overallStatus = "no_waivers";
+  } else if (hasExpired || missingWaiverCount > 0 || waiverStatuses.some((w) => !w.isValid)) {
+    overallStatus = "has_issues";
+  }
+
+  return {
+    bookingReference: bookingRef,
+    totalTickets,
+    waiverStatuses,
+    missingWaiverCount,
+    hasMinors,
+    hasExpiringSoon,
+    hasExpired,
+    allValid,
+    overallStatus,
+  };
+}
+
 // ---- Test Connection ----
 
 /**

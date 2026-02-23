@@ -28,6 +28,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { playWelcomeChime, playReminderChime } from "@/lib/chime";
 import { requestNotificationPermission, notifySessionWarning, notifySessionExpired, notifyGuestCheckIn } from "@/lib/notifications";
@@ -50,6 +56,11 @@ import {
   Footprints,
   Eye,
   Undo2,
+  ShieldCheck,
+  ShieldAlert,
+  ShieldX,
+  Baby,
+  AlertTriangle,
 } from "lucide-react";
 
 type GuestSession = {
@@ -191,6 +202,142 @@ function formatDateLabel(dateStr: string): string {
   if (dateStr === todayPST) return "Today";
   if (dateStr === tomorrowPST) return "Tomorrow";
   return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+}
+
+// ============ WAIVER STATUS BADGE ============
+function WaiverBadge({ bookingRef }: { bookingRef: string }) {
+  const waiverQuery = trpc.roller.getWaiverSummary.useQuery(
+    { bookingRef },
+    { staleTime: 5 * 60 * 1000, refetchOnWindowFocus: false }
+  );
+
+  if (waiverQuery.isLoading) {
+    return (
+      <Badge variant="outline" className="text-[10px] gap-0.5 border-gray-200 text-gray-400 bg-gray-50/50 animate-pulse">
+        <ShieldCheck className="w-3 h-3" />
+        Waiver...
+      </Badge>
+    );
+  }
+
+  if (waiverQuery.isError || !waiverQuery.data) {
+    return null; // Silently fail — don't block the card
+  }
+
+  const summary = waiverQuery.data;
+
+  if (summary.overallStatus === "no_waivers" && summary.totalTickets === 0) {
+    return null; // No ticket data available
+  }
+
+  // Format expiry date nicely
+  const formatExpiry = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  };
+
+  // Build tooltip content
+  const tooltipLines: string[] = [];
+  if (summary.waiverStatuses.length > 0) {
+    for (const w of summary.waiverStatuses) {
+      const statusLabel = w.status === "valid" ? "\u2705" : w.status === "expiring_soon" ? "\u26A0\uFE0F" : w.status === "expired" ? "\u274C" : "\u2753";
+      const minorLabel = w.isForMinor ? " (Minor)" : "";
+      tooltipLines.push(`${statusLabel} ${w.firstName}${minorLabel} — expires ${formatExpiry(w.expiryDate)}`);
+    }
+  }
+  if (summary.missingWaiverCount > 0) {
+    tooltipLines.push(`\u26A0\uFE0F ${summary.missingWaiverCount} guest(s) missing waiver`);
+  }
+
+  return (
+    <TooltipProvider delayDuration={200}>
+      <div className="flex items-center gap-1 flex-wrap">
+        {/* Main waiver status badge */}
+        {summary.overallStatus === "all_valid" && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge variant="outline" className="text-[10px] gap-0.5 border-green-300 text-green-700 bg-green-50 cursor-help">
+                <ShieldCheck className="w-3 h-3" />
+                Waiver \u2713
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="max-w-xs text-xs whitespace-pre-line">
+              {tooltipLines.length > 0 ? tooltipLines.join("\n") : "All waivers valid"}
+            </TooltipContent>
+          </Tooltip>
+        )}
+
+        {summary.overallStatus === "has_issues" && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge variant="outline" className="text-[10px] gap-0.5 border-red-300 text-red-700 bg-red-50 cursor-help">
+                <ShieldX className="w-3 h-3" />
+                Waiver Issue
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="max-w-xs text-xs whitespace-pre-line">
+              {tooltipLines.length > 0 ? tooltipLines.join("\n") : "Waiver issues detected"}
+            </TooltipContent>
+          </Tooltip>
+        )}
+
+        {summary.overallStatus === "no_waivers" && summary.totalTickets > 0 && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge variant="outline" className="text-[10px] gap-0.5 border-amber-300 text-amber-700 bg-amber-50 cursor-help">
+                <ShieldAlert className="w-3 h-3" />
+                No Waiver
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs">
+              No signed waivers found for {summary.totalTickets} ticket(s)
+            </TooltipContent>
+          </Tooltip>
+        )}
+
+        {/* Expiring soon warning */}
+        {summary.hasExpiringSoon && summary.overallStatus !== "has_issues" && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge variant="outline" className="text-[10px] gap-0.5 border-amber-300 text-amber-700 bg-amber-50 cursor-help">
+                <AlertTriangle className="w-3 h-3" />
+                Expiring
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="max-w-xs text-xs whitespace-pre-line">
+              {summary.waiverStatuses
+                .filter(w => w.isExpiringSoon)
+                .map(w => `${w.firstName}'s waiver expires ${formatExpiry(w.expiryDate)}`)
+                .join("\n")}
+            </TooltipContent>
+          </Tooltip>
+        )}
+
+        {/* Minor detection */}
+        {summary.hasMinors && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge variant="outline" className="text-[10px] gap-0.5 border-purple-300 text-purple-700 bg-purple-50 cursor-help">
+                <Baby className="w-3 h-3" />
+                Minor
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="max-w-xs text-xs whitespace-pre-line">
+              {summary.waiverStatuses
+                .filter(w => w.isForMinor)
+                .map(w => {
+                  const parentWaiver = w.parentSignedWaiverId
+                    ? summary.waiverStatuses.find(p => p.signedWaiverId === w.parentSignedWaiverId)
+                    : null;
+                  return `${w.firstName} is a minor${parentWaiver ? ` (guardian: ${parentWaiver.firstName})` : ""}`;
+                })
+                .join("\n")}
+            </TooltipContent>
+          </Tooltip>
+        )}
+      </div>
+    </TooltipProvider>
+  );
 }
 
 // ============ BOOKING TIMELINE ============
@@ -795,6 +942,7 @@ function BookingCard({ booking, showDate }: { booking: RollerBookingEntry; showD
                   Arrived
                 </Badge>
               )}
+              <WaiverBadge bookingRef={booking.bookingReference} />
             </div>
             <div className="flex items-center gap-2 sm:gap-3 mt-1 text-xs sm:text-sm text-muted-foreground flex-wrap">
               <span className="flex items-center gap-1">

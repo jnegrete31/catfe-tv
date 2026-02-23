@@ -134,7 +134,7 @@ import {
 import { storagePut } from "./storage";
 import { invokeLLM } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
-import { getProductAvailability, searchBookings, testConnection, getCustomerDetail } from "./roller";
+import { getProductAvailability, searchBookings, testConnection, getCustomerDetail, getBookingWaiverSummary, type BookingWaiverSummary } from "./roller";
 import { getRollerPollingStatus } from "./rollerPolling";
 import { settings } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
@@ -2332,6 +2332,30 @@ Extract as much information as possible from the documents. For the bio, write a
         }
         
         return { success };
+      }),
+
+    // Get waiver status for a booking's guests
+    getWaiverSummary: protectedProcedure
+      .input(z.object({ bookingRef: z.string() }))
+      .query(async ({ input }) => {
+        return getBookingWaiverSummary(input.bookingRef);
+      }),
+
+    // Get waiver summaries for multiple bookings in batch
+    getBatchWaiverSummaries: protectedProcedure
+      .input(z.object({ bookingRefs: z.array(z.string()).max(50) }))
+      .query(async ({ input }) => {
+        const results = await Promise.allSettled(
+          input.bookingRefs.map((ref) => getBookingWaiverSummary(ref))
+        );
+        const summaries: Record<string, BookingWaiverSummary> = {};
+        for (let i = 0; i < results.length; i++) {
+          const result = results[i];
+          if (result.status === "fulfilled") {
+            summaries[input.bookingRefs[i]] = result.value;
+          }
+        }
+        return summaries;
       }),
 
     // Get integration status (polling + webhook + connection)
