@@ -240,13 +240,13 @@ function WaiverBadge({ bookingRef }: { bookingRef: string }) {
   const tooltipLines: string[] = [];
   if (summary.waiverStatuses.length > 0) {
     for (const w of summary.waiverStatuses) {
-      const statusLabel = w.status === "valid" ? "\u2705" : w.status === "expiring_soon" ? "\u26A0\uFE0F" : w.status === "expired" ? "\u274C" : "\u2753";
+      const statusLabel = w.status === "valid" ? "✅" : w.status === "expiring_soon" ? "⚠️" : w.status === "expired" ? "❌" : "❓";
       const minorLabel = w.isForMinor ? " (Minor)" : "";
       tooltipLines.push(`${statusLabel} ${w.firstName}${minorLabel} — expires ${formatExpiry(w.expiryDate)}`);
     }
   }
   if (summary.missingWaiverCount > 0) {
-    tooltipLines.push(`\u26A0\uFE0F ${summary.missingWaiverCount} guest(s) missing waiver`);
+    tooltipLines.push(`⚠️ ${summary.missingWaiverCount} guest(s) missing waiver`);
   }
 
   return (
@@ -258,7 +258,7 @@ function WaiverBadge({ bookingRef }: { bookingRef: string }) {
             <TooltipTrigger asChild>
               <Badge variant="outline" className="text-[10px] gap-0.5 border-green-300 text-green-700 bg-green-50 cursor-help">
                 <ShieldCheck className="w-3 h-3" />
-                Waiver \u2713
+                Waiver ✓
               </Badge>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="max-w-xs text-xs whitespace-pre-line">

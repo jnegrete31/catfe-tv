@@ -1787,3 +1787,6 @@
 
 ## Feature - Waiver badge in timeline popover
 - [x] Add WaiverBadge component inside the timeline block popover
+
+## Bug Fix - Waiver badge showing unicode escape text
+- [x] Replace unicode escapes with actual characters in WaiverBadge component
