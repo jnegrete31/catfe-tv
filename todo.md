@@ -1761,3 +1761,7 @@
 - [x] Show "Arrived" status and "Undo" option for already-arrived guests
 - [x] Popover dismisses when clicking outside
 - [x] Verify in browser and run tests
+
+## Bug Fix - Timeline first hour label cut off
+- [x] Fix 10AM (or first hour label) getting clipped at the left edge of the timeline
+- [x] Change timeline to fixed 8 AM – 8 PM range (instead of dynamic based on bookings)

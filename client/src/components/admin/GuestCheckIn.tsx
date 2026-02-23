@@ -221,26 +221,10 @@ function BookingTimeline({ bookings, onBlockClick, onMarkArrived, onUnmarkArrive
     return () => clearInterval(interval);
   }, []);
 
-  // Determine timeline range from bookings
-  const timeSlots = bookings
-    .filter(b => b.sessionStartTime && b.sessionEndTime)
-    .map(b => ({
-      start: parseHHMM(b.sessionStartTime)!,
-      end: parseHHMM(b.sessionEndTime)!,
-    }))
-    .filter(s => s.start !== null && s.end !== null);
-
-  if (timeSlots.length === 0) return null;
-
-  const earliestBooking = Math.min(...timeSlots.map(s => s.start));
-  const latestBooking = Math.max(...timeSlots.map(s => s.end));
-
-  // Pad to full hours and add buffer
-  const timelineStartMin = Math.floor(earliestBooking / 60) * 60;
-  const timelineEndMin = Math.ceil(latestBooking / 60) * 60;
-  const totalMinutes = timelineEndMin - timelineStartMin;
-
-  if (totalMinutes <= 0) return null;
+  // Fixed timeline range: 8 AM – 8 PM (operating hours)
+  const timelineStartMin = 8 * 60;  // 8:00 AM = 480 min
+  const timelineEndMin = 20 * 60;   // 8:00 PM = 1200 min
+  const totalMinutes = timelineEndMin - timelineStartMin; // 720 min
 
   // Current time in PST
   const now = new Date();
@@ -329,14 +313,17 @@ function BookingTimeline({ bookings, onBlockClick, onMarkArrived, onUnmarkArrive
           )}
         </div>
         <div ref={timelineRef} className="overflow-x-auto">
-          <div className="relative" style={{ minWidth: Math.max(400, totalMinutes * 2) + "px" }}>
+          <div className="relative pl-4 pr-4" style={{ minWidth: Math.max(400, totalMinutes * 2 + 32) + "px" }}>
             {/* Hour grid lines and labels */}
             <div className="relative h-5 mb-1">
               {hourLabels.map((h, i) => (
                 <div
                   key={i}
                   className="absolute text-[10px] text-muted-foreground font-medium"
-                  style={{ left: `${h.percent}%`, transform: "translateX(-50%)" }}
+                  style={{
+                    left: `${h.percent}%`,
+                    transform: i === 0 ? "none" : i === hourLabels.length - 1 ? "translateX(-100%)" : "translateX(-50%)",
+                  }}
                 >
                   {h.label}
                 </div>
