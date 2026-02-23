@@ -194,7 +194,7 @@ function parseHHMM(timeStr: string | null): number | null {
   return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
 }
 
-function BookingTimeline({ bookings }: { bookings: RollerBookingEntry[] }) {
+function BookingTimeline({ bookings, onBlockClick }: { bookings: RollerBookingEntry[]; onBlockClick?: (bookingRef: string) => void }) {
   const [, setTick] = useState(0);
   const timelineRef = useRef<HTMLDivElement>(null);
 
@@ -342,7 +342,8 @@ function BookingTimeline({ bookings }: { bookings: RollerBookingEntry[] }) {
                 row.map((block) => (
                   <div
                     key={block.booking.bookingReference}
-                    className={`absolute rounded-md border text-white text-[10px] font-medium px-1.5 py-0.5 truncate cursor-default transition-all hover:brightness-110 hover:shadow-sm ${getBlockColor(block.booking)}`}
+                    className={`absolute rounded-md border text-white text-[10px] font-medium px-1.5 py-0.5 truncate cursor-pointer transition-all hover:brightness-110 hover:shadow-md hover:scale-[1.03] hover:z-20 active:scale-[0.98] ${getBlockColor(block.booking)}`}
+                    onClick={() => onBlockClick?.(block.booking.bookingReference)}
                     style={{
                       left: `${block.startPct}%`,
                       width: `${Math.max(block.widthPct, 2)}%`,
@@ -486,7 +487,20 @@ function RollerBookingsSection() {
 
       {/* Timeline (only for Today filter) */}
       {filter === "today" && bookings.length > 0 && !bookingsQuery.isLoading && (
-        <BookingTimeline bookings={bookings} />
+        <BookingTimeline 
+          bookings={bookings} 
+          onBlockClick={(bookingRef) => {
+            const card = document.querySelector(`[data-booking-ref="${bookingRef}"]`);
+            if (card) {
+              card.scrollIntoView({ behavior: "smooth", block: "center" });
+              // Flash highlight animation
+              card.classList.add("ring-2", "ring-orange-400", "ring-offset-2", "transition-all");
+              setTimeout(() => {
+                card.classList.remove("ring-2", "ring-orange-400", "ring-offset-2");
+              }, 2000);
+            }
+          }}
+        />
       )}
 
       {bookingsQuery.isLoading ? (
@@ -586,6 +600,7 @@ function BookingCard({ booking, showDate }: { booking: RollerBookingEntry; showD
 
   return (
     <Card 
+      data-booking-ref={booking.bookingReference}
       className={
         isArrived ? "border-green-300 bg-green-50/40" :
         booking.status === "checked_in" ? "border-green-200 bg-green-50/30" :

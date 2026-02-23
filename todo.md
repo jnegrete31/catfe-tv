@@ -1745,3 +1745,10 @@
 - [x] Legend bar: Upcoming, Arrived, Completed, Now
 - [x] Hour grid lines with dashed separators
 - [x] Verified in browser, 34 tests passing
+
+## Feature - Clickable timeline blocks
+- [x] Make timeline booking blocks clickable (cursor pointer, hover scale, active press)
+- [x] Clicking a block scrolls to the corresponding booking card in the list (smooth scroll, centered)
+- [x] Add visual feedback: orange ring-2 highlight on target card that fades after 2 seconds
+- [x] Uses data-booking-ref attribute on cards for DOM targeting
+- [x] Verified in browser: Gisella and Erika blocks both scroll correctly, 34 tests passing
