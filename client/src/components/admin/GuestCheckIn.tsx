@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,11 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -43,6 +48,8 @@ import {
   CircleCheck,
   CircleX,
   Footprints,
+  Eye,
+  Undo2,
 } from "lucide-react";
 
 type GuestSession = {
@@ -194,8 +201,18 @@ function parseHHMM(timeStr: string | null): number | null {
   return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
 }
 
-function BookingTimeline({ bookings, onBlockClick }: { bookings: RollerBookingEntry[]; onBlockClick?: (bookingRef: string) => void }) {
+type TimelineActions = {
+  bookings: RollerBookingEntry[];
+  onBlockClick?: (bookingRef: string) => void;
+  onMarkArrived?: (booking: RollerBookingEntry) => void;
+  onUnmarkArrived?: (booking: RollerBookingEntry) => void;
+  isMarkingArrived?: string | null; // bookingRef currently being marked
+  isUnmarking?: string | null; // bookingRef currently being unmarked
+};
+
+function BookingTimeline({ bookings, onBlockClick, onMarkArrived, onUnmarkArrived, isMarkingArrived, isUnmarking }: TimelineActions) {
   const [, setTick] = useState(0);
+  const [openPopover, setOpenPopover] = useState<string | null>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
 
   // Update every 30 seconds for the "now" line
@@ -337,31 +354,138 @@ function BookingTimeline({ bookings, onBlockClick }: { bookings: RollerBookingEn
                 />
               ))}
 
-              {/* Booking blocks */}
+               {/* Booking blocks with popovers */}
               {rows.map((row, rowIdx) =>
-                row.map((block) => (
-                  <div
-                    key={block.booking.bookingReference}
-                    className={`absolute rounded-md border text-white text-[10px] font-medium px-1.5 py-0.5 truncate cursor-pointer transition-all hover:brightness-110 hover:shadow-md hover:scale-[1.03] hover:z-20 active:scale-[0.98] ${getBlockColor(block.booking)}`}
-                    onClick={() => onBlockClick?.(block.booking.bookingReference)}
-                    style={{
-                      left: `${block.startPct}%`,
-                      width: `${Math.max(block.widthPct, 2)}%`,
-                      top: rowIdx * 32 + 4 + "px",
-                      height: "26px",
-                      lineHeight: "16px",
-                    }}
-                    title={`${block.booking.customerName} (${block.booking.quantity} guest${block.booking.quantity !== 1 ? "s" : ""})\n${formatTimeRange(block.booking.sessionStartTime, block.booking.sessionEndTime)}\n${block.booking.productName}${block.booking.arrivedAt ? "\n✓ Arrived" : ""}`}
-                  >
-                    <span className="flex items-center gap-1">
-                      {block.booking.arrivedAt && <CheckCircle2 className="w-2.5 h-2.5 shrink-0" />}
-                      {block.booking.customerName}
-                      {block.booking.quantity > 1 && (
-                        <span className="opacity-75">({block.booking.quantity})</span>
-                      )}
-                    </span>
-                  </div>
-                ))
+                row.map((block) => {
+                  const bk = block.booking;
+                  const isArrived = !!bk.arrivedAt;
+                  const isPast = bk.status === "completed" || bk.status === "expired";
+                  const canMarkArrived = !isArrived && !isPast && !!bk.bookingId;
+                  const canUndo = isArrived && !isPast && !!bk.bookingId;
+                  const isOpen = openPopover === bk.bookingReference;
+
+                  return (
+                    <Popover
+                      key={bk.bookingReference}
+                      open={isOpen}
+                      onOpenChange={(open) => setOpenPopover(open ? bk.bookingReference : null)}
+                    >
+                      <PopoverTrigger asChild>
+                        <div
+                          className={`absolute rounded-md border text-white text-[10px] font-medium px-1.5 py-0.5 truncate cursor-pointer transition-all hover:brightness-110 hover:shadow-md hover:scale-[1.03] hover:z-20 active:scale-[0.98] ${getBlockColor(bk)} ${isOpen ? "ring-2 ring-white/60 shadow-lg z-30 scale-[1.05]" : ""}`}
+                          style={{
+                            left: `${block.startPct}%`,
+                            width: `${Math.max(block.widthPct, 2)}%`,
+                            top: rowIdx * 32 + 4 + "px",
+                            height: "26px",
+                            lineHeight: "16px",
+                          }}
+                        >
+                          <span className="flex items-center gap-1">
+                            {isArrived && <CheckCircle2 className="w-2.5 h-2.5 shrink-0" />}
+                            {bk.customerName}
+                            {bk.quantity > 1 && (
+                              <span className="opacity-75">({bk.quantity})</span>
+                            )}
+                          </span>
+                        </div>
+                      </PopoverTrigger>
+                      <PopoverContent
+                        side="top"
+                        align="center"
+                        sideOffset={8}
+                        className="w-56 p-0 overflow-hidden"
+                      >
+                        {/* Popover header */}
+                        <div className={`px-3 py-2 border-b ${
+                          isArrived ? "bg-green-50" :
+                          bk.status === "upcoming" ? "bg-blue-50" :
+                          bk.status === "completed" ? "bg-gray-50" :
+                          "bg-muted/30"
+                        }`}>
+                          <div className="flex items-center justify-between gap-2">
+                            <h4 className="font-semibold text-sm truncate">{bk.customerName}</h4>
+                            <BookingStatusBadge status={bk.status} />
+                          </div>
+                        </div>
+                        {/* Popover details */}
+                        <div className="px-3 py-2 space-y-1.5 text-xs text-muted-foreground">
+                          <div className="flex items-center gap-1.5">
+                            <Clock className="w-3 h-3 shrink-0" />
+                            <span>{formatTimeRange(bk.sessionStartTime, bk.sessionEndTime)}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <Ticket className="w-3 h-3 shrink-0" />
+                            <span>{bk.productName}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <Users className="w-3 h-3 shrink-0" />
+                            <span>{bk.quantity} {bk.quantity === 1 ? "guest" : "guests"}</span>
+                          </div>
+                          {isArrived && bk.arrivedAt && (
+                            <div className="flex items-center gap-1.5 text-green-600">
+                              <CheckCircle2 className="w-3 h-3 shrink-0" />
+                              <span>Arrived at {new Date(bk.arrivedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", timeZone: "America/Los_Angeles" })}</span>
+                            </div>
+                          )}
+                        </div>
+                        {/* Popover actions */}
+                        <div className="px-3 py-2 border-t bg-muted/20 flex flex-col gap-1.5">
+                          {canMarkArrived && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full h-8 text-xs gap-1.5 border-green-300 text-green-700 hover:bg-green-50 hover:text-green-800"
+                              onClick={() => {
+                                onMarkArrived?.(bk);
+                                setOpenPopover(null);
+                              }}
+                              disabled={isMarkingArrived === bk.bookingReference}
+                            >
+                              {isMarkingArrived === bk.bookingReference ? (
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                              ) : (
+                                <Footprints className="w-3 h-3" />
+                              )}
+                              Mark Arrived
+                            </Button>
+                          )}
+                          {canUndo && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="w-full h-7 text-[11px] gap-1.5 text-muted-foreground hover:text-red-600"
+                              onClick={() => {
+                                onUnmarkArrived?.(bk);
+                                setOpenPopover(null);
+                              }}
+                              disabled={isUnmarking === bk.bookingReference}
+                            >
+                              {isUnmarking === bk.bookingReference ? (
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                              ) : (
+                                <Undo2 className="w-3 h-3" />
+                              )}
+                              Undo Arrival
+                            </Button>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="w-full h-8 text-xs gap-1.5"
+                            onClick={() => {
+                              setOpenPopover(null);
+                              onBlockClick?.(bk.bookingReference);
+                            }}
+                          >
+                            <Eye className="w-3 h-3" />
+                            View Details
+                          </Button>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  );
+                })
               )}
 
               {/* Now indicator */}
@@ -406,10 +530,73 @@ function BookingTimeline({ bookings, onBlockClick }: { bookings: RollerBookingEn
 // ============ ROLLER BOOKINGS SECTION ============
 function RollerBookingsSection() {
   const [filter, setFilter] = useState<DateFilter>("today");
+  const [markingRef, setMarkingRef] = useState<string | null>(null);
+  const [unmarkingRef, setUnmarkingRef] = useState<string | null>(null);
+  const utils = trpc.useUtils();
   const bookingsQuery = trpc.roller.getTodayBookings.useQuery(
     { filter },
     { refetchInterval: filter === "today" ? 30000 : 60000 }
   );
+
+  const markArrivedMutation = trpc.roller.markArrived.useMutation({
+    onSuccess: (_, variables) => {
+      toast.success(`Marked as arrived from timeline!`);
+      utils.roller.getTodayBookings.invalidate();
+      utils.guestSessions.getAll.invalidate();
+      setMarkingRef(null);
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to mark as arrived");
+      setMarkingRef(null);
+    },
+  });
+
+  const unmarkArrivedMutation = trpc.roller.unmarkArrived.useMutation({
+    onSuccess: () => {
+      toast.success(`Arrival undone from timeline`);
+      utils.roller.getTodayBookings.invalidate();
+      utils.guestSessions.getAll.invalidate();
+      setUnmarkingRef(null);
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to undo arrival");
+      setUnmarkingRef(null);
+    },
+  });
+
+  const handleTimelineMarkArrived = useCallback((booking: RollerBookingEntry) => {
+    if (!booking.bookingId) return;
+    setMarkingRef(booking.bookingReference);
+    markArrivedMutation.mutate({
+      bookingId: booking.bookingId,
+      bookingRef: booking.bookingReference,
+      guestName: booking.customerName,
+      partySize: booking.quantity,
+      startTime: booking.sessionStartTime || undefined,
+      endTime: booking.sessionEndTime || undefined,
+      productName: booking.productName,
+    });
+  }, [markArrivedMutation]);
+
+  const handleTimelineUnmarkArrived = useCallback((booking: RollerBookingEntry) => {
+    if (!booking.bookingId) return;
+    setUnmarkingRef(booking.bookingReference);
+    unmarkArrivedMutation.mutate({
+      bookingId: booking.bookingId,
+      bookingRef: booking.bookingReference,
+    });
+  }, [unmarkArrivedMutation]);
+
+  const scrollToCard = useCallback((bookingRef: string) => {
+    const card = document.querySelector(`[data-booking-ref="${bookingRef}"]`);
+    if (card) {
+      card.scrollIntoView({ behavior: "smooth", block: "center" });
+      card.classList.add("ring-2", "ring-orange-400", "ring-offset-2", "transition-all");
+      setTimeout(() => {
+        card.classList.remove("ring-2", "ring-orange-400", "ring-offset-2");
+      }, 2000);
+    }
+  }, []);
 
   const bookings = (bookingsQuery.data || []) as RollerBookingEntry[];
   const upcomingCount = bookings.filter(b => b.status === "upcoming").length;
@@ -489,17 +676,11 @@ function RollerBookingsSection() {
       {filter === "today" && bookings.length > 0 && !bookingsQuery.isLoading && (
         <BookingTimeline 
           bookings={bookings} 
-          onBlockClick={(bookingRef) => {
-            const card = document.querySelector(`[data-booking-ref="${bookingRef}"]`);
-            if (card) {
-              card.scrollIntoView({ behavior: "smooth", block: "center" });
-              // Flash highlight animation
-              card.classList.add("ring-2", "ring-orange-400", "ring-offset-2", "transition-all");
-              setTimeout(() => {
-                card.classList.remove("ring-2", "ring-orange-400", "ring-offset-2");
-              }, 2000);
-            }
-          }}
+          onBlockClick={scrollToCard}
+          onMarkArrived={handleTimelineMarkArrived}
+          onUnmarkArrived={handleTimelineUnmarkArrived}
+          isMarkingArrived={markingRef}
+          isUnmarking={unmarkingRef}
         />
       )}
 

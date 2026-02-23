@@ -1752,3 +1752,12 @@
 - [x] Add visual feedback: orange ring-2 highlight on target card that fades after 2 seconds
 - [x] Uses data-booking-ref attribute on cards for DOM targeting
 - [x] Verified in browser: Gisella and Erika blocks both scroll correctly, 34 tests passing
+
+## Feature - Timeline block popover with quick actions
+- [x] Add popover that appears when clicking a timeline booking block
+- [x] Show guest name, time, product, party size, and status in popover
+- [x] Add "Mark Arrived" button in popover (only for upcoming/not-yet-arrived bookings)
+- [x] Add "View Details" button that scrolls to the booking card
+- [x] Show "Arrived" status and "Undo" option for already-arrived guests
+- [x] Popover dismisses when clicking outside
+- [x] Verify in browser and run tests
