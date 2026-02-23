@@ -1790,3 +1790,6 @@
 
 ## Bug Fix - Waiver badge showing unicode escape text
 - [x] Replace unicode escapes with actual characters in WaiverBadge component
+
+## Bug Fix - Transparent images show white box on Apple TV
+- [x] Find and fix white background behind transparent images on custom slides for Apple TV

@@ -276,7 +276,7 @@ function RenderElement({
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          style={baseStyle}
+          style={{ ...baseStyle, backgroundColor: "transparent" }}
         >
           <img
             src={screen.imagePath}
@@ -286,6 +286,8 @@ function RenderElement({
               height: "100%",
               objectFit: element.objectFit || "cover",
               borderRadius: element.borderRadius || 0,
+              backgroundColor: "transparent",
+              WebkitBackfaceVisibility: "hidden",
             }}
           />
         </motion.div>
@@ -314,10 +316,10 @@ function RenderElement({
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          style={baseStyle}
+          style={{ ...baseStyle, backgroundColor: "transparent" }}
         >
           {logoUrl ? (
-            <img src={logoUrl} alt="Logo" className="max-w-full max-h-full object-contain" />
+            <img src={logoUrl} alt="Logo" className="max-w-full max-h-full object-contain" style={{ backgroundColor: "transparent" }} />
           ) : (
             <div className="flex items-center gap-2">
               <span className="text-3xl">🐱</span>
@@ -446,7 +448,7 @@ export function TemplateRenderer({ screen, settings, adoptionCount }: TemplateRe
             zIndex: 100,
           }}
         >
-          <img src={settings.logoUrl} alt="Logo" className="w-full h-full object-contain" />
+          <img src={settings.logoUrl} alt="Logo" className="w-full h-full object-contain" style={{ backgroundColor: "transparent" }} />
         </div>
       );
     }
