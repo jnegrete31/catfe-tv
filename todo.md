@@ -1723,3 +1723,11 @@
 - [x] Fix: Added Mini Meow detection in fallback ("mini" or "meow escape" → 30min)
 - [x] Verified: Armen 2:00-2:30 PM Mini Meow Escape (30 mins) ✓, Julia 12:00-12:30 PM ✓, Kristy 12:00-12:30 PM ✓
 - [x] Also fixed: Product names now show correctly ("Mini Meow Escape (30 mins)" instead of "Cat Lounge Session")
+
+## Feature - Daily guest summary at top of Guests tab
+- [x] Add summary bar above the tabs showing combined Roller + Walk-in totals
+- [x] Show: Total guests today (54), Roller (25 guests, 13 bookings, 2 arrived), Walk-Ins (29, 16 done), Active (0 sessions)
+- [x] Total card has warm orange gradient to stand out
+- [x] Summary auto-refreshes (Roller every 30s, Walk-In stats every 10s)
+- [x] Loading skeleton while data fetches
+- [x] Verified in browser, 34 tests passing

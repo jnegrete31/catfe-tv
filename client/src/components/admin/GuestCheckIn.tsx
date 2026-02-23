@@ -859,28 +859,132 @@ function WalkInsSection() {
   );
 }
 
+// ============ DAILY SUMMARY BAR ============
+function DailySummaryBar() {
+  // Fetch today's Roller bookings
+  const rollerQuery = trpc.roller.getTodayBookings.useQuery(
+    { filter: "today" as DateFilter },
+    { refetchInterval: 30000 }
+  );
+  // Fetch today's Walk-In stats
+  const statsQuery = trpc.guestSessions.getTodayStats.useQuery(undefined, {
+    refetchInterval: 10000,
+  });
+
+  const rollerBookings = (rollerQuery.data || []) as RollerBookingEntry[];
+  const rollerGuestCount = rollerBookings.reduce((sum, b) => sum + (b.quantity || 1), 0);
+  const rollerBookingCount = rollerBookings.length;
+  const rollerArrivedCount = rollerBookings.filter(b => b.arrivedAt).length;
+
+  const walkInStats = statsQuery.data || { totalGuests: 0, activeSessions: 0, completedSessions: 0 };
+
+  const totalGuestsToday = rollerGuestCount + walkInStats.totalGuests;
+  const activeSessions = walkInStats.activeSessions;
+
+  const isLoading = rollerQuery.isLoading || statsQuery.isLoading;
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-4 gap-2">
+        {[1, 2, 3, 4].map(i => (
+          <Card key={i}>
+            <CardContent className="p-3">
+              <div className="h-4 w-16 bg-muted animate-pulse rounded mb-2" />
+              <div className="h-7 w-10 bg-muted animate-pulse rounded" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-4 gap-2">
+      {/* Total Guests Today */}
+      <Card className="bg-gradient-to-br from-orange-50 to-amber-50 border-orange-200">
+        <CardContent className="p-3">
+          <div className="flex items-center gap-1.5">
+            <Users className="w-3.5 h-3.5 text-orange-600 shrink-0" />
+            <span className="text-[10px] sm:text-xs text-orange-700/70 truncate">Total</span>
+          </div>
+          <p className="text-xl sm:text-2xl font-bold text-orange-900 mt-1">{totalGuestsToday}</p>
+          <p className="text-[10px] sm:text-xs text-orange-700/60">guests today</p>
+        </CardContent>
+      </Card>
+
+      {/* Roller Bookings */}
+      <Card>
+        <CardContent className="p-3">
+          <div className="flex items-center gap-1.5">
+            <Ticket className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+            <span className="text-[10px] sm:text-xs text-muted-foreground truncate">Roller</span>
+          </div>
+          <p className="text-xl sm:text-2xl font-bold mt-1">{rollerGuestCount}</p>
+          <p className="text-[10px] sm:text-xs text-muted-foreground">
+            {rollerBookingCount} booking{rollerBookingCount !== 1 ? "s" : ""}
+            {rollerArrivedCount > 0 && (
+              <span className="text-green-600"> · {rollerArrivedCount} arrived</span>
+            )}
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Walk-Ins */}
+      <Card>
+        <CardContent className="p-3">
+          <div className="flex items-center gap-1.5">
+            <Footprints className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+            <span className="text-[10px] sm:text-xs text-muted-foreground truncate">Walk-Ins</span>
+          </div>
+          <p className="text-xl sm:text-2xl font-bold mt-1">{walkInStats.totalGuests}</p>
+          <p className="text-[10px] sm:text-xs text-muted-foreground">
+            {walkInStats.completedSessions} done
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Active Sessions */}
+      <Card>
+        <CardContent className="p-3">
+          <div className="flex items-center gap-1.5">
+            <Timer className="w-3.5 h-3.5 text-green-600 shrink-0" />
+            <span className="text-[10px] sm:text-xs text-muted-foreground truncate">Active</span>
+          </div>
+          <p className="text-xl sm:text-2xl font-bold mt-1">{activeSessions}</p>
+          <p className="text-[10px] sm:text-xs text-muted-foreground">sessions now</p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 // ============ MAIN COMPONENT ============
 export function GuestCheckIn() {
   return (
-    <Tabs defaultValue="all" className="space-y-4">
-      <TabsList className="grid w-full grid-cols-2">
-        <TabsTrigger value="all" className="gap-1.5">
-          <Ticket className="w-3.5 h-3.5" />
-          <span>Roller Bookings</span>
-        </TabsTrigger>
-        <TabsTrigger value="walkins" className="gap-1.5">
-          <Footprints className="w-3.5 h-3.5" />
-          <span>Walk-Ins</span>
-        </TabsTrigger>
-      </TabsList>
-      
-      <TabsContent value="all" className="mt-4">
-        <RollerBookingsSection />
-      </TabsContent>
-      
-      <TabsContent value="walkins" className="mt-4">
-        <WalkInsSection />
-      </TabsContent>
-    </Tabs>
+    <div className="space-y-4">
+      {/* Daily Summary */}
+      <DailySummaryBar />
+
+      <Tabs defaultValue="all" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="all" className="gap-1.5">
+            <Ticket className="w-3.5 h-3.5" />
+            <span>Roller Bookings</span>
+          </TabsTrigger>
+          <TabsTrigger value="walkins" className="gap-1.5">
+            <Footprints className="w-3.5 h-3.5" />
+            <span>Walk-Ins</span>
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="all" className="mt-4">
+          <RollerBookingsSection />
+        </TabsContent>
+        
+        <TabsContent value="walkins" className="mt-4">
+          <WalkInsSection />
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }
