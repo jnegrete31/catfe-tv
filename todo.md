@@ -1784,3 +1784,6 @@
 ## Bug Fix - Roller guest countdown starts before session
 - [x] Fix countdown timer for Roller guests to only start at booked session start time
 - [x] Show "Starts at X:XX" instead of countdown before session begins
+
+## Feature - Waiver badge in timeline popover
+- [x] Add WaiverBadge component inside the timeline block popover

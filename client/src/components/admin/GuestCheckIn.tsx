@@ -562,6 +562,8 @@ function BookingTimeline({ bookings, onBlockClick, onMarkArrived, onUnmarkArrive
                               <span>Arrived at {new Date(bk.arrivedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", timeZone: "America/Los_Angeles" })}</span>
                             </div>
                           )}
+                          {/* Waiver status */}
+                          <WaiverBadge bookingRef={bk.bookingReference} />
                         </div>
                         {/* Popover actions */}
                         <div className="px-3 py-2 border-t bg-muted/20 flex flex-col gap-1.5">
