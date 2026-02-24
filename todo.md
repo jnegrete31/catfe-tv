@@ -1793,3 +1793,6 @@
 
 ## Bug Fix - Transparent images show white box on Apple TV
 - [x] Find and fix white background behind transparent images on custom slides for Apple TV
+
+## Config - Roller polling interval
+- [x] Change Roller API polling interval to every 30 minutes

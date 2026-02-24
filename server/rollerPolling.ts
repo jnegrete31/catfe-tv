@@ -1,7 +1,7 @@
 /**
  * Roller Polling Service
  * 
- * Polls the Roller API every 30 seconds for today's bookings.
+ * Polls the Roller API every 30 minutes for today's bookings.
  * Only creates guest sessions when a booking's session time window is active
  * (session has started or starts within 5 minutes).
  * 
@@ -324,7 +324,7 @@ async function isRollerPollingEnabled(): Promise<boolean> {
  * 1. Roller credentials are configured
  * 2. rollerPollingEnabled is true in settings (admin toggle)
  * 
- * Polls every 30 seconds for new bookings and auto-creates guest sessions
+ * Polls every 30 minutes for new bookings and auto-creates guest sessions
  * only when their session time window is active.
  */
 export async function startRollerPolling(siteUrl?: string) {
@@ -349,14 +349,14 @@ export async function startRollerPolling(siteUrl?: string) {
     tryRegisterWebhook(siteUrl).catch(() => {}); // Fire and forget
   }
 
-  // Start polling every 30 seconds
-  console.log("[Roller Poll] Starting polling service (every 30 seconds)");
+  // Start polling every 30 minutes
+  console.log("[Roller Poll] Starting polling service (every 30 minutes)");
   
   // Initial poll after 5 seconds (give server time to fully start)
   setTimeout(() => pollForNewBookings(), 5000);
   
-  // Then poll every 30 seconds
-  pollingInterval = setInterval(() => pollForNewBookings(), 30 * 1000);
+  // Then poll every 30 minutes
+  pollingInterval = setInterval(() => pollForNewBookings(), 30 * 60 * 1000);
 }
 
 /**
@@ -376,9 +376,9 @@ export async function enableRollerPolling(siteUrl?: string) {
   if (siteUrl) {
     tryRegisterWebhook(siteUrl).catch(() => {});
   }
-  console.log("[Roller Poll] Enabled and starting polling service (every 30 seconds)");
+  console.log("[Roller Poll] Enabled and starting polling service (every 30 minutes)");
   setTimeout(() => pollForNewBookings(), 2000);
-  pollingInterval = setInterval(() => pollForNewBookings(), 30 * 1000);
+  pollingInterval = setInterval(() => pollForNewBookings(), 30 * 60 * 1000);
 }
 
 /**
