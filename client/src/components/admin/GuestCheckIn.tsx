@@ -183,6 +183,31 @@ function BookingStatusBadge({ status }: { status: RollerBookingEntry["status"] }
   }
 }
 
+// ============ SESSION TYPE BADGE ============
+type SessionType = { label: string; shortLabel: string; duration: string; color: string; bg: string; border: string };
+
+function getSessionType(productName: string): SessionType {
+  const name = productName.toLowerCase();
+  if (name.includes("mini") || name.includes("meow escape")) {
+    return { label: "Mini Meow", shortLabel: "Mini", duration: "30m", color: "text-violet-700", bg: "bg-violet-50", border: "border-violet-300" };
+  }
+  if (name.includes("study")) {
+    return { label: "Study Sesh", shortLabel: "Study", duration: "90m", color: "text-amber-700", bg: "bg-amber-50", border: "border-amber-300" };
+  }
+  // Default: Full Purr / Cat Lounge (60 min)
+  return { label: "Full Purr", shortLabel: "Full", duration: "60m", color: "text-sky-700", bg: "bg-sky-50", border: "border-sky-300" };
+}
+
+function SessionTypeBadge({ productName, compact = false }: { productName: string; compact?: boolean }) {
+  const st = getSessionType(productName);
+  return (
+    <Badge variant="outline" className={`text-[10px] sm:text-xs gap-1 ${st.border} ${st.color} ${st.bg} font-medium shrink-0`}>
+      <Timer className="w-3 h-3" />
+      {compact ? `${st.shortLabel} ${st.duration}` : `${st.label} (${st.duration})`}
+    </Badge>
+  );
+}
+
 const FILTER_LABELS: Record<DateFilter, string> = {
   today: "Today",
   tomorrow: "Tomorrow",
@@ -428,6 +453,14 @@ function BookingTimeline({ bookings, onBlockClick, onMarkArrived, onUnmarkArrive
 
   function getBlockColor(booking: RollerBookingEntry): string {
     if (booking.arrivedAt) return "bg-green-500/90 border-green-600";
+    if (booking.status === "completed") return "bg-gray-300/80 border-gray-400";
+    if (booking.status === "expired") return "bg-red-300/80 border-red-400";
+    // Color by session type for upcoming/checked_in
+    const st = getSessionType(booking.productName);
+    if (st.duration === "30m") return "bg-violet-400/80 border-violet-500"; // Mini Meow
+    if (st.duration === "90m") return "bg-amber-400/80 border-amber-500"; // Study Sesh
+    return "bg-sky-400/80 border-sky-500"; // Full Purr (60m)
+    // Legacy fallback:
     switch (booking.status) {
       case "upcoming": return "bg-blue-400/80 border-blue-500";
       case "checked_in": return "bg-green-400/80 border-green-500";
@@ -548,10 +581,7 @@ function BookingTimeline({ bookings, onBlockClick, onMarkArrived, onUnmarkArrive
                             <Clock className="w-3 h-3 shrink-0" />
                             <span>{formatTimeRange(bk.sessionStartTime, bk.sessionEndTime)}</span>
                           </div>
-                          <div className="flex items-center gap-1.5">
-                            <Ticket className="w-3 h-3 shrink-0" />
-                            <span>{bk.productName}</span>
-                          </div>
+                          <SessionTypeBadge productName={bk.productName} compact />
                           <div className="flex items-center gap-1.5">
                             <Users className="w-3 h-3 shrink-0" />
                             <span>{bk.quantity} {bk.quantity === 1 ? "guest" : "guests"}</span>
@@ -951,10 +981,7 @@ function BookingCard({ booking, showDate }: { booking: RollerBookingEntry; showD
                 <Clock className="w-3 h-3" />
                 {formatTimeRange(booking.sessionStartTime, booking.sessionEndTime)}
               </span>
-              <span className="flex items-center gap-1">
-                <Ticket className="w-3 h-3" />
-                {booking.productName}
-              </span>
+              <SessionTypeBadge productName={booking.productName} />
             </div>
             <div className="flex items-center gap-2 mt-1.5 text-[10px] sm:text-xs text-muted-foreground">
               <span>Ref: {booking.bookingReference}</span>

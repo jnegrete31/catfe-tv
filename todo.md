@@ -1796,3 +1796,8 @@
 
 ## Config - Roller polling interval
 - [x] Change Roller API polling interval to every 30 minutes
+
+## Feature - Session type badges on booking cards
+- [x] Add colored session type badge (Mini Meow 30m, Full Purr 60m, Study Sesh 90m) to Roller booking cards
+- [x] Add session type indicator to timeline block popovers
+- [x] Parse session type from booking notes/product name + color-coded timeline blocks by session type
