@@ -343,6 +343,36 @@ export function CatManager() {
     const reader = new FileReader();
     reader.onload = () => setPhotoPreview(reader.result as string);
     reader.readAsDataURL(file);
+
+    // Auto-upload immediately when editing an existing cat
+    if (editingCat) {
+      autoUploadPhoto(editingCat.id, file);
+    }
+  }
+
+  async function autoUploadPhoto(catId: number, file: File) {
+    setUploadingPhoto(true);
+    try {
+      const base64 = await new Promise<string>((resolve) => {
+        const r = new FileReader();
+        r.onload = () => {
+          const result = r.result as string;
+          resolve(result.split(",")[1]);
+        };
+        r.readAsDataURL(file);
+      });
+      await uploadPhotoMutation.mutateAsync({
+        catId,
+        photoData: base64,
+        fileName: file.name,
+        mimeType: file.type,
+      });
+      toast.success("Photo saved!");
+    } catch (err) {
+      toast.error("Photo upload failed");
+    } finally {
+      setUploadingPhoto(false);
+    }
   }
 
   async function uploadPhoto(catId: number) {

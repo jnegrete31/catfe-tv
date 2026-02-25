@@ -1801,3 +1801,6 @@
 - [x] Add colored session type badge (Mini Meow 30m, Full Purr 60m, Study Sesh 90m) to Roller booking cards
 - [x] Add session type indicator to timeline block popovers
 - [x] Parse session type from booking notes/product name + color-coded timeline blocks by session type
+
+## Bug Fix - Cat photo uploads not auto-saving
+- [x] Fix cat photo uploads not auto-saving when photos are uploaded during cat profile editing
