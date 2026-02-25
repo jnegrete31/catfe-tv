@@ -405,3 +405,22 @@ export function getRollerPollingStatus() {
     lastPollTime,
   };
 }
+
+/**
+ * Trigger an immediate manual sync from the admin UI.
+ * Returns the result of the poll including the last poll time.
+ */
+export async function triggerManualSync(): Promise<{ success: boolean; lastPollTime: string | null; error?: string }> {
+  if (!ENV.rollerClientId || !ENV.rollerClientSecret) {
+    return { success: false, lastPollTime, error: "Roller credentials not configured" };
+  }
+  if (isPolling) {
+    return { success: false, lastPollTime, error: "Sync already in progress" };
+  }
+  try {
+    await pollForNewBookings();
+    return { success: true, lastPollTime };
+  } catch (error: any) {
+    return { success: false, lastPollTime, error: error.message };
+  }
+}

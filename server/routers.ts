@@ -135,7 +135,7 @@ import { storagePut } from "./storage";
 import { invokeLLM } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
 import { getProductAvailability, searchBookings, testConnection, getCustomerDetail, getBookingWaiverSummary, type BookingWaiverSummary } from "./roller";
-import { getRollerPollingStatus } from "./rollerPolling";
+import { getRollerPollingStatus, triggerManualSync } from "./rollerPolling";
 import { settings } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 
@@ -2396,6 +2396,15 @@ Extract as much information as possible from the documents. For the bio, write a
         
         return { enabled: input.enabled };
       }),
+
+    // Manual sync: trigger an immediate Roller data pull
+    manualSync: adminProcedure.mutation(async () => {
+      const result = await triggerManualSync();
+      if (!result.success) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: result.error || "Sync failed" });
+      }
+      return { success: true, lastPollTime: result.lastPollTime };
+    }),
   }),
 
   // ============ VOLUNTEERS ============

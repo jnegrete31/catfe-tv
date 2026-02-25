@@ -229,6 +229,35 @@ function formatDateLabel(dateStr: string): string {
   return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
 }
 
+// ============ SYNC NOW BUTTON ============
+function SyncNowButton({ onSynced }: { onSynced?: () => void }) {
+  const syncMutation = trpc.roller.manualSync.useMutation({
+    onSuccess: (data) => {
+      const timeStr = data.lastPollTime
+        ? new Date(data.lastPollTime).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", timeZone: "America/Los_Angeles" })
+        : "just now";
+      toast.success(`Roller synced! Last pull: ${timeStr}`);
+      onSynced?.();
+    },
+    onError: (err) => {
+      toast.error(err.message || "Sync failed");
+    },
+  });
+
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      className="h-7 text-xs gap-1.5 shrink-0"
+      onClick={() => syncMutation.mutate()}
+      disabled={syncMutation.isPending}
+    >
+      <RefreshCw className={`w-3.5 h-3.5 ${syncMutation.isPending ? "animate-spin" : ""}`} />
+      {syncMutation.isPending ? "Syncing..." : "Sync Now"}
+    </Button>
+  );
+}
+
 // ============ WAIVER STATUS BADGE ============
 function WaiverBadge({ bookingRef }: { bookingRef: string }) {
   const waiverQuery = trpc.roller.getWaiverSummary.useQuery(
@@ -828,14 +857,7 @@ function RollerBookingsSection() {
             </div>
           )}
         </div>
-        <Button 
-          variant="ghost" 
-          size="sm"
-          className="h-8 w-8 p-0"
-          onClick={() => bookingsQuery.refetch()}
-        >
-          <RefreshCw className={`w-4 h-4 ${bookingsQuery.isFetching ? "animate-spin" : ""}`} />
-        </Button>
+        <SyncNowButton onSynced={() => bookingsQuery.refetch()} />
       </div>
 
       {/* Timeline (only for Today filter) */}

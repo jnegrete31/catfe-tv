@@ -1807,3 +1807,8 @@
 
 ## Bug Fix - Roller booking sort order
 - [x] Fix bookings moving to bottom when session starts — should only move to bottom when session ends (completed)
+
+## Feature - Manual Sync Now button
+- [x] Add server-side endpoint to trigger immediate Roller poll
+- [x] Add Sync Now button to the Guests tab header
+- [x] Show loading state and last synced timestamp
