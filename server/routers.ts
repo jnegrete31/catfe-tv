@@ -2218,13 +2218,15 @@ Extract as much information as possible from the documents. For the bio, write a
       }
       
       // Sort: by date first, then by status priority, then by start time
+      // upcoming & checked_in stay at top (active sessions), completed/expired sink to bottom
       enriched.sort((a, b) => {
         // Primary: date
         if (a.bookingDate && b.bookingDate && a.bookingDate !== b.bookingDate) {
           return a.bookingDate.localeCompare(b.bookingDate);
         }
-        // Secondary: status priority (upcoming > checked_in > completed)
-        const statusOrder = { upcoming: 0, checked_in: 1, expired: 2, completed: 3 };
+        // Secondary: status priority — upcoming & checked_in are both "active" (0)
+        // Only completed and expired move to the bottom
+        const statusOrder = { upcoming: 0, checked_in: 0, expired: 1, completed: 2 };
         const statusDiff = statusOrder[a.status] - statusOrder[b.status];
         if (statusDiff !== 0) return statusDiff;
         // Tertiary: by session start time

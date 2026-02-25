@@ -1804,3 +1804,6 @@
 
 ## Bug Fix - Cat photo uploads not auto-saving
 - [x] Fix cat photo uploads not auto-saving when photos are uploaded during cat profile editing
+
+## Bug Fix - Roller booking sort order
+- [x] Fix bookings moving to bottom when session starts — should only move to bottom when session ends (completed)
