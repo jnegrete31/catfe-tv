@@ -1182,6 +1182,11 @@ function WalkInsSection() {
   
   const stats = todayStatsQuery.data || { totalGuests: 0, activeSessions: 0, completedSessions: 0 };
 
+  // Compute active vs expired session counts
+  const now = Date.now();
+  const activeCountdowns = allActiveSessions.filter(s => new Date(s.expiresAt).getTime() > now).length;
+  const expiredSessions = allActiveSessions.filter(s => new Date(s.expiresAt).getTime() <= now).length;
+
   // Play chime when sessions hit 5-minute warning or expire
   useEffect(() => {
     if (!allActiveSessions.length) return;
@@ -1482,7 +1487,25 @@ function WalkInsSection() {
       {/* Active Sessions - Combined (Roller + Walk-ins) */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-sm sm:text-base">Active Sessions</h3>
+          <div className="flex items-center gap-3">
+            <h3 className="font-semibold text-sm sm:text-base">Active Sessions</h3>
+            {allActiveSessions.length > 0 && (
+              <div className="flex items-center gap-2">
+                {activeCountdowns > 0 && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-medium">
+                    <Timer className="w-3 h-3" />
+                    {activeCountdowns} active
+                  </span>
+                )}
+                {expiredSessions > 0 && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-medium">
+                    <Clock className="w-3 h-3" />
+                    {expiredSessions} ended
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
           <Button 
             variant="ghost" 
             size="sm"

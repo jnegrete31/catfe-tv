@@ -1819,3 +1819,6 @@
 
 ## Bug Fix - Add-on product names showing as Product #ID
 - [x] Fix product name resolution for add-on items (showing raw ID instead of name) — now uses /products endpoint for full catalog
+
+## Feature - Walk-in session status counters
+- [x] Add active/ended session counters to the Walk-Ins tab header
