@@ -1816,3 +1816,6 @@
 ## Feature - Show booking add-ons from Roller
 - [x] Investigate Roller booking detail API for add-on data
 - [x] Surface add-ons on booking cards in the Guests tab
+
+## Bug Fix - Add-on product names showing as Product #ID
+- [x] Fix product name resolution for add-on items (showing raw ID instead of name) — now uses /products endpoint for full catalog

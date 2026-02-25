@@ -556,20 +556,10 @@ export interface BookingAddOn {
 }
 
 // Product name cache for resolving add-on names
-const productNameCache = new Map<number, { name: string; cachedAt: number }>();
-const PRODUCT_CACHE_TTL = 30 * 60 * 1000; // 30 minutes
-
-/**
- * Resolve a product name by its productId using the product-availability API.
- * Caches results for 30 minutes.
- */
-export async function resolveProductName(productId: number): Promise<string | null> {
-  const cached = productNameCache.get(productId);
-  if (cached && Date.now() - cached.cachedAt < PRODUCT_CACHE_TTL) {
-    return cached.name;
-  }
-  return null; // Will be resolved by caller using productNameMap
-}
+// Key is string to handle both string and number product IDs
+const productNameCache = new Map<string, { name: string; cachedAt: number }>();
+const PRODUCT_CACHE_TTL = 60 * 60 * 1000; // 1 hour (product data changes infrequently per Roller docs)
+let allProductsCachedAt = 0;
 
 /**
  * Populate the product name cache from a product availability response.
@@ -577,17 +567,69 @@ export async function resolveProductName(productId: number): Promise<string | nu
 export function cacheProductNames(products: any[]): void {
   const now = Date.now();
   for (const p of products) {
-    const pid = p.id || p.parentProductId;
+    const pid = String(p.id || p.parentProductId);
     const pname = p.parentProductName || p.name;
     if (pid && pname) {
       productNameCache.set(pid, { name: pname, cachedAt: now });
     }
     for (const child of (p.products || [])) {
-      if (child.id && pname) {
-        productNameCache.set(child.id, { name: pname, cachedAt: now });
+      if (child.id) {
+        // Cache child with parent name as fallback, child name as specific
+        productNameCache.set(String(child.id), { name: child.name || pname, cachedAt: now });
       }
     }
   }
+}
+
+/**
+ * Fetch ALL products from /products endpoint (includes add-ons, merchandise, etc.)
+ * and cache their names. This is the comprehensive product catalog.
+ * Per Roller docs: "Changes in this data are not expected to change frequently.
+ * As such data must be cached and this endpoint used sparingly."
+ */
+export async function fetchAndCacheAllProducts(): Promise<void> {
+  // Only refresh once per hour
+  if (Date.now() - allProductsCachedAt < PRODUCT_CACHE_TTL) return;
+  
+  try {
+    const products = await rollerFetch('/products');
+    if (Array.isArray(products)) {
+      const now = Date.now();
+      for (const p of products) {
+        const parentId = String(p.parentProductId || p.id);
+        const parentName = p.parentProductName || p.name;
+        if (parentId && parentName) {
+          productNameCache.set(parentId, { name: parentName, cachedAt: now });
+        }
+        // Also cache child product variations
+        for (const child of (p.products || [])) {
+          if (child.id) {
+            productNameCache.set(String(child.id), { name: child.name || parentName, cachedAt: now });
+          }
+        }
+      }
+      allProductsCachedAt = now;
+      console.log(`[Roller] Cached ${productNameCache.size} product names from /products`);
+    }
+  } catch (error: any) {
+    console.warn('[Roller] Failed to fetch all products:', error.message);
+  }
+}
+
+/**
+ * Resolve a product name by its productId.
+ * Tries cache first, then fetches all products if needed.
+ */
+export async function resolveProductName(productId: number | string): Promise<string | null> {
+  const key = String(productId);
+  const cached = productNameCache.get(key);
+  if (cached && Date.now() - cached.cachedAt < PRODUCT_CACHE_TTL) {
+    return cached.name;
+  }
+  // Try fetching all products to populate cache
+  await fetchAndCacheAllProducts();
+  const refreshed = productNameCache.get(key);
+  return refreshed?.name || null;
 }
 
 /**
@@ -620,8 +662,8 @@ export async function getBookingAddOns(
     // Also skip if this item has a session time and matches main (duplicate check)
     if (item === mainItem) continue;
 
-    // Try to resolve product name from cache
-    const cachedName = productNameCache.get(item.productId);
+    // Try to resolve product name from cache (handle string/number mismatch)
+    const cachedName = productNameCache.get(String(item.productId));
     addOns.push({
       productId: item.productId,
       quantity: item.quantity || 1,
@@ -641,13 +683,16 @@ export async function getBookingAddOnsWithNames(
   mainProductId?: number,
   date?: string
 ): Promise<BookingAddOn[]> {
-  // First, try to populate product name cache if needed
+  // First, ensure the full product catalog is cached
+  await fetchAndCacheAllProducts();
+
+  // Also try product-availability for date-specific data
   if (date) {
     try {
       const products = await getProductAvailability(date);
       cacheProductNames(products);
     } catch {
-      // Ignore - we'll just have missing names
+      // Ignore - we already have the full catalog
     }
   }
 
@@ -656,12 +701,9 @@ export async function getBookingAddOnsWithNames(
   // Try to resolve any missing names
   for (const addOn of addOns) {
     if (!addOn.productName) {
-      const cached = productNameCache.get(addOn.productId);
-      if (cached) {
-        addOn.productName = cached.name;
-      } else {
-        addOn.productName = `Product #${addOn.productId}`;
-      }
+      // Try resolving individually (will use cache or fetch)
+      const resolved = await resolveProductName(addOn.productId);
+      addOn.productName = resolved || `Add-on #${addOn.productId}`;
     }
   }
 
