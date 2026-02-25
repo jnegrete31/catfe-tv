@@ -34,6 +34,16 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { playWelcomeChime, playReminderChime } from "@/lib/chime";
 import { requestNotificationPermission, notifySessionWarning, notifySessionExpired, notifyGuestCheckIn } from "@/lib/notifications";
@@ -771,6 +781,7 @@ function RollerBookingsSection() {
   const [filter, setFilter] = useState<DateFilter>("today");
   const [markingRef, setMarkingRef] = useState<string | null>(null);
   const [unmarkingRef, setUnmarkingRef] = useState<string | null>(null);
+  const [earlyArrivalBooking, setEarlyArrivalBooking] = useState<RollerBookingEntry | null>(null);
   const utils = trpc.useUtils();
   const bookingsQuery = trpc.roller.getTodayBookings.useQuery(
     { filter },
@@ -803,7 +814,7 @@ function RollerBookingsSection() {
     },
   });
 
-  const handleTimelineMarkArrived = useCallback((booking: RollerBookingEntry) => {
+  const doTimelineMarkArrived = useCallback((booking: RollerBookingEntry, startNow: boolean) => {
     if (!booking.bookingId) return;
     setMarkingRef(booking.bookingReference);
     markArrivedMutation.mutate({
@@ -814,8 +825,30 @@ function RollerBookingsSection() {
       startTime: booking.sessionStartTime || undefined,
       endTime: booking.sessionEndTime || undefined,
       productName: booking.productName,
+      startNow,
     });
   }, [markArrivedMutation]);
+
+  const handleTimelineMarkArrived = useCallback((booking: RollerBookingEntry) => {
+    if (!booking.bookingId) return;
+    // Check if this is an early arrival
+    if (booking.sessionStartTime) {
+      const now = new Date();
+      const todayPST = now.toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
+      const [h, m] = booking.sessionStartTime.split(':').map(Number);
+      const testDate = new Date(`${todayPST}T12:00:00Z`);
+      const laTime = new Date(testDate.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+      const utcTime = new Date(testDate.toLocaleString('en-US', { timeZone: 'UTC' }));
+      const offsetHours = (utcTime.getTime() - laTime.getTime()) / (1000 * 60 * 60);
+      const tzOffset = offsetHours >= 8 ? '-08:00' : '-07:00';
+      const startDate = new Date(`${todayPST}T${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:00${tzOffset}`);
+      if (now.getTime() < startDate.getTime()) {
+        setEarlyArrivalBooking(booking);
+        return;
+      }
+    }
+    doTimelineMarkArrived(booking, false);
+  }, [doTimelineMarkArrived]);
 
   const handleTimelineUnmarkArrived = useCallback((booking: RollerBookingEntry) => {
     if (!booking.bookingId) return;
@@ -960,6 +993,42 @@ function RollerBookingsSection() {
           ))}
         </div>
       )}
+
+      {/* Early Arrival Confirmation Dialog (from timeline popover) */}
+      <AlertDialog open={!!earlyArrivalBooking} onOpenChange={(open) => { if (!open) setEarlyArrivalBooking(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Early Arrival</AlertDialogTitle>
+            <AlertDialogDescription>
+              <strong>{earlyArrivalBooking?.customerName}</strong> is here early. Their session is booked for{" "}
+              <strong>{earlyArrivalBooking?.sessionStartTime}</strong>. Would you like to start their session now or wait for the original time?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-blue-600 hover:bg-blue-700"
+              onClick={() => {
+                if (earlyArrivalBooking) doTimelineMarkArrived(earlyArrivalBooking, false);
+                setEarlyArrivalBooking(null);
+              }}
+            >
+              <Clock className="w-4 h-4 mr-1.5" />
+              Start at {earlyArrivalBooking?.sessionStartTime}
+            </AlertDialogAction>
+            <AlertDialogAction
+              className="bg-green-600 hover:bg-green-700"
+              onClick={() => {
+                if (earlyArrivalBooking) doTimelineMarkArrived(earlyArrivalBooking, true);
+                setEarlyArrivalBooking(null);
+              }}
+            >
+              <Timer className="w-4 h-4 mr-1.5" />
+              Start Now
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -989,8 +1058,24 @@ function BookingCard({ booking, showDate }: { booking: RollerBookingEntry; showD
 
   const isArrived = !!booking.arrivedAt;
   const isPast = booking.status === "completed" || booking.status === "expired";
+  const [showEarlyDialog, setShowEarlyDialog] = useState(false);
 
-  function handleMarkArrived() {
+  // Check if the booking start time is in the future (early arrival)
+  const isEarlyArrival = useMemo(() => {
+    if (!booking.sessionStartTime) return false;
+    const now = new Date();
+    const todayPST = now.toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
+    const [h, m] = booking.sessionStartTime.split(':').map(Number);
+    const testDate = new Date(`${todayPST}T12:00:00Z`);
+    const laTime = new Date(testDate.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+    const utcTime = new Date(testDate.toLocaleString('en-US', { timeZone: 'UTC' }));
+    const offsetHours = (utcTime.getTime() - laTime.getTime()) / (1000 * 60 * 60);
+    const tzOffset = offsetHours >= 8 ? '-08:00' : '-07:00';
+    const startDate = new Date(`${todayPST}T${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:00${tzOffset}`);
+    return now.getTime() < startDate.getTime();
+  }, [booking.sessionStartTime]);
+
+  function doMarkArrived(startNow: boolean) {
     if (!booking.bookingId) return;
     markArrivedMutation.mutate({
       bookingId: booking.bookingId,
@@ -1000,7 +1085,17 @@ function BookingCard({ booking, showDate }: { booking: RollerBookingEntry; showD
       startTime: booking.sessionStartTime || undefined,
       endTime: booking.sessionEndTime || undefined,
       productName: booking.productName,
+      startNow,
     });
+  }
+
+  function handleMarkArrived() {
+    if (!booking.bookingId) return;
+    if (isEarlyArrival) {
+      setShowEarlyDialog(true);
+    } else {
+      doMarkArrived(false);
+    }
   }
 
   function handleUnmarkArrived() {
@@ -1098,6 +1193,42 @@ function BookingCard({ booking, showDate }: { booking: RollerBookingEntry; showD
           </div>
         </div>
       </CardContent>
+
+      {/* Early Arrival Confirmation Dialog */}
+      <AlertDialog open={showEarlyDialog} onOpenChange={setShowEarlyDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Early Arrival</AlertDialogTitle>
+            <AlertDialogDescription>
+              <strong>{booking.customerName}</strong> is here early. Their session is booked for{" "}
+              <strong>{booking.sessionStartTime}</strong>. Would you like to start their session now or wait for the original time?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-blue-600 hover:bg-blue-700"
+              onClick={() => {
+                doMarkArrived(false);
+                setShowEarlyDialog(false);
+              }}
+            >
+              <Clock className="w-4 h-4 mr-1.5" />
+              Start at {booking.sessionStartTime}
+            </AlertDialogAction>
+            <AlertDialogAction
+              className="bg-green-600 hover:bg-green-700"
+              onClick={() => {
+                doMarkArrived(true);
+                setShowEarlyDialog(false);
+              }}
+            >
+              <Timer className="w-4 h-4 mr-1.5" />
+              Start Now
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

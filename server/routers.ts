@@ -2251,6 +2251,7 @@ Extract as much information as possible from the documents. For the bio, write a
         startTime: z.string().optional(), // "HH:mm" booked start
         endTime: z.string().optional(),   // "HH:mm" booked end
         productName: z.string().optional(),
+        startNow: z.boolean().optional(), // If true, start session immediately (early arrival)
       }))
       .mutation(async ({ input, ctx }) => {
         const arrival = await markBookingArrived({
@@ -2277,11 +2278,16 @@ Extract as much information as possible from the documents. For the bio, write a
           const offsetHours = (utcTime.getTime() - laTime.getTime()) / (1000 * 60 * 60);
           const tzOffset = offsetHours >= 8 ? '-08:00' : '-07:00'; // PST or PDT
           
-          const checkInAt = new Date(`${todayPST}T${input.startTime}:00${tzOffset}`);
-          const expiresAt = new Date(`${todayPST}T${input.endTime}:00${tzOffset}`);
+          const bookedCheckIn = new Date(`${todayPST}T${input.startTime}:00${tzOffset}`);
+          const bookedExpires = new Date(`${todayPST}T${input.endTime}:00${tzOffset}`);
           
           // Calculate duration in minutes for the enum
           const durationMinutes = (endH * 60 + endM) - (startH * 60 + startM);
+          
+          // If startNow is true, start the session immediately with the same duration
+          const nowDate = new Date();
+          const checkInAt = input.startNow ? nowDate : bookedCheckIn;
+          const expiresAt = input.startNow ? new Date(nowDate.getTime() + durationMinutes * 60 * 1000) : bookedExpires;
           let duration: "15" | "30" | "60" | "90" = "60";
           if (durationMinutes <= 15) duration = "15";
           else if (durationMinutes <= 30) duration = "30";

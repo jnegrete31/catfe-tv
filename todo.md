@@ -1822,3 +1822,8 @@
 
 ## Feature - Walk-in session status counters
 - [x] Add active/ended session counters to the Walk-Ins tab header
+
+## Feature - Early arrival option for Roller guests
+- [x] Add server-side support for starting session early (startNow flag on markArrived)
+- [x] Add confirmation dialog when marking arrived before booking time: "Start Now" vs "Start at Booked Time"
+- [x] Adjust session timer/expiry based on chosen start time
