@@ -1831,3 +1831,6 @@
 ## Performance - Reduce excessive API calls (15,913 reported)
 - [x] Investigate sources of excessive API calls
 - [x] Optimize polling intervals, caching, and redundant fetches
+
+## Bug Fix - Booking status stays 'Upcoming' after early arrival
+- [x] Fix status not updating to 'Checked In' when guest is marked arrived early

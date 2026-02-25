@@ -2209,11 +2209,17 @@ Extract as much information as possible from the documents. For the bio, write a
       }
 
       // Merge arrival data into enriched bookings
+      // If a guest has been marked as arrived, override status to checked_in
+      // (handles early arrivals where time-based status would still show "upcoming")
       for (const b of enriched) {
         if (b.bookingId && arrivalMap.has(b.bookingId)) {
           const arrival = arrivalMap.get(b.bookingId)!;
           b.arrivedAt = arrival.arrivedAt.toISOString();
           b.markedByUserId = arrival.markedByUserId;
+          // Override status: arrived guests are checked_in unless their session is already completed
+          if (b.status !== "completed") {
+            b.status = "checked_in";
+          }
         }
       }
       
