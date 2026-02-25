@@ -134,7 +134,7 @@ import {
 import { storagePut } from "./storage";
 import { invokeLLM } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
-import { getProductAvailability, searchBookings, testConnection, getCustomerDetail, getBookingWaiverSummary, type BookingWaiverSummary } from "./roller";
+import { getProductAvailability, searchBookings, testConnection, getCustomerDetail, getBookingWaiverSummary, type BookingWaiverSummary, getBookingAddOnsWithNames, cacheProductNames, type BookingAddOn } from "./roller";
 import { getRollerPollingStatus, triggerManualSync } from "./rollerPolling";
 import { settings } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
@@ -2358,6 +2358,48 @@ Extract as much information as possible from the documents. For the bio, write a
           }
         }
         return summaries;
+      }),
+
+    // Get add-ons for a booking
+    getBookingAddOns: protectedProcedure
+      .input(z.object({
+        bookingRef: z.string(),
+        mainProductId: z.number().optional(),
+        date: z.string().optional(),
+      }))
+      .query(async ({ input }) => {
+        const date = input.date || new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
+        return getBookingAddOnsWithNames(input.bookingRef, input.mainProductId, date);
+      }),
+
+    // Get add-ons for multiple bookings in batch
+    getBatchBookingAddOns: protectedProcedure
+      .input(z.object({
+        bookings: z.array(z.object({
+          bookingRef: z.string(),
+          mainProductId: z.number().optional(),
+        })).max(50),
+        date: z.string().optional(),
+      }))
+      .query(async ({ input }) => {
+        const date = input.date || new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
+        // Pre-cache product names for the date
+        try {
+          const products = await getProductAvailability(date);
+          cacheProductNames(products);
+        } catch { /* ignore */ }
+
+        const results = await Promise.allSettled(
+          input.bookings.map((b) => getBookingAddOnsWithNames(b.bookingRef, b.mainProductId, undefined))
+        );
+        const addOnsMap: Record<string, BookingAddOn[]> = {};
+        for (let i = 0; i < results.length; i++) {
+          const result = results[i];
+          if (result.status === "fulfilled") {
+            addOnsMap[input.bookings[i].bookingRef] = result.value;
+          }
+        }
+        return addOnsMap;
       }),
 
     // Get integration status (polling + webhook + connection)

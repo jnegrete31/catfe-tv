@@ -1812,3 +1812,7 @@
 - [x] Add server-side endpoint to trigger immediate Roller poll
 - [x] Add Sync Now button to the Guests tab header
 - [x] Show loading state and last synced timestamp
+
+## Feature - Show booking add-ons from Roller
+- [x] Investigate Roller booking detail API for add-on data
+- [x] Surface add-ons on booking cards in the Guests tab

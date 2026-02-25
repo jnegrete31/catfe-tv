@@ -546,6 +546,128 @@ export async function getBookingWaiverSummary(bookingRef: string): Promise<Booki
   };
 }
 
+// ---- Booking Add-Ons ----
+
+export interface BookingAddOn {
+  productId: number;
+  quantity: number;
+  cost: number;
+  productName?: string; // resolved from product availability
+}
+
+// Product name cache for resolving add-on names
+const productNameCache = new Map<number, { name: string; cachedAt: number }>();
+const PRODUCT_CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+
+/**
+ * Resolve a product name by its productId using the product-availability API.
+ * Caches results for 30 minutes.
+ */
+export async function resolveProductName(productId: number): Promise<string | null> {
+  const cached = productNameCache.get(productId);
+  if (cached && Date.now() - cached.cachedAt < PRODUCT_CACHE_TTL) {
+    return cached.name;
+  }
+  return null; // Will be resolved by caller using productNameMap
+}
+
+/**
+ * Populate the product name cache from a product availability response.
+ */
+export function cacheProductNames(products: any[]): void {
+  const now = Date.now();
+  for (const p of products) {
+    const pid = p.id || p.parentProductId;
+    const pname = p.parentProductName || p.name;
+    if (pid && pname) {
+      productNameCache.set(pid, { name: pname, cachedAt: now });
+    }
+    for (const child of (p.products || [])) {
+      if (child.id && pname) {
+        productNameCache.set(child.id, { name: pname, cachedAt: now });
+      }
+    }
+  }
+}
+
+/**
+ * Get add-on items from a booking detail.
+ * Add-ons are items that don't have a session time (non-session products)
+ * or items with a different productId from the main session item.
+ * Returns the list of add-ons with resolved product names where possible.
+ */
+export async function getBookingAddOns(
+  bookingRef: string,
+  mainProductId?: number
+): Promise<BookingAddOn[]> {
+  const detail = await getBookingDetail(bookingRef);
+  if (!detail) return [];
+
+  const items = Array.isArray(detail.items) ? detail.items : [detail.items];
+  if (items.length <= 1) return []; // Only main product, no add-ons
+
+  // Find the main session item (has sessionStartTime)
+  const mainItem = items.find(
+    (item) => item.sessionStartTime && item.sessionStartTime !== ""
+  );
+  const mainPid = mainProductId || mainItem?.productId;
+
+  // Add-ons are items that are NOT the main session item
+  const addOns: BookingAddOn[] = [];
+  for (const item of items) {
+    // Skip the main session item
+    if (mainPid && item.productId === mainPid && item.sessionStartTime) continue;
+    // Also skip if this item has a session time and matches main (duplicate check)
+    if (item === mainItem) continue;
+
+    // Try to resolve product name from cache
+    const cachedName = productNameCache.get(item.productId);
+    addOns.push({
+      productId: item.productId,
+      quantity: item.quantity || 1,
+      cost: item.cost || 0,
+      productName: cachedName?.name,
+    });
+  }
+
+  return addOns;
+}
+
+/**
+ * Get add-ons for a booking, resolving product names from availability API.
+ */
+export async function getBookingAddOnsWithNames(
+  bookingRef: string,
+  mainProductId?: number,
+  date?: string
+): Promise<BookingAddOn[]> {
+  // First, try to populate product name cache if needed
+  if (date) {
+    try {
+      const products = await getProductAvailability(date);
+      cacheProductNames(products);
+    } catch {
+      // Ignore - we'll just have missing names
+    }
+  }
+
+  const addOns = await getBookingAddOns(bookingRef, mainProductId);
+
+  // Try to resolve any missing names
+  for (const addOn of addOns) {
+    if (!addOn.productName) {
+      const cached = productNameCache.get(addOn.productId);
+      if (cached) {
+        addOn.productName = cached.name;
+      } else {
+        addOn.productName = `Product #${addOn.productId}`;
+      }
+    }
+  }
+
+  return addOns;
+}
+
 // ---- Test Connection ----
 
 /**

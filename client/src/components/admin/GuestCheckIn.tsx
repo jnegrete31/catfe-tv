@@ -61,6 +61,7 @@ import {
   ShieldX,
   Baby,
   AlertTriangle,
+  Package,
 } from "lucide-react";
 
 type GuestSession = {
@@ -394,6 +395,47 @@ function WaiverBadge({ bookingRef }: { bookingRef: string }) {
   );
 }
 
+// ============ ADD-ON BADGES ============
+function AddOnBadges({ bookingRef }: { bookingRef: string }) {
+  const addOnsQuery = trpc.roller.getBookingAddOns.useQuery(
+    { bookingRef },
+    { staleTime: 10 * 60 * 1000, refetchOnWindowFocus: false }
+  );
+
+  if (addOnsQuery.isLoading || addOnsQuery.isError || !addOnsQuery.data) {
+    return null;
+  }
+
+  const addOns = addOnsQuery.data;
+  if (addOns.length === 0) return null;
+
+  return (
+    <TooltipProvider delayDuration={200}>
+      <div className="flex items-center gap-1 flex-wrap">
+        {addOns.map((addOn, i) => (
+          <Tooltip key={i}>
+            <TooltipTrigger asChild>
+              <Badge
+                variant="outline"
+                className="text-[10px] gap-0.5 border-teal-300 text-teal-700 bg-teal-50 cursor-help"
+              >
+                <Package className="w-3 h-3" />
+                {addOn.productName || `Add-on`}
+                {addOn.quantity > 1 && ` x${addOn.quantity}`}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs">
+              {addOn.productName || `Product #${addOn.productId}`}
+              {addOn.quantity > 1 ? ` (qty: ${addOn.quantity})` : ""}
+              {addOn.cost > 0 ? ` — $${addOn.cost.toFixed(2)}` : ""}
+            </TooltipContent>
+          </Tooltip>
+        ))}
+      </div>
+    </TooltipProvider>
+  );
+}
+
 // ============ BOOKING TIMELINE ============
 function parseHHMM(timeStr: string | null): number | null {
   if (!timeStr) return null;
@@ -622,9 +664,11 @@ function BookingTimeline({ bookings, onBlockClick, onMarkArrived, onUnmarkArrive
                             </div>
                           )}
                           {/* Waiver status */}
-                          <WaiverBadge bookingRef={bk.bookingReference} />
-                        </div>
-                        {/* Popover actions */}
+                           <WaiverBadge bookingRef={bk.bookingReference} />
+                           {/* Add-ons */}
+                           <AddOnBadges bookingRef={bk.bookingReference} />
+                         </div>
+                         {/* Popover actions */}
                         <div className="px-3 py-2 border-t bg-muted/20 flex flex-col gap-1.5">
                           {canMarkArrived && (
                             <Button
@@ -997,6 +1041,7 @@ function BookingCard({ booking, showDate }: { booking: RollerBookingEntry; showD
                 </Badge>
               )}
               <WaiverBadge bookingRef={booking.bookingReference} />
+              <AddOnBadges bookingRef={booking.bookingReference} />
             </div>
             <div className="flex items-center gap-2 sm:gap-3 mt-1 text-xs sm:text-sm text-muted-foreground flex-wrap">
               <span className="flex items-center gap-1">
