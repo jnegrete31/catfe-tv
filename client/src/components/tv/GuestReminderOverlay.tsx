@@ -95,7 +95,8 @@ export function GuestReminderOverlay() {
   
   // Query for sessions needing reminder - poll every 5 seconds for responsiveness
   const { data: sessionsNeedingReminder } = trpc.guestSessions.getNeedingReminder.useQuery(undefined, {
-    refetchInterval: 5000, // Check every 5 seconds
+    refetchInterval: 15000, // Check every 15 seconds
+    staleTime: 10000,
   });
   
   // Mutation to mark reminder as shown (for tracking purposes only)

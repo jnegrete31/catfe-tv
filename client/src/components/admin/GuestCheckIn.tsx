@@ -785,7 +785,7 @@ function RollerBookingsSection() {
   const utils = trpc.useUtils();
   const bookingsQuery = trpc.roller.getTodayBookings.useQuery(
     { filter },
-    { refetchInterval: filter === "today" ? 30000 : 60000 }
+    { refetchInterval: filter === "today" ? 60000 : 120000, staleTime: 30000 }
   );
 
   const markArrivedMutation = trpc.roller.markArrived.useMutation({
@@ -1256,10 +1256,14 @@ function WalkInsSection() {
   }, []);
   
   const activeSessionsQuery = trpc.guestSessions.getActive.useQuery(undefined, {
-    refetchInterval: 10000,
+    refetchInterval: 30000,
+    staleTime: 15000,
   });
   
-  const todayStatsQuery = trpc.guestSessions.getTodayStats.useQuery();
+  const todayStatsQuery = trpc.guestSessions.getTodayStats.useQuery(undefined, {
+    refetchInterval: 60000,
+    staleTime: 30000,
+  });
   
   const checkInMutation = trpc.guestSessions.checkIn.useMutation({
     onSuccess: (_, variables) => {
@@ -1677,11 +1681,12 @@ function DailySummaryBar() {
   // Fetch today's Roller bookings
   const rollerQuery = trpc.roller.getTodayBookings.useQuery(
     { filter: "today" as DateFilter },
-    { refetchInterval: 30000 }
+    { refetchInterval: 60000, staleTime: 30000 }
   );
   // Fetch today's Walk-In stats
   const statsQuery = trpc.guestSessions.getTodayStats.useQuery(undefined, {
-    refetchInterval: 10000,
+    refetchInterval: 60000,
+    staleTime: 30000,
   });
 
   const rollerBookings = (rollerQuery.data || []) as RollerBookingEntry[];

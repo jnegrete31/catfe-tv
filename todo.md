@@ -1827,3 +1827,7 @@
 - [x] Add server-side support for starting session early (startNow flag on markArrived)
 - [x] Add confirmation dialog when marking arrived before booking time: "Start Now" vs "Start at Booked Time"
 - [x] Adjust session timer/expiry based on chosen start time
+
+## Performance - Reduce excessive API calls (15,913 reported)
+- [x] Investigate sources of excessive API calls
+- [x] Optimize polling intervals, caching, and redundant fetches

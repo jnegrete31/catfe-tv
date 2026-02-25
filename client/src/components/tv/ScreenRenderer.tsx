@@ -2206,7 +2206,8 @@ function CheckInScreen({ screen, settings }: ScreenRendererProps) {
 // Also shows general session window timers for online reservation guests
 function GuestStatusBoardScreen({ screen, settings }: ScreenRendererProps) {
   const { data: activeSessions } = trpc.guestSessions.getActive.useQuery(undefined, {
-    refetchInterval: 10000, // Refresh every 10 seconds (reduced from 5s to avoid excess re-renders)
+    refetchInterval: 30000, // Refresh every 30 seconds
+    staleTime: 15000,
   });
   const [currentTime, setCurrentTime] = useState(new Date());
   const locationName = settings?.locationName || "Catf\u00e9";

@@ -17,7 +17,8 @@ import { Textarea } from "@/components/ui/textarea";
 // Roller Sync Toggle - separate from main form since it uses its own mutation
 function RollerSyncToggle() {
   const statusQuery = trpc.roller.getStatus.useQuery(undefined, {
-    refetchInterval: 10000, // Refresh every 10s
+    refetchInterval: 30000, // Refresh every 30s
+    staleTime: 15000,
   });
   const toggleMutation = trpc.roller.togglePolling.useMutation({
     onSuccess: (data) => {
