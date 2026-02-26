@@ -46,6 +46,7 @@ export const screenTypeEnum = mysqlEnum("screenType", [
   "BIRTHDAY_CELEBRATION",
   "VOLUNTEER_SPOTLIGHT",
   "GUEST_PHOTO_CONTEST",
+  "PHOTO_CONTEST_QR",
   "CUSTOM"
 ]);
 

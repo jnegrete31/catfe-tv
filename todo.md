@@ -1966,3 +1966,13 @@
 - [x] Remove static session window countdown timers from tvOS GuestStatusBoardScreenView
 - [x] Roller now handles all session tracking — static countdowns are obsolete
 - [x] Write/update tests for Guest Status Board changes (updated labels to Cat Lounge/Study Sesh, added 90-min)
+
+## Feature - Photo Contest QR Code Screen for TV
+- [x] Add PHOTO_CONTEST_QR to screen type enum in database schema
+- [x] Add PHOTO_CONTEST_QR to shared types (SCREEN_TYPES, SCREEN_TYPE_CONFIG, SCREEN_TYPE_DURATIONS)
+- [x] Create PhotoContestQRScreen web TV display renderer
+- [x] Update tvOS Models.swift with new screen type
+- [x] Create tvOS PhotoContestQRScreenView
+- [x] Update tvOS ScreenView routing
+- [x] Write tests (326 passing)
+- [x] Push tvOS changes to GitHub

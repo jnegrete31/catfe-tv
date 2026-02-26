@@ -3422,6 +3422,96 @@ function GuestPhotoContestScreen({ screen, settings }: ScreenRendererProps) {
   );
 }
 
+// PHOTO_CONTEST_QR - QR code screen linking guests to the photo contest voting page
+function PhotoContestQRScreen({ screen, settings }: ScreenRendererProps) {
+  const votingUrl = typeof window !== 'undefined' 
+    ? `${window.location.origin}/vote/cats`
+    : '/vote/cats';
+  
+  return (
+    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #451a03 0%, #78350f 40%, #92400e 100%)' }}>
+      {/* Animated background pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-10 left-10 w-32 h-32 border-2 border-amber-300/30 rounded-full animate-pulse" />
+        <div className="absolute top-1/4 right-20 w-24 h-24 border-2 border-orange-400/30 rounded-full" style={{ animationDelay: '1s' }} />
+        <div className="absolute bottom-20 left-1/4 w-40 h-40 border-2 border-yellow-400/30 rounded-full" />
+        <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-amber-400/10 rounded-full" />
+      </div>
+      
+      {/* Subtle warm glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] h-[200%] opacity-5" 
+           style={{ background: 'radial-gradient(ellipse at center top, rgba(251,191,36,0.3) 0%, transparent 50%)' }} />
+      
+      {/* Floating emojis */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <motion.div 
+          className="absolute top-20 left-20 text-4xl"
+          animate={{ y: [0, -10, 0], scale: [1, 1.1, 1] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        >
+          📸
+        </motion.div>
+        <motion.div 
+          className="absolute top-32 right-32 text-3xl"
+          animate={{ y: [0, -15, 0], scale: [1, 1.2, 1] }}
+          transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+        >
+          🏆
+        </motion.div>
+        <motion.div 
+          className="absolute bottom-28 left-28 text-3xl"
+          animate={{ y: [0, -12, 0], rotate: [0, 10, 0] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+        >
+          🐱
+        </motion.div>
+        <motion.div 
+          className="absolute bottom-32 right-24 text-3xl"
+          animate={{ y: [0, -8, 0], rotate: [0, -5, 0] }}
+          transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut", delay: 0.7 }}
+        >
+          ❤️
+        </motion.div>
+      </div>
+      
+      {/* Main content */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center"
+        >
+          <h1 className="text-5xl font-light tracking-wider text-white mb-2" style={{ fontFamily: 'Georgia, serif' }}>
+            <span className="text-amber-400">Photo</span> <span className="text-white/80">Contest</span>
+          </h1>
+          <p className="text-xl text-white/60 mb-8">
+            {screen.subtitle || 'Snap a photo, vote for your favorites & win!'}
+          </p>
+          
+          {/* QR Code */}
+          <motion.div 
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            className="inline-block bg-white/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl mb-8"
+          >
+            <QRCode url={screen.qrUrl || votingUrl} size={280} />
+          </motion.div>
+          
+          {/* Instructions */}
+          <div className="space-y-2">
+            <p className="text-lg text-white/70">
+              📱 Scan to upload photos & vote for the cutest cats
+            </p>
+            <p className="text-base text-white/50">
+              Every vote helps support our adoptable cats!
+            </p>
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
+
 // Main renderer that selects the appropriate component
 export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendererProps) {
   // Auto count adoptions from DB + manual offset
@@ -3573,6 +3663,7 @@ export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendere
     BIRTHDAY_CELEBRATION: BirthdayCelebrationScreen,
     VOLUNTEER_SPOTLIGHT: VolunteerSpotlightScreen,
     GUEST_PHOTO_CONTEST: GuestPhotoContestScreen,
+    PHOTO_CONTEST_QR: PhotoContestQRScreen,
     // Custom slides always use TemplateRenderer with their saved template
     CUSTOM: ({ screen }) => {
       // For CUSTOM screens, render with dark elegant theme
