@@ -1912,3 +1912,6 @@
 - [x] Add navigation link to past winners from voting pages
 ### Tests
 - [x] Write tests for contest round management and winner archiving
+
+## Feature - Photo Upload Consent Notice
+- [x] Add consent notice on upload section: uploading grants Catfé permission to use photo on social media

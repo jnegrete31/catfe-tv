@@ -719,6 +719,10 @@ export default function CatVotingPage() {
                   </p>
                 </div>
 
+                <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg p-3 leading-relaxed">
+                  📸 By uploading, you grant Catfé permission to use your photo on our social media, website, and in-lounge displays. Thank you for helping our cats find their forever homes!
+                </p>
+
                 <Button
                   onClick={handleUpload}
                   disabled={
