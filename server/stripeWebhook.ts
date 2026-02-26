@@ -148,8 +148,8 @@ export async function createDonationCheckoutSession(params: {
       cat_name: params.catName || "",
       donor_name: params.donorName || "",
     },
-    success_url: `${params.origin}/vote/${params.catId || ""}?donated=true&tokens=${params.tokens}`,
-    cancel_url: `${params.origin}/vote/${params.catId || ""}?cancelled=true`,
+    success_url: `${params.origin}/vote/cat/${params.catId || ""}?donated=true&tokens=${params.tokens}`,
+    cancel_url: `${params.origin}/vote/cat/${params.catId || ""}?cancelled=true`,
     allow_promotion_codes: true,
   });
 

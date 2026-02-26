@@ -1858,3 +1858,6 @@
 - [x] Social sharing with preview cards for voting links
 ### Tests
 - [x] Write tests for photo upload, voting, and donation token logic
+
+## Bug Fix - Stripe Donation Redirect URL
+- [x] Fix: After Stripe donation checkout, redirect goes to /vote/:catId instead of /vote/cat/:catId causing 404
