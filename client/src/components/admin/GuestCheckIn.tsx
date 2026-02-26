@@ -1001,7 +1001,7 @@ function RollerBookingsSection() {
             <AlertDialogTitle>Early Arrival</AlertDialogTitle>
             <AlertDialogDescription>
               <strong>{earlyArrivalBooking?.customerName}</strong> is here early. Their session is booked for{" "}
-              <strong>{earlyArrivalBooking?.sessionStartTime}</strong>. Would you like to start their session now or wait for the original time?
+              <strong>{formatTime(earlyArrivalBooking?.sessionStartTime ?? null)}</strong>. Would you like to start their session now or wait for the original time?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-col sm:flex-row gap-2">
@@ -1014,7 +1014,7 @@ function RollerBookingsSection() {
               }}
             >
               <Clock className="w-4 h-4 mr-1.5" />
-              Start at {earlyArrivalBooking?.sessionStartTime}
+              Start at {formatTime(earlyArrivalBooking?.sessionStartTime ?? null)}
             </AlertDialogAction>
             <AlertDialogAction
               className="bg-green-600 hover:bg-green-700"
@@ -1201,7 +1201,7 @@ function BookingCard({ booking, showDate }: { booking: RollerBookingEntry; showD
             <AlertDialogTitle>Early Arrival</AlertDialogTitle>
             <AlertDialogDescription>
               <strong>{booking.customerName}</strong> is here early. Their session is booked for{" "}
-              <strong>{booking.sessionStartTime}</strong>. Would you like to start their session now or wait for the original time?
+              <strong>{formatTime(booking.sessionStartTime)}</strong>. Would you like to start their session now or wait for the original time?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-col sm:flex-row gap-2">
@@ -1214,7 +1214,7 @@ function BookingCard({ booking, showDate }: { booking: RollerBookingEntry; showD
               }}
             >
               <Clock className="w-4 h-4 mr-1.5" />
-              Start at {booking.sessionStartTime}
+              Start at {formatTime(booking.sessionStartTime)}
             </AlertDialogAction>
             <AlertDialogAction
               className="bg-green-600 hover:bg-green-700"

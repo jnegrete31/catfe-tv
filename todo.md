@@ -1920,3 +1920,6 @@
 - [x] Update server stripe-products.ts: $1=1 vote, $5=5 votes, $10=15 votes
 - [x] Update webhook token granting logic (uses getTokensForAmount, no change needed)
 - [x] Update frontend donation tier display on CatVotingPage and Home page
+
+## Bug Fix - Military Time on Early Arrival
+- [x] Fix early arrival time display in Roller tab to use 12-hour format (AM/PM) instead of 24-hour military time
