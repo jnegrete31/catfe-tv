@@ -2228,8 +2228,16 @@ function GuestStatusBoardScreen({ screen, settings }: ScreenRendererProps) {
     expiresAt: Date;
   }>;
 
+  // Filter out sessions that expired more than 2 minutes ago (grace period for TV display)
+  // Staff can still check them out from the admin panel
+  const EXPIRED_GRACE_MS = 2 * 60 * 1000; // 2 minutes after expiry
+  const visibleSessions = sessions.filter((s) => {
+    const msLeft = new Date(s.expiresAt).getTime() - currentTime.getTime();
+    return msLeft > -EXPIRED_GRACE_MS; // Show until 2 min past expiry
+  });
+
   // Sort by expiry time (soonest first)
-  const sortedSessions = [...sessions].sort((a, b) => {
+  const sortedSessions = [...visibleSessions].sort((a, b) => {
     const aExp = new Date(a.expiresAt).getTime();
     const bExp = new Date(b.expiresAt).getTime();
     return aExp - bExp;

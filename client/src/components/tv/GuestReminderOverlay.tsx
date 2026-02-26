@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
-import { Clock, Bell, Users, AlertTriangle, Timer, Volume2, VolumeX } from "lucide-react";
+import { Bell, AlertTriangle, Volume2, VolumeX } from "lucide-react";
 import { playReminderChime } from "@/lib/chime";
 
 type GuestSession = {
@@ -15,46 +15,8 @@ type GuestSession = {
   reminderShown: boolean;
 };
 
-// Scheduled reminder configuration
-type ScheduledReminder = {
-  id: string;
-  minute: number; // Minute of the hour (25 or 55)
-  sessionType: string;
-  sessionDuration: string;
-  message: string;
-};
-
-const SCHEDULED_REMINDERS: ScheduledReminder[] = [
-  {
-    id: "mini-meow-25",
-    minute: 25,
-    sessionType: "Mini Meow",
-    sessionDuration: "30 min",
-    message: "Mini Meow sessions ending soon!",
-  },
-  {
-    id: "sessions-55",
-    minute: 55,
-    sessionType: "Full Purr & Mini Meow",
-    sessionDuration: "ending",
-    message: "Sessions ending soon!",
-  },
-];
-
-// Check if we're within the reminder window (5 minutes before the scheduled time)
-function isInReminderWindow(currentMinute: number, targetMinute: number): boolean {
-  const diff = currentMinute - targetMinute;
-  return diff >= 0 && diff < 5;
-}
-
-// Get active scheduled reminders based on current time
-function getActiveScheduledReminders(currentTime: Date): ScheduledReminder[] {
-  const currentMinute = currentTime.getMinutes();
-  
-  return SCHEDULED_REMINDERS.filter(reminder => 
-    isInReminderWindow(currentMinute, reminder.minute)
-  );
-}
+// Grace period: hide expired sessions from TV overlay after 2 minutes
+const EXPIRED_GRACE_MS = 2 * 60 * 1000;
 
 // Custom hook for chime with Web Audio API
 function useChime() {
@@ -90,8 +52,7 @@ function useChime() {
 export function GuestReminderOverlay() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const markedIds = useRef<Set<number>>(new Set());
-  const [dismissedScheduled, setDismissedScheduled] = useState<Set<string>>(new Set());
-  const { playChime, resetPlayedReminders, isMuted, toggleMute } = useChime();
+  const { playChime, isMuted, toggleMute } = useChime();
   
   // Query for sessions needing reminder - poll every 5 seconds for responsiveness
   const { data: sessionsNeedingReminder } = trpc.guestSessions.getNeedingReminder.useQuery(undefined, {
@@ -110,15 +71,7 @@ export function GuestReminderOverlay() {
     return () => clearInterval(interval);
   }, []);
   
-  // Reset dismissed scheduled reminders when the hour changes
-  useEffect(() => {
-    const currentMinute = currentTime.getMinutes();
-    
-    if (currentMinute === 25 || currentMinute === 55) {
-      setDismissedScheduled(new Set());
-      resetPlayedReminders();
-    }
-  }, [currentTime.getMinutes(), resetPlayedReminders]);
+
   
   // Mark reminders as shown in database (for analytics/tracking)
   useEffect(() => {
@@ -134,23 +87,14 @@ export function GuestReminderOverlay() {
     }
   }, [sessionsNeedingReminder, playChime]);
   
-  // Get active scheduled reminders
-  const activeScheduledReminders = getActiveScheduledReminders(currentTime)
-    .filter(r => !dismissedScheduled.has(`${r.id}-${currentTime.getHours()}`));
-  
-  // Play chime for scheduled reminders when they first appear
-  useEffect(() => {
-    activeScheduledReminders.forEach(reminder => {
-      const reminderId = `scheduled-${reminder.id}-${currentTime.getHours()}`;
-      playChime(reminderId);
-    });
-  }, [activeScheduledReminders.length, currentTime.getHours(), playChime]);
-  
-  // Cast to proper type
-  const sessions = (sessionsNeedingReminder || []) as GuestSession[];
+  // Cast to proper type and filter out sessions expired beyond grace period
+  const sessions = ((sessionsNeedingReminder || []) as GuestSession[]).filter((s) => {
+    const msLeft = new Date(s.expiresAt).getTime() - currentTime.getTime();
+    return msLeft > -EXPIRED_GRACE_MS; // Show until 2 min past expiry
+  });
   
   // No reminders to show
-  if (sessions.length === 0 && activeScheduledReminders.length === 0) {
+  if (sessions.length === 0) {
     return null;
   }
   
@@ -177,42 +121,6 @@ export function GuestReminderOverlay() {
           </>
         )}
       </button>
-      
-      {/* Scheduled Time-Based Reminders */}
-      {activeScheduledReminders.map((reminder) => {
-        const targetMinute = reminder.minute;
-        const currentMinute = currentTime.getMinutes();
-        const currentSecond = currentTime.getSeconds();
-        
-        const minutesIntoWindow = currentMinute - targetMinute;
-        const minutesLeft = 4 - minutesIntoWindow;
-        const secondsLeft = 59 - currentSecond;
-        
-        return (
-          <div
-            key={`${reminder.id}-${currentTime.getHours()}`}
-            className="animate-in slide-in-from-left duration-500 rounded-2xl shadow-lg overflow-hidden bg-gradient-to-r from-purple-500 to-indigo-600"
-          >
-            <div className="tv-widget-padding text-white">
-              <div className="flex items-center gap-[clamp(0.5rem,1vw,1rem)]">
-                <Timer className="tv-icon-md flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <div className="font-semibold tv-widget-text-lg">{reminder.sessionType}</div>
-                  <div className="tv-widget-text-lg opacity-90">Ending soon • {minutesLeft}:{secondsLeft.toString().padStart(2, '0')}</div>
-                </div>
-              </div>
-            </div>
-            <div className="h-[clamp(0.25rem,0.5vw,0.5rem)] bg-white/30">
-              <div 
-                className="h-full transition-all duration-1000 bg-white/80"
-                style={{ 
-                  width: `${Math.max(0, ((minutesLeft * 60 + secondsLeft) / (5 * 60)) * 100)}%` 
-                }}
-              />
-            </div>
-          </div>
-        );
-      })}
       
       {/* Individual Guest Session Reminders */}
       {sessions.map((session) => {

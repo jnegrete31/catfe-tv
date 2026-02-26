@@ -1991,3 +1991,11 @@
 - [x] Add clear "How It Works" instructions to tvOS PhotoContestQRScreenView
 - [x] Add matching instructions to web PhotoContestQRScreen
 - [x] Push tvOS changes to GitHub
+
+## Feature - Filter expired sessions from TV display (keep in admin for manual check-out)
+- [x] Filter expired sessions from web TV GuestStatusBoardScreen after 2-min grace period
+- [x] Filter expired sessions from web TV GuestReminderOverlay after 2-min grace period
+- [x] Remove static Full Purr & Mini Meow scheduled reminders from web GuestReminderOverlay
+- [x] Update tvOS GuestStatusBoardScreenView to filter expired sessions (2-min grace period)
+- [x] Push tvOS changes to GitHub
+- [x] Test the flow end-to-end (326 tests passing)
