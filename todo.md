@@ -1861,3 +1861,14 @@
 
 ## Bug Fix - Stripe Donation Redirect URL
 - [x] Fix: After Stripe donation checkout, redirect goes to /vote/:catId instead of /vote/cat/:catId causing 404
+
+## Feature - Guest-Facing Homepage Redesign
+- [x] Redesign homepage from internal tool landing to guest-facing welcome page
+- [x] Add hero section welcoming guests to Catfé with warm branding
+- [x] Add "How It Works" section explaining photo voting system step-by-step
+- [x] Add "Meet Our Cats" section with CTA to browse cats and vote
+- [x] Add "Upload Your Photos" section explaining how guests can submit content
+- [x] Add donation tiers explanation showing how extra votes support the cats
+- [x] Add "Happy Tails" and "Snap & Purr" upload CTAs
+- [x] Keep admin/staff links accessible but not primary focus
+- [x] Mobile-optimized layout for guests scanning QR codes in the lounge
