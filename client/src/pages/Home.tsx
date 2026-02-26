@@ -82,9 +82,9 @@ export default function Home() {
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="w-full sm:w-auto bg-white">
-              <Link href="/upload/snap-purr">
-                <Upload className="w-5 h-5 mr-2" />
-                Upload a Photo
+              <Link href="/upload/happy-tails">
+                <Heart className="w-5 h-5 mr-2" />
+                Happy Tails
               </Link>
             </Button>
           </div>
@@ -97,18 +97,12 @@ export default function Home() {
       {/* Quick Actions Bar */}
       <section className="bg-white/60 border-y border-amber-200/50">
         <div className="container py-5">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl mx-auto">
+          <div className="grid grid-cols-3 gap-3 max-w-2xl mx-auto">
             <QuickAction
               icon={<Camera className="w-5 h-5" />}
               label="Photo Contest"
               desc="Vote on cat photos"
               href="/vote/cats"
-            />
-            <QuickAction
-              icon={<Upload className="w-5 h-5" />}
-              label="Snap & Purr"
-              desc="Share lounge photos"
-              href="/upload/snap-purr"
             />
             <QuickAction
               icon={<Heart className="w-5 h-5" />}
@@ -147,10 +141,10 @@ export default function Home() {
               number={1}
               icon={<Camera className="w-7 h-7" />}
               title="Snap a Photo"
-              description="Take a photo of your favorite cat in the lounge. You can upload up to 3 photos per cat — capture their personality!"
+              description="Find a cat you love, tap their profile, and upload up to 3 photos. Capture their personality!"
               color="bg-pink-500"
-              cta="Upload Photos"
-              href="/upload/snap-purr"
+              cta="Browse Cats"
+              href="/vote/cats"
             />
             <StepCard
               number={2}
@@ -301,15 +295,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-5">
-              <ActivityCard
-                icon={<Upload className="w-6 h-6" />}
-                title="Snap & Purr Photos"
-                description="Capture your lounge visit! Take photos, add fun cat-themed frames, and share them. Your photos may appear on our TV slideshow."
-                cta="Upload Now"
-                href="/upload/snap-purr"
-                color="bg-purple-500"
-              />
+            <div className="grid md:grid-cols-3 gap-5">
               <ActivityCard
                 icon={<Heart className="w-6 h-6" />}
                 title="Happy Tails Updates"
@@ -391,12 +377,11 @@ export default function Home() {
             </FAQItem>
 
             <FAQItem
-              question="What is Snap & Purr vs. Happy Tails?"
+              question="What is Happy Tails?"
               isOpen={openSection === "faq-types"}
               onToggle={() => toggleSection("faq-types")}
             >
-              <p><strong>Snap & Purr</strong> is for photos taken during your visit to the lounge — capture the cats playing, napping, or being adorable. These photos appear in our lounge gallery slideshow.</p>
-              <p className="mt-2"><strong>Happy Tails</strong> is for people who've adopted a cat from Catfé. Share photos of your cat in their forever home so we can celebrate their new life!</p>
+              <p><strong>Happy Tails</strong> is for people who've adopted a cat from Catfé. Share photos of your cat in their forever home so we can celebrate their new life! These heartwarming updates appear on our lounge TV displays.</p>
             </FAQItem>
 
             <FAQItem
@@ -432,9 +417,9 @@ export default function Home() {
                 </Link>
               </Button>
               <Button asChild variant="outline" size="lg" className="bg-white">
-                <Link href="/upload/snap-purr">
-                  <Upload className="w-5 h-5 mr-2" />
-                  Upload a Photo
+                <Link href="/upload/happy-tails">
+                  <Heart className="w-5 h-5 mr-2" />
+                  Share a Happy Tail
                 </Link>
               </Button>
             </div>
@@ -452,9 +437,6 @@ export default function Home() {
           <div className="flex items-center gap-4 text-xs">
             <Link href="/vote/cats" className="hover:text-foreground transition">
               Photo Contest
-            </Link>
-            <Link href="/upload/snap-purr" className="hover:text-foreground transition">
-              Snap & Purr
             </Link>
             <Link href="/upload/happy-tails" className="hover:text-foreground transition">
               Happy Tails

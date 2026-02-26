@@ -20,6 +20,8 @@ import {
   Gift,
   Cat,
   Coins,
+  CalendarCheck,
+  ExternalLink,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -351,6 +353,32 @@ export default function CatVotingPage() {
                   Spayed/Neutered
                 </Badge>
               )}
+            </div>
+            {/* Action Buttons */}
+            <div className="flex gap-2 pt-2">
+              <Button
+                asChild
+                size="sm"
+                className="flex-1 bg-amber-600 hover:bg-amber-700 text-white"
+              >
+                <a href="https://www.catfe.la/catfe-experiences" target="_blank" rel="noopener noreferrer">
+                  <CalendarCheck className="w-4 h-4 mr-1.5" />
+                  Book a Visit
+                  <ExternalLink className="w-3 h-3 ml-1 opacity-60" />
+                </a>
+              </Button>
+              <Button
+                asChild
+                size="sm"
+                variant="outline"
+                className="flex-1 border-pink-300 text-pink-700 hover:bg-pink-50"
+              >
+                <a href="https://www.catfe.la/adopt" target="_blank" rel="noopener noreferrer">
+                  <Heart className="w-4 h-4 mr-1.5" />
+                  Adopt Me
+                  <ExternalLink className="w-3 h-3 ml-1 opacity-60" />
+                </a>
+              </Button>
             </div>
           </CardContent>
         </Card>

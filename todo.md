@@ -1872,3 +1872,15 @@
 - [x] Add "Happy Tails" and "Snap & Purr" upload CTAs
 - [x] Keep admin/staff links accessible but not primary focus
 - [x] Mobile-optimized layout for guests scanning QR codes in the lounge
+
+## Simplify Homepage - Remove Snap & Purr
+- [x] Remove Snap & Purr from quick action cards on homepage
+- [x] Remove Snap & Purr from "More Ways to Participate" section
+- [x] Remove Snap & Purr from FAQ section
+- [x] Remove Snap & Purr from footer links
+- [x] Keep Photo Contest as the primary guest experience
+- [x] Keep Happy Tails as a secondary option (different purpose - adopted cats)
+
+## Feature - Cat Profile Action Links
+- [x] Add "Book a Visit" button to cat voting profile page (links to Catfé booking)
+- [x] Add "Adopt Me" link/button to cat voting profile page (links to adoption form)
