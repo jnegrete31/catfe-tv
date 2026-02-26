@@ -3427,84 +3427,135 @@ function PhotoContestQRScreen({ screen, settings }: ScreenRendererProps) {
   const votingUrl = typeof window !== 'undefined' 
     ? `${window.location.origin}/vote/cats`
     : '/vote/cats';
+
+  const steps = [
+    { icon: '📱', title: 'Scan the QR Code', desc: 'Use your phone camera to scan and open the contest page' },
+    { icon: '📸', title: 'Snap & Upload', desc: 'Take a photo of your favorite lounge cat and upload it' },
+    { icon: '❤️', title: 'Vote for Favorites', desc: 'Browse all entries and vote for the cutest photos' },
+    { icon: '🏆', title: 'Win Prizes!', desc: 'Top photos are featured on the TV and win Catfé rewards' },
+  ];
   
   return (
-    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #451a03 0%, #78350f 40%, #92400e 100%)' }}>
-      {/* Animated background pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-10 left-10 w-32 h-32 border-2 border-amber-300/30 rounded-full animate-pulse" />
-        <div className="absolute top-1/4 right-20 w-24 h-24 border-2 border-orange-400/30 rounded-full" style={{ animationDelay: '1s' }} />
-        <div className="absolute bottom-20 left-1/4 w-40 h-40 border-2 border-yellow-400/30 rounded-full" />
-        <div className="absolute top-1/2 right-1/3 w-16 h-16 bg-amber-400/10 rounded-full" />
-      </div>
-      
-      {/* Subtle warm glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] h-[200%] opacity-5" 
-           style={{ background: 'radial-gradient(ellipse at center top, rgba(251,191,36,0.3) 0%, transparent 50%)' }} />
+    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a0a00 0%, #2d1400 30%, #451a03 60%, #2d1400 100%)' }}>
+      {/* Warm amber light glows */}
+      <div className="absolute -top-[20%] -left-[10%] w-[60%] h-[60%] rounded-full opacity-30"
+           style={{ background: 'radial-gradient(circle, rgba(217,158,51,0.4) 0%, transparent 70%)' }} />
+      <div className="absolute top-[10%] -right-[5%] w-[50%] h-[50%] rounded-full opacity-20"
+           style={{ background: 'radial-gradient(circle, rgba(234,120,40,0.35) 0%, transparent 70%)' }} />
+      <div className="absolute bottom-0 left-0 right-0 h-[180px] opacity-15"
+           style={{ background: 'linear-gradient(to bottom, transparent, rgba(134,239,172,0.3))' }} />
       
       {/* Floating emojis */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div 
-          className="absolute top-20 left-20 text-4xl"
-          animate={{ y: [0, -10, 0], scale: [1, 1.1, 1] }}
-          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-        >
-          📸
-        </motion.div>
-        <motion.div 
-          className="absolute top-32 right-32 text-3xl"
-          animate={{ y: [0, -15, 0], scale: [1, 1.2, 1] }}
-          transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-        >
-          🏆
-        </motion.div>
-        <motion.div 
-          className="absolute bottom-28 left-28 text-3xl"
-          animate={{ y: [0, -12, 0], rotate: [0, 10, 0] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
-        >
-          🐱
-        </motion.div>
-        <motion.div 
-          className="absolute bottom-32 right-24 text-3xl"
-          animate={{ y: [0, -8, 0], rotate: [0, -5, 0] }}
-          transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut", delay: 0.7 }}
-        >
-          ❤️
-        </motion.div>
+        <motion.div className="absolute top-16 left-16 text-4xl opacity-25"
+          animate={{ y: [0, -12, 0] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}>📸</motion.div>
+        <motion.div className="absolute top-24 right-24 text-3xl opacity-20"
+          animate={{ y: [0, -15, 0] }}
+          transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}>🏆</motion.div>
+        <motion.div className="absolute bottom-20 left-24 text-4xl opacity-15"
+          animate={{ y: [0, -10, 0] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}>🐱</motion.div>
+        <motion.div className="absolute bottom-24 right-20 text-3xl opacity-20"
+          animate={{ y: [0, -8, 0] }}
+          transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut", delay: 0.7 }}>❤️</motion.div>
       </div>
       
-      {/* Main content */}
-      <div className="absolute inset-0 flex items-center justify-center">
+      {/* Main 3-column content */}
+      <div className="absolute inset-0 flex items-center px-[4%]">
+        {/* LEFT: Title + Subtitle */}
+        <motion.div 
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6 }}
+          className="flex-1 flex flex-col justify-center pr-6" style={{ maxWidth: '30%' }}
+        >
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6 self-start"
+               style={{ background: 'rgba(217,158,51,0.15)', border: '1px solid rgba(217,158,51,0.3)' }}>
+            <span className="text-amber-400 text-sm">🏆</span>
+            <span className="text-amber-400 text-xs font-bold tracking-[3px]">PHOTO CONTEST</span>
+          </div>
+          
+          <h1 className="text-[3.2rem] leading-tight font-bold text-white/95 mb-4" style={{ fontFamily: 'Georgia, serif' }}>
+            {screen.title}
+          </h1>
+          
+          <p className="text-xl text-white/60 leading-relaxed">
+            {screen.subtitle || 'Snap a photo of your favorite cat, upload it, and vote for the cutest shots!'}
+          </p>
+        </motion.div>
+        
+        {/* CENTER: How It Works */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center"
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="flex flex-col justify-center items-center" style={{ width: '34%' }}
         >
-          <h1 className="text-5xl font-light tracking-wider text-white mb-2" style={{ fontFamily: 'Georgia, serif' }}>
-            <span className="text-amber-400">Photo</span> <span className="text-white/80">Contest</span>
-          </h1>
-          <p className="text-xl text-white/60 mb-8">
-            {screen.subtitle || 'Snap a photo, vote for your favorites & win!'}
-          </p>
+          <h2 className="text-2xl font-bold mb-6" style={{ fontFamily: 'Georgia, serif', color: '#ea7828' }}>
+            How It Works
+          </h2>
           
-          {/* QR Code */}
+          <div className="space-y-4 w-full max-w-[380px]">
+            {steps.map((step, i) => (
+              <motion.div 
+                key={i}
+                initial={{ opacity: 0, x: -15 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.4, delay: 0.3 + i * 0.1 }}
+                className="flex items-start gap-4"
+              >
+                <div className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-lg shadow-lg"
+                     style={{ background: 'linear-gradient(135deg, #ea7828, #d99e33)' }}>
+                  {step.icon}
+                </div>
+                <div>
+                  <p className="text-lg font-bold text-white/90">{step.title}</p>
+                  <p className="text-sm text-white/50 leading-snug">{step.desc}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+          
           <motion.div 
-            initial={{ scale: 0.9 }}
-            animate={{ scale: 1 }}
-            className="inline-block bg-white/95 backdrop-blur-sm rounded-2xl p-8 shadow-2xl mb-8"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8 }}
+            className="flex items-center gap-2 mt-5"
           >
-            <QRCode url={screen.qrUrl || votingUrl} size={280} />
+            <span className="text-amber-400 text-sm">💡</span>
+            <span className="text-white/40 text-sm font-medium">Free to enter • No app download needed</span>
           </motion.div>
-          
-          {/* Instructions */}
-          <div className="space-y-2">
-            <p className="text-lg text-white/70">
-              📱 Scan to upload photos & vote for the cutest cats
-            </p>
-            <p className="text-base text-white/50">
-              Every vote helps support our adoptable cats!
-            </p>
+        </motion.div>
+        
+        {/* RIGHT: QR Code */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.85 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: 'spring', stiffness: 100, damping: 15, delay: 0.3 }}
+          className="flex flex-col items-center justify-center" style={{ width: '32%' }}
+        >
+          <div className="relative">
+            {/* Pulsing glow */}
+            <motion.div 
+              className="absolute -inset-6 rounded-3xl opacity-10"
+              animate={{ opacity: [0.08, 0.18, 0.08] }}
+              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+              style={{ background: 'rgba(217,158,51,0.4)', filter: 'blur(30px)' }}
+            />
+            {/* QR card */}
+            <div className="relative rounded-3xl p-6 shadow-2xl"
+                 style={{ 
+                   background: 'rgba(255,254,245,0.97)', 
+                   border: '2px solid rgba(217,158,51,0.4)',
+                   boxShadow: '0 20px 60px rgba(217,158,51,0.2)'
+                 }}>
+              <QRCode url={screen.qrUrl || votingUrl} size={240} />
+              <p className="text-center mt-3 text-sm font-semibold" style={{ color: '#78350f' }}>
+                {screen.qrLabel || 'Scan to Join!'}
+              </p>
+            </div>
           </div>
         </motion.div>
       </div>

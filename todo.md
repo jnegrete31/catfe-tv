@@ -1979,3 +1979,15 @@
 
 ## Bug Fix - PHOTO_CONTEST_QR rejected by Zod validation
 - [x] Add PHOTO_CONTEST_QR to the Zod z.enum() validation in server/routers.ts screen creation endpoint
+
+## Redesign - Photo Contest QR Screen (too boring/plain)
+- [x] Redesign tvOS PhotoContestQRScreenView with vibrant animated layout
+- [x] Add warm amber gradient background, floating camera/trophy emojis, sparkle effects
+- [x] Make QR code larger and more prominent with glowing border
+- [x] Add engaging call-to-action text and step-by-step instructions (3-step flow)
+- [x] Push tvOS changes to GitHub
+
+## Improvement - Add contest instructions to Photo Contest QR Screen
+- [x] Add clear "How It Works" instructions to tvOS PhotoContestQRScreenView
+- [x] Add matching instructions to web PhotoContestQRScreen
+- [x] Push tvOS changes to GitHub
