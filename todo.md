@@ -1933,3 +1933,7 @@
 - [x] Show session countdown timer directly on the Roller booking card once guest is marked as arrived
 - [x] Add +15m, +30m extend buttons and Out button on the booking card for arrived guests
 - [x] Remove need to switch to Walk-Ins tab to see Roller session countdowns
+
+## Cleanup - Hide Roller Sessions from Walk-Ins
+- [x] Filter out Roller-originated sessions from Walk-Ins active sessions list
+- [x] Roller sessions are now fully managed from the Roller booking card (countdown, extend, checkout)

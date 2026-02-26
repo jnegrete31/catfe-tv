@@ -1431,10 +1431,10 @@ function WalkInsSection() {
   
   const stats = todayStatsQuery.data || { totalGuests: 0, activeSessions: 0, completedSessions: 0 };
 
-  // Compute active vs expired session counts
+  // Compute active vs expired session counts (walk-ins only)
   const now = Date.now();
-  const activeCountdowns = allActiveSessions.filter(s => new Date(s.expiresAt).getTime() > now).length;
-  const expiredSessions = allActiveSessions.filter(s => new Date(s.expiresAt).getTime() <= now).length;
+  const activeCountdowns = walkInSessions.filter(s => new Date(s.expiresAt).getTime() > now).length;
+  const expiredSessions = walkInSessions.filter(s => new Date(s.expiresAt).getTime() <= now).length;
 
   // Play chime when sessions hit 5-minute warning or expire
   useEffect(() => {
@@ -1733,12 +1733,12 @@ function WalkInsSection() {
         </DialogContent>
       </Dialog>
       
-      {/* Active Sessions - Combined (Roller + Walk-ins) */}
+      {/* Active Sessions - Walk-ins only (Roller managed from Roller tab) */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <h3 className="font-semibold text-sm sm:text-base">Active Sessions</h3>
-            {allActiveSessions.length > 0 && (
+            {walkInSessions.length > 0 && (
               <div className="flex items-center gap-2">
                 {activeCountdowns > 0 && (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-medium">
@@ -1769,19 +1769,16 @@ function WalkInsSection() {
           <div className="flex items-center justify-center py-8">
             <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
           </div>
-        ) : allActiveSessions.length === 0 ? (
+        ) : walkInSessions.length === 0 ? (
           <Card>
             <CardContent className="py-8 text-center text-muted-foreground">
               <Users className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              <p>No active sessions</p>
-              <p className="text-sm">Check in a guest or wait for Roller auto-check-in</p>
+              <p>No active walk-in sessions</p>
+              <p className="text-sm">Check in a walk-in guest to start a session</p>
             </CardContent>
           </Card>
         ) : (
           <div className="space-y-2">
-            {/* Roller sessions first */}
-            {rollerSessions.map((session) => renderSessionCard(session, true))}
-            {/* Walk-in sessions */}
             {walkInSessions.map((session) => renderSessionCard(session, false))}
           </div>
         )}
