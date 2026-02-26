@@ -1915,3 +1915,8 @@
 
 ## Feature - Photo Upload Consent Notice
 - [x] Add consent notice on upload section: uploading grants Catfé permission to use photo on social media
+
+## Change - Update Donation Vote Token Tiers
+- [x] Update server stripe-products.ts: $1=1 vote, $5=5 votes, $10=15 votes
+- [x] Update webhook token granting logic (uses getTokensForAmount, no change needed)
+- [x] Update frontend donation tier display on CatVotingPage and Home page

@@ -250,24 +250,24 @@ export default function Home() {
               emoji="🐾"
               name="Paw Print"
               price="$1"
-              votes={5}
+              votes={1}
               description="A small gesture that makes a big difference"
               color="border-amber-300 bg-amber-50/50"
             />
             <DonationTier
               emoji="😺"
-              name="Happy Cat"
+              name="Cat Nap"
               price="$5"
-              votes={30}
+              votes={5}
               description="Helps cover a day of food and treats"
               popular
               color="border-pink-300 bg-pink-50/50"
             />
             <DonationTier
               emoji="🏆"
-              name="Champion"
+              name="Full Purr"
               price="$10"
-              votes={75}
+              votes={15}
               description="Supports medical care and adoption prep"
               color="border-amber-400 bg-amber-50/50"
             />
