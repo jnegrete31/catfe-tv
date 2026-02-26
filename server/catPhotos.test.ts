@@ -301,4 +301,96 @@ describe("catPhotos", () => {
       ).rejects.toThrow();
     });
   });
+
+  // ============ CONTEST ROUND TESTS ============
+
+  describe("getCurrentRound", () => {
+    it("returns a contest round object", async () => {
+      const round = await publicCaller.catPhotos.getCurrentRound();
+      expect(round).toHaveProperty("id");
+      expect(round).toHaveProperty("roundNumber");
+      expect(round).toHaveProperty("startAt");
+      expect(round).toHaveProperty("endAt");
+      expect(round).toHaveProperty("status");
+      expect(round.status).toBe("active");
+    });
+
+    it("returns the same round on consecutive calls", async () => {
+      const round1 = await publicCaller.catPhotos.getCurrentRound();
+      const round2 = await publicCaller.catPhotos.getCurrentRound();
+      expect(round1.id).toBe(round2.id);
+      expect(round1.roundNumber).toBe(round2.roundNumber);
+    });
+
+    it("round has valid date range (start before end)", async () => {
+      const round = await publicCaller.catPhotos.getCurrentRound();
+      const start = new Date(round.startAt).getTime();
+      const end = new Date(round.endAt).getTime();
+      expect(end).toBeGreaterThan(start);
+    });
+
+    it("round spans approximately 7 days", async () => {
+      const round = await publicCaller.catPhotos.getCurrentRound();
+      const start = new Date(round.startAt).getTime();
+      const end = new Date(round.endAt).getTime();
+      const diffDays = (end - start) / (1000 * 60 * 60 * 24);
+      // Should be approximately 7 days (6.99... to 7.01)
+      expect(diffDays).toBeGreaterThan(6.9);
+      expect(diffDays).toBeLessThan(7.1);
+    });
+  });
+
+  describe("getCatVotingPage with round", () => {
+    it("includes round info in the response", async () => {
+      try {
+        const result = await publicCaller.catPhotos.getCatVotingPage({ catId: 1 });
+        expect(result).toHaveProperty("round");
+        expect(result.round).toHaveProperty("id");
+        expect(result.round).toHaveProperty("roundNumber");
+        expect(result.round).toHaveProperty("endAt");
+      } catch (e: any) {
+        // Cat might not exist in test DB
+        expect(e.code).toBe("NOT_FOUND");
+      }
+    });
+  });
+
+  describe("getPastWinners", () => {
+    it("returns an array of completed rounds", async () => {
+      const result = await publicCaller.catPhotos.getPastWinners({ limit: 5 });
+      expect(Array.isArray(result)).toBe(true);
+    });
+
+    it("each round has winners array", async () => {
+      const result = await publicCaller.catPhotos.getPastWinners({ limit: 5 });
+      for (const round of result) {
+        expect(round).toHaveProperty("winners");
+        expect(Array.isArray(round.winners)).toBe(true);
+        expect(round).toHaveProperty("roundNumber");
+        expect(round).toHaveProperty("status");
+        expect(round.status).toBe("completed");
+      }
+    });
+
+    it("respects the limit parameter", async () => {
+      const result = await publicCaller.catPhotos.getPastWinners({ limit: 1 });
+      expect(result.length).toBeLessThanOrEqual(1);
+    });
+  });
+
+  describe("round-scoped photo queries", () => {
+    it("getForCat returns photos scoped to current round", async () => {
+      const result = await publicCaller.catPhotos.getForCat({ catId: 1 });
+      expect(Array.isArray(result)).toBe(true);
+    });
+
+    it("getUploaderCount is scoped to current round", async () => {
+      const result = await publicCaller.catPhotos.getUploaderCount({
+        catId: 1,
+        fingerprint: `round-test-${Date.now()}`,
+      });
+      expect(result.count).toBe(0);
+      expect(result.remaining).toBe(3);
+    });
+  });
 });

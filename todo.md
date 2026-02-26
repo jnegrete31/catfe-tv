@@ -1892,3 +1892,23 @@
 - [x] Remove personality pill tags from cat cards
 - [x] Add more spacing/breathing room to cat card layout
 - [x] Make cards less squished overall
+
+## Feature - Weekly Contest Cycles
+### Database
+- [x] Create contest_rounds table (id, roundNumber, startAt, endAt, status, createdAt)
+- [x] Create contest_winners table (id, roundId, catId, photoId, rank, voteCount, createdAt)
+- [x] Add roundId foreign key to guest_cat_photos table
+### Server Logic
+- [x] Build round management: create/get current round, close round, archive winners
+- [x] Auto-reset logic: on first request after round ends, close old round and start new one
+- [x] Winner archiving: save top 3 photos overall when round closes
+- [x] New round scopes photos/uploads/votes to current round only
+- [x] tRPC procedures for round info, past winners
+### Frontend
+- [x] Add countdown timer to cat voting page and cat list showing time remaining
+- [x] Show current round number/week on voting pages
+- [x] Build past winners gallery page (/vote/winners)
+- [x] Add winner badges to photos that won previous rounds
+- [x] Add navigation link to past winners from voting pages
+### Tests
+- [x] Write tests for contest round management and winner archiving

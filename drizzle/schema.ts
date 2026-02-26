@@ -621,6 +621,7 @@ export const guestCatPhotos = mysqlTable("guestCatPhotos", {
   uploaderFingerprint: varchar("uploaderFingerprint", { length: 64 }).notNull(), // Device fingerprint to enforce 3-photo limit
   caption: varchar("caption", { length: 300 }),
   voteCount: int("voteCount").notNull().default(0), // Cached total votes for quick sorting
+  roundId: int("roundId"), // References contestRounds.id - null for legacy photos before contest system
   isActive: boolean("isActive").notNull().default(true), // Can be hidden by admin
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -661,3 +662,47 @@ export const donationVoteTokens = mysqlTable("donationVoteTokens", {
 
 export type DonationVoteToken = typeof donationVoteTokens.$inferSelect;
 export type InsertDonationVoteToken = typeof donationVoteTokens.$inferInsert;
+
+
+/**
+ * Contest round status enum
+ */
+export const contestRoundStatusEnum = mysqlEnum("contestRoundStatus", ["active", "completed"]);
+
+/**
+ * Contest rounds - weekly photo contest cycles
+ * Each round runs for 7 days (Monday 00:00 UTC to Sunday 23:59 UTC)
+ */
+export const contestRounds = mysqlTable("contestRounds", {
+  id: int("id").autoincrement().primaryKey(),
+  roundNumber: int("roundNumber").notNull(), // Sequential round number (Week 1, Week 2, etc.)
+  startAt: timestamp("startAt").notNull(), // When this round starts
+  endAt: timestamp("endAt").notNull(), // When this round ends
+  status: contestRoundStatusEnum.notNull().default("active"),
+  totalPhotos: int("totalPhotos").notNull().default(0), // Cached count at close
+  totalVotes: int("totalVotes").notNull().default(0), // Cached count at close
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ContestRound = typeof contestRounds.$inferSelect;
+export type InsertContestRound = typeof contestRounds.$inferInsert;
+
+/**
+ * Contest winners - archived top photos from completed rounds
+ */
+export const contestWinners = mysqlTable("contestWinners", {
+  id: int("id").autoincrement().primaryKey(),
+  roundId: int("roundId").notNull(), // References contestRounds.id
+  catId: int("catId").notNull(), // References cats.id
+  photoId: int("photoId").notNull(), // References guestCatPhotos.id
+  photoUrl: varchar("photoUrl", { length: 1024 }).notNull(), // Snapshot of photo URL
+  uploaderName: varchar("uploaderName", { length: 255 }).notNull(), // Snapshot of uploader
+  caption: varchar("caption", { length: 300 }),
+  catName: varchar("catName", { length: 255 }).notNull(), // Snapshot of cat name at time of win
+  rank: int("rank").notNull(), // 1st, 2nd, 3rd place
+  voteCount: int("voteCount").notNull(), // Final vote count at round close
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ContestWinner = typeof contestWinners.$inferSelect;
+export type InsertContestWinner = typeof contestWinners.$inferInsert;

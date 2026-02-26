@@ -22,7 +22,9 @@ import {
   bookingArrivals, InsertBookingArrival, BookingArrival,
   guestCatPhotos, InsertGuestCatPhoto, GuestCatPhoto,
   catPhotoVotes, InsertCatPhotoVote, CatPhotoVote,
-  donationVoteTokens, InsertDonationVoteToken, DonationVoteToken
+  donationVoteTokens, InsertDonationVoteToken, DonationVoteToken,
+  contestRounds, InsertContestRound, ContestRound,
+  contestWinners, InsertContestWinner, ContestWinner
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -2566,4 +2568,288 @@ export async function getTopPhotosForTV(limit: number = 6) {
     .orderBy(desc(guestCatPhotos.voteCount), desc(guestCatPhotos.createdAt))
     .limit(limit);
   return results;
+}
+
+
+// ============ CONTEST ROUND QUERIES ============
+
+/**
+ * Get the current active contest round.
+ * Returns null if no active round exists.
+ */
+export async function getActiveContestRound(): Promise<ContestRound | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(contestRounds)
+    .where(eq(contestRounds.status, "active"))
+    .orderBy(desc(contestRounds.roundNumber))
+    .limit(1);
+  return result[0] || null;
+}
+
+/**
+ * Get the latest contest round (active or completed).
+ */
+export async function getLatestContestRound(): Promise<ContestRound | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(contestRounds)
+    .orderBy(desc(contestRounds.roundNumber))
+    .limit(1);
+  return result[0] || null;
+}
+
+/**
+ * Create a new contest round.
+ * Rounds run Monday 00:00 PST to Sunday 23:59 PST.
+ */
+export async function createContestRound(roundNumber: number, startAt: Date, endAt: Date): Promise<{ id: number }> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(contestRounds).values({
+    roundNumber,
+    startAt,
+    endAt,
+    status: "active",
+  });
+  return { id: result[0].insertId };
+}
+
+/**
+ * Close a contest round and cache final stats.
+ */
+export async function closeContestRound(roundId: number, totalPhotos: number, totalVotes: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(contestRounds).set({
+    status: "completed",
+    totalPhotos,
+    totalVotes,
+  }).where(eq(contestRounds.id, roundId));
+}
+
+/**
+ * Get all photos for a specific round (for archiving winners).
+ */
+export async function getPhotosForRound(roundId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select({
+    id: guestCatPhotos.id,
+    catId: guestCatPhotos.catId,
+    photoUrl: guestCatPhotos.photoUrl,
+    uploaderName: guestCatPhotos.uploaderName,
+    caption: guestCatPhotos.caption,
+    voteCount: guestCatPhotos.voteCount,
+    catName: cats.name,
+  })
+    .from(guestCatPhotos)
+    .innerJoin(cats, eq(guestCatPhotos.catId, cats.id))
+    .where(and(
+      eq(guestCatPhotos.roundId, roundId),
+      eq(guestCatPhotos.isActive, true)
+    ))
+    .orderBy(desc(guestCatPhotos.voteCount), desc(guestCatPhotos.createdAt));
+}
+
+/**
+ * Archive contest winners for a completed round.
+ */
+export async function createContestWinners(winners: InsertContestWinner[]) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  if (winners.length === 0) return;
+  await db.insert(contestWinners).values(winners);
+}
+
+/**
+ * Get winners for a specific round.
+ */
+export async function getWinnersForRound(roundId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(contestWinners)
+    .where(eq(contestWinners.roundId, roundId))
+    .orderBy(asc(contestWinners.rank));
+}
+
+/**
+ * Get all completed rounds with their winners for the gallery.
+ */
+export async function getCompletedRoundsWithWinners(limit: number = 10) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const rounds = await db.select().from(contestRounds)
+    .where(eq(contestRounds.status, "completed"))
+    .orderBy(desc(contestRounds.roundNumber))
+    .limit(limit);
+  
+  const result = [];
+  for (const round of rounds) {
+    const winners = await getWinnersForRound(round.id);
+    result.push({ ...round, winners });
+  }
+  
+  return result;
+}
+
+/**
+ * Get or create the current active contest round.
+ * If no active round exists, or the current round has expired, 
+ * close the old one (archiving winners) and create a new one.
+ * Rounds run Monday 00:00 PST to Sunday 23:59:59 PST.
+ */
+export async function ensureActiveContestRound(): Promise<ContestRound> {
+  const now = new Date();
+  
+  // Check for existing active round
+  const activeRound = await getActiveContestRound();
+  
+  if (activeRound && activeRound.endAt > now) {
+    // Current round is still valid
+    return activeRound;
+  }
+  
+  // Need to close expired round and/or create new one
+  if (activeRound && activeRound.endAt <= now) {
+    // Close the expired round and archive winners
+    await archiveRoundWinners(activeRound.id);
+    
+    // Count stats
+    const photos = await getPhotosForRound(activeRound.id);
+    const totalVotes = photos.reduce((sum, p) => sum + (p.voteCount || 0), 0);
+    await closeContestRound(activeRound.id, photos.length, totalVotes);
+  }
+  
+  // Calculate next round start/end (Monday 00:00 PST to Sunday 23:59:59 PST)
+  // PST = UTC-8
+  const pstOffset = -8 * 60 * 60 * 1000;
+  const nowPST = new Date(now.getTime() + pstOffset);
+  
+  // Find the current Monday in PST
+  const dayOfWeek = nowPST.getUTCDay(); // 0=Sun, 1=Mon, ...
+  const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+  const mondayPST = new Date(nowPST);
+  mondayPST.setUTCDate(mondayPST.getUTCDate() - daysFromMonday);
+  mondayPST.setUTCHours(0, 0, 0, 0);
+  
+  // Convert back to UTC for storage
+  const startAt = new Date(mondayPST.getTime() - pstOffset);
+  
+  // Sunday 23:59:59 PST
+  const sundayPST = new Date(mondayPST);
+  sundayPST.setUTCDate(sundayPST.getUTCDate() + 6);
+  sundayPST.setUTCHours(23, 59, 59, 999);
+  const endAt = new Date(sundayPST.getTime() - pstOffset);
+  
+  // Determine round number
+  const latestRound = await getLatestContestRound();
+  const nextRoundNumber = latestRound ? latestRound.roundNumber + 1 : 1;
+  
+  const { id } = await createContestRound(nextRoundNumber, startAt, endAt);
+  
+  // Fetch and return the newly created round
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.select().from(contestRounds).where(eq(contestRounds.id, id)).limit(1);
+  return result[0];
+}
+
+/**
+ * Archive the top 3 photos overall for a round as winners.
+ */
+export async function archiveRoundWinners(roundId: number) {
+  const photos = await getPhotosForRound(roundId);
+  
+  if (photos.length === 0) return;
+  
+  // Get top 3 photos overall by vote count
+  const topPhotos = photos
+    .filter(p => p.voteCount > 0)
+    .slice(0, 3);
+  
+  const winners: InsertContestWinner[] = topPhotos.map((photo, index) => ({
+    roundId,
+    catId: photo.catId,
+    photoId: photo.id,
+    photoUrl: photo.photoUrl,
+    uploaderName: photo.uploaderName,
+    caption: photo.caption,
+    catName: photo.catName,
+    rank: index + 1,
+    voteCount: photo.voteCount,
+  }));
+  
+  if (winners.length > 0) {
+    await createContestWinners(winners);
+  }
+}
+
+/**
+ * Get photos for a cat filtered by current round only.
+ */
+export async function getPhotosForCatInRound(catId: number, roundId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(guestCatPhotos)
+    .where(and(
+      eq(guestCatPhotos.catId, catId),
+      eq(guestCatPhotos.roundId, roundId),
+      eq(guestCatPhotos.isActive, true)
+    ))
+    .orderBy(desc(guestCatPhotos.voteCount), desc(guestCatPhotos.createdAt));
+}
+
+/**
+ * Count photos uploaded by a specific person for a cat in the current round.
+ */
+export async function countPhotosForCatByUploaderInRound(catId: number, fingerprint: string, roundId: number): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  const result = await db.select({ count: sql<number>`count(*)` })
+    .from(guestCatPhotos)
+    .where(and(
+      eq(guestCatPhotos.catId, catId),
+      eq(guestCatPhotos.uploaderFingerprint, fingerprint),
+      eq(guestCatPhotos.roundId, roundId),
+      eq(guestCatPhotos.isActive, true)
+    ));
+  return result[0]?.count ?? 0;
+}
+
+/**
+ * Get top photos for a cat in a specific round.
+ */
+export async function getTopPhotosForCatInRound(catId: number, roundId: number, limit: number = 3) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(guestCatPhotos)
+    .where(and(
+      eq(guestCatPhotos.catId, catId),
+      eq(guestCatPhotos.roundId, roundId),
+      eq(guestCatPhotos.isActive, true)
+    ))
+    .orderBy(desc(guestCatPhotos.voteCount), desc(guestCatPhotos.createdAt))
+    .limit(limit);
+}
+
+/**
+ * Get available cats with top photos for the current round.
+ */
+export async function getAvailableCatsWithTopPhotosForRound(roundId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const availableCats = await db.select().from(cats)
+    .where(eq(cats.status, "available"))
+    .orderBy(asc(cats.sortOrder), asc(cats.name));
+  
+  const result = [];
+  for (const cat of availableCats) {
+    const topPhotos = await getTopPhotosForCatInRound(cat.id, roundId, 3);
+    result.push({ ...cat, topGuestPhotos: topPhotos });
+  }
+  
+  return result;
 }

@@ -23,6 +23,8 @@ import {
   CalendarCheck,
   ExternalLink,
   ArrowLeft,
+  Clock,
+  Award,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -204,6 +206,28 @@ export default function CatVotingPage() {
     [fingerprint, donationVoteMutation]
   );
 
+  // Countdown timer (must be before early returns to maintain hook order)
+  const [timeLeft, setTimeLeft] = useState("");
+  useEffect(() => {
+    const endAt = data?.round?.endAt;
+    if (!endAt) return;
+    const update = () => {
+      const end = new Date(endAt).getTime();
+      const now = Date.now();
+      const diff = end - now;
+      if (diff <= 0) { setTimeLeft("Round ended"); return; }
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      if (days > 0) setTimeLeft(`${days}d ${hours}h left`);
+      else if (hours > 0) setTimeLeft(`${hours}h ${mins}m left`);
+      else setTimeLeft(`${mins}m left`);
+    };
+    update();
+    const interval = setInterval(update, 60000);
+    return () => clearInterval(interval);
+  }, [data?.round?.endAt]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 flex items-center justify-center">
@@ -226,6 +250,7 @@ export default function CatVotingPage() {
 
   const cat = data.cat;
   const photos = data.photos || [];
+  const round = data.round;
   const remaining = uploaderData?.remaining ?? 3;
   const tokenBalance = tokenData?.balance ?? 0;
 
@@ -266,7 +291,16 @@ export default function CatVotingPage() {
               <h1 className="text-lg font-bold text-amber-900 leading-tight truncate">
                 {cat.name}
               </h1>
-              <p className="text-xs text-amber-600">Catfé Photo Contest</p>
+              <p className="text-xs text-amber-600 flex items-center gap-1">
+                <span>Week {round?.roundNumber || 1}</span>
+                {timeLeft && (
+                  <>
+                    <span className="opacity-40">·</span>
+                    <Clock className="w-3 h-3" />
+                    <span>{timeLeft}</span>
+                  </>
+                )}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">

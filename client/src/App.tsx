@@ -15,6 +15,7 @@ import SlideEditor from "./pages/SlideEditor";
 import PhotoVote from "./pages/PhotoVote";
 import CatVotingList from "./pages/CatVotingList";
 import CatVotingPage from "./pages/CatVotingPage";
+import PastWinners from "./pages/PastWinners";
 
 function Router() {
   return (
@@ -26,6 +27,7 @@ function Router() {
       <Route path="/upload/snap-purr" component={UploadSnapPurr} />
       <Route path="/slideshow/:type" component={GuestSlideshow} />
       <Route path="/vote/cats" component={CatVotingList} />
+      <Route path="/vote/winners" component={PastWinners} />
       <Route path="/vote/cat/:catId" component={CatVotingPage} />
       <Route path="/vote/:pollId" component={Vote} />
       <Route path="/admin/slide-editor" component={SlideEditor} />

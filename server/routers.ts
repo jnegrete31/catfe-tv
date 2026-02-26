@@ -145,6 +145,12 @@ import {
   consumeTokens,
   getAvailableCatsWithTopPhotos,
   getTopPhotosForTV,
+  ensureActiveContestRound,
+  getPhotosForCatInRound,
+  countPhotosForCatByUploaderInRound,
+  getAvailableCatsWithTopPhotosForRound,
+  getCompletedRoundsWithWinners,
+  getWinnersForRound,
 } from "./db";
 import { storagePut } from "./storage";
 import { invokeLLM } from "./_core/llm";
@@ -2642,11 +2648,18 @@ Extract as much information as possible from the documents. For the bio, write a
 
   // ============ GUEST CAT PHOTOS & VOTING ============
   catPhotos: router({
-    // Public: Get all active photos for a cat
+    // Public: Get current contest round info
+    getCurrentRound: publicProcedure.query(async () => {
+      const round = await ensureActiveContestRound();
+      return round;
+    }),
+
+    // Public: Get all active photos for a cat (current round)
     getForCat: publicProcedure
       .input(z.object({ catId: z.number() }))
       .query(async ({ input }) => {
-        return getPhotosForCat(input.catId);
+        const round = await ensureActiveContestRound();
+        return getPhotosForCatInRound(input.catId, round.id);
       }),
 
     // Public: Get top 3 photos for a cat (for adoption slides)
@@ -2663,25 +2676,27 @@ Extract as much information as possible from the documents. For the bio, write a
         return getGuestCatPhotoById(input.id);
       }),
 
-    // Public: Get cat info + photos for voting page
+    // Public: Get cat info + photos for voting page (current round)
     getCatVotingPage: publicProcedure
       .input(z.object({ catId: z.number() }))
       .query(async ({ input }) => {
         const cat = await getCatById(input.catId);
         if (!cat) throw new TRPCError({ code: "NOT_FOUND", message: "Cat not found" });
-        const photos = await getPhotosForCat(input.catId);
-        return { cat, photos };
+        const round = await ensureActiveContestRound();
+        const photos = await getPhotosForCatInRound(input.catId, round.id);
+        return { cat, photos, round };
       }),
 
-    // Public: Check how many photos this uploader has for a cat
+    // Public: Check how many photos this uploader has for a cat (current round)
     getUploaderCount: publicProcedure
       .input(z.object({ catId: z.number(), fingerprint: z.string().min(1) }))
       .query(async ({ input }) => {
-        const count = await countPhotosForCatByUploader(input.catId, input.fingerprint);
+        const round = await ensureActiveContestRound();
+        const count = await countPhotosForCatByUploaderInRound(input.catId, input.fingerprint, round.id);
         return { count, remaining: Math.max(0, 3 - count) };
       }),
 
-    // Public: Upload a photo for a cat (max 3 per guest per cat)
+    // Public: Upload a photo for a cat (max 3 per guest per cat per round)
     upload: publicProcedure
       .input(z.object({
         catId: z.number(),
@@ -2692,12 +2707,15 @@ Extract as much information as possible from the documents. For the bio, write a
         mimeType: z.string().default("image/jpeg"),
       }))
       .mutation(async ({ input }) => {
-        // Enforce 3-photo limit per uploader per cat
-        const existingCount = await countPhotosForCatByUploader(input.catId, input.uploaderFingerprint);
+        // Get current round
+        const round = await ensureActiveContestRound();
+
+        // Enforce 3-photo limit per uploader per cat per round
+        const existingCount = await countPhotosForCatByUploaderInRound(input.catId, input.uploaderFingerprint, round.id);
         if (existingCount >= 3) {
           throw new TRPCError({
             code: "BAD_REQUEST",
-            message: "You can only upload up to 3 photos per cat.",
+            message: "You can only upload up to 3 photos per cat per week.",
           });
         }
 
@@ -2708,13 +2726,14 @@ Extract as much information as possible from the documents. For the bio, write a
         const fileKey = `cat-photos/${input.catId}/${input.uploaderFingerprint}-${Date.now()}-${randomSuffix}.${ext}`;
         const { url } = await storagePut(fileKey, buffer, input.mimeType);
 
-        // Create database record
+        // Create database record with roundId
         const result = await createGuestCatPhoto({
           catId: input.catId,
           photoUrl: url,
           uploaderName: input.uploaderName,
           uploaderFingerprint: input.uploaderFingerprint,
           caption: input.caption || null,
+          roundId: round.id,
         });
 
         return { id: result.id, photoUrl: url };
@@ -2807,9 +2826,10 @@ Extract as much information as possible from the documents. For the bio, write a
         return { balance };
       }),
 
-    // Public: Get all available cats with their top photos (for TV adoption slides)
+    // Public: Get all available cats with their top photos for current round
     getAvailableCatsWithPhotos: publicProcedure.query(async () => {
-      return getAvailableCatsWithTopPhotos();
+      const round = await ensureActiveContestRound();
+      return getAvailableCatsWithTopPhotosForRound(round.id);
     }),
 
     // Public: Get top voted photos across all cats (for TV display)
@@ -2817,6 +2837,13 @@ Extract as much information as possible from the documents. For the bio, write a
       .input(z.object({ limit: z.number().min(1).max(20).optional() }))
       .query(async ({ input }) => {
         return getTopPhotosForTV(input.limit ?? 6);
+      }),
+
+    // Public: Get past contest winners
+    getPastWinners: publicProcedure
+      .input(z.object({ limit: z.number().min(1).max(20).optional() }))
+      .query(async ({ input }) => {
+        return getCompletedRoundsWithWinners(input.limit ?? 10);
       }),
 
     // Public: Get donation tiers

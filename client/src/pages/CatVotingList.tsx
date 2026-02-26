@@ -1,10 +1,36 @@
+import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
-import { Cat, Camera, Heart, ArrowLeft, Home } from "lucide-react";
+import { Cat, Camera, Heart, ArrowLeft, Home, Clock, Trophy } from "lucide-react";
 import { Link } from "wouter";
+
+function useCountdown(endAt: Date | string | null | undefined) {
+  const [timeLeft, setTimeLeft] = useState("");
+  useEffect(() => {
+    if (!endAt) return;
+    const update = () => {
+      const end = new Date(endAt).getTime();
+      const now = Date.now();
+      const diff = end - now;
+      if (diff <= 0) { setTimeLeft("Round ended"); return; }
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      if (days > 0) setTimeLeft(`${days}d ${hours}h remaining`);
+      else if (hours > 0) setTimeLeft(`${hours}h ${mins}m remaining`);
+      else setTimeLeft(`${mins}m remaining`);
+    };
+    update();
+    const interval = setInterval(update, 60000);
+    return () => clearInterval(interval);
+  }, [endAt]);
+  return timeLeft;
+}
 
 export default function CatVotingList() {
   const { data: cats, isLoading } = trpc.catPhotos.getAvailableCatsWithPhotos.useQuery();
+  const { data: round } = trpc.catPhotos.getCurrentRound.useQuery();
+  const timeLeft = useCountdown(round?.endAt);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-50/30">
@@ -29,20 +55,49 @@ export default function CatVotingList() {
               <h1 className="text-lg font-bold text-amber-900" style={{ fontFamily: "var(--font-display)" }}>
                 Photo Contest
               </h1>
-              <p className="text-xs text-amber-600">
-                Tap a cat to vote & upload photos
+              <p className="text-xs text-amber-600 flex items-center gap-1">
+                {round && <span>Week {round.roundNumber}</span>}
+                {timeLeft && (
+                  <>
+                    <span className="opacity-40">·</span>
+                    <Clock className="w-3 h-3" />
+                    <span>{timeLeft}</span>
+                  </>
+                )}
               </p>
             </div>
           </div>
-          <Button asChild variant="ghost" size="icon" className="text-amber-600 hover:bg-amber-100">
-            <Link href="/">
-              <Home className="w-5 h-5" />
-            </Link>
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button asChild variant="ghost" size="icon" className="text-amber-600 hover:bg-amber-100">
+              <Link href="/vote/winners">
+                <Trophy className="w-5 h-5" />
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" size="icon" className="text-amber-600 hover:bg-amber-100">
+              <Link href="/">
+                <Home className="w-5 h-5" />
+              </Link>
+            </Button>
+          </div>
         </div>
       </header>
 
       <main className="max-w-3xl mx-auto px-4 py-8">
+        {/* Contest info banner */}
+        {round && timeLeft && (
+          <div className="mb-6 bg-white/70 border border-amber-200 rounded-xl p-3 flex items-center justify-between">
+            <div className="flex items-center gap-2 text-sm text-amber-700">
+              <Clock className="w-4 h-4 text-amber-500" />
+              <span className="font-medium">{timeLeft}</span>
+            </div>
+            <Link href="/vote/winners">
+              <span className="text-xs text-amber-600 hover:text-amber-800 underline underline-offset-2 cursor-pointer">
+                Past winners
+              </span>
+            </Link>
+          </div>
+        )}
+
         {isLoading ? (
           <div className="flex items-center justify-center py-24">
             <div className="animate-spin w-8 h-8 border-4 border-amber-600 border-t-transparent rounded-full" />
@@ -57,7 +112,7 @@ export default function CatVotingList() {
           <>
             <div className="text-center mb-8">
               <p className="text-amber-700 text-sm">
-                {cats.length} cats looking for love
+                {cats.length} cats looking for love — tap to vote & upload photos
               </p>
             </div>
 
