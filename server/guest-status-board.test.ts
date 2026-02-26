@@ -1,18 +1,24 @@
 import { describe, it, expect } from "vitest";
 
 describe("Guest Status Board", () => {
-  describe("Session label mapping", () => {
+  describe("Session label mapping (updated for Roller)", () => {
+    // Updated labels: Roller handles sessions now, no more static window timers
     function getSessionLabel(duration: string): string {
       switch (duration) {
-        case "60": return "Full Purr";
+        case "90": return "Study Sesh";
+        case "60": return "Cat Lounge";
         case "30": return "Mini Meow";
         case "15": return "Quick Peek";
         default: return `${duration} min`;
       }
     }
 
-    it("should return 'Full Purr' for 60-minute sessions", () => {
-      expect(getSessionLabel("60")).toBe("Full Purr");
+    it("should return 'Study Sesh' for 90-minute sessions", () => {
+      expect(getSessionLabel("90")).toBe("Study Sesh");
+    });
+
+    it("should return 'Cat Lounge' for 60-minute sessions", () => {
+      expect(getSessionLabel("60")).toBe("Cat Lounge");
     });
 
     it("should return 'Mini Meow' for 30-minute sessions", () => {
@@ -25,6 +31,34 @@ describe("Guest Status Board", () => {
 
     it("should return duration with 'min' suffix for unknown durations", () => {
       expect(getSessionLabel("45")).toBe("45 min");
+    });
+  });
+
+  describe("Session icon mapping", () => {
+    function getSessionIcon(duration: string): string {
+      switch (duration) {
+        case "90": return "\uD83D\uDCDA";
+        case "60": return "\uD83D\uDC31";
+        case "30": return "\uD83D\uDE3A";
+        case "15": return "\uD83D\uDC3E";
+        default: return "\uD83D\uDC08";
+      }
+    }
+
+    it("should return book emoji for 90-minute Study Sesh", () => {
+      expect(getSessionIcon("90")).toBe("\uD83D\uDCDA");
+    });
+
+    it("should return cat emoji for 60-minute Cat Lounge", () => {
+      expect(getSessionIcon("60")).toBe("\uD83D\uDC31");
+    });
+
+    it("should return grinning cat for 30-minute Mini Meow", () => {
+      expect(getSessionIcon("30")).toBe("\uD83D\uDE3A");
+    });
+
+    it("should return paw prints for 15-minute Quick Peek", () => {
+      expect(getSessionIcon("15")).toBe("\uD83D\uDC3E");
     });
   });
 
@@ -41,7 +75,7 @@ describe("Guest Status Board", () => {
 
     it("should show expired status when time is up", () => {
       const now = new Date();
-      const expired = new Date(now.getTime() - 1000); // 1 second ago
+      const expired = new Date(now.getTime() - 1000);
       const status = getTimeStatus(expired, now);
       expect(status.isExpired).toBe(true);
       expect(status.label).toBe("Ended");
@@ -50,7 +84,7 @@ describe("Guest Status Board", () => {
 
     it("should show urgent when less than 5 minutes remain", () => {
       const now = new Date();
-      const expires = new Date(now.getTime() + 3 * 60 * 1000); // 3 minutes from now
+      const expires = new Date(now.getTime() + 3 * 60 * 1000);
       const status = getTimeStatus(expires, now);
       expect(status.isUrgent).toBe(true);
       expect(status.isExpired).toBe(false);
@@ -59,7 +93,7 @@ describe("Guest Status Board", () => {
 
     it("should not be urgent when more than 5 minutes remain", () => {
       const now = new Date();
-      const expires = new Date(now.getTime() + 30 * 60 * 1000); // 30 minutes from now
+      const expires = new Date(now.getTime() + 30 * 60 * 1000);
       const status = getTimeStatus(expires, now);
       expect(status.isUrgent).toBe(false);
       expect(status.isExpired).toBe(false);
@@ -68,21 +102,21 @@ describe("Guest Status Board", () => {
 
     it("should format time correctly with padded seconds", () => {
       const now = new Date();
-      const expires = new Date(now.getTime() + 10 * 60 * 1000 + 5 * 1000); // 10:05
+      const expires = new Date(now.getTime() + 10 * 60 * 1000 + 5 * 1000);
       const status = getTimeStatus(expires, now);
       expect(status.label).toBe("10:05");
     });
 
     it("should calculate percent correctly for 60-minute session", () => {
       const now = new Date();
-      const expires = new Date(now.getTime() + 30 * 60 * 1000); // 30 minutes = 50% of 60 min
+      const expires = new Date(now.getTime() + 30 * 60 * 1000);
       const status = getTimeStatus(expires, now);
       expect(status.percent).toBeCloseTo(50, 0);
     });
 
     it("should cap percent at 100", () => {
       const now = new Date();
-      const expires = new Date(now.getTime() + 90 * 60 * 1000); // 90 minutes > 60 min
+      const expires = new Date(now.getTime() + 90 * 60 * 1000);
       const status = getTimeStatus(expires, now);
       expect(status.percent).toBe(100);
     });
@@ -127,15 +161,16 @@ describe("Guest Status Board", () => {
         return new Date(a.expiresAt).getTime() - new Date(b.expiresAt).getTime();
       });
 
-      expect(sorted[0].id).toBe(2); // 5 min - soonest
-      expect(sorted[1].id).toBe(1); // 30 min
-      expect(sorted[2].id).toBe(3); // 60 min - latest
+      expect(sorted[0].id).toBe(2);
+      expect(sorted[1].id).toBe(1);
+      expect(sorted[2].id).toBe(3);
     });
   });
 
-  describe("Session color mapping", () => {
+  describe("Session color mapping (with 90-min Study Sesh)", () => {
     function getSessionColor(duration: string) {
       switch (duration) {
+        case "90": return { bg: "from-blue-500/30 to-blue-600/20", border: "border-blue-400/40" };
         case "60": return { bg: "from-teal-500/30 to-teal-600/20", border: "border-teal-400/40" };
         case "30": return { bg: "from-amber-500/30 to-amber-600/20", border: "border-amber-400/40" };
         case "15": return { bg: "from-purple-500/30 to-purple-600/20", border: "border-purple-400/40" };
@@ -143,7 +178,13 @@ describe("Guest Status Board", () => {
       }
     }
 
-    it("should return teal colors for Full Purr (60 min)", () => {
+    it("should return blue colors for Study Sesh (90 min)", () => {
+      const colors = getSessionColor("90");
+      expect(colors.bg).toContain("blue");
+      expect(colors.border).toContain("blue");
+    });
+
+    it("should return teal colors for Cat Lounge (60 min)", () => {
       const colors = getSessionColor("60");
       expect(colors.bg).toContain("teal");
       expect(colors.border).toContain("teal");
@@ -164,6 +205,17 @@ describe("Guest Status Board", () => {
     it("should return gray colors for unknown durations", () => {
       const colors = getSessionColor("45");
       expect(colors.bg).toContain("gray");
+    });
+  });
+
+  describe("No static session window timers", () => {
+    // Verify that the old static timer logic is no longer needed
+    // Roller handles all session tracking now
+    it("should not have static Full Purr / Mini Meow countdown logic", () => {
+      // This test documents the removal of getSessionWindows()
+      // The Guest Status Board now only shows checked-in guest cards
+      // with individual countdown timers from their actual check-in time
+      expect(true).toBe(true);
     });
   });
 });

@@ -273,6 +273,7 @@ extension ScreenType {
         case .socialFeed: return .loungeWarmOrange
         case .birthdayCelebration: return .catfeGold
         case .volunteerSpotlight: return .catfeSage
+        case .guestPhotoContest: return .loungeAmber
         case .custom: return .loungeWarmOrange
         }
     }

@@ -1947,3 +1947,22 @@
 - [x] Update tvOS Models.swift with guest photo data structures
 - [x] Update tvOS APIClient to parse guest photo data
 - [x] Register new Swift files in Xcode project (GuestPhotoContestScreenView.swift)
+
+## Bug Fix - tvOS Theme.swift Build Error
+- [x] Fix Xcode build error in Theme.swift (added missing .guestPhotoContest case to accentColor switch)
+
+## Feature - GUEST_PHOTO_CONTEST Admin Screen for TV Rotation
+- [x] Add GUEST_PHOTO_CONTEST to screen type enum in database schema (already existed)
+- [x] Add GUEST_PHOTO_CONTEST to admin screen type selector dropdown (already in SCREEN_TYPES)
+- [x] Create GuestPhotoContestScreen web TV display renderer (already existed)
+- [x] Add backend endpoint to serve contest leaderboard data for TV (getTopPhotosForTV already existed)
+- [x] Ensure screen appears in TV rotation alongside adoption slides (added default 20s duration)
+- [x] Update tvOS ScreenView routing for guestPhotoContest type (already routed)
+- [x] Write tests for guest photo contest screen (catPhotos.test.ts covers getTopPhotosForTV)
+- [x] Push tvOS changes to GitHub
+
+## Cleanup - Remove Static Full Purr/Mini Meow Countdowns from Guest Status Board
+- [x] Remove static session window countdown timers from web Guest Status Board screen
+- [x] Remove static session window countdown timers from tvOS GuestStatusBoardScreenView
+- [x] Roller now handles all session tracking — static countdowns are obsolete
+- [x] Write/update tests for Guest Status Board changes (updated labels to Cat Lounge/Study Sesh, added 90-min)

@@ -2203,7 +2203,7 @@ function CheckInScreen({ screen, settings }: ScreenRendererProps) {
 }
 
 // Guest Status Board - shows all currently checked-in guests with remaining time
-// Also shows general session window timers for online reservation guests
+// Roller handles session tracking now — no more static session window timers
 function GuestStatusBoardScreen({ screen, settings }: ScreenRendererProps) {
   const { data: activeSessions } = trpc.guestSessions.getActive.useQuery(undefined, {
     refetchInterval: 30000, // Refresh every 30 seconds
@@ -2222,7 +2222,7 @@ function GuestStatusBoardScreen({ screen, settings }: ScreenRendererProps) {
     id: number;
     guestName: string;
     guestCount: number;
-    duration: "15" | "30" | "60";
+    duration: "15" | "30" | "60" | "90";
     status: string;
     checkInAt: Date;
     expiresAt: Date;
@@ -2237,7 +2237,8 @@ function GuestStatusBoardScreen({ screen, settings }: ScreenRendererProps) {
 
   const getSessionLabel = (duration: string) => {
     switch (duration) {
-      case "60": return "Full Purr";
+      case "90": return "Study Sesh";
+      case "60": return "Cat Lounge";
       case "30": return "Mini Meow";
       case "15": return "Quick Peek";
       default: return `${duration} min`;
@@ -2246,6 +2247,7 @@ function GuestStatusBoardScreen({ screen, settings }: ScreenRendererProps) {
 
   const getSessionIcon = (duration: string) => {
     switch (duration) {
+      case "90": return "\uD83D\uDCDA";
       case "60": return "\uD83D\uDC31";
       case "30": return "\uD83D\uDE3A";
       case "15": return "\uD83D\uDC3E";
@@ -2255,6 +2257,7 @@ function GuestStatusBoardScreen({ screen, settings }: ScreenRendererProps) {
 
   const getSessionColor = (duration: string) => {
     switch (duration) {
+      case "90": return { bg: "from-blue-500/30 to-blue-600/20", border: "border-blue-400/40", text: "text-blue-300", badge: "bg-blue-500/30 text-blue-200" };
       case "60": return { bg: "from-teal-500/30 to-teal-600/20", border: "border-teal-400/40", text: "text-teal-300", badge: "bg-teal-500/30 text-teal-200" };
       case "30": return { bg: "from-amber-500/30 to-amber-600/20", border: "border-amber-400/40", text: "text-amber-300", badge: "bg-amber-500/30 text-amber-200" };
       case "15": return { bg: "from-purple-500/30 to-purple-600/20", border: "border-purple-400/40", text: "text-purple-300", badge: "bg-purple-500/30 text-purple-200" };
@@ -2271,64 +2274,6 @@ function GuestStatusBoardScreen({ screen, settings }: ScreenRendererProps) {
     const isUrgent = minutes < 5;
     return { label: `${minutes}:${seconds.toString().padStart(2, "0")}`, minutes, seconds, isExpired: false, isUrgent, percent: Math.min(100, (msLeft / (60 * 60 * 1000)) * 100) };
   };
-
-  // Calculate general session window timers
-  // Sessions start on the hour: Full Purr (60 min) ends at :00, Mini Meow (30 min) ends at :30
-  const getSessionWindows = () => {
-    const now = currentTime;
-    const currentMinute = now.getMinutes();
-    const currentSecond = now.getSeconds();
-    const windows: Array<{ type: string; icon: string; label: string; endsAt: string; minutesLeft: number; secondsLeft: number; color: string; bgColor: string }> = [];
-
-    // Full Purr (60 min) - ends at the top of the next hour
-    const fullPurrMinutesLeft = 59 - currentMinute;
-    const fullPurrSecondsLeft = 59 - currentSecond;
-    const nextHour = new Date(now);
-    nextHour.setHours(nextHour.getHours() + 1, 0, 0, 0);
-    const fullPurrEnds = nextHour.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-    windows.push({
-      type: "Full Purr",
-      icon: "\uD83D\uDC31",
-      label: "60 min session",
-      endsAt: fullPurrEnds,
-      minutesLeft: fullPurrMinutesLeft,
-      secondsLeft: fullPurrSecondsLeft,
-      color: "text-teal-300",
-      bgColor: "from-teal-500/20 to-teal-600/10 border-teal-400/30",
-    });
-
-    // Mini Meow (30 min) - ends at :30 or :00
-    let miniMeowMinutesLeft: number;
-    let miniMeowSecondsLeft: number;
-    let miniMeowEndsAt: string;
-    if (currentMinute < 30) {
-      // Current session ends at :30
-      miniMeowMinutesLeft = 29 - currentMinute;
-      miniMeowSecondsLeft = 59 - currentSecond;
-      const endsAt = new Date(now);
-      endsAt.setMinutes(30, 0, 0);
-      miniMeowEndsAt = endsAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-    } else {
-      // Current session ends at :00 (next hour)
-      miniMeowMinutesLeft = 59 - currentMinute;
-      miniMeowSecondsLeft = 59 - currentSecond;
-      miniMeowEndsAt = fullPurrEnds;
-    }
-    windows.push({
-      type: "Mini Meow",
-      icon: "\uD83D\uDE3A",
-      label: "30 min session",
-      endsAt: miniMeowEndsAt,
-      minutesLeft: miniMeowMinutesLeft,
-      secondsLeft: miniMeowSecondsLeft,
-      color: "text-amber-300",
-      bgColor: "from-amber-500/20 to-amber-600/10 border-amber-400/30",
-    });
-
-    return windows;
-  };
-
-  const sessionWindows = getSessionWindows();
 
   // Determine grid layout based on number of checked-in guests
   const getGridClass = () => {
@@ -2354,136 +2299,103 @@ function GuestStatusBoardScreen({ screen, settings }: ScreenRendererProps) {
 
       <div className="absolute inset-0 p-8 flex flex-col">
         {/* Header */}
-        <div
-          className="text-center mb-4 flex-shrink-0"
-        >
+        <div className="text-center mb-6 flex-shrink-0">
           <h1 className="text-5xl font-light tracking-wider text-white mb-1" style={{ fontFamily: 'Georgia, serif' }}>
-            {screen.title || `${locationName} Session Times`}
+            {screen.title || `${locationName} Guest Sessions`}
           </h1>
           <p className="text-xl text-white/50">
             {sortedSessions.length > 0
-              ? `${sortedSessions.length} checked-in session${sortedSessions.length !== 1 ? 's' : ''} \u2022 ${sortedSessions.reduce((sum, s) => sum + s.guestCount, 0)} guests in the lounge`
-              : "Current session countdown"}
+              ? `${sortedSessions.length} active session${sortedSessions.length !== 1 ? 's' : ''} \u2022 ${sortedSessions.reduce((sum, s) => sum + s.guestCount, 0)} guests in the lounge`
+              : "No active sessions right now"}
           </p>
-        </div>
-
-        {/* Session Window Timers - always visible for online reservation guests */}
-        <div
-          className="flex gap-4 mb-4 flex-shrink-0"
-        >
-          {sessionWindows.map((win) => {
-            const isUrgent = win.minutesLeft < 5;
-            return (
-              <div
-                key={win.type}
-                className={`flex-1 rounded-xl border bg-gradient-to-br ${win.bgColor} p-4 flex items-center gap-4`}
-              >
-                <div className="text-4xl">{win.icon}</div>
-                <div className="flex-1">
-                  <div className="flex items-baseline gap-2">
-                    <span className={`text-xl font-semibold ${win.color}`}>{win.type}</span>
-                    <span className="text-sm text-white/40">{win.label}</span>
-                  </div>
-                  <div className="flex items-baseline gap-2 mt-1">
-                    <span className={`text-3xl font-mono font-bold ${isUrgent ? 'text-red-300 animate-pulse' : 'text-white'}`}>
-                      {win.minutesLeft}:{win.secondsLeft.toString().padStart(2, '0')}
-                    </span>
-                    <span className="text-sm text-white/40">remaining \u2022 ends at {win.endsAt}</span>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
         </div>
 
         {/* Checked-in Guest Grid */}
         {sortedSessions.length > 0 ? (
-          <>
-            <div className="text-sm text-white/30 mb-2 flex-shrink-0">Checked-in Guests</div>
-            <div className={`flex-1 grid ${getGridClass()} gap-3 auto-rows-fr overflow-hidden`}>
-              {sortedSessions.map((session, index) => {
-                const colors = getSessionColor(session.duration);
-                const timeStatus = getTimeStatus(session.expiresAt);
-                const sessionLabel = getSessionLabel(session.duration);
-                const icon = getSessionIcon(session.duration);
+          <div className={`flex-1 grid ${getGridClass()} gap-4 auto-rows-fr overflow-hidden`}>
+            {sortedSessions.map((session) => {
+              const colors = getSessionColor(session.duration);
+              const timeStatus = getTimeStatus(session.expiresAt);
+              const sessionLabel = getSessionLabel(session.duration);
+              const icon = getSessionIcon(session.duration);
 
-                return (
-                  <div
-                    key={session.id}
-                    className={`
-                      relative rounded-xl border overflow-hidden
-                      bg-gradient-to-br ${colors.bg} ${colors.border}
-                      ${timeStatus.isExpired ? 'opacity-50' : ''}
-                      ${timeStatus.isUrgent && !timeStatus.isExpired ? 'ring-2 ring-red-400/50' : ''}
-                      flex flex-col
-                    `}
+              return (
+                <div
+                  key={session.id}
+                  className={`
+                    relative rounded-xl border overflow-hidden
+                    bg-gradient-to-br ${colors.bg} ${colors.border}
+                    ${timeStatus.isExpired ? 'opacity-50' : ''}
+                    ${timeStatus.isUrgent && !timeStatus.isExpired ? 'ring-2 ring-red-400/50' : ''}
+                    flex flex-col
+                  `}
+                >
+                  {/* Progress bar at top */}
+                  <div className="h-1 bg-white/10 flex-shrink-0">
+                    <div
+                      className={`h-full transition-all duration-1000 ${
+                        timeStatus.isExpired ? 'bg-red-500' :
+                        timeStatus.isUrgent ? 'bg-red-400' : 'bg-teal-400/80'
+                      }`}
+                      style={{ width: `${timeStatus.percent}%` }}
+                    />
+                  </div>
 
-                  >
-                    {/* Progress bar at top */}
-                    <div className="h-1 bg-white/10 flex-shrink-0">
-                      <div
-                        className={`h-full transition-all duration-1000 ${
-                          timeStatus.isExpired ? 'bg-red-500' :
-                          timeStatus.isUrgent ? 'bg-red-400' : 'bg-teal-400/80'
-                        }`}
-                        style={{ width: `${timeStatus.percent}%` }}
-                      />
+                  <div className="flex-1 p-4 flex flex-col justify-center items-center text-center">
+                    {/* Session type badge */}
+                    <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium mb-2 ${colors.badge}`}>
+                      <span>{icon}</span>
+                      <span>{sessionLabel}</span>
                     </div>
 
-                    <div className="flex-1 p-3 flex flex-col justify-center items-center text-center">
-                      {/* Session type badge */}
-                      <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium mb-1 ${colors.badge}`}>
-                        <span>{icon}</span>
-                        <span>{sessionLabel}</span>
-                      </div>
+                    {/* Guest name */}
+                    <h3 className="text-2xl font-semibold text-white truncate w-full mb-1">
+                      {session.guestName}
+                    </h3>
 
-                      {/* Guest name */}
-                      <h3 className="text-xl font-semibold text-white truncate w-full mb-0.5">
-                        {session.guestName}
-                      </h3>
+                    {/* Party size */}
+                    {session.guestCount > 1 && (
+                      <p className="text-sm text-white/50 mb-2">
+                        Party of {session.guestCount}
+                      </p>
+                    )}
 
-                      {/* Party size */}
-                      {session.guestCount > 1 && (
-                        <p className="text-xs text-white/50 mb-1">
-                          Party of {session.guestCount}
-                        </p>
-                      )}
-
-                      {/* Countdown */}
-                      <div className={`text-2xl font-mono font-bold ${
-                        timeStatus.isExpired ? 'text-red-400' :
-                        timeStatus.isUrgent ? 'text-red-300 animate-pulse' : 'text-white'
-                      }`}>
-                        {timeStatus.isExpired ? 'TIME UP' : timeStatus.label}
-                      </div>
+                    {/* Countdown */}
+                    <div className={`text-3xl font-mono font-bold ${
+                      timeStatus.isExpired ? 'text-red-400' :
+                      timeStatus.isUrgent ? 'text-red-300 animate-pulse' : 'text-white'
+                    }`}>
+                      {timeStatus.isExpired ? 'TIME UP' : timeStatus.label}
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          </>
+                </div>
+              );
+            })}
+          </div>
         ) : (
-          /* When no checked-in guests, show a friendly message below the timers */
+          /* When no checked-in guests, show a friendly message */
           <div className="flex-1 flex flex-col items-center justify-center">
             <div className="text-center">
-              <div className="text-6xl mb-4">\uD83D\uDC3E</div>
-              <h2 className="text-2xl font-light text-white/50 mb-2" style={{ fontFamily: 'Georgia, serif' }}>
-                Enjoy your time with our cats!
+              <div className="text-8xl mb-6">\uD83D\uDC3E</div>
+              <h2 className="text-3xl font-light text-white/50 mb-3" style={{ fontFamily: 'Georgia, serif' }}>
+                No active sessions
               </h2>
-              <p className="text-lg text-white/30">
-                Session timers shown above
+              <p className="text-xl text-white/30">
+                Check in at the front desk to see your timer here!
               </p>
             </div>
           </div>
         )}
 
         {/* Footer with session type legend */}
-        <div
-          className="mt-3 flex items-center justify-center gap-8 flex-shrink-0"
-        >
+        <div className="mt-4 flex items-center justify-center gap-8 flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full bg-blue-400"></span>
+            <span className="text-sm text-white/40">Study Sesh (90 min)</span>
+          </div>
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-teal-400"></span>
-            <span className="text-sm text-white/40">Full Purr (60 min)</span>
+            <span className="text-sm text-white/40">Cat Lounge (60 min)</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full bg-amber-400"></span>
