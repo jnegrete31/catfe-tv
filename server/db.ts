@@ -2853,3 +2853,62 @@ export async function getAvailableCatsWithTopPhotosForRound(roundId: number) {
   
   return result;
 }
+
+
+// ============ GUEST PHOTOS FOR ADOPTION SLIDES ============
+
+/**
+ * Get the top-voted guest photo for each cat (for adoption slides).
+ * Returns a map of catId -> { photoUrl, uploaderName, voteCount, caption }.
+ * Used by the Apple TV to overlay guest photos on adoption slides.
+ */
+export async function getTopGuestPhotoPerCat(): Promise<Record<number, { photoUrl: string; uploaderName: string | null; voteCount: number; caption: string | null }>> {
+  const db = await getDb();
+  if (!db) return {};
+  
+  // Get all active guest photos ordered by votes
+  const allPhotos = await db.select({
+    catId: guestCatPhotos.catId,
+    photoUrl: guestCatPhotos.photoUrl,
+    uploaderName: guestCatPhotos.uploaderName,
+    voteCount: guestCatPhotos.voteCount,
+    caption: guestCatPhotos.caption,
+  })
+    .from(guestCatPhotos)
+    .where(eq(guestCatPhotos.isActive, true))
+    .orderBy(desc(guestCatPhotos.voteCount), desc(guestCatPhotos.createdAt));
+  
+  // Group by catId, keeping only the top photo per cat
+  const result: Record<number, { photoUrl: string; uploaderName: string | null; voteCount: number; caption: string | null }> = {};
+  for (const photo of allPhotos) {
+    if (!result[photo.catId]) {
+      result[photo.catId] = {
+        photoUrl: photo.photoUrl,
+        uploaderName: photo.uploaderName,
+        voteCount: photo.voteCount,
+        caption: photo.caption,
+      };
+    }
+  }
+  return result;
+}
+
+/**
+ * Get all guest photos for a specific cat (for adoption slide photo rotation).
+ * Returns up to `limit` photos ordered by votes.
+ */
+export async function getGuestPhotosForCatTV(catId: number, limit: number = 5) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select({
+    id: guestCatPhotos.id,
+    photoUrl: guestCatPhotos.photoUrl,
+    uploaderName: guestCatPhotos.uploaderName,
+    voteCount: guestCatPhotos.voteCount,
+    caption: guestCatPhotos.caption,
+  })
+    .from(guestCatPhotos)
+    .where(and(eq(guestCatPhotos.catId, catId), eq(guestCatPhotos.isActive, true)))
+    .orderBy(desc(guestCatPhotos.voteCount), desc(guestCatPhotos.createdAt))
+    .limit(limit);
+}

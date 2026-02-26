@@ -1937,3 +1937,13 @@
 ## Cleanup - Hide Roller Sessions from Walk-Ins
 - [x] Filter out Roller-originated sessions from Walk-Ins active sessions list
 - [x] Roller sessions are now fully managed from the Roller booking card (countdown, extend, checkout)
+
+## Feature - Apple TV: Guest Photos in Adoption Slides
+- [x] Update backend API to include top-voted guest photos for each cat in adoption slide data
+- [x] Fallback to admin photo if no guest photos submitted for a cat
+- [x] Update tvOS AdoptionScreenView to show top guest photo (or rotate through top 3)
+- [x] Update tvOS AdoptionShowcaseScreenView to use top guest photo per cat with fallback
+- [x] Add GuestPhotoContestScreenView to tvOS app for the contest leaderboard slide
+- [x] Update tvOS Models.swift with guest photo data structures
+- [x] Update tvOS APIClient to parse guest photo data
+- [x] Register new Swift files in Xcode project (GuestPhotoContestScreenView.swift)

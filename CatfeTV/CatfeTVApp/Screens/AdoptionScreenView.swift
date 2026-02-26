@@ -4,14 +4,17 @@
 //
 //  Individual cat adoption screen - matches web AdoptionScreen design
 //  Full-screen layout: header centered at top, polaroid left + info right centered vertically
+//  Now shows top-voted guest photos with fallback to admin photo
 //
 
 import SwiftUI
 
 struct AdoptionScreenView: View {
     let screen: Screen
+    @EnvironmentObject var apiClient: APIClient
     
     @State private var appeared = false
+    @State private var currentPhotoIndex = 0
     
     private var catName: String {
         screen.catName ?? screen.title.replacingOccurrences(of: "Meet ", with: "")
@@ -45,6 +48,39 @@ struct AdoptionScreenView: View {
         return Self.lookingForSayings[abs(index)]
     }
     
+    /// Get guest photos for this cat from the cached contest data
+    private var guestPhotosForCat: [GuestCatPhoto] {
+        guard let catId = screen.numericId else { return [] }
+        return apiClient.cachedTopGuestPhotos.filter { $0.catId == catId }
+    }
+    
+    /// All photo URLs to display: guest photos first, then admin photo as fallback
+    private var allPhotoURLs: [(url: String, isGuest: Bool, uploaderName: String?)] {
+        var photos: [(url: String, isGuest: Bool, uploaderName: String?)] = []
+        
+        // Add guest photos first
+        for guestPhoto in guestPhotosForCat {
+            photos.append((url: guestPhoto.photoUrl, isGuest: true, uploaderName: guestPhoto.uploaderName))
+        }
+        
+        // Add admin photo as fallback (always include it)
+        if let adminURL = screen.imageURL {
+            photos.append((url: adminURL, isGuest: false, uploaderName: nil))
+        }
+        
+        return photos
+    }
+    
+    /// The current photo to display
+    private var currentPhoto: (url: String, isGuest: Bool, uploaderName: String?)? {
+        guard !allPhotoURLs.isEmpty else { return nil }
+        let index = currentPhotoIndex % allPhotoURLs.count
+        return allPhotoURLs[index]
+    }
+    
+    /// Timer to rotate through photos
+    private let photoTimer = Timer.publish(every: 6, on: .main, in: .common).autoconnect()
+    
     var body: some View {
         BaseScreenLayout(screen: screen) {
             GeometryReader { geo in
@@ -67,13 +103,16 @@ struct AdoptionScreenView: View {
                     
                     // Main content: polaroid + info centered vertically
                     HStack(alignment: .center, spacing: geo.size.width * 0.06) {
-                        // Left: Polaroid photo
-                        if screen.imageURL != nil {
+                        // Left: Polaroid photo (rotates through guest photos + admin photo)
+                        if let photo = currentPhoto {
                             VStack(spacing: 0) {
-                                ScreenImage(url: screen.imageURL)
+                                ScreenImage(url: photo.url)
                                     .frame(width: min(geo.size.width * 0.35, 420),
                                            height: min(geo.size.width * 0.35, 420))
                                     .clipShape(RoundedRectangle(cornerRadius: 8))
+                                    .id(currentPhotoIndex) // Force view refresh on photo change
+                                    .transition(.opacity)
+                                    .animation(.easeInOut(duration: 0.8), value: currentPhotoIndex)
                                 
                                 // Adopted badge overlay
                                 if screen.isAdopted {
@@ -98,9 +137,34 @@ struct AdoptionScreenView: View {
                                 
                                 Spacer().frame(height: 16)
                                 
+                                // Show photographer credit for guest photos
+                                if photo.isGuest, let name = photo.uploaderName, !name.isEmpty {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "camera.fill")
+                                            .font(.system(size: 14))
+                                        Text("Photo by \(name)")
+                                            .font(.system(size: 16, weight: .medium))
+                                    }
+                                    .foregroundColor(Color(hex: "8B7355"))
+                                    .padding(.bottom, 4)
+                                }
+                                
                                 Text("Meet \(catName)")
                                     .font(.system(size: 28, weight: .medium, design: .serif))
                                     .foregroundColor(Color(hex: "3d3d3d"))
+                                
+                                // Photo indicator dots if multiple photos
+                                if allPhotoURLs.count > 1 {
+                                    HStack(spacing: 6) {
+                                        ForEach(0..<allPhotoURLs.count, id: \.self) { i in
+                                            Circle()
+                                                .fill(i == (currentPhotoIndex % allPhotoURLs.count) ?
+                                                      Color(hex: "8B7355") : Color(hex: "D4C5B0"))
+                                                .frame(width: 8, height: 8)
+                                        }
+                                    }
+                                    .padding(.top, 8)
+                                }
                             }
                             .padding(20)
                             .padding(.bottom, 40)
@@ -124,6 +188,19 @@ struct AdoptionScreenView: View {
                             .opacity(appeared ? 1 : 0)
                             .scaleEffect(appeared ? 1 : 0.9)
                             .animation(.easeOut(duration: 0.5).delay(0.2), value: appeared)
+                            
+                            // Guest photo count badge
+                            if !guestPhotosForCat.isEmpty {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "heart.fill")
+                                        .foregroundColor(.loungeWarmOrange)
+                                    Text("\(guestPhotosForCat.count) guest photo\(guestPhotosForCat.count == 1 ? "" : "s")")
+                                        .font(.system(size: 20, weight: .medium))
+                                        .foregroundColor(.loungeCream.opacity(0.8))
+                                }
+                                .opacity(appeared ? 1 : 0)
+                                .animation(.easeOut(duration: 0.5).delay(0.25), value: appeared)
+                            }
                             
                             // Age, gender, breed
                             if let age = screen.catAge, let gender = screen.catGender {
@@ -201,6 +278,12 @@ struct AdoptionScreenView: View {
                 appeared = true
             }
         }
+        .onReceive(photoTimer) { _ in
+            guard allPhotoURLs.count > 1 else { return }
+            withAnimation(.easeInOut(duration: 0.8)) {
+                currentPhotoIndex += 1
+            }
+        }
     }
 }
 
@@ -208,6 +291,7 @@ struct AdoptionScreenView: View {
 struct AdoptionScreenView_Previews: PreviewProvider {
     static var previews: some View {
         AdoptionScreenView(screen: Screen.sampleScreens[1])
+            .environmentObject(APIClient.shared)
     }
 }
 #endif

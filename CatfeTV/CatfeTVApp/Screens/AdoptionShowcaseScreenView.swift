@@ -4,6 +4,7 @@
 //
 //  Grid of adoptable cats - pages through all cats in groups,
 //  cycling every 6 seconds so every cat gets screen time.
+//  Now shows top-voted guest photo per cat with fallback to admin photo.
 //
 
 import SwiftUI
@@ -11,6 +12,7 @@ import SwiftUI
 struct AdoptionShowcaseScreenView: View {
     let screen: Screen
     var adoptionCats: [Screen] = []
+    @EnvironmentObject var apiClient: APIClient
     
     @State private var appeared = false
     @State private var currentPage = 0
@@ -98,7 +100,12 @@ struct AdoptionShowcaseScreenView: View {
                         
                         LazyVGrid(columns: gridColumns, spacing: 24) {
                             ForEach(Array(currentCats.enumerated()), id: \.element.id) { index, cat in
-                                CatShowcaseCard(cat: cat, index: index, appeared: appeared)
+                                CatShowcaseCard(
+                                    cat: cat,
+                                    index: index,
+                                    appeared: appeared,
+                                    guestPhotoURL: guestPhotoURL(for: cat)
+                                )
                             }
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -127,6 +134,12 @@ struct AdoptionShowcaseScreenView: View {
             }
         }
     }
+    
+    /// Get the top guest photo URL for a given cat screen, if available
+    private func guestPhotoURL(for cat: Screen) -> String? {
+        guard let catId = cat.numericId else { return nil }
+        return apiClient.topGuestPhotoURL(forCatId: catId)
+    }
 }
 
 // MARK: - Cat Showcase Card
@@ -134,13 +147,37 @@ private struct CatShowcaseCard: View {
     let cat: Screen
     let index: Int
     let appeared: Bool
+    let guestPhotoURL: String?
+    
+    /// Use guest photo if available, otherwise fall back to admin photo
+    private var displayPhotoURL: String? {
+        guestPhotoURL ?? cat.imageURL
+    }
     
     var body: some View {
         VStack(spacing: 0) {
-            ScreenImage(url: cat.imageURL)
-                .frame(maxWidth: .infinity)
-                .frame(height: 200)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+            ZStack(alignment: .bottomTrailing) {
+                ScreenImage(url: displayPhotoURL)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 200)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                
+                // Guest photo badge
+                if guestPhotoURL != nil {
+                    HStack(spacing: 3) {
+                        Image(systemName: "camera.fill")
+                            .font(.system(size: 10))
+                        Text("Guest")
+                            .font(.system(size: 11, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.loungeWarmOrange.opacity(0.85))
+                    .cornerRadius(8)
+                    .padding(8)
+                }
+            }
             
             VStack(spacing: 4) {
                 Text(cat.catName ?? cat.title.replacingOccurrences(of: "Meet ", with: ""))

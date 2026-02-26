@@ -40,6 +40,11 @@ class APIClient: ObservableObject {
     @Published var cachedUpcomingBirthdays: [BirthdayCat] = []
     @Published var cachedFeaturedVolunteers: [Volunteer] = []
     
+    // Cached guest contest photos for adoption slides and photo contest screen
+    @Published var cachedTopGuestPhotos: [GuestCatPhoto] = []
+    @Published var cachedTopGuestPhotoPerCat: [String: TopGuestPhotoEntry] = [:] // catId string -> photo
+    private var guestPhotosLastFetched: Date?
+    
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
     
@@ -697,6 +702,61 @@ class APIClient: ObservableObject {
             settings = .default
             saveSettingsToCache()
         }
+    }
+    
+    // MARK: - Guest Contest Photos (for Adoption Slides & Photo Contest Screen)
+    
+    /// Fetch top voted guest photos across all cats for the Photo Contest TV slide.
+    func fetchTopGuestPhotos() async {
+        do {
+            let inputJSON = "{\"json\":{\"limit\":12}}"
+            let encodedInput = inputJSON.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? inputJSON
+            let url = URL(string: "\(baseURL)/api/trpc/catPhotos.getTopPhotosForTV?input=\(encodedInput)")!
+            var request = URLRequest(url: url)
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            
+            let (data, response) = try await URLSession.shared.data(for: request)
+            
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                let trpcResponse = try decoder.decode(TRPCResponse<[GuestCatPhoto]>.self, from: data)
+                cachedTopGuestPhotos = trpcResponse.result.data.json
+                print("[GuestPhotos] Cached \(cachedTopGuestPhotos.count) top guest photos")
+            }
+        } catch {
+            print("[GuestPhotos] Failed to fetch top photos: \(error)")
+        }
+    }
+    
+    /// Fetch the top-voted guest photo per cat for adoption slide overlays.
+    func fetchTopGuestPhotoPerCat() async {
+        do {
+            let url = URL(string: "\(baseURL)/api/trpc/catPhotos.getTopGuestPhotoPerCat")!
+            var request = URLRequest(url: url)
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            
+            let (data, response) = try await URLSession.shared.data(for: request)
+            
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                let trpcResponse = try decoder.decode(TRPCResponse<[String: TopGuestPhotoEntry]>.self, from: data)
+                cachedTopGuestPhotoPerCat = trpcResponse.result.data.json
+                print("[GuestPhotos] Cached top guest photo for \(cachedTopGuestPhotoPerCat.count) cats")
+            }
+        } catch {
+            print("[GuestPhotos] Failed to fetch top photo per cat: \(error)")
+        }
+        
+        guestPhotosLastFetched = Date()
+    }
+    
+    /// Refresh all guest photo caches.
+    func refreshGuestPhotos() async {
+        await fetchTopGuestPhotos()
+        await fetchTopGuestPhotoPerCat()
+    }
+    
+    /// Get the top guest photo URL for a specific cat ID, or nil if none exists.
+    func topGuestPhotoURL(forCatId catId: Int) -> String? {
+        return cachedTopGuestPhotoPerCat[String(catId)]?.photoUrl
     }
     
     // MARK: - Image Upload (via S3)

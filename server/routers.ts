@@ -145,6 +145,8 @@ import {
   consumeTokens,
   getAvailableCatsWithTopPhotos,
   getTopPhotosForTV,
+  getTopGuestPhotoPerCat,
+  getGuestPhotosForCatTV,
   ensureActiveContestRound,
   getPhotosForCatInRound,
   countPhotosForCatByUploaderInRound,
@@ -2917,6 +2919,18 @@ Extract as much information as possible from the documents. For the bio, write a
           origin,
         });
         return { checkoutUrl: url };
+      }),
+
+    // Public: Get top guest photo per cat (for adoption slides on TV)
+    getTopGuestPhotoPerCat: publicProcedure.query(async () => {
+      return getTopGuestPhotoPerCat();
+    }),
+
+    // Public: Get guest photos for a specific cat (for adoption slide rotation)
+    getGuestPhotosForCat: publicProcedure
+      .input(z.object({ catId: z.number(), limit: z.number().min(1).max(10).optional() }))
+      .query(async ({ input }) => {
+        return getGuestPhotosForCatTV(input.catId, input.limit ?? 5);
       }),
   }),
 });

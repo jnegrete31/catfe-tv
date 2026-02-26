@@ -136,6 +136,7 @@ struct ContentView: View {
                 await apiClient.fetchSocialPosts()
                 await apiClient.fetchBirthdayCats()
                 await apiClient.fetchFeaturedVolunteers()
+                await apiClient.refreshGuestPhotos()
             }
         }
     }
@@ -195,6 +196,7 @@ struct ContentView: View {
             Task { @MainActor in
                 await apiClient.refreshPhotos()
                 await apiClient.fetchRecentlyAdoptedCats()
+                await apiClient.refreshGuestPhotos()
             }
         }
         

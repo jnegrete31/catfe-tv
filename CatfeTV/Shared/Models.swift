@@ -35,6 +35,7 @@ enum ScreenType: String, Codable, CaseIterable, Identifiable {
     case socialFeed = "SOCIAL_FEED"
     case birthdayCelebration = "BIRTHDAY_CELEBRATION"
     case volunteerSpotlight = "VOLUNTEER_SPOTLIGHT"
+    case guestPhotoContest = "GUEST_PHOTO_CONTEST"
     case custom = "CUSTOM"
     
     var id: String { rawValue }
@@ -64,6 +65,7 @@ enum ScreenType: String, Codable, CaseIterable, Identifiable {
         case .socialFeed: return "Social Feed"
         case .birthdayCelebration: return "Birthday Celebration"
         case .volunteerSpotlight: return "Volunteer Spotlight"
+        case .guestPhotoContest: return "Photo Contest"
         case .custom: return "Custom"
         }
     }
@@ -89,6 +91,7 @@ enum ScreenType: String, Codable, CaseIterable, Identifiable {
         case .socialFeed: return "photo.on.rectangle.angled"
         case .birthdayCelebration: return "birthday.cake.fill"
         case .volunteerSpotlight: return "person.2.fill"
+        case .guestPhotoContest: return "trophy.fill"
         case .custom: return "star.fill"
         }
     }
@@ -856,4 +859,29 @@ struct Volunteer: Codable, Identifiable {
         case id, name, role, bio, photoUrl
         case isFeatured, isActive, startDate, sortOrder
     }
+}
+
+
+// MARK: - Guest Cat Photo Model (from catPhotos API)
+
+struct GuestCatPhoto: Codable, Identifiable {
+    var id: Int
+    var catId: Int
+    var photoUrl: String
+    var uploaderName: String?
+    var caption: String?
+    var voteCount: Int
+    var catName: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case id, catId, photoUrl, uploaderName, caption, voteCount, catName
+    }
+}
+
+/// Top guest photo per cat (from catPhotos.getTopGuestPhotoPerCat)
+struct TopGuestPhotoEntry: Codable {
+    var photoUrl: String
+    var uploaderName: String?
+    var voteCount: Int
+    var caption: String?
 }

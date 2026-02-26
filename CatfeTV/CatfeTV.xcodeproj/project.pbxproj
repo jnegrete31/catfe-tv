@@ -63,6 +63,7 @@
 			SFD00001 /* SocialFeedScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SFD00002 /* SocialFeedScreenView.swift */; };
 			BDC00001 /* BirthdayCelebrationScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDC00002 /* BirthdayCelebrationScreenView.swift */; };
 			VSP00001 /* VolunteerSpotlightScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = VSP00002 /* VolunteerSpotlightScreenView.swift */; };
+			GPC00001 /* GuestPhotoContestScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = GPC00002 /* GuestPhotoContestScreenView.swift */; };
 		22810065BDE340519254637D /* CosmicHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86CB68B09382437D9B459095 /* CosmicHelpers.swift */; };
 		303610EFC664458D9517DB33 /* HappyTailsQRScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95CD9A1BFCB64E6BB89476CB /* HappyTailsQRScreenView.swift */; };
 		160E26B617F844B9A485E8BA /* HappyTailsScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18F4708A52AA458882948CFB /* HappyTailsScreenView.swift */; };
@@ -131,6 +132,7 @@
 			SFD00002 /* SocialFeedScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocialFeedScreenView.swift; sourceTree = "<group>"; };
 			BDC00002 /* BirthdayCelebrationScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BirthdayCelebrationScreenView.swift; sourceTree = "<group>"; };
 			VSP00002 /* VolunteerSpotlightScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolunteerSpotlightScreenView.swift; sourceTree = "<group>"; };
+			GPC00002 /* GuestPhotoContestScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestPhotoContestScreenView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -211,6 +213,7 @@
 					SFD00002 /* SocialFeedScreenView.swift */,
 					BDC00002 /* BirthdayCelebrationScreenView.swift */,
 					VSP00002 /* VolunteerSpotlightScreenView.swift */,
+					GPC00002 /* GuestPhotoContestScreenView.swift */,
 			);
 			path = Screens;
 			sourceTree = "<group>";
@@ -384,6 +387,7 @@
 					SFD00001 /* SocialFeedScreenView.swift in Sources */,
 					BDC00001 /* BirthdayCelebrationScreenView.swift in Sources */,
 					VSP00001 /* VolunteerSpotlightScreenView.swift in Sources */,
+					GPC00001 /* GuestPhotoContestScreenView.swift in Sources */,
 
 
 					TV017 /* TemplateOverlayView.swift in Sources */,
