@@ -38,8 +38,11 @@ function getProductDisplayName(productName: string): string {
 }
 
 /**
- * Parse a time string (e.g., "14:30") into a Date object for today.
+ * Parse a time string (e.g., "14:30") into a Date object for today in PST/PDT.
  * Returns null if the time string is invalid.
+ * 
+ * IMPORTANT: The server runs in UTC, but Roller times are in Pacific Time.
+ * We must construct the Date in PST/PDT to avoid creating sessions hours early.
  */
 function parseSessionTime(timeStr: string | undefined | null): Date | null {
   if (!timeStr || typeof timeStr !== "string") return null;
@@ -49,9 +52,20 @@ function parseSessionTime(timeStr: string | undefined | null): Date | null {
   const minutes = parseInt(parts[1], 10);
   if (isNaN(hours) || isNaN(minutes)) return null;
   
-  const date = new Date();
-  date.setHours(hours, minutes, 0, 0);
-  return date;
+  // Get today's date in PST/PDT
+  const todayPST = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
+  
+  // Determine if we're in PST (-08:00) or PDT (-07:00)
+  const testDate = new Date(`${todayPST}T12:00:00Z`);
+  const laTime = new Date(testDate.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
+  const utcTime = new Date(testDate.toLocaleString('en-US', { timeZone: 'UTC' }));
+  const offsetHours = (utcTime.getTime() - laTime.getTime()) / (1000 * 60 * 60);
+  const tzOffset = offsetHours >= 8 ? '-08:00' : '-07:00'; // PST or PDT
+  
+  // Construct the date in Pacific Time
+  const hh = String(hours).padStart(2, '0');
+  const mm = String(minutes).padStart(2, '0');
+  return new Date(`${todayPST}T${hh}:${mm}:00${tzOffset}`);
 }
 
 /**

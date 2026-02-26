@@ -1923,3 +1923,8 @@
 
 ## Bug Fix - Military Time on Early Arrival
 - [x] Fix early arrival time display in Roller tab to use 12-hour format (AM/PM) instead of 24-hour military time
+
+## Bug Fix - Sessions Auto-Activating Before Booked Time
+- [x] Fix: Roller booking sessions are being created/activated before their booked start time and before guest is marked as arrived
+- [x] Root cause: parseSessionTime() used server-local (UTC) time instead of PST/PDT, so 11:30 AM PST was interpreted as 11:30 UTC (3:30 AM PST)
+- [x] Sessions should only start when: (a) guest is manually marked as arrived, or (b) their booked time begins (within 5 min window)
