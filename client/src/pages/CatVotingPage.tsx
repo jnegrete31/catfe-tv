@@ -22,6 +22,7 @@ import {
   Coins,
   CalendarCheck,
   ExternalLink,
+  ArrowLeft,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -248,11 +249,21 @@ export default function CatVotingPage() {
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-amber-200 shadow-sm">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-amber-600 rounded-xl flex items-center justify-center shadow-sm">
+            <Button
+              asChild
+              variant="ghost"
+              size="icon"
+              className="text-amber-700 hover:bg-amber-100 shrink-0"
+            >
+              <a href="/vote/cats">
+                <ArrowLeft className="w-5 h-5" />
+              </a>
+            </Button>
+            <div className="w-10 h-10 bg-amber-600 rounded-xl flex items-center justify-center shadow-sm shrink-0">
               <Cat className="w-6 h-6 text-white" />
             </div>
-            <div>
-              <h1 className="text-lg font-bold text-amber-900 leading-tight">
+            <div className="min-w-0">
+              <h1 className="text-lg font-bold text-amber-900 leading-tight truncate">
                 {cat.name}
               </h1>
               <p className="text-xs text-amber-600">Catfé Photo Contest</p>

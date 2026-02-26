@@ -1884,3 +1884,6 @@
 ## Feature - Cat Profile Action Links
 - [x] Add "Book a Visit" button to cat voting profile page (links to Catfé booking)
 - [x] Add "Adopt Me" link/button to cat voting profile page (links to adoption form)
+
+## Bug Fix - No back navigation on cat voting page
+- [x] Add back link/button to return to all cats list from individual cat voting page
