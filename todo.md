@@ -1976,3 +1976,6 @@
 - [x] Update tvOS ScreenView routing
 - [x] Write tests (326 passing)
 - [x] Push tvOS changes to GitHub
+
+## Bug Fix - PHOTO_CONTEST_QR rejected by Zod validation
+- [x] Add PHOTO_CONTEST_QR to the Zod z.enum() validation in server/routers.ts screen creation endpoint

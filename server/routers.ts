@@ -190,6 +190,7 @@ const screenTypes = [
   "BIRTHDAY_CELEBRATION",
   "VOLUNTEER_SPOTLIGHT",
   "GUEST_PHOTO_CONTEST",
+  "PHOTO_CONTEST_QR",
   "CUSTOM",
 ] as const;
 
