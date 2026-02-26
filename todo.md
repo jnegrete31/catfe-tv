@@ -1999,3 +1999,12 @@
 - [x] Update tvOS GuestStatusBoardScreenView to filter expired sessions (2-min grace period)
 - [x] Push tvOS changes to GitHub
 - [x] Test the flow end-to-end (326 tests passing)
+
+## Feature - Admin Photos Tab Reorganization with Sub-tabs
+- [x] Review current admin Photos tab structure
+- [x] Add sub-tabs: Photo Contest, Snap & Purr, Happy Tails (centered)
+- [x] Build Photo Contest sub-tab with: current round info, leaderboard, reset votes, new round, past rounds
+- [x] Move Snap & Purr gallery to its own sub-tab (with type filtering)
+- [x] Move Happy Tails submissions to its own sub-tab (with type filtering)
+- [x] Add backend endpoints: getContestStats, getPhotosForCurrentRound, resetCurrentRoundVotes, forceNewRound, getAdminPastRounds
+- [x] All 326 tests passing

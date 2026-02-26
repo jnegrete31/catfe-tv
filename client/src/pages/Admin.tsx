@@ -10,7 +10,7 @@ import { ScreenList } from "@/components/admin/ScreenList";
 import { SettingsForm } from "@/components/admin/SettingsForm";
 import { PlaylistPreview } from "@/components/admin/ScreenPreview";
 import { GuestCheckIn } from "@/components/admin/GuestCheckIn";
-import PhotoModeration from "@/components/admin/PhotoModeration";
+import PhotosTab from "@/components/admin/PhotosTab";
 
 import { PlaylistManager } from "@/components/admin/PlaylistManager";
 import { CatManager } from "@/components/admin/CatManager";
@@ -531,7 +531,7 @@ export default function Admin() {
           
           {/* Photos Tab */}
           <TabsContent value="photos">
-            <PhotoModeration />
+            <PhotosTab />
           </TabsContent>
           
 

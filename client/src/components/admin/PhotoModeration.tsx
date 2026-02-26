@@ -33,7 +33,7 @@ type PhotoSubmission = {
   rejectionReason: string | null;
 };
 
-export default function PhotoModeration() {
+export default function PhotoModeration({ filterType }: { filterType?: "happy_tails" | "snap_purr" } = {}) {
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoSubmission | null>(null);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
@@ -44,8 +44,16 @@ export default function PhotoModeration() {
   const utils = trpc.useUtils();
 
   const { data: stats } = trpc.photos.getStats.useQuery();
-  const { data: pendingPhotos, isLoading: pendingLoading } = trpc.photos.getPending.useQuery();
-  const { data: allPhotos, isLoading: allLoading } = trpc.photos.getAll.useQuery();
+  const { data: rawPendingPhotos, isLoading: pendingLoading } = trpc.photos.getPending.useQuery();
+  const { data: rawAllPhotos, isLoading: allLoading } = trpc.photos.getAll.useQuery();
+
+  // Filter by type if filterType prop is provided
+  const pendingPhotos = filterType
+    ? rawPendingPhotos?.filter((p) => p.type === filterType)
+    : rawPendingPhotos;
+  const allPhotos = filterType
+    ? rawAllPhotos?.filter((p) => p.type === filterType)
+    : rawAllPhotos;
 
   const approveMutation = trpc.photos.approve.useMutation({
     onSuccess: () => {
@@ -368,35 +376,23 @@ export default function PhotoModeration() {
   return (
     <div className="space-y-6">
       {/* Stats */}
-      <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-4">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
         <Card>
           <CardContent className="p-3 sm:p-4 text-center">
-            <div className="text-xl sm:text-2xl font-bold text-yellow-600">{stats?.pending || 0}</div>
+            <div className="text-xl sm:text-2xl font-bold text-yellow-600">{pendingPhotos?.length ?? (stats?.pending || 0)}</div>
             <div className="text-[10px] sm:text-sm text-gray-500">Pending</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-3 sm:p-4 text-center">
-            <div className="text-xl sm:text-2xl font-bold text-green-600">{stats?.approved || 0}</div>
+            <div className="text-xl sm:text-2xl font-bold text-green-600">{allPhotos?.filter(p => p.status === "approved").length ?? (stats?.approved || 0)}</div>
             <div className="text-[10px] sm:text-sm text-gray-500">Approved</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-3 sm:p-4 text-center">
-            <div className="text-xl sm:text-2xl font-bold text-red-600">{stats?.rejected || 0}</div>
+            <div className="text-xl sm:text-2xl font-bold text-red-600">{allPhotos?.filter(p => p.status === "rejected").length ?? (stats?.rejected || 0)}</div>
             <div className="text-[10px] sm:text-sm text-gray-500">Rejected</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-3 sm:p-4 text-center">
-            <div className="text-xl sm:text-2xl font-bold text-amber-600">{stats?.happyTails || 0}</div>
-            <div className="text-[10px] sm:text-sm text-gray-500">Happy Tails</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-3 sm:p-4 text-center">
-            <div className="text-xl sm:text-2xl font-bold text-blue-600">{stats?.snapPurr || 0}</div>
-            <div className="text-[10px] sm:text-sm text-gray-500">Snap & Purr</div>
           </CardContent>
         </Card>
       </div>
@@ -406,7 +402,7 @@ export default function PhotoModeration() {
         <TabsList>
           <TabsTrigger value="pending" className="gap-2">
             <Clock className="w-4 h-4" />
-            Pending ({stats?.pending || 0})
+            Pending ({pendingPhotos?.length ?? (stats?.pending || 0)})
           </TabsTrigger>
           <TabsTrigger value="all" className="gap-2">
             <Image className="w-4 h-4" />

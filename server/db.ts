@@ -2912,3 +2912,99 @@ export async function getGuestPhotosForCatTV(catId: number, limit: number = 5) {
     .orderBy(desc(guestCatPhotos.voteCount), desc(guestCatPhotos.createdAt))
     .limit(limit);
 }
+
+
+// ============ ADMIN CONTEST MANAGEMENT ============
+
+/**
+ * Reset all votes for the current active contest round.
+ * Clears catPhotoVotes for photos in the round and resets voteCount to 0.
+ */
+export async function resetContestVotes(roundId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Get all photo IDs in this round
+  const photos = await db.select({ id: guestCatPhotos.id })
+    .from(guestCatPhotos)
+    .where(eq(guestCatPhotos.roundId, roundId));
+  
+  const photoIds = photos.map(p => p.id);
+  
+  if (photoIds.length > 0) {
+    // Delete all votes for these photos
+    for (const photoId of photoIds) {
+      await db.delete(catPhotoVotes).where(eq(catPhotoVotes.photoId, photoId));
+    }
+    
+    // Reset vote counts on photos
+    await db.update(guestCatPhotos)
+      .set({ voteCount: 0 })
+      .where(eq(guestCatPhotos.roundId, roundId));
+  }
+  
+  return { photosReset: photoIds.length };
+}
+
+/**
+ * Get contest stats for admin dashboard.
+ */
+export async function getContestStats() {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const activeRound = await getActiveContestRound();
+  
+  // Total photos in current round
+  const currentRoundPhotos = activeRound 
+    ? await db.select({ count: sql<number>`count(*)` })
+        .from(guestCatPhotos)
+        .where(eq(guestCatPhotos.roundId, activeRound.id))
+    : [{ count: 0 }];
+  
+  // Total votes in current round
+  const currentRoundVotes = activeRound
+    ? await db.select({ total: sql<number>`COALESCE(SUM(${guestCatPhotos.voteCount}), 0)` })
+        .from(guestCatPhotos)
+        .where(eq(guestCatPhotos.roundId, activeRound.id))
+    : [{ total: 0 }];
+  
+  // Total completed rounds
+  const completedRounds = await db.select({ count: sql<number>`count(*)` })
+    .from(contestRounds)
+    .where(eq(contestRounds.status, "completed"));
+  
+  // All-time photo count
+  const allTimePhotos = await db.select({ count: sql<number>`count(*)` })
+    .from(guestCatPhotos);
+  
+  return {
+    activeRound,
+    currentRoundPhotos: currentRoundPhotos[0]?.count ?? 0,
+    currentRoundVotes: currentRoundVotes[0]?.total ?? 0,
+    completedRounds: completedRounds[0]?.count ?? 0,
+    allTimePhotos: allTimePhotos[0]?.count ?? 0,
+  };
+}
+
+/**
+ * Force close the current round and start a new one.
+ * Archives winners, closes the round, and creates a fresh round.
+ */
+export async function forceNewContestRound() {
+  const activeRound = await getActiveContestRound();
+  
+  if (activeRound) {
+    // Archive winners before closing
+    await archiveRoundWinners(activeRound.id);
+    
+    // Count stats
+    const photos = await getPhotosForRound(activeRound.id);
+    const totalVotes = photos.reduce((sum, p) => sum + (p.voteCount || 0), 0);
+    await closeContestRound(activeRound.id, photos.length, totalVotes);
+  }
+  
+  // Create new round (ensureActiveContestRound will handle it)
+  const newRound = await ensureActiveContestRound();
+  return newRound;
+}

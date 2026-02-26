@@ -153,6 +153,10 @@ import {
   getAvailableCatsWithTopPhotosForRound,
   getCompletedRoundsWithWinners,
   getWinnersForRound,
+  resetContestVotes,
+  getContestStats,
+  forceNewContestRound,
+  getPhotosForRound,
 } from "./db";
 import { storagePut } from "./storage";
 import { invokeLLM } from "./_core/llm";
@@ -2932,6 +2936,35 @@ Extract as much information as possible from the documents. For the bio, write a
       .input(z.object({ catId: z.number(), limit: z.number().min(1).max(10).optional() }))
       .query(async ({ input }) => {
         return getGuestPhotosForCatTV(input.catId, input.limit ?? 5);
+      }),
+
+    // Admin: Get contest stats for dashboard
+    getContestStats: adminProcedure.query(async () => {
+      return getContestStats();
+    }),
+
+    // Admin: Get photos for current round (leaderboard)
+    getPhotosForCurrentRound: adminProcedure.query(async () => {
+      const round = await ensureActiveContestRound();
+      return getPhotosForRound(round.id);
+    }),
+
+    // Admin: Reset votes for the current round
+    resetCurrentRoundVotes: adminProcedure.mutation(async () => {
+      const round = await ensureActiveContestRound();
+      return resetContestVotes(round.id);
+    }),
+
+    // Admin: Force close current round and start a new one
+    forceNewRound: adminProcedure.mutation(async () => {
+      return forceNewContestRound();
+    }),
+
+    // Admin: Get past rounds with winners
+    getAdminPastRounds: adminProcedure
+      .input(z.object({ limit: z.number().min(1).max(50).optional() }))
+      .query(async ({ input }) => {
+        return getCompletedRoundsWithWinners(input.limit ?? 20);
       }),
   }),
 });
