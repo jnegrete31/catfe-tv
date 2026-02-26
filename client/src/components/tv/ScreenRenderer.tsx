@@ -3309,6 +3309,207 @@ function TemplateElementsOverlay({ screenType, screen, settings }: { screenType:
   );
 }
 
+// GUEST_PHOTO_CONTEST - Shows top voted guest photos on the TV
+function GuestPhotoContestScreen({ screen, settings }: ScreenRendererProps) {
+  const { data: topPhotos } = trpc.catPhotos.getTopPhotosForTV.useQuery(
+    { limit: 6 },
+    { staleTime: 30000, refetchInterval: 60000 }
+  );
+
+  const photos = topPhotos || [];
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Rotate through photos every 5 seconds
+  useEffect(() => {
+    if (photos.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentIndex(prev => (prev + 1) % photos.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [photos.length]);
+
+  const currentPhoto = photos[currentIndex];
+
+  return (
+    <div className="tv-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%)' }}>
+      {/* Warm amber glow */}
+      <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full opacity-20"
+           style={{ background: 'radial-gradient(circle, rgba(218, 165, 32, 0.5) 0%, transparent 70%)' }} />
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 rounded-full opacity-20"
+           style={{ background: 'radial-gradient(circle, rgba(232, 145, 58, 0.4) 0%, transparent 70%)' }} />
+
+      {/* Header */}
+      <div className="absolute top-6 left-0 right-0 z-20 text-center">
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
+          <h1 className="text-6xl font-bold tracking-wide" style={{ fontFamily: 'Georgia, serif' }}>
+            <span style={{ color: '#E8913A' }}>Guest</span>{' '}
+            <span className="text-white/90">Photo</span>{' '}
+            <span style={{ color: '#86C5A9' }}>Contest</span>
+          </h1>
+          <p className="text-2xl tracking-widest uppercase mt-2" style={{ color: 'rgba(255,255,255,0.5)' }}>
+            Vote for your favorites!
+          </p>
+        </motion.div>
+      </div>
+
+      {photos.length === 0 ? (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center">
+            <span className="text-8xl block mb-4">📸</span>
+            <p className="text-3xl text-white/60">No photos yet — be the first!</p>
+          </div>
+        </div>
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center px-16 pt-28 pb-24">
+          <div className="flex flex-row items-center justify-center w-full max-w-7xl gap-12">
+            {/* Featured photo - polaroid style */}
+            <AnimatePresence mode="wait">
+              {currentPhoto && (
+                <motion.div
+                  key={currentPhoto.id}
+                  initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
+                  animate={{ opacity: 1, scale: 1, rotate: -2 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{ duration: 0.6, type: 'spring', stiffness: 80 }}
+                  className="flex-shrink-0"
+                >
+                  <div className="p-4 pb-20 shadow-2xl rounded-lg relative" style={{ background: '#FFFEF9', boxShadow: '0 30px 60px -15px rgba(0,0,0,0.5)' }}>
+                    <div className="relative w-[420px] h-[420px] overflow-hidden rounded-md bg-gray-100">
+                      <img
+                        src={currentPhoto.photoUrl}
+                        alt={currentPhoto.caption || 'Guest photo'}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0" style={{ boxShadow: 'inset 0 0 80px rgba(0,0,0,0.1)' }} />
+                      {/* Rank badge */}
+                      <div className={`absolute top-4 left-4 w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg ${
+                        currentIndex === 0 ? 'bg-yellow-500' : currentIndex === 1 ? 'bg-gray-400' : 'bg-amber-600'
+                      }`}>
+                        #{currentIndex + 1}
+                      </div>
+                    </div>
+                    <div className="absolute bottom-3 left-4 right-4 text-center">
+                      <p className="text-2xl font-medium truncate" style={{ fontFamily: 'Georgia, serif', color: '#3d3d3d' }}>
+                        {currentPhoto.catName || 'Guest Photo'}
+                      </p>
+                      <p className="text-sm text-gray-500 truncate">
+                        by {currentPhoto.uploaderName}
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Side info */}
+            <div className="flex-1 max-w-xl space-y-6">
+              {/* Vote count */}
+              {currentPhoto && (
+                <motion.div
+                  key={`votes-${currentPhoto.id}`}
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  className="inline-flex items-center gap-3 px-6 py-3 rounded-full border-2"
+                  style={{ background: 'rgba(232, 145, 58, 0.15)', borderColor: '#E8913A' }}
+                >
+                  <span className="text-3xl">❤️</span>
+                  <span className="text-2xl font-medium tracking-wide" style={{ color: '#E8913A' }}>
+                    {currentPhoto.voteCount} vote{currentPhoto.voteCount !== 1 ? 's' : ''}
+                  </span>
+                </motion.div>
+              )}
+
+              {currentPhoto?.caption && (
+                <motion.p
+                  key={`caption-${currentPhoto.id}`}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="text-3xl font-light italic" style={{ color: 'rgba(255,255,255,0.8)', fontFamily: 'Georgia, serif' }}
+                >
+                  "{currentPhoto.caption}"
+                </motion.p>
+              )}
+
+              {/* Leaderboard mini */}
+              <div className="space-y-2">
+                <p className="text-lg uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.4)' }}>Top Photos</p>
+                {photos.slice(0, 5).map((photo: any, idx: number) => (
+                  <motion.div
+                    key={photo.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: idx * 0.1 }}
+                    className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                      idx === currentIndex ? 'bg-white/15' : 'bg-white/5'
+                    }`}
+                  >
+                    <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                      idx === 0 ? 'bg-yellow-500 text-white' : idx === 1 ? 'bg-gray-400 text-white' : idx === 2 ? 'bg-amber-600 text-white' : 'bg-white/20 text-white/70'
+                    }`}>
+                      {idx + 1}
+                    </span>
+                    <div className="w-10 h-10 rounded-md overflow-hidden flex-shrink-0">
+                      <img src={photo.photoUrl} alt="" className="w-full h-full object-cover" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white/80 text-sm truncate">{photo.catName}</p>
+                      <p className="text-white/40 text-xs truncate">by {photo.uploaderName}</p>
+                    </div>
+                    <span className="text-white/60 text-sm">{photo.voteCount} ❤️</span>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Photo dots indicator */}
+      {photos.length > 1 && (
+        <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+          {photos.map((_: any, idx: number) => (
+            <div
+              key={idx}
+              className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                idx === currentIndex ? 'bg-amber-400 scale-125' : 'bg-white/30'
+              }`}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* QR Code */}
+      {screen.qrUrl && (
+        <div className="absolute bottom-6 left-8 z-20">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="bg-white/95 backdrop-blur-sm rounded-2xl p-4 shadow-2xl flex items-center gap-4"
+          >
+            <div className="bg-white p-1.5 rounded-lg shadow-inner">
+              <QRCodeSVG value={screen.qrUrl} size={70} level="M" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-gray-800">Vote Now!</p>
+              <p className="text-xs text-gray-500">Scan to upload & vote</p>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Photo count */}
+      <div className="absolute bottom-6 right-8 z-20">
+        <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
+          <span className="text-amber-400 text-lg">📸</span>
+          <span className="text-white/80 text-sm">
+            {photos.length} photo{photos.length !== 1 ? 's' : ''} submitted
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Main renderer that selects the appropriate component
 export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendererProps) {
   // Auto count adoptions from DB + manual offset
@@ -3459,6 +3660,7 @@ export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendere
     SOCIAL_FEED: SocialFeedScreen,
     BIRTHDAY_CELEBRATION: BirthdayCelebrationScreen,
     VOLUNTEER_SPOTLIGHT: VolunteerSpotlightScreen,
+    GUEST_PHOTO_CONTEST: GuestPhotoContestScreen,
     // Custom slides always use TemplateRenderer with their saved template
     CUSTOM: ({ screen }) => {
       // For CUSTOM screens, render with dark elegant theme

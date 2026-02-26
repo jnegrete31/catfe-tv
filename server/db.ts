@@ -19,7 +19,10 @@ import {
   cats, InsertCat, Cat,
   volunteers, InsertVolunteer, Volunteer,
   instagramPosts, InsertInstagramPost, InstagramPost,
-  bookingArrivals, InsertBookingArrival, BookingArrival
+  bookingArrivals, InsertBookingArrival, BookingArrival,
+  guestCatPhotos, InsertGuestCatPhoto, GuestCatPhoto,
+  catPhotoVotes, InsertCatPhotoVote, CatPhotoVote,
+  donationVoteTokens, InsertDonationVoteToken, DonationVoteToken
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -2352,4 +2355,215 @@ export async function getBookingArrivals(bookingIds: number[]): Promise<BookingA
   if (bookingIds.length === 0) return [];
   return db.select().from(bookingArrivals)
     .where(inArray(bookingArrivals.bookingId, bookingIds));
+}
+
+
+// ============ GUEST CAT PHOTO QUERIES ============
+
+export async function getPhotosForCat(catId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(guestCatPhotos)
+    .where(and(eq(guestCatPhotos.catId, catId), eq(guestCatPhotos.isActive, true)))
+    .orderBy(desc(guestCatPhotos.voteCount), desc(guestCatPhotos.createdAt));
+}
+
+export async function getTopPhotosForCat(catId: number, limit: number = 3) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(guestCatPhotos)
+    .where(and(eq(guestCatPhotos.catId, catId), eq(guestCatPhotos.isActive, true)))
+    .orderBy(desc(guestCatPhotos.voteCount), desc(guestCatPhotos.createdAt))
+    .limit(limit);
+}
+
+export async function getGuestCatPhotoById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(guestCatPhotos).where(eq(guestCatPhotos.id, id)).limit(1);
+  return result[0] || null;
+}
+
+export async function countPhotosForCatByUploader(catId: number, fingerprint: string): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  const result = await db.select({ count: sql<number>`count(*)` })
+    .from(guestCatPhotos)
+    .where(and(
+      eq(guestCatPhotos.catId, catId),
+      eq(guestCatPhotos.uploaderFingerprint, fingerprint),
+      eq(guestCatPhotos.isActive, true)
+    ));
+  return result[0]?.count ?? 0;
+}
+
+export async function createGuestCatPhoto(data: InsertGuestCatPhoto) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(guestCatPhotos).values(data);
+  return { id: result[0].insertId };
+}
+
+export async function toggleGuestCatPhotoActive(id: number, isActive: boolean) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(guestCatPhotos).set({ isActive }).where(eq(guestCatPhotos.id, id));
+  return { success: true };
+}
+
+// ============ CAT PHOTO VOTE QUERIES ============
+
+export async function hasVotedOnPhoto(photoId: number, fingerprint: string): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  const result = await db.select({ count: sql<number>`count(*)` })
+    .from(catPhotoVotes)
+    .where(and(
+      eq(catPhotoVotes.photoId, photoId),
+      eq(catPhotoVotes.voterFingerprint, fingerprint),
+      eq(catPhotoVotes.isDonationVote, false)
+    ));
+  return (result[0]?.count ?? 0) > 0;
+}
+
+export async function castFreeVote(photoId: number, fingerprint: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Insert the vote
+  await db.insert(catPhotoVotes).values({
+    photoId,
+    voterFingerprint: fingerprint,
+    voteCount: 1,
+    isDonationVote: false,
+  });
+  
+  // Update cached vote count on the photo
+  await db.update(guestCatPhotos)
+    .set({ voteCount: sql`${guestCatPhotos.voteCount} + 1` })
+    .where(eq(guestCatPhotos.id, photoId));
+  
+  return { success: true };
+}
+
+export async function castDonationVotes(photoId: number, fingerprint: string, votes: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Insert the donation vote record
+  await db.insert(catPhotoVotes).values({
+    photoId,
+    voterFingerprint: fingerprint,
+    voteCount: votes,
+    isDonationVote: true,
+  });
+  
+  // Update cached vote count on the photo
+  await db.update(guestCatPhotos)
+    .set({ voteCount: sql`${guestCatPhotos.voteCount} + ${votes}` })
+    .where(eq(guestCatPhotos.id, photoId));
+  
+  return { success: true };
+}
+
+export async function getVotesByFingerprint(fingerprint: string, photoIds: number[]) {
+  const db = await getDb();
+  if (!db) return [];
+  if (photoIds.length === 0) return [];
+  return db.select().from(catPhotoVotes)
+    .where(and(
+      eq(catPhotoVotes.voterFingerprint, fingerprint),
+      inArray(catPhotoVotes.photoId, photoIds)
+    ));
+}
+
+// ============ DONATION VOTE TOKEN QUERIES ============
+
+export async function getTokenBalanceByFingerprint(fingerprint: string): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  const result = await db.select({ total: sql<number>`COALESCE(SUM(${donationVoteTokens.tokensRemaining}), 0)` })
+    .from(donationVoteTokens)
+    .where(and(
+      eq(donationVoteTokens.voterFingerprint, fingerprint),
+      gt(donationVoteTokens.tokensRemaining, 0)
+    ));
+  return result[0]?.total ?? 0;
+}
+
+export async function createDonationTokens(data: InsertDonationVoteToken) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(donationVoteTokens).values(data);
+  return { id: result[0].insertId };
+}
+
+export async function consumeTokens(fingerprint: string, count: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  
+  // Get tokens with remaining balance, oldest first
+  const tokens = await db.select().from(donationVoteTokens)
+    .where(and(
+      eq(donationVoteTokens.voterFingerprint, fingerprint),
+      gt(donationVoteTokens.tokensRemaining, 0)
+    ))
+    .orderBy(asc(donationVoteTokens.createdAt));
+  
+  let remaining = count;
+  for (const token of tokens) {
+    if (remaining <= 0) break;
+    const consume = Math.min(remaining, token.tokensRemaining);
+    await db.update(donationVoteTokens)
+      .set({ tokensRemaining: token.tokensRemaining - consume })
+      .where(eq(donationVoteTokens.id, token.id));
+    remaining -= consume;
+  }
+  
+  return remaining <= 0; // true if we had enough tokens
+}
+
+// ============ CATS WITH PHOTOS QUERIES (for adoption slides) ============
+
+export async function getAvailableCatsWithTopPhotos() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const availableCats = await db.select().from(cats)
+    .where(eq(cats.status, "available"))
+    .orderBy(asc(cats.sortOrder), asc(cats.name));
+  
+  // For each cat, get top 3 photos
+  const result = [];
+  for (const cat of availableCats) {
+    const topPhotos = await getTopPhotosForCat(cat.id, 3);
+    result.push({ ...cat, topGuestPhotos: topPhotos });
+  }
+  
+  return result;
+}
+
+/**
+ * Get top voted photos across all cats for the TV display.
+ * Joins with cats table to include cat name.
+ */
+export async function getTopPhotosForTV(limit: number = 6) {
+  const db = await getDb();
+  if (!db) return [];
+  const results = await db.select({
+    id: guestCatPhotos.id,
+    catId: guestCatPhotos.catId,
+    photoUrl: guestCatPhotos.photoUrl,
+    uploaderName: guestCatPhotos.uploaderName,
+    caption: guestCatPhotos.caption,
+    voteCount: guestCatPhotos.voteCount,
+    createdAt: guestCatPhotos.createdAt,
+    catName: cats.name,
+  })
+    .from(guestCatPhotos)
+    .innerJoin(cats, eq(guestCatPhotos.catId, cats.id))
+    .where(eq(guestCatPhotos.isActive, true))
+    .orderBy(desc(guestCatPhotos.voteCount), desc(guestCatPhotos.createdAt))
+    .limit(limit);
+  return results;
 }

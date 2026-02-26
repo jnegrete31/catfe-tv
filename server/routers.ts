@@ -130,9 +130,26 @@ import {
   markBookingArrived,
   unmarkBookingArrived,
   getBookingArrivals,
+  getPhotosForCat,
+  getTopPhotosForCat,
+  getGuestCatPhotoById,
+  countPhotosForCatByUploader,
+  createGuestCatPhoto,
+  toggleGuestCatPhotoActive,
+  hasVotedOnPhoto,
+  castFreeVote,
+  castDonationVotes,
+  getVotesByFingerprint,
+  getTokenBalanceByFingerprint,
+  createDonationTokens,
+  consumeTokens,
+  getAvailableCatsWithTopPhotos,
+  getTopPhotosForTV,
 } from "./db";
 import { storagePut } from "./storage";
 import { invokeLLM } from "./_core/llm";
+import { createDonationCheckoutSession } from "./stripeWebhook";
+import { DONATION_TIERS, getDonationTier } from "./stripe-products";
 import { notifyOwner } from "./_core/notification";
 import { getProductAvailability, searchBookings, testConnection, getCustomerDetail, getBookingWaiverSummary, type BookingWaiverSummary, getBookingAddOnsWithNames, cacheProductNames, type BookingAddOn } from "./roller";
 import { getRollerPollingStatus, triggerManualSync } from "./rollerPolling";
@@ -164,6 +181,7 @@ const screenTypes = [
   "SOCIAL_FEED",
   "BIRTHDAY_CELEBRATION",
   "VOLUNTEER_SPOTLIGHT",
+  "GUEST_PHOTO_CONTEST",
   "CUSTOM",
 ] as const;
 
@@ -2619,6 +2637,220 @@ Extract as much information as possible from the documents. For the bio, write a
       .query(async ({ input }) => {
         const days = input?.days ?? 30;
         return getCatsWithUpcomingBirthdays(days);
+      }),
+  }),
+
+  // ============ GUEST CAT PHOTOS & VOTING ============
+  catPhotos: router({
+    // Public: Get all active photos for a cat
+    getForCat: publicProcedure
+      .input(z.object({ catId: z.number() }))
+      .query(async ({ input }) => {
+        return getPhotosForCat(input.catId);
+      }),
+
+    // Public: Get top 3 photos for a cat (for adoption slides)
+    getTopForCat: publicProcedure
+      .input(z.object({ catId: z.number(), limit: z.number().min(1).max(10).optional() }))
+      .query(async ({ input }) => {
+        return getTopPhotosForCat(input.catId, input.limit ?? 3);
+      }),
+
+    // Public: Get a single photo by ID
+    getById: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        return getGuestCatPhotoById(input.id);
+      }),
+
+    // Public: Get cat info + photos for voting page
+    getCatVotingPage: publicProcedure
+      .input(z.object({ catId: z.number() }))
+      .query(async ({ input }) => {
+        const cat = await getCatById(input.catId);
+        if (!cat) throw new TRPCError({ code: "NOT_FOUND", message: "Cat not found" });
+        const photos = await getPhotosForCat(input.catId);
+        return { cat, photos };
+      }),
+
+    // Public: Check how many photos this uploader has for a cat
+    getUploaderCount: publicProcedure
+      .input(z.object({ catId: z.number(), fingerprint: z.string().min(1) }))
+      .query(async ({ input }) => {
+        const count = await countPhotosForCatByUploader(input.catId, input.fingerprint);
+        return { count, remaining: Math.max(0, 3 - count) };
+      }),
+
+    // Public: Upload a photo for a cat (max 3 per guest per cat)
+    upload: publicProcedure
+      .input(z.object({
+        catId: z.number(),
+        uploaderName: z.string().min(1).max(100),
+        uploaderFingerprint: z.string().min(1).max(64),
+        caption: z.string().max(300).optional(),
+        imageBase64: z.string(), // base64 encoded image
+        mimeType: z.string().default("image/jpeg"),
+      }))
+      .mutation(async ({ input }) => {
+        // Enforce 3-photo limit per uploader per cat
+        const existingCount = await countPhotosForCatByUploader(input.catId, input.uploaderFingerprint);
+        if (existingCount >= 3) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "You can only upload up to 3 photos per cat.",
+          });
+        }
+
+        // Upload to S3
+        const buffer = Buffer.from(input.imageBase64, "base64");
+        const ext = input.mimeType.includes("png") ? "png" : "jpg";
+        const randomSuffix = Math.random().toString(36).substring(2, 10);
+        const fileKey = `cat-photos/${input.catId}/${input.uploaderFingerprint}-${Date.now()}-${randomSuffix}.${ext}`;
+        const { url } = await storagePut(fileKey, buffer, input.mimeType);
+
+        // Create database record
+        const result = await createGuestCatPhoto({
+          catId: input.catId,
+          photoUrl: url,
+          uploaderName: input.uploaderName,
+          uploaderFingerprint: input.uploaderFingerprint,
+          caption: input.caption || null,
+        });
+
+        return { id: result.id, photoUrl: url };
+      }),
+
+    // Admin: Toggle photo visibility
+    toggleActive: protectedProcedure
+      .input(z.object({ id: z.number(), isActive: z.boolean() }))
+      .mutation(async ({ input }) => {
+        return toggleGuestCatPhotoActive(input.id, input.isActive);
+      }),
+
+    // Public: Check if user has already free-voted on a photo
+    hasVoted: publicProcedure
+      .input(z.object({ photoId: z.number(), fingerprint: z.string().min(1) }))
+      .query(async ({ input }) => {
+        return { hasVoted: await hasVotedOnPhoto(input.photoId, input.fingerprint) };
+      }),
+
+    // Public: Check vote status for multiple photos at once
+    getVoteStatus: publicProcedure
+      .input(z.object({ photoIds: z.array(z.number()), fingerprint: z.string().min(1) }))
+      .query(async ({ input }) => {
+        if (input.photoIds.length === 0) return { votes: {} };
+        const votes = await getVotesByFingerprint(input.fingerprint, input.photoIds);
+        const voteMap: Record<number, { freeVoted: boolean; donationVotes: number }> = {};
+        for (const photoId of input.photoIds) {
+          voteMap[photoId] = { freeVoted: false, donationVotes: 0 };
+        }
+        for (const vote of votes) {
+          if (!voteMap[vote.photoId]) voteMap[vote.photoId] = { freeVoted: false, donationVotes: 0 };
+          if (!vote.isDonationVote) {
+            voteMap[vote.photoId].freeVoted = true;
+          } else {
+            voteMap[vote.photoId].donationVotes += vote.voteCount;
+          }
+        }
+        return { votes: voteMap };
+      }),
+
+    // Public: Cast a free vote (1 per person per photo)
+    castFreeVote: publicProcedure
+      .input(z.object({ photoId: z.number(), fingerprint: z.string().min(1) }))
+      .mutation(async ({ input }) => {
+        // Check if already voted
+        const alreadyVoted = await hasVotedOnPhoto(input.photoId, input.fingerprint);
+        if (alreadyVoted) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "You have already voted on this photo.",
+          });
+        }
+        // Verify photo exists
+        const photo = await getGuestCatPhotoById(input.photoId);
+        if (!photo || !photo.isActive) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Photo not found" });
+        }
+        return castFreeVote(input.photoId, input.fingerprint);
+      }),
+
+    // Public: Cast donation votes (uses tokens)
+    castDonationVotes: publicProcedure
+      .input(z.object({
+        photoId: z.number(),
+        fingerprint: z.string().min(1),
+        votes: z.number().min(1).max(100),
+      }))
+      .mutation(async ({ input }) => {
+        // Verify photo exists
+        const photo = await getGuestCatPhotoById(input.photoId);
+        if (!photo || !photo.isActive) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Photo not found" });
+        }
+        // Consume tokens
+        const consumed = await consumeTokens(input.fingerprint, input.votes);
+        if (!consumed) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Not enough vote tokens. Purchase more via donation.",
+          });
+        }
+        return castDonationVotes(input.photoId, input.fingerprint, input.votes);
+      }),
+
+    // Public: Get token balance for a fingerprint
+    getTokenBalance: publicProcedure
+      .input(z.object({ fingerprint: z.string().min(1) }))
+      .query(async ({ input }) => {
+        const balance = await getTokenBalanceByFingerprint(input.fingerprint);
+        return { balance };
+      }),
+
+    // Public: Get all available cats with their top photos (for TV adoption slides)
+    getAvailableCatsWithPhotos: publicProcedure.query(async () => {
+      return getAvailableCatsWithTopPhotos();
+    }),
+
+    // Public: Get top voted photos across all cats (for TV display)
+    getTopPhotosForTV: publicProcedure
+      .input(z.object({ limit: z.number().min(1).max(20).optional() }))
+      .query(async ({ input }) => {
+        return getTopPhotosForTV(input.limit ?? 6);
+      }),
+
+    // Public: Get donation tiers
+    getDonationTiers: publicProcedure.query(() => {
+      return DONATION_TIERS;
+    }),
+
+    // Public: Create Stripe checkout session for donation vote tokens
+    createDonationCheckout: publicProcedure
+      .input(z.object({
+        tierId: z.string(),
+        fingerprint: z.string().min(1),
+        donorName: z.string().max(100).optional(),
+        catId: z.number().optional(),
+        catName: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const tier = getDonationTier(input.tierId);
+        if (!tier) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid donation tier" });
+        }
+        const origin = ctx.req.headers.origin || "https://catfetv-amdmxcoq.manus.space";
+        const { url } = await createDonationCheckoutSession({
+          tierId: tier.id,
+          tierLabel: tier.label,
+          amountCents: tier.amountCents,
+          tokens: tier.tokens,
+          fingerprint: input.fingerprint,
+          donorName: input.donorName,
+          catId: input.catId,
+          catName: input.catName,
+          origin,
+        });
+        return { checkoutUrl: url };
       }),
   }),
 });

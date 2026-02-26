@@ -1834,3 +1834,27 @@
 
 ## Bug Fix - Booking status stays 'Upcoming' after early arrival
 - [x] Fix status not updating to 'Checked In' when guest is marked arrived early
+
+## Feature - Guest Photo Upload & Voting for Adoption Slides
+### Database & Backend
+- [x] Design and create database tables for guest photos, votes, and donation tokens
+- [x] Server endpoints: upload photo (max 3 per cat per guest), get photos for cat, vote on photo
+- [x] Server endpoint: get top 3 voted photos per cat
+- [x] Enforce 1 free vote per person per photo (fingerprint/session-based)
+### Stripe Donation Voting
+- [x] Integrate Stripe for donation vote token purchases
+- [x] Donation tiers: $1/5 votes, $5/30 votes, $10/75 votes
+- [x] Track donation tokens per user and apply extra votes
+### Guest-Facing Pages
+- [x] Mobile-friendly photo upload page (tagged to specific cat)
+- [x] Voting page showing cat photos with vote counts + kennel card personality info
+- [x] Shareable link per cat for social sharing
+### Adoption Slide Template
+- [x] New adoption slide template showing top 3 voted guest photos
+- [x] Include kennel card personality data on the slide
+- [x] Auto-rotate through top photos
+### QR Code & Sharing
+- [x] Generate QR code for each cat's voting page (display in lounge/on TV)
+- [x] Social sharing with preview cards for voting links
+### Tests
+- [x] Write tests for photo upload, voting, and donation token logic

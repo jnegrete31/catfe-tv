@@ -31,6 +31,7 @@ export const SCREEN_TYPES = [
   "SOCIAL_FEED",
   "BIRTHDAY_CELEBRATION",
   "VOLUNTEER_SPOTLIGHT",
+  "GUEST_PHOTO_CONTEST",
   "CUSTOM",
 ] as const;
 
@@ -61,6 +62,7 @@ export const SCREEN_TYPE_CONFIG: Record<ScreenType, { label: string; color: stri
   SOCIAL_FEED: { label: "Social Feed", color: "#e1306c", bgColor: "#fce4ec" },
   BIRTHDAY_CELEBRATION: { label: "Birthday Celebration", color: "#ff6f00", bgColor: "#fff3e0" },
   VOLUNTEER_SPOTLIGHT: { label: "Volunteer Spotlight", color: "#2e7d32", bgColor: "#e8f5e9" },
+  GUEST_PHOTO_CONTEST: { label: "Guest Photo Contest", color: "#d97706", bgColor: "#fffbeb" },
   CUSTOM: { label: "Custom Slide", color: "#6b7280", bgColor: "#f3f4f6" },
 };
 

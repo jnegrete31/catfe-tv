@@ -13,6 +13,8 @@ import GuestSlideshow from "./pages/GuestSlideshow";
 import Vote from "./pages/Vote";
 import SlideEditor from "./pages/SlideEditor";
 import PhotoVote from "./pages/PhotoVote";
+import CatVotingList from "./pages/CatVotingList";
+import CatVotingPage from "./pages/CatVotingPage";
 
 function Router() {
   return (
@@ -23,6 +25,8 @@ function Router() {
       <Route path="/upload/happy-tails" component={UploadHappyTails} />
       <Route path="/upload/snap-purr" component={UploadSnapPurr} />
       <Route path="/slideshow/:type" component={GuestSlideshow} />
+      <Route path="/vote/cats" component={CatVotingList} />
+      <Route path="/vote/cat/:catId" component={CatVotingPage} />
       <Route path="/vote/:pollId" component={Vote} />
       <Route path="/admin/slide-editor" component={SlideEditor} />
       <Route path="/photos/vote" component={PhotoVote} />

@@ -45,6 +45,7 @@ export const screenTypeEnum = mysqlEnum("screenType", [
   "SOCIAL_FEED",
   "BIRTHDAY_CELEBRATION",
   "VOLUNTEER_SPOTLIGHT",
+  "GUEST_PHOTO_CONTEST",
   "CUSTOM"
 ]);
 
@@ -607,3 +608,56 @@ export const bookingArrivals = mysqlTable("bookingArrivals", {
 });
 export type BookingArrival = typeof bookingArrivals.$inferSelect;
 export type InsertBookingArrival = typeof bookingArrivals.$inferInsert;
+
+/**
+ * Guest cat photos - photos uploaded by guests of specific cats in the lounge
+ * These are separate from photoSubmissions (which are happy_tails/snap_purr)
+ */
+export const guestCatPhotos = mysqlTable("guestCatPhotos", {
+  id: int("id").autoincrement().primaryKey(),
+  catId: int("catId").notNull(), // References cats.id
+  photoUrl: varchar("photoUrl", { length: 1024 }).notNull(), // S3 URL
+  uploaderName: varchar("uploaderName", { length: 255 }).notNull(), // First name only for privacy
+  uploaderFingerprint: varchar("uploaderFingerprint", { length: 64 }).notNull(), // Device fingerprint to enforce 3-photo limit
+  caption: varchar("caption", { length: 300 }),
+  voteCount: int("voteCount").notNull().default(0), // Cached total votes for quick sorting
+  isActive: boolean("isActive").notNull().default(true), // Can be hidden by admin
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type GuestCatPhoto = typeof guestCatPhotos.$inferSelect;
+export type InsertGuestCatPhoto = typeof guestCatPhotos.$inferInsert;
+
+/**
+ * Votes on guest cat photos - tracks individual votes (free + donated)
+ */
+export const catPhotoVotes = mysqlTable("catPhotoVotes", {
+  id: int("id").autoincrement().primaryKey(),
+  photoId: int("photoId").notNull(), // References guestCatPhotos.id
+  voterFingerprint: varchar("voterFingerprint", { length: 64 }).notNull(), // Device fingerprint
+  voteCount: int("voteCount").notNull().default(1), // 1 for free vote, more for donated votes
+  isDonationVote: boolean("isDonationVote").notNull().default(false), // Whether this vote came from a donation
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type CatPhotoVote = typeof catPhotoVotes.$inferSelect;
+export type InsertCatPhotoVote = typeof catPhotoVotes.$inferInsert;
+
+/**
+ * Donation vote tokens - purchased via Stripe, redeemable as extra votes
+ */
+export const donationVoteTokens = mysqlTable("donationVoteTokens", {
+  id: int("id").autoincrement().primaryKey(),
+  voterFingerprint: varchar("voterFingerprint", { length: 64 }).notNull(), // Who bought them
+  tokensTotal: int("tokensTotal").notNull(), // Total tokens purchased
+  tokensRemaining: int("tokensRemaining").notNull(), // Tokens not yet used
+  amountCents: int("amountCents").notNull(), // Donation amount in cents
+  stripePaymentId: varchar("stripePaymentId", { length: 255 }), // Stripe payment intent ID
+  donorName: varchar("donorName", { length: 255 }), // Optional donor display name
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type DonationVoteToken = typeof donationVoteTokens.$inferSelect;
+export type InsertDonationVoteToken = typeof donationVoteTokens.$inferInsert;

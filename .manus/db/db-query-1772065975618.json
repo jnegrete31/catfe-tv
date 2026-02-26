@@ -1,0 +1,25 @@
+{
+  "query": "SHOW TABLES LIKE 'guestCatPhotos'; SHOW TABLES LIKE 'catPhotoVotes'; SHOW TABLES LIKE 'donationVoteTokens';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2KjT5kGWaGHMws6.75433b4e530a --database aMDMXCoQ2ycSYTjhkKKJzm --execute SHOW TABLES LIKE 'guestCatPhotos'; SHOW TABLES LIKE 'catPhotoVotes'; SHOW TABLES LIKE 'donationVoteTokens';",
+  "rows": [
+    {
+      "Tables_in_aMDMXCoQ2ycSYTjhkKKJzm (guestCatPhotos)": "guestCatPhotos"
+    },
+    {
+      "Tables_in_aMDMXCoQ2ycSYTjhkKKJzm (guestCatPhotos)": "Tables_in_aMDMXCoQ2ycSYTjhkKKJzm (catPhotoVotes)"
+    },
+    {
+      "Tables_in_aMDMXCoQ2ycSYTjhkKKJzm (guestCatPhotos)": "catPhotoVotes"
+    },
+    {
+      "Tables_in_aMDMXCoQ2ycSYTjhkKKJzm (guestCatPhotos)": "Tables_in_aMDMXCoQ2ycSYTjhkKKJzm (donationVoteTokens)"
+    },
+    {
+      "Tables_in_aMDMXCoQ2ycSYTjhkKKJzm (guestCatPhotos)": "donationVoteTokens"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_aMDMXCoQ2ycSYTjhkKKJzm (guestCatPhotos)\nguestCatPhotos\nTables_in_aMDMXCoQ2ycSYTjhkKKJzm (catPhotoVotes)\ncatPhotoVotes\nTables_in_aMDMXCoQ2ycSYTjhkKKJzm (donationVoteTokens)\ndonationVoteTokens\n",
+  "stderr": "",
+  "execution_time_ms": 94
+}
