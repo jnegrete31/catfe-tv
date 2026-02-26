@@ -1928,3 +1928,8 @@
 - [x] Fix: Roller booking sessions are being created/activated before their booked start time and before guest is marked as arrived
 - [x] Root cause: parseSessionTime() used server-local (UTC) time instead of PST/PDT, so 11:30 AM PST was interpreted as 11:30 UTC (3:30 AM PST)
 - [x] Sessions should only start when: (a) guest is manually marked as arrived, or (b) their booked time begins (within 5 min window)
+
+## Feature - Show Countdown on Roller Booking Card
+- [x] Show session countdown timer directly on the Roller booking card once guest is marked as arrived
+- [x] Add +15m, +30m extend buttons and Out button on the booking card for arrived guests
+- [x] Remove need to switch to Walk-Ins tab to see Roller session countdowns

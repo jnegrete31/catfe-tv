@@ -104,6 +104,9 @@ type RollerBookingEntry = {
   bookingStatus: string;
   arrivedAt: string | null;
   markedByUserId: number | null;
+  sessionCheckInAt?: string;
+  sessionExpiresAt?: string;
+  sessionStatus?: string;
 };
 
 type DateFilter = "today" | "tomorrow" | "week" | "month";
@@ -1035,11 +1038,12 @@ function RollerBookingsSection() {
 
 function BookingCard({ booking, showDate }: { booking: RollerBookingEntry; showDate: boolean }) {
   const utils = trpc.useUtils();
+  const [, setTick] = useState(0);
   const markArrivedMutation = trpc.roller.markArrived.useMutation({
     onSuccess: () => {
       toast.success(`${booking.customerName} marked as arrived! Session started.`);
       utils.roller.getTodayBookings.invalidate();
-      utils.guestSessions.getAll.invalidate(); // Refresh Walk-Ins tab too
+      utils.guestSessions.getAll.invalidate();
     },
     onError: (err) => {
       toast.error(err.message || "Failed to mark as arrived");
@@ -1049,16 +1053,71 @@ function BookingCard({ booking, showDate }: { booking: RollerBookingEntry; showD
     onSuccess: () => {
       toast.success(`Arrival undone for ${booking.customerName}`);
       utils.roller.getTodayBookings.invalidate();
-      utils.guestSessions.getAll.invalidate(); // Refresh Walk-Ins tab too
+      utils.guestSessions.getAll.invalidate();
     },
     onError: (err) => {
       toast.error(err.message || "Failed to undo arrival");
+    },
+  });
+  const extendMutation = trpc.guestSessions.extend.useMutation({
+    onSuccess: () => {
+      toast.success("Session extended!");
+      utils.roller.getTodayBookings.invalidate();
+      utils.guestSessions.getActive.invalidate();
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to extend session");
+    },
+  });
+  const checkOutMutation = trpc.guestSessions.checkOut.useMutation({
+    onSuccess: () => {
+      toast.success(`${booking.customerName} checked out!`);
+      utils.roller.getTodayBookings.invalidate();
+      utils.guestSessions.getActive.invalidate();
+      utils.guestSessions.getTodayStats.invalidate();
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to check out");
     },
   });
 
   const isArrived = !!booking.arrivedAt;
   const isPast = booking.status === "completed" || booking.status === "expired";
   const [showEarlyDialog, setShowEarlyDialog] = useState(false);
+
+  // Tick every second to update countdown when session is active
+  const hasActiveSession = isArrived && booking.guestSessionId && booking.sessionExpiresAt;
+  useEffect(() => {
+    if (!hasActiveSession) return;
+    const interval = setInterval(() => setTick(t => t + 1), 1000);
+    return () => clearInterval(interval);
+  }, [hasActiveSession]);
+
+  // Compute session countdown
+  const sessionCountdown = useMemo(() => {
+    if (!booking.sessionExpiresAt) return null;
+    const expiresAt = new Date(booking.sessionExpiresAt);
+    const checkInAt = booking.sessionCheckInAt ? new Date(booking.sessionCheckInAt) : null;
+    const now = Date.now();
+    const isNotStarted = checkInAt && checkInAt.getTime() > now;
+    if (isNotStarted) {
+      return {
+        label: `Starts ${checkInAt!.toLocaleTimeString([], { hour: "numeric", minute: "2-digit", timeZone: "America/Los_Angeles" })}`,
+        isExpired: false,
+        isWarning: false,
+        isNotStarted: true,
+      };
+    }
+    const msLeft = expiresAt.getTime() - now;
+    const isExpired = msLeft <= 0;
+    const isWarning = !isExpired && msLeft <= 5 * 60 * 1000;
+    return {
+      label: formatTimeRemaining(expiresAt),
+      isExpired,
+      isWarning,
+      isNotStarted: false,
+    };
+  }, [booking.sessionExpiresAt, booking.sessionCheckInAt, hasActiveSession]);
 
   // Check if the booking start time is in the future (early arrival)
   const isEarlyArrival = useMemo(() => {
@@ -1158,7 +1217,26 @@ function BookingCard({ booking, showDate }: { booking: RollerBookingEntry; showD
             </div>
           </div>
           <div className="shrink-0 flex flex-col items-end gap-1.5">
-            <BookingStatusBadge status={booking.status} />
+            {/* Show countdown timer for arrived guests with active sessions */}
+            {isArrived && sessionCountdown ? (
+              <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs sm:text-sm font-medium ${
+                sessionCountdown.isNotStarted ? "bg-blue-50 text-blue-700" :
+                sessionCountdown.isExpired ? "bg-red-100 text-red-700" :
+                sessionCountdown.isWarning ? "bg-amber-100 text-amber-700" :
+                "bg-green-100 text-green-700"
+              }`}>
+                {sessionCountdown.isNotStarted ? (
+                  <CalendarClock className="w-3 h-3" />
+                ) : sessionCountdown.isExpired ? (
+                  <AlertCircle className="w-3 h-3" />
+                ) : (
+                  <Timer className="w-3 h-3" />
+                )}
+                {sessionCountdown.label}
+              </div>
+            ) : (
+              <BookingStatusBadge status={booking.status} />
+            )}
             {!isArrived && !isPast && booking.bookingId && (
               <Button
                 variant="outline"
@@ -1192,6 +1270,42 @@ function BookingCard({ booking, showDate }: { booking: RollerBookingEntry; showD
             )}
           </div>
         </div>
+
+        {/* Session controls for arrived guests: extend + check out */}
+        {isArrived && booking.guestSessionId && !isPast && (
+          <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mt-3 pt-3 border-t border-green-200">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 text-xs sm:text-sm px-2 sm:px-3"
+              onClick={() => extendMutation.mutate({ id: booking.guestSessionId!, additionalMinutes: 15 })}
+              disabled={extendMutation.isPending}
+            >
+              <Plus className="w-3 h-3 mr-0.5 sm:mr-1 shrink-0" />
+              15m
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 text-xs sm:text-sm px-2 sm:px-3"
+              onClick={() => extendMutation.mutate({ id: booking.guestSessionId!, additionalMinutes: 30 })}
+              disabled={extendMutation.isPending}
+            >
+              <Plus className="w-3 h-3 mr-0.5 sm:mr-1 shrink-0" />
+              30m
+            </Button>
+            <Button
+              variant="default"
+              size="sm"
+              className="h-9 text-xs sm:text-sm px-2 sm:px-3"
+              onClick={() => checkOutMutation.mutate({ id: booking.guestSessionId! })}
+              disabled={checkOutMutation.isPending}
+            >
+              <LogOut className="w-3 h-3 mr-0.5 sm:mr-1 shrink-0" />
+              Out
+            </Button>
+          </div>
+        )}
       </CardContent>
 
       {/* Early Arrival Confirmation Dialog */}

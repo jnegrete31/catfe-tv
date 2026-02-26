@@ -2209,7 +2209,7 @@ Extract as much information as possible from the documents. For the bio, write a
             sessionEndTime,
             bookingDate,
             status,
-            guestSessionId: null,
+            guestSessionId: null as number | null,
             total: booking.total || 0,
             bookingStatus: booking.status || "unknown",
             arrivedAt: null as string | null,
@@ -2232,7 +2232,38 @@ Extract as much information as possible from the documents. For the bio, write a
         } catch { /* arrival lookup is optional */ }
       }
 
-      // Merge arrival data into enriched bookings
+      // Look up guest sessions linked to these bookings via rollerBookingRef
+      let sessionMap = new Map<string, { id: number; checkInAt: Date; expiresAt: Date; status: string }>();
+      try {
+        const { getDb } = await import('./db');
+        const db = await getDb();
+        if (db) {
+          const { guestSessions: guestSessionsTable } = await import('../drizzle/schema');
+          const { isNotNull } = await import('drizzle-orm');
+          const sessions = await db
+            .select({
+              id: guestSessionsTable.id,
+              rollerBookingRef: guestSessionsTable.rollerBookingRef,
+              checkInAt: guestSessionsTable.checkInAt,
+              expiresAt: guestSessionsTable.expiresAt,
+              status: guestSessionsTable.status,
+            })
+            .from(guestSessionsTable)
+            .where(isNotNull(guestSessionsTable.rollerBookingRef));
+          for (const s of sessions) {
+            if (s.rollerBookingRef) {
+              sessionMap.set(s.rollerBookingRef, {
+                id: s.id,
+                checkInAt: s.checkInAt,
+                expiresAt: s.expiresAt,
+                status: s.status,
+              });
+            }
+          }
+        }
+      } catch { /* session lookup is optional */ }
+
+      // Merge arrival data and session data into enriched bookings
       // If a guest has been marked as arrived, override status to checked_in
       // (handles early arrivals where time-based status would still show "upcoming")
       for (const b of enriched) {
@@ -2244,6 +2275,14 @@ Extract as much information as possible from the documents. For the bio, write a
           if (b.status !== "completed") {
             b.status = "checked_in";
           }
+        }
+        // Link guest session data
+        const linkedSession = sessionMap.get(b.bookingReference);
+        if (linkedSession) {
+          b.guestSessionId = linkedSession.id;
+          (b as any).sessionCheckInAt = linkedSession.checkInAt.toISOString();
+          (b as any).sessionExpiresAt = linkedSession.expiresAt.toISOString();
+          (b as any).sessionStatus = linkedSession.status;
         }
       }
       
