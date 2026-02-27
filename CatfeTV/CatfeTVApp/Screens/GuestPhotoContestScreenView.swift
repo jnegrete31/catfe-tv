@@ -409,5 +409,5 @@ struct GuestPhotoContestScreenView: View {
         subtitle: "Vote for your favorites!",
         duration: 20
     ))
-    .environmentObject(APIClient())
+    .environmentObject(APIClient.shared)
 }
