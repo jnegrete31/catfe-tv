@@ -2034,3 +2034,20 @@
 - [x] Investigate why buying cat treats at Roller POS adds time to guest session
 - [x] Fix session creation/extension logic to ignore non-session purchases
 - [x] Verify treat purchases no longer affect session countdown
+
+## Session History on Roller Booking Card
+- [x] Add session history section to BookingCard showing check-in and check-out times
+- [x] Include session duration info (how long the guest was in the lounge)
+- [x] Ensure data is available from server (sessionCheckInAt, sessionExpiresAt, sessionStatus, checkOutAt)
+- [x] Style the history section to be compact and informative
+- [x] Write tests for the new feature
+
+## New Landing Page
+- [x] Redesign the public-facing landing page for Catfé
+- [x] Hero section with warm, inviting imagery and CTA
+- [x] How It Works section explaining the cat lounge experience
+- [x] Meet the Cats / adoptable cats preview
+- [x] Get Involved section (volunteer, donate, visit)
+- [x] Location & hours info for Santa Clarita
+- [x] Mobile-responsive design
+- [x] Keep navigation to photo contest, voting, and other existing pages

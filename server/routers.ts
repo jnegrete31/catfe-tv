@@ -2240,7 +2240,7 @@ Extract as much information as possible from the documents. For the bio, write a
       }
 
       // Look up guest sessions linked to these bookings via rollerBookingRef
-      let sessionMap = new Map<string, { id: number; checkInAt: Date; expiresAt: Date; status: string }>();
+      let sessionMap = new Map<string, { id: number; checkInAt: Date; expiresAt: Date; status: string; checkedOutAt: Date | null }>();
       try {
         const { getDb } = await import('./db');
         const db = await getDb();
@@ -2254,6 +2254,7 @@ Extract as much information as possible from the documents. For the bio, write a
               checkInAt: guestSessionsTable.checkInAt,
               expiresAt: guestSessionsTable.expiresAt,
               status: guestSessionsTable.status,
+              checkedOutAt: guestSessionsTable.checkedOutAt,
             })
             .from(guestSessionsTable)
             .where(isNotNull(guestSessionsTable.rollerBookingRef));
@@ -2264,6 +2265,7 @@ Extract as much information as possible from the documents. For the bio, write a
                 checkInAt: s.checkInAt,
                 expiresAt: s.expiresAt,
                 status: s.status,
+                checkedOutAt: s.checkedOutAt,
               });
             }
           }
@@ -2290,6 +2292,7 @@ Extract as much information as possible from the documents. For the bio, write a
           (b as any).sessionCheckInAt = linkedSession.checkInAt.toISOString();
           (b as any).sessionExpiresAt = linkedSession.expiresAt.toISOString();
           (b as any).sessionStatus = linkedSession.status;
+          (b as any).sessionCheckedOutAt = linkedSession.checkedOutAt ? linkedSession.checkedOutAt.toISOString() : null;
         }
       }
       

@@ -72,6 +72,8 @@ import {
   Baby,
   AlertTriangle,
   Package,
+  History,
+  ArrowRight,
 } from "lucide-react";
 
 type GuestSession = {
@@ -107,6 +109,7 @@ type RollerBookingEntry = {
   sessionCheckInAt?: string;
   sessionExpiresAt?: string;
   sessionStatus?: string;
+  sessionCheckedOutAt?: string | null;
 };
 
 type DateFilter = "today" | "tomorrow" | "week" | "month";
@@ -1323,6 +1326,47 @@ function BookingCard({ booking, showDate }: { booking: RollerBookingEntry; showD
               <LogOut className="w-3 h-3 mr-0.5 sm:mr-1 shrink-0" />
               {isExpiredStatus || sessionCountdown?.isExpired ? 'Check Out (Session Expired)' : 'Out'}
             </Button>
+          </div>
+        )}
+
+        {/* Session History - shown for arrived guests with session data */}
+        {isArrived && booking.sessionCheckInAt && (
+          <div className="mt-3 pt-2.5 border-t border-dashed border-gray-200">
+            <div className="flex items-center gap-1 mb-1.5">
+              <History className="w-3 h-3 text-muted-foreground" />
+              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Session Log</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-400 shrink-0" />
+                In: {new Date(booking.sessionCheckInAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", timeZone: "America/Los_Angeles" })}
+              </span>
+              {booking.sessionExpiresAt && (
+                <>
+                  <ArrowRight className="w-3 h-3 text-gray-300 shrink-0" />
+                  <span className="flex items-center gap-1">
+                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isCompleted ? 'bg-gray-400' : 'bg-amber-400'}`} />
+                    {isCompleted && booking.sessionCheckedOutAt ? (
+                      <>Out: {new Date(booking.sessionCheckedOutAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", timeZone: "America/Los_Angeles" })}</>
+                    ) : (
+                      <>Expires: {new Date(booking.sessionExpiresAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", timeZone: "America/Los_Angeles" })}</>
+                    )}
+                  </span>
+                </>
+              )}
+              {isCompleted && booking.sessionCheckInAt && booking.sessionCheckedOutAt && (
+                <span className="ml-auto text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full">
+                  {(() => {
+                    const ms = new Date(booking.sessionCheckedOutAt).getTime() - new Date(booking.sessionCheckInAt).getTime();
+                    const mins = Math.round(ms / 60000);
+                    if (mins < 60) return `${mins}m`;
+                    const h = Math.floor(mins / 60);
+                    const m = mins % 60;
+                    return m > 0 ? `${h}h ${m}m` : `${h}h`;
+                  })()}
+                </span>
+              )}
+            </div>
           </div>
         )}
       </CardContent>
