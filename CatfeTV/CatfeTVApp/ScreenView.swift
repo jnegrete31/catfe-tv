@@ -70,6 +70,10 @@ struct ScreenView: View {
                     VolunteerSpotlightScreenView(screen: screen)
                 case .guestPhotoContest:
                     GuestPhotoContestScreenView(screen: screen)
+                case .photoContestQR:
+                    PhotoContestQRScreenView(screen: screen)
+                case .logo:
+                    LogoScreenView(screen: screen, settings: settings)
                 case .custom, .poll, .pollQR:
                     GenericScreenView(screen: screen)
                 }

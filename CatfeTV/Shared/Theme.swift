@@ -274,6 +274,8 @@ extension ScreenType {
         case .birthdayCelebration: return .catfeGold
         case .volunteerSpotlight: return .catfeSage
         case .guestPhotoContest: return .loungeAmber
+        case .photoContestQR: return .loungeAmber
+        case .logo: return .loungeAmber
         case .custom: return .loungeWarmOrange
         }
     }

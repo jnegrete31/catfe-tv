@@ -36,6 +36,8 @@ enum ScreenType: String, Codable, CaseIterable, Identifiable {
     case birthdayCelebration = "BIRTHDAY_CELEBRATION"
     case volunteerSpotlight = "VOLUNTEER_SPOTLIGHT"
     case guestPhotoContest = "GUEST_PHOTO_CONTEST"
+    case photoContestQR = "PHOTO_CONTEST_QR"
+    case logo = "LOGO"
     case custom = "CUSTOM"
     
     var id: String { rawValue }
@@ -66,6 +68,8 @@ enum ScreenType: String, Codable, CaseIterable, Identifiable {
         case .birthdayCelebration: return "Birthday Celebration"
         case .volunteerSpotlight: return "Volunteer Spotlight"
         case .guestPhotoContest: return "Photo Contest"
+        case .photoContestQR: return "Photo Contest QR"
+        case .logo: return "Logo"
         case .custom: return "Custom"
         }
     }
@@ -92,6 +96,8 @@ enum ScreenType: String, Codable, CaseIterable, Identifiable {
         case .birthdayCelebration: return "birthday.cake.fill"
         case .volunteerSpotlight: return "person.2.fill"
         case .guestPhotoContest: return "trophy.fill"
+        case .photoContestQR: return "qrcode"
+        case .logo: return "sparkle"
         case .custom: return "star.fill"
         }
     }
