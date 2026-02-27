@@ -28,6 +28,24 @@ function getSessionDuration(productName: string): "15" | "30" | "60" | "90" {
   return "60"; // default
 }
 
+/**
+ * Check if a product name represents a session booking (not an add-on like treats, merch, etc.)
+ * Only session products should create guest sessions with countdowns.
+ */
+function isSessionProduct(productName: string): boolean {
+  const name = productName.toLowerCase();
+  // Session products contain these keywords
+  const sessionKeywords = ["purr", "meow", "study", "session", "experience", "escape", "lounge", "peek"];
+  if (sessionKeywords.some(kw => name.includes(kw))) return true;
+  // Non-session products (add-ons, treats, merch, etc.)
+  const nonSessionKeywords = ["treat", "snack", "food", "merch", "shirt", "mug", "gift", "card", "donation", "tip", "add-on", "addon", "extra", "upgrade"];
+  if (nonSessionKeywords.some(kw => name.includes(kw))) return false;
+  // Default: if it has a time-like duration pattern, treat as session
+  if (/\b(15|30|60|90)\s*(min|m)\b/i.test(name)) return true;
+  // Unknown product — don't create a session to be safe
+  return false;
+}
+
 // Product name → friendly display name
 function getProductDisplayName(productName: string): string {
   const name = productName.toLowerCase();
@@ -154,6 +172,15 @@ async function pollForNewBookings() {
       for (const item of items) {
         // Use sessionStartTime/sessionEndTime from Roller API (the correct field names)
         const itemAny = item as any;
+        const productName = item.productName || "Session";
+        
+        // Skip non-session products (treats, merch, add-ons, etc.)
+        if (!isSessionProduct(productName)) {
+          console.log(`[Roller Poll] Skipping non-session product: "${productName}" in booking #${ref}`);
+          allItemsTooEarly = false; // Don't re-check this item
+          continue;
+        }
+        
         const sessionStart = itemAny.sessionStartTime || itemAny.startTime;
         const sessionEnd = itemAny.sessionEndTime || itemAny.endTime;
 
@@ -190,7 +217,7 @@ async function pollForNewBookings() {
           guestName = bookingAny.name || "Guest";
         }
 
-        const productName = item.productName || "Session";
+        // productName already declared above in the filter check
         const quantity = item.quantity || 1;
         const duration = getSessionDuration(productName);
         const durationMinutes = parseInt(duration);

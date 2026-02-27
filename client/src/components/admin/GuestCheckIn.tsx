@@ -1038,7 +1038,7 @@ function RollerBookingsSection() {
 
 function BookingCard({ booking, showDate }: { booking: RollerBookingEntry; showDate: boolean }) {
   const utils = trpc.useUtils();
-  const [, setTick] = useState(0);
+  const [tick, setTick] = useState(0);
   const markArrivedMutation = trpc.roller.markArrived.useMutation({
     onSuccess: () => {
       toast.success(`${booking.customerName} marked as arrived! Session started.`);
@@ -1082,7 +1082,7 @@ function BookingCard({ booking, showDate }: { booking: RollerBookingEntry; showD
   });
 
   const isArrived = !!booking.arrivedAt;
-  const isCompleted = booking.status === "completed";
+  const isCompleted = booking.status === "completed" || booking.sessionStatus === "completed";
   const isExpiredStatus = booking.status === "expired";
   const isPast = isCompleted || isExpiredStatus;
   const [showEarlyDialog, setShowEarlyDialog] = useState(false);
@@ -1119,7 +1119,8 @@ function BookingCard({ booking, showDate }: { booking: RollerBookingEntry; showD
       isWarning,
       isNotStarted: false,
     };
-  }, [booking.sessionExpiresAt, booking.sessionCheckInAt, hasActiveSession]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [booking.sessionExpiresAt, booking.sessionCheckInAt, hasActiveSession, tick]);
 
   // Check if the booking start time is in the future (early arrival)
   const isEarlyArrival = useMemo(() => {
@@ -1171,6 +1172,7 @@ function BookingCard({ booking, showDate }: { booking: RollerBookingEntry; showD
     <Card 
       data-booking-ref={booking.bookingReference}
       className={
+        isCompleted ? "border-gray-300 bg-gray-50/40 opacity-60" :
         isArrived ? "border-green-300 bg-green-50/40" :
         booking.status === "checked_in" ? "border-green-200 bg-green-50/30" :
         booking.status === "upcoming" ? "border-blue-200 bg-blue-50/20" :
@@ -1190,12 +1192,17 @@ function BookingCard({ booking, showDate }: { booking: RollerBookingEntry; showD
                   {booking.quantity} {booking.quantity === 1 ? "guest" : "guests"}
                 </Badge>
               )}
-              {isArrived && (
+              {isCompleted ? (
+                <Badge variant="outline" className="text-[10px] sm:text-xs gap-0.5 border-gray-400 text-gray-600 bg-gray-100">
+                  <CheckCircle2 className="w-3 h-3" />
+                  Checked Out
+                </Badge>
+              ) : isArrived ? (
                 <Badge variant="outline" className="text-[10px] sm:text-xs gap-0.5 border-green-400 text-green-700 bg-green-100">
                   <CheckCircle2 className="w-3 h-3" />
                   Arrived
                 </Badge>
-              )}
+              ) : null}
               <WaiverBadge bookingRef={booking.bookingReference} />
               <AddOnBadges bookingRef={booking.bookingReference} />
             </div>
@@ -1219,8 +1226,13 @@ function BookingCard({ booking, showDate }: { booking: RollerBookingEntry; showD
             </div>
           </div>
           <div className="shrink-0 flex flex-col items-end gap-1.5">
-            {/* Show countdown timer for arrived guests with active sessions */}
-            {isArrived && sessionCountdown ? (
+            {/* Show Checked Out badge when session is completed */}
+            {isCompleted ? (
+              <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs sm:text-sm font-medium bg-gray-100 text-gray-600">
+                <CheckCircle2 className="w-3 h-3" />
+                Checked Out
+              </div>
+            ) : isArrived && sessionCountdown ? (
               <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs sm:text-sm font-medium ${
                 sessionCountdown.isNotStarted ? "bg-blue-50 text-blue-700" :
                 sessionCountdown.isExpired ? "bg-red-100 text-red-700" :

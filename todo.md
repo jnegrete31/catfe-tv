@@ -2013,3 +2013,24 @@
 - [x] Investigate why clicking 'Out' on Roller guests does nothing (isPast hid button when status=expired)
 - [x] Fix: Show red 'Check Out (Session Expired)' button for expired sessions, hide extend buttons
 - [x] All 326 tests passing
+
+## Feature - Homepage Redesign as Photo Contest Landing Page
+- [ ] Review current homepage structure and guest-facing routes
+- [ ] Design new hero section with contest branding and CTA
+- [ ] Add "How It Works" section explaining the contest flow
+- [ ] Add featured/top-voted cats section with live leaderboard preview
+- [ ] Add photo upload section with links to Snap & Purr and Happy Tails
+- [ ] Add contest stats/social proof section
+- [ ] Ensure mobile-responsive design
+- [ ] Keep navigation to voting, upload, and other pages
+
+## Bug Fix - Roller booking card not refreshing after check-out + frozen countdown
+- [x] Fix: Card doesn't disappear/update after successful check-out (toast shows but card stays)
+- [x] Fix: Countdown timer is frozen (not ticking down) on Roller booking cards
+- [x] Ensure proper invalidation/refetch after check-out so card reflects completed status
+- [x] Verify countdown ticks every second for active Roller sessions
+
+## Bug Fix - Roller POS treat purchase adds extra session time
+- [x] Investigate why buying cat treats at Roller POS adds time to guest session
+- [x] Fix session creation/extension logic to ignore non-session purchases
+- [x] Verify treat purchases no longer affect session countdown
