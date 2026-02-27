@@ -2085,3 +2085,7 @@
 - [x] Improve hero text sizing on mobile (progressive text-xl sm:text-2xl md:text-4xl)
 - [x] Fix event card image (hidden when no image, shows calendar icon fallback)
 - [x] Verify responsive classes at all breakpoints (verified via code audit)
+
+## Bug Fix - How It Works Step Numbers Not Centered
+- [x] Fix step number badges floating to top-right corner of icon instead of being centered
+- [x] Numbers should be centered above the icon in a vertical stack layout

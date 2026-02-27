@@ -1061,12 +1061,14 @@ function VisitStep({
   number: number; icon: React.ReactNode; title: string; description: string;
 }) {
   return (
-    <div className="relative text-center group">
-      <div className="w-12 h-12 md:w-14 md:h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mx-auto mb-2 md:mb-3 group-hover:bg-primary/15 transition-colors">
-        {icon}
-      </div>
-      <div className="absolute -top-1.5 md:-top-2 right-0 sm:-right-1 md:right-2 w-5 h-5 md:w-6 md:h-6 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-[10px] md:text-xs font-bold shadow-sm">
-        {number}
+    <div className="text-center group">
+      <div className="flex flex-col items-center mb-2 md:mb-3">
+        <div className="w-6 h-6 md:w-7 md:h-7 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-[11px] md:text-xs font-bold shadow-sm mb-1.5 md:mb-2">
+          {number}
+        </div>
+        <div className="w-12 h-12 md:w-14 md:h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary group-hover:bg-primary/15 transition-colors">
+          {icon}
+        </div>
       </div>
       <h3 className="font-bold text-xs sm:text-sm mb-1 md:mb-1.5" style={{ fontFamily: "var(--font-display)" }}>{title}</h3>
       <p className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">{description}</p>
