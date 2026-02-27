@@ -2071,3 +2071,17 @@
 - [x] Integrate into the landing page between Activities and Get Involved
 - [x] Add Events nav link in top navigation
 - [x] Write tests for events calendar logic (14 tests)
+
+## Bug Fix - Mobile Responsiveness Issues on Landing Page
+- [x] Audit all sections on mobile viewport (375px width)
+- [x] Add hamburger menu for mobile nav (slide-down drawer with Menu/X toggle)
+- [x] Fix How It Works: grid-cols-2 md:grid-cols-4 (2x2 on mobile)
+- [x] Fix Experience: grid-cols-1 md:grid-cols-2 (stacks on mobile)
+- [x] Fix Adopt Steps: grid-cols-1 sm:grid-cols-3 (stacks on mobile)
+- [x] Fix Activities: grid-cols-1 sm:grid-cols-3 (stacks on mobile)
+- [x] Fix Get Involved: grid-cols-1 sm:grid-cols-3 (stacks on mobile)
+- [x] Fix Happy Tails gallery: grid-cols-3 md:grid-cols-6 (larger on mobile)
+- [x] Fix Quick Info bar: grid-cols-2 md:grid-cols-4 (2x2 on mobile)
+- [x] Improve hero text sizing on mobile (progressive text-xl sm:text-2xl md:text-4xl)
+- [x] Fix event card image (hidden when no image, shows calendar icon fallback)
+- [x] Verify responsive classes at all breakpoints (verified via code audit)

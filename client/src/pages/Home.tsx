@@ -10,12 +10,14 @@ import {
   Smartphone, QrCode, Trophy, Sparkles, Users,
   ArrowRight, Image, MessageSquare, Shield,
   MapPin, Clock, Phone, Mail, CalendarCheck, CalendarDays,
-  Coffee, Ticket, PartyPopper, HandHeart, ExternalLink
+  Coffee, Ticket, PartyPopper, HandHeart, ExternalLink,
+  Menu, X
 } from "lucide-react";
 
 export default function Home() {
   const { isAuthenticated, user } = useAuth();
   const [openSection, setOpenSection] = useState<string | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Fetch guest photos
   const { data: snapPurrPhotos } = trpc.photos.getApproved.useQuery({ type: "snap_purr" });
@@ -27,6 +29,13 @@ export default function Home() {
 
   const toggleSection = (id: string) => {
     setOpenSection(openSection === id ? null : id);
+  };
+
+  // Close mobile menu on scroll to section
+  const scrollToSection = (id: string) => {
+    setMobileMenuOpen(false);
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
@@ -42,20 +51,22 @@ export default function Home() {
               Catfé
             </span>
           </Link>
-          <div className="flex items-center gap-1 sm:gap-2">
-            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex text-xs font-medium">
+
+          {/* Desktop nav */}
+          <div className="hidden md:flex items-center gap-1 sm:gap-2">
+            <Button asChild variant="ghost" size="sm" className="text-xs font-medium">
               <a href="#visit">Visit</a>
             </Button>
-            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex text-xs font-medium">
+            <Button asChild variant="ghost" size="sm" className="text-xs font-medium">
               <a href="#adopt">Adopt</a>
             </Button>
-            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex text-xs font-medium">
+            <Button asChild variant="ghost" size="sm" className="text-xs font-medium">
               <a href="#activities">Activities</a>
             </Button>
-            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex text-xs font-medium">
+            <Button asChild variant="ghost" size="sm" className="text-xs font-medium">
               <a href="#events">Events</a>
             </Button>
-            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex text-xs font-medium">
+            <Button asChild variant="ghost" size="sm" className="text-xs font-medium">
               <a href="#faq">FAQ</a>
             </Button>
             {isAuthenticated && user?.role === "admin" ? (
@@ -71,7 +82,64 @@ export default function Home() {
               </Button>
             )}
           </div>
+
+          {/* Mobile hamburger + staff button */}
+          <div className="flex md:hidden items-center gap-2">
+            {isAuthenticated && user?.role === "admin" ? (
+              <Button asChild size="sm" variant="outline" className="text-xs h-8 px-2">
+                <Link href="/admin">
+                  <Settings className="w-3.5 h-3.5" />
+                </Link>
+              </Button>
+            ) : null}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-amber-100 transition-colors"
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
+
+        {/* Mobile menu dropdown */}
+        {mobileMenuOpen && (
+          <div className="md:hidden bg-amber-50/95 backdrop-blur-md border-t border-amber-200/50 shadow-lg">
+            <div className="container py-3 space-y-1">
+              {[
+                { label: "Visit", id: "visit" },
+                { label: "Adopt", id: "adopt" },
+                { label: "Activities", id: "activities" },
+                { label: "Events", id: "events" },
+                { label: "FAQ", id: "faq" },
+              ].map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => scrollToSection(item.id)}
+                  className="block w-full text-left px-4 py-2.5 text-sm font-medium rounded-lg hover:bg-amber-100/80 transition-colors"
+                >
+                  {item.label}
+                </button>
+              ))}
+              <div className="border-t border-amber-200/50 pt-2 mt-2">
+                <Button asChild size="sm" className="w-full">
+                  <a href="https://www.catfe.la/" target="_blank" rel="noopener noreferrer">
+                    <CalendarCheck className="w-4 h-4 mr-2" />
+                    Book Your Visit
+                  </a>
+                </Button>
+              </div>
+              {!isAuthenticated && (
+                <a
+                  href={getLoginUrl()}
+                  className="block px-4 py-2 text-xs text-muted-foreground hover:text-foreground transition"
+                >
+                  Staff Login
+                </a>
+              )}
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* ═══════════════════════════════════════════════════════════════
@@ -80,39 +148,39 @@ export default function Home() {
       <section className="relative overflow-hidden bg-gradient-to-b from-amber-50 via-orange-50/40 to-amber-100/30">
         {/* Decorative paw prints */}
         <div className="absolute inset-0 pointer-events-none opacity-[0.04]">
-          <PawPrint className="absolute w-24 h-24 top-12 left-[8%] rotate-[-20deg]" />
-          <PawPrint className="absolute w-16 h-16 top-32 right-[12%] rotate-[15deg]" />
-          <PawPrint className="absolute w-20 h-20 bottom-20 left-[20%] rotate-[30deg]" />
-          <PawPrint className="absolute w-14 h-14 bottom-32 right-[25%] rotate-[-10deg]" />
+          <PawPrint className="absolute w-16 h-16 md:w-24 md:h-24 top-12 left-[8%] rotate-[-20deg]" />
+          <PawPrint className="absolute w-12 h-12 md:w-16 md:h-16 top-32 right-[12%] rotate-[15deg]" />
+          <PawPrint className="absolute w-14 h-14 md:w-20 md:h-20 bottom-20 left-[20%] rotate-[30deg]" />
+          <PawPrint className="absolute w-10 h-10 md:w-14 md:h-14 bottom-32 right-[25%] rotate-[-10deg]" />
         </div>
 
-        <div className="container py-16 md:py-24 lg:py-28 relative">
-          <div className="max-w-3xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 bg-white/70 border border-amber-200/60 text-amber-800 px-4 py-1.5 rounded-full text-sm font-semibold mb-6 shadow-sm">
-              <PawPrint className="w-4 h-4" />
+        <div className="container py-12 md:py-24 lg:py-28 relative">
+          <div className="max-w-3xl mx-auto text-center px-2">
+            <div className="inline-flex items-center gap-2 bg-white/70 border border-amber-200/60 text-amber-800 px-3 py-1.5 rounded-full text-xs sm:text-sm font-semibold mb-4 md:mb-6 shadow-sm">
+              <PawPrint className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               Santa Clarita's First Cat Lounge
             </div>
 
             <h1
-              className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-5 leading-[1.1] tracking-tight"
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-4 md:mb-5 leading-[1.1] tracking-tight"
               style={{ fontFamily: "var(--font-display)" }}
             >
               Relax and Make<br className="hidden sm:block" />
               a New Furry Friend
             </h1>
 
-            <p className="text-base md:text-lg text-muted-foreground mb-8 max-w-xl mx-auto leading-relaxed">
+            <p className="text-sm sm:text-base md:text-lg text-muted-foreground mb-6 md:mb-8 max-w-xl mx-auto leading-relaxed">
               Catfé is your cozy escape with adoptable cats in a comfy space. Unwind, play, and maybe find your forever companion.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-5">
-              <Button asChild size="lg" className="w-full sm:w-auto shadow-md text-base px-8 h-12">
+              <Button asChild size="lg" className="w-full sm:w-auto shadow-md text-sm sm:text-base px-6 sm:px-8 h-11 sm:h-12">
                 <a href="https://www.catfe.la/" target="_blank" rel="noopener noreferrer">
                   <CalendarCheck className="w-5 h-5 mr-2" />
                   Book Your Visit
                 </a>
               </Button>
-              <Button asChild variant="outline" size="lg" className="w-full sm:w-auto bg-white/80 text-base px-8 h-12">
+              <Button asChild variant="outline" size="lg" className="w-full sm:w-auto bg-white/80 text-sm sm:text-base px-6 sm:px-8 h-11 sm:h-12">
                 <a href="#adopt">
                   <Heart className="w-5 h-5 mr-2" />
                   Meet the Cats
@@ -120,7 +188,7 @@ export default function Home() {
               </Button>
             </div>
 
-            <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
+            <div className="flex items-center justify-center gap-3 sm:gap-4 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
                 <MapPin className="w-3.5 h-3.5" />
                 Santa Clarita, CA
@@ -140,7 +208,7 @@ export default function Home() {
         )}
 
         {/* Wave divider */}
-        <div className="relative h-16 md:h-20 overflow-hidden">
+        <div className="relative h-12 md:h-20 overflow-hidden">
           <svg viewBox="0 0 1200 80" className="absolute bottom-0 w-full" preserveAspectRatio="none">
             <path d="M0,80 L0,30 Q150,0 300,30 Q450,55 600,25 Q750,0 900,30 Q1050,55 1200,30 L1200,80 Z" fill="rgb(255,251,235)" />
           </svg>
@@ -151,8 +219,8 @@ export default function Home() {
           QUICK INFO BAR
       ═══════════════════════════════════════════════════════════════ */}
       <section className="bg-amber-50 border-b border-amber-200/40">
-        <div className="container py-5">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl mx-auto">
+        <div className="container py-4 md:py-5">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 max-w-3xl mx-auto">
             <InfoChip icon={<Cat className="w-4 h-4" />} label="Cat Lounge" />
             <InfoChip icon={<Heart className="w-4 h-4" />} label="Adoptable Cats" />
             <InfoChip icon={<PartyPopper className="w-4 h-4" />} label="Private Events" />
@@ -165,48 +233,48 @@ export default function Home() {
           HOW A VISIT WORKS
       ═══════════════════════════════════════════════════════════════ */}
       <section id="visit" className="bg-white">
-        <div className="container py-16 md:py-20">
+        <div className="container py-12 md:py-20">
           <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-12">
+            <div className="text-center mb-8 md:mb-12">
               <h2
-                className="text-2xl md:text-4xl font-bold mb-3"
+                className="text-xl sm:text-2xl md:text-4xl font-bold mb-3"
                 style={{ fontFamily: "var(--font-display)" }}
               >
                 How a Visit to Catfé Works
               </h2>
-              <p className="text-muted-foreground text-base max-w-xl mx-auto">
+              <p className="text-muted-foreground text-sm sm:text-base max-w-xl mx-auto">
                 Four simple steps to your purrfect experience
               </p>
             </div>
 
-            <div className="grid md:grid-cols-4 gap-5">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
               <VisitStep
                 number={1}
-                icon={<Ticket className="w-6 h-6" />}
+                icon={<Ticket className="w-5 h-5 md:w-6 md:h-6" />}
                 title="Reserve Your Spot"
                 description="Book your visit ahead of time to guarantee your session."
               />
               <VisitStep
                 number={2}
-                icon={<Coffee className="w-6 h-6" />}
+                icon={<Coffee className="w-5 h-5 md:w-6 md:h-6" />}
                 title="Grab a Bite"
                 description="Order food or drinks from Bagel Boyz and our plaza neighbors before heading in."
               />
               <VisitStep
                 number={3}
-                icon={<CalendarCheck className="w-6 h-6" />}
+                icon={<CalendarCheck className="w-5 h-5 md:w-6 md:h-6" />}
                 title="Check In"
                 description="Arrive a few minutes early, sign your waiver, and get settled."
               />
               <VisitStep
                 number={4}
-                icon={<Cat className="w-6 h-6" />}
+                icon={<Cat className="w-5 h-5 md:w-6 md:h-6" />}
                 title="Enjoy the Lounge"
                 description="Relax, play, and meet the cats. Take photos and make memories!"
               />
             </div>
 
-            <div className="text-center mt-10">
+            <div className="text-center mt-8 md:mt-10">
               <Button asChild size="lg" className="shadow-sm">
                 <a href="https://www.catfe.la/" target="_blank" rel="noopener noreferrer">
                   Book Your Visit
@@ -222,24 +290,24 @@ export default function Home() {
           WHAT TO EXPECT — with real guest photos
       ═══════════════════════════════════════════════════════════════ */}
       <section className="bg-gradient-to-b from-amber-50/50 to-white border-y border-amber-200/30">
-        <div className="container py-16 md:py-20">
+        <div className="container py-12 md:py-20">
           <div className="max-w-5xl mx-auto">
-            <div className="grid md:grid-cols-2 gap-10 items-center">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10 items-center">
               <div>
-                <div className="inline-flex items-center gap-2 bg-amber-100/80 text-amber-800 px-3 py-1 rounded-full text-sm font-semibold mb-4">
+                <div className="inline-flex items-center gap-2 bg-amber-100/80 text-amber-800 px-3 py-1 rounded-full text-xs sm:text-sm font-semibold mb-4">
                   <Sparkles className="w-4 h-4" />
                   The Experience
                 </div>
                 <h2
-                  className="text-2xl md:text-3xl font-bold mb-4"
+                  className="text-xl sm:text-2xl md:text-3xl font-bold mb-4"
                   style={{ fontFamily: "var(--font-display)" }}
                 >
                   Your Cozy Escape Awaits
                 </h2>
-                <p className="text-muted-foreground leading-relaxed mb-4">
+                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed mb-4">
                   Step into a warm, inviting space where adoptable cats roam freely. Our lounge features comfy seating, cat trees, and plenty of toys. Whether you're here to de-stress, socialize, or find your next family member, Catfé is the place.
                 </p>
-                <p className="text-muted-foreground leading-relaxed mb-5">
+                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed mb-5">
                   Every cat at Catfé comes from <strong>Kitten Rescue</strong>, a dedicated rescue saving lives across Los Angeles. When you visit, you're directly supporting their mission.
                 </p>
                 <div className="flex flex-wrap gap-2">
@@ -260,7 +328,7 @@ export default function Home() {
                 {snapPurrPhotos && snapPurrPhotos.length >= 4 ? (
                   <PhotoMosaic photos={snapPurrPhotos.slice(0, 5)} />
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     <ExperienceCard
                       icon={<Cat className="w-5 h-5" />}
                       title="Cat Therapy"
@@ -297,25 +365,25 @@ export default function Home() {
           ADOPT SECTION — with Happy Tails photos
       ═══════════════════════════════════════════════════════════════ */}
       <section id="adopt" className="bg-white">
-        <div className="container py-16 md:py-20">
+        <div className="container py-12 md:py-20">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 bg-pink-100/80 text-pink-800 px-3 py-1 rounded-full text-sm font-semibold mb-4">
+            <div className="inline-flex items-center gap-2 bg-pink-100/80 text-pink-800 px-3 py-1 rounded-full text-xs sm:text-sm font-semibold mb-4">
               <Heart className="w-4 h-4" />
               Find Your Forever Friend
             </div>
             <h2
-              className="text-2xl md:text-4xl font-bold mb-3"
+              className="text-xl sm:text-2xl md:text-4xl font-bold mb-3"
               style={{ fontFamily: "var(--font-display)" }}
             >
               Every Cat Deserves a Home
             </h2>
-            <p className="text-muted-foreground text-base max-w-2xl mx-auto mb-10 leading-relaxed">
+            <p className="text-muted-foreground text-sm sm:text-base max-w-2xl mx-auto mb-8 md:mb-10 leading-relaxed">
               All of our cats come from Kitten Rescue and are looking for their forever families. Spend time with them during your visit, fall in love, and start the adoption process right here at Catfé.
             </p>
 
             {/* Happy Tails photo gallery */}
             {happyTailsPhotos && happyTailsPhotos.length > 0 && (
-              <div className="mb-10">
+              <div className="mb-8 md:mb-10">
                 <p className="text-sm font-semibold text-amber-700 mb-4 flex items-center justify-center gap-2">
                   <Heart className="w-4 h-4 text-pink-500" />
                   Happy Tails — Our Alumni in Their Forever Homes
@@ -324,7 +392,7 @@ export default function Home() {
               </div>
             )}
 
-            <div className="grid md:grid-cols-3 gap-5 mb-10">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-5 mb-8 md:mb-10">
               <AdoptStep
                 number="01"
                 title="Visit & Bond"
@@ -346,13 +414,13 @@ export default function Home() {
             </div>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Button asChild size="lg" className="shadow-sm">
+              <Button asChild size="lg" className="shadow-sm w-full sm:w-auto">
                 <a href="https://www.catfe.la/adopt" target="_blank" rel="noopener noreferrer">
                   View Adoptable Cats
                   <ExternalLink className="w-4 h-4 ml-2" />
                 </a>
               </Button>
-              <Button asChild variant="outline" size="lg" className="bg-white">
+              <Button asChild variant="outline" size="lg" className="bg-white w-full sm:w-auto">
                 <Link href="/upload/happy-tails">
                   <Heart className="w-5 h-5 mr-2" />
                   Happy Tails Stories
@@ -367,33 +435,33 @@ export default function Home() {
           ACTIVITIES & PHOTO CONTEST — with real contest photos
       ═══════════════════════════════════════════════════════════════ */}
       <section id="activities" className="bg-gradient-to-b from-amber-50/50 to-amber-100/30 border-y border-amber-200/30">
-        <div className="container py-16 md:py-20">
+        <div className="container py-12 md:py-20">
           <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-12">
-              <div className="inline-flex items-center gap-2 bg-amber-200/60 text-amber-800 px-3 py-1 rounded-full text-sm font-semibold mb-4">
+            <div className="text-center mb-8 md:mb-12">
+              <div className="inline-flex items-center gap-2 bg-amber-200/60 text-amber-800 px-3 py-1 rounded-full text-xs sm:text-sm font-semibold mb-4">
                 <Trophy className="w-4 h-4" />
                 While You're Here
               </div>
               <h2
-                className="text-2xl md:text-4xl font-bold mb-3"
+                className="text-xl sm:text-2xl md:text-4xl font-bold mb-3"
                 style={{ fontFamily: "var(--font-display)" }}
               >
                 Fun Things to Do at Catfé
               </h2>
-              <p className="text-muted-foreground text-base max-w-xl mx-auto">
+              <p className="text-muted-foreground text-sm sm:text-base max-w-xl mx-auto">
                 Beyond hanging out with cats, there's plenty to enjoy
               </p>
             </div>
 
             {/* Photo Contest Feature — with real top-voted photos */}
-            <div className="bg-white rounded-2xl border border-amber-200/50 shadow-sm overflow-hidden mb-8">
-              <div className="grid md:grid-cols-2">
-                <div className="p-6 md:p-8">
+            <div className="bg-white rounded-2xl border border-amber-200/50 shadow-sm overflow-hidden mb-6 md:mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2">
+                <div className="p-5 sm:p-6 md:p-8">
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-10 h-10 bg-pink-500 rounded-xl flex items-center justify-center text-white">
                       <Camera className="w-5 h-5" />
                     </div>
-                    <h3 className="font-bold text-lg" style={{ fontFamily: "var(--font-display)" }}>
+                    <h3 className="font-bold text-base sm:text-lg" style={{ fontFamily: "var(--font-display)" }}>
                       Photo Contest
                     </h3>
                   </div>
@@ -413,7 +481,7 @@ export default function Home() {
                     </Link>
                   </Button>
                 </div>
-                <div className="bg-gradient-to-br from-pink-50 to-amber-50 p-6 md:p-8 flex flex-col justify-center">
+                <div className="bg-gradient-to-br from-pink-50 to-amber-50 p-5 sm:p-6 md:p-8 flex flex-col justify-center">
                   {topContestPhotos && topContestPhotos.length >= 3 ? (
                     <ContestLeaderboard photos={topContestPhotos.slice(0, 3)} />
                   ) : (
@@ -434,7 +502,7 @@ export default function Home() {
             </div>
 
             {/* Other Activities */}
-            <div className="grid md:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-5">
               <ActivityCard
                 icon={<Heart className="w-6 h-6" />}
                 title="Happy Tails"
@@ -469,31 +537,31 @@ export default function Home() {
       ═══════════════════════════════════════════════════════════════ */}
       {upcomingEvents && upcomingEvents.length > 0 && (
         <section id="events" className="bg-white border-b border-amber-200/30">
-          <div className="container py-16 md:py-20">
+          <div className="container py-12 md:py-20">
             <div className="max-w-5xl mx-auto">
-              <div className="text-center mb-12">
-                <div className="inline-flex items-center gap-2 bg-violet-100/80 text-violet-700 px-3 py-1 rounded-full text-sm font-semibold mb-4">
+              <div className="text-center mb-8 md:mb-12">
+                <div className="inline-flex items-center gap-2 bg-violet-100/80 text-violet-700 px-3 py-1 rounded-full text-xs sm:text-sm font-semibold mb-4">
                   <CalendarDays className="w-4 h-4" />
                   What's Coming Up
                 </div>
                 <h2
-                  className="text-2xl md:text-4xl font-bold mb-3"
+                  className="text-xl sm:text-2xl md:text-4xl font-bold mb-3"
                   style={{ fontFamily: "var(--font-display)" }}
                 >
                   Upcoming Events & Sessions
                 </h2>
-                <p className="text-muted-foreground text-base max-w-xl mx-auto">
+                <p className="text-muted-foreground text-sm sm:text-base max-w-xl mx-auto">
                   Special events, themed sessions, and community gatherings at Catfé
                 </p>
               </div>
 
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
                 {upcomingEvents.map((event) => (
                   <EventCard key={event.id} event={event} />
                 ))}
               </div>
 
-              <div className="text-center mt-8">
+              <div className="text-center mt-6 md:mt-8">
                 <Button asChild variant="outline" size="sm" className="bg-white/80">
                   <a href="https://www.catfe.la/" target="_blank" rel="noopener noreferrer">
                     <CalendarCheck className="w-4 h-4 mr-2" />
@@ -516,21 +584,21 @@ export default function Home() {
           GET INVOLVED
       ═══════════════════════════════════════════════════════════════ */}
       <section className="bg-white">
-        <div className="container py-16 md:py-20">
+        <div className="container py-12 md:py-20">
           <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-10">
+            <div className="text-center mb-8 md:mb-10">
               <h2
-                className="text-2xl md:text-4xl font-bold mb-3"
+                className="text-xl sm:text-2xl md:text-4xl font-bold mb-3"
                 style={{ fontFamily: "var(--font-display)" }}
               >
                 Get Involved
               </h2>
-              <p className="text-muted-foreground text-base max-w-xl mx-auto">
+              <p className="text-muted-foreground text-sm sm:text-base max-w-xl mx-auto">
                 Catfé is built on community. Here's how you can be part of it.
               </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-5">
               <InvolveCard
                 icon={<HandHeart className="w-7 h-7" />}
                 title="Volunteer"
@@ -563,11 +631,11 @@ export default function Home() {
           FAQ
       ═══════════════════════════════════════════════════════════════ */}
       <section id="faq" className="bg-gradient-to-b from-amber-50/50 to-white border-t border-amber-200/30">
-        <div className="container py-16 md:py-20">
+        <div className="container py-12 md:py-20">
           <div className="max-w-3xl mx-auto">
-            <div className="text-center mb-10">
+            <div className="text-center mb-8 md:mb-10">
               <h2
-                className="text-2xl md:text-3xl font-bold mb-3"
+                className="text-xl sm:text-2xl md:text-3xl font-bold mb-3"
                 style={{ fontFamily: "var(--font-display)" }}
               >
                 Frequently Asked Questions
@@ -647,12 +715,12 @@ export default function Home() {
           LOCATION & CONTACT
       ═══════════════════════════════════════════════════════════════ */}
       <section className="bg-white border-t border-amber-200/30">
-        <div className="container py-16 md:py-20">
+        <div className="container py-12 md:py-20">
           <div className="max-w-4xl mx-auto">
-            <div className="grid md:grid-cols-2 gap-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10">
               <div>
                 <h2
-                  className="text-2xl md:text-3xl font-bold mb-4"
+                  className="text-xl sm:text-2xl md:text-3xl font-bold mb-4"
                   style={{ fontFamily: "var(--font-display)" }}
                 >
                   Visit Us
@@ -716,12 +784,12 @@ export default function Home() {
               </div>
 
               {/* Partnership Card */}
-              <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-6 border border-amber-200/50">
+              <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-5 sm:p-6 border border-amber-200/50">
                 <div className="flex items-center gap-2 mb-4">
                   <HandHeart className="w-5 h-5 text-primary" />
                   <span className="text-sm font-semibold text-amber-800">In Proud Partnership With</span>
                 </div>
-                <h3 className="font-bold text-xl mb-2" style={{ fontFamily: "var(--font-display)" }}>
+                <h3 className="font-bold text-lg sm:text-xl mb-2" style={{ fontFamily: "var(--font-display)" }}>
                   Kitten Rescue
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed mb-4">
@@ -743,26 +811,26 @@ export default function Home() {
           FINAL CTA
       ═══════════════════════════════════════════════════════════════ */}
       <section className="bg-primary/5 border-t border-primary/10">
-        <div className="container py-14">
+        <div className="container py-10 md:py-14">
           <div className="max-w-2xl mx-auto text-center">
-            <Sparkles className="w-8 h-8 text-primary mx-auto mb-4" />
+            <Sparkles className="w-7 h-7 md:w-8 md:h-8 text-primary mx-auto mb-4" />
             <h2
-              className="text-2xl md:text-3xl font-bold mb-3"
+              className="text-xl sm:text-2xl md:text-3xl font-bold mb-3"
               style={{ fontFamily: "var(--font-display)" }}
             >
               Ready to Meet the Cats?
             </h2>
-            <p className="text-muted-foreground mb-6">
+            <p className="text-muted-foreground text-sm sm:text-base mb-6">
               Book your visit, snap some photos, and maybe find your new best friend.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Button asChild size="lg" className="shadow-md">
+              <Button asChild size="lg" className="shadow-md w-full sm:w-auto">
                 <a href="https://www.catfe.la/" target="_blank" rel="noopener noreferrer">
                   <CalendarCheck className="w-5 h-5 mr-2" />
                   Book Your Visit
                 </a>
               </Button>
-              <Button asChild variant="outline" size="lg" className="bg-white">
+              <Button asChild variant="outline" size="lg" className="bg-white w-full sm:w-auto">
                 <Link href="/vote/cats">
                   <Camera className="w-5 h-5 mr-2" />
                   Photo Contest
@@ -777,15 +845,15 @@ export default function Home() {
           FOOTER
       ═══════════════════════════════════════════════════════════════ */}
       <footer className="bg-amber-50 border-t border-amber-200/50">
-        <div className="container py-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2">
+        <div className="container py-6 md:py-8">
+          <div className="flex flex-col gap-4 text-sm text-muted-foreground">
+            <div className="flex items-center justify-center md:justify-start gap-2">
               <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center">
                 <Cat className="w-4 h-4 text-primary-foreground" />
               </div>
               <p className="font-medium">Catfé Lounge — Santa Clarita, CA</p>
             </div>
-            <div className="flex items-center gap-4 text-xs">
+            <div className="flex flex-wrap items-center justify-center md:justify-end gap-x-4 gap-y-2 text-xs">
               <a href="https://www.catfe.la/" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition">
                 Book Online
               </a>
@@ -798,7 +866,7 @@ export default function Home() {
               <Link href="/photos/vote" className="hover:text-foreground transition">
                 Gallery
               </Link>
-              <span className="text-muted-foreground/50">|</span>
+              <span className="text-muted-foreground/50 hidden sm:inline">|</span>
               <Link href="/tv" className="hover:text-foreground transition">
                 TV Display
               </Link>
@@ -849,17 +917,17 @@ function PhotoStrip({ photos }: { photos: Array<{ id: number; photoUrl: string; 
 
   return (
     <div className="relative overflow-hidden pb-2">
-      <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-amber-50 to-transparent z-10 pointer-events-none" />
-      <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-amber-50 to-transparent z-10 pointer-events-none" />
+      <div className="absolute inset-y-0 left-0 w-12 md:w-16 bg-gradient-to-r from-amber-50 to-transparent z-10 pointer-events-none" />
+      <div className="absolute inset-y-0 right-0 w-12 md:w-16 bg-gradient-to-l from-amber-50 to-transparent z-10 pointer-events-none" />
       <div
         ref={scrollRef}
-        className="flex gap-3 overflow-hidden px-4"
+        className="flex gap-2 sm:gap-3 overflow-hidden px-3 sm:px-4"
         style={{ scrollBehavior: "auto" }}
       >
         {doubled.map((photo, i) => (
           <div
             key={`${photo.id}-${i}`}
-            className="shrink-0 w-28 h-28 md:w-36 md:h-36 rounded-xl overflow-hidden shadow-md border-2 border-white/80"
+            className="shrink-0 w-24 h-24 sm:w-28 sm:h-28 md:w-36 md:h-36 rounded-xl overflow-hidden shadow-md border-2 border-white/80"
           >
             <img
               src={photo.photoUrl}
@@ -879,7 +947,7 @@ function PhotoMosaic({ photos }: { photos: Array<{ id: number; photoUrl: string;
   if (photos.length < 4) return null;
 
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="grid grid-cols-2 gap-2 sm:gap-3">
       {/* Large featured photo */}
       <div className="col-span-2 rounded-2xl overflow-hidden shadow-lg border-2 border-white/80 aspect-[16/9] relative group">
         <img
@@ -919,7 +987,7 @@ function PhotoMosaic({ photos }: { photos: Array<{ id: number; photoUrl: string;
 /** Happy Tails gallery for the adoption section */
 function HappyTailsGallery({ photos }: { photos: Array<{ id: number; photoUrl: string; catName?: string | null; caption?: string | null }> }) {
   return (
-    <div className="grid grid-cols-3 md:grid-cols-6 gap-3 max-w-3xl mx-auto">
+    <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-6 gap-2 sm:gap-3 max-w-3xl mx-auto">
       {photos.map((photo) => (
         <div
           key={photo.id}
@@ -980,7 +1048,7 @@ function ContestLeaderboard({ photos }: { photos: Array<{ id: number; photoUrl: 
 
 function InfoChip({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
-    <div className="flex items-center justify-center gap-2 bg-white/70 border border-amber-200/50 rounded-full px-3 py-2 text-sm font-medium text-amber-800">
+    <div className="flex items-center justify-center gap-1.5 sm:gap-2 bg-white/70 border border-amber-200/50 rounded-full px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-amber-800">
       <span className="text-primary">{icon}</span>
       {label}
     </div>
@@ -994,22 +1062,22 @@ function VisitStep({
 }) {
   return (
     <div className="relative text-center group">
-      <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mx-auto mb-3 group-hover:bg-primary/15 transition-colors">
+      <div className="w-12 h-12 md:w-14 md:h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mx-auto mb-2 md:mb-3 group-hover:bg-primary/15 transition-colors">
         {icon}
       </div>
-      <div className="absolute -top-2 -right-1 md:right-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-xs font-bold shadow-sm">
+      <div className="absolute -top-1.5 md:-top-2 right-0 sm:-right-1 md:right-2 w-5 h-5 md:w-6 md:h-6 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-[10px] md:text-xs font-bold shadow-sm">
         {number}
       </div>
-      <h3 className="font-bold text-sm mb-1.5" style={{ fontFamily: "var(--font-display)" }}>{title}</h3>
-      <p className="text-xs text-muted-foreground leading-relaxed">{description}</p>
+      <h3 className="font-bold text-xs sm:text-sm mb-1 md:mb-1.5" style={{ fontFamily: "var(--font-display)" }}>{title}</h3>
+      <p className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">{description}</p>
     </div>
   );
 }
 
 function ExperienceCard({ icon, title, desc, color }: { icon: React.ReactNode; title: string; desc: string; color: string }) {
   return (
-    <div className="flex items-start gap-3 bg-white rounded-xl p-4 border border-amber-200/30 shadow-sm hover:shadow-md transition-shadow">
-      <div className={`w-10 h-10 ${color} rounded-lg flex items-center justify-center shrink-0`}>
+    <div className="flex items-start gap-3 bg-white rounded-xl p-3 sm:p-4 border border-amber-200/30 shadow-sm hover:shadow-md transition-shadow">
+      <div className={`w-9 h-9 sm:w-10 sm:h-10 ${color} rounded-lg flex items-center justify-center shrink-0`}>
         {icon}
       </div>
       <div>
@@ -1022,12 +1090,12 @@ function ExperienceCard({ icon, title, desc, color }: { icon: React.ReactNode; t
 
 function AdoptStep({ number, title, description, color }: { number: string; title: string; description: string; color: string }) {
   return (
-    <div className="bg-white rounded-xl p-5 border border-amber-200/30 shadow-sm text-center">
-      <div className={`w-10 h-10 ${color} rounded-full flex items-center justify-center text-white text-sm font-bold mx-auto mb-3`}>
+    <div className="bg-white rounded-xl p-4 sm:p-5 border border-amber-200/30 shadow-sm text-center">
+      <div className={`w-9 h-9 sm:w-10 sm:h-10 ${color} rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-bold mx-auto mb-2 sm:mb-3`}>
         {number}
       </div>
-      <h3 className="font-bold text-base mb-2" style={{ fontFamily: "var(--font-display)" }}>{title}</h3>
-      <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
+      <h3 className="font-bold text-sm sm:text-base mb-1.5 sm:mb-2" style={{ fontFamily: "var(--font-display)" }}>{title}</h3>
+      <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">{description}</p>
     </div>
   );
 }
@@ -1063,12 +1131,12 @@ function ActivityCard({
   icon: React.ReactNode; title: string; description: string; cta: string; href: string; color: string;
 }) {
   return (
-    <div className="bg-white rounded-xl p-5 border border-amber-200/30 shadow-sm hover:shadow-md transition-shadow">
-      <div className={`w-11 h-11 ${color} rounded-xl flex items-center justify-center text-white mb-4`}>
+    <div className="bg-white rounded-xl p-4 sm:p-5 border border-amber-200/30 shadow-sm hover:shadow-md transition-shadow">
+      <div className={`w-10 h-10 sm:w-11 sm:h-11 ${color} rounded-xl flex items-center justify-center text-white mb-3 sm:mb-4`}>
         {icon}
       </div>
-      <h3 className="font-semibold text-base mb-2">{title}</h3>
-      <p className="text-muted-foreground text-sm leading-relaxed mb-4">{description}</p>
+      <h3 className="font-semibold text-sm sm:text-base mb-1.5 sm:mb-2">{title}</h3>
+      <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed mb-3 sm:mb-4">{description}</p>
       <Button asChild variant="ghost" size="sm" className="text-primary hover:text-primary hover:bg-primary/10 -ml-2">
         <Link href={href}>
           {cta}
@@ -1085,12 +1153,12 @@ function InvolveCard({
   icon: React.ReactNode; title: string; description: string; cta: string; href: string; external?: boolean;
 }) {
   const content = (
-    <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-5 border border-amber-200/40 hover:shadow-md transition-shadow h-full flex flex-col">
-      <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-4">
+    <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-4 sm:p-5 border border-amber-200/40 hover:shadow-md transition-shadow h-full flex flex-col">
+      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-3 sm:mb-4">
         {icon}
       </div>
-      <h3 className="font-bold text-base mb-2" style={{ fontFamily: "var(--font-display)" }}>{title}</h3>
-      <p className="text-muted-foreground text-sm leading-relaxed mb-4 flex-1">{description}</p>
+      <h3 className="font-bold text-sm sm:text-base mb-1.5 sm:mb-2" style={{ fontFamily: "var(--font-display)" }}>{title}</h3>
+      <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed mb-3 sm:mb-4 flex-1">{description}</p>
       <Button variant="ghost" size="sm" className="text-primary hover:text-primary hover:bg-primary/10 -ml-2 w-fit">
         {cta}
         {external ? <ExternalLink className="w-3.5 h-3.5 ml-1" /> : <ArrowRight className="w-4 h-4 ml-1" />}
@@ -1144,7 +1212,7 @@ function EventCard({ event }: {
     <div className={`bg-white rounded-2xl border overflow-hidden shadow-sm hover:shadow-md transition-all group ${
       isToday ? 'border-violet-300 ring-2 ring-violet-100' : isPast ? 'border-gray-200 opacity-70' : 'border-amber-200/50'
     }`}>
-      {/* Event image if available */}
+      {/* Event image if available — only show if image loads */}
       {event.imagePath && (
         <div className="aspect-[16/9] overflow-hidden bg-amber-50">
           <img
@@ -1152,24 +1220,28 @@ function EventCard({ event }: {
             alt={event.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             loading="lazy"
+            onError={(e) => {
+              // Hide the image container if the image fails to load
+              (e.target as HTMLImageElement).parentElement!.style.display = 'none';
+            }}
           />
         </div>
       )}
 
-      <div className="p-5">
+      <div className="p-4 sm:p-5">
         {/* Date badge */}
         <div className="flex items-start gap-3 mb-3">
           {dateInfo ? (
-            <div className={`shrink-0 w-14 h-14 rounded-xl flex flex-col items-center justify-center text-center ${
+            <div className={`shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex flex-col items-center justify-center text-center ${
               isToday ? 'bg-violet-500 text-white' : isPast ? 'bg-gray-100 text-gray-500' : 'bg-primary/10 text-primary'
             }`}>
-              <span className="text-[10px] font-bold uppercase leading-none">{dateInfo.month}</span>
-              <span className="text-xl font-bold leading-none mt-0.5">{dateInfo.day}</span>
-              <span className="text-[9px] font-medium leading-none mt-0.5">{dateInfo.dayName}</span>
+              <span className="text-[9px] sm:text-[10px] font-bold uppercase leading-none">{dateInfo.month}</span>
+              <span className="text-lg sm:text-xl font-bold leading-none mt-0.5">{dateInfo.day}</span>
+              <span className="text-[8px] sm:text-[9px] font-medium leading-none mt-0.5">{dateInfo.dayName}</span>
             </div>
           ) : (
-            <div className="shrink-0 w-14 h-14 rounded-xl bg-amber-100 flex items-center justify-center">
-              <CalendarDays className="w-6 h-6 text-amber-600" />
+            <div className="shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-amber-100 flex items-center justify-center">
+              <CalendarDays className="w-5 h-5 sm:w-6 sm:h-6 text-amber-600" />
             </div>
           )}
 
@@ -1187,11 +1259,11 @@ function EventCard({ event }: {
                 </span>
               )}
             </div>
-            <h3 className="font-bold text-base leading-tight" style={{ fontFamily: "var(--font-display)" }}>
+            <h3 className="font-bold text-sm sm:text-base leading-tight" style={{ fontFamily: "var(--font-display)" }}>
               {event.title}
             </h3>
             {event.subtitle && (
-              <p className="text-sm text-muted-foreground mt-0.5 leading-snug">{event.subtitle}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-snug">{event.subtitle}</p>
             )}
           </div>
         </div>
@@ -1199,13 +1271,13 @@ function EventCard({ event }: {
         {/* Event details */}
         <div className="space-y-1.5 ml-0">
           {event.eventTime && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
               <Clock className="w-3.5 h-3.5 shrink-0 text-amber-500" />
               <span>{event.eventTime}</span>
             </div>
           )}
           {event.eventLocation && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
               <MapPin className="w-3.5 h-3.5 shrink-0 text-amber-500" />
               <span>{event.eventLocation}</span>
             </div>
@@ -1214,7 +1286,7 @@ function EventCard({ event }: {
 
         {/* Body text if available */}
         {event.body && (
-          <p className="text-sm text-muted-foreground leading-relaxed mt-3 line-clamp-3">
+          <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mt-3 line-clamp-3">
             {event.body}
           </p>
         )}
@@ -1233,9 +1305,9 @@ function FAQItem({
       <button
         type="button"
         onClick={onToggle}
-        className="w-full flex items-center gap-3 p-4 text-left hover:bg-amber-50/50 transition-colors"
+        className="w-full flex items-center gap-3 p-3 sm:p-4 text-left hover:bg-amber-50/50 transition-colors"
       >
-        <span className="font-semibold text-sm flex-1">{question}</span>
+        <span className="font-semibold text-xs sm:text-sm flex-1">{question}</span>
         {isOpen ? (
           <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />
         ) : (
@@ -1243,8 +1315,8 @@ function FAQItem({
         )}
       </button>
       {isOpen && (
-        <div className="px-4 pb-4 pt-0 border-t border-amber-100">
-          <div className="text-sm text-muted-foreground leading-relaxed mt-3">
+        <div className="px-3 sm:px-4 pb-3 sm:pb-4 pt-0 border-t border-amber-100">
+          <div className="text-xs sm:text-sm text-muted-foreground leading-relaxed mt-3">
             {children}
           </div>
         </div>
