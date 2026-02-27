@@ -22,22 +22,8 @@ struct ScheduledReminder: Identifiable {
     let message: String
 }
 
-let scheduledReminders: [ScheduledReminder] = [
-    ScheduledReminder(
-        id: "mini-meow-25",
-        minute: 25,
-        sessionType: "Mini Meow",
-        sessionDuration: "30 min",
-        message: "Mini Meow sessions ending soon!"
-    ),
-    ScheduledReminder(
-        id: "sessions-55",
-        minute: 55,
-        sessionType: "Full Purr & Mini Meow",
-        sessionDuration: "ending",
-        message: "Sessions ending soon!"
-    ),
-]
+// Static scheduled reminders removed - Roller integration handles session timing now
+let scheduledReminders: [ScheduledReminder] = []
 
 // MARK: - Welcome Guest Model
 
