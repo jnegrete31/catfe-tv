@@ -1,0 +1,46 @@
+{
+  "query": "SELECT id, title, subtitle, body, eventTime, eventLocation, startAt, endAt, isActive, imagePath FROM screens WHERE screenType = 'EVENT';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2KjT5kGWaGHMws6.75433b4e530a --database aMDMXCoQ2ycSYTjhkKKJzm --execute SELECT id, title, subtitle, body, eventTime, eventLocation, startAt, endAt, isActive, imagePath FROM screens WHERE screenType = 'EVENT';",
+  "rows": [
+    {
+      "id": "2",
+      "title": "The Purrfect Date Night",
+      "subtitle": "NULL",
+      "body": "NULL",
+      "eventTime": "5:30pm - 7:00pm",
+      "eventLocation": "Catfé",
+      "startAt": "2026-02-13 08:00:00",
+      "endAt": "2026-02-15 08:00:00",
+      "isActive": "0",
+      "imagePath": "https://raw.githubusercontent.com/jnegrete31/catfe-tv/main/assets/catfe-tv/2026/01/1769728338735-24790C86-549D-40A1-AA8E-BCA37B559D3D.png"
+    },
+    {
+      "id": "150002",
+      "title": "Welcome!",
+      "subtitle": "NULL",
+      "body": "NULL",
+      "eventTime": "NULL",
+      "eventLocation": "NULL",
+      "startAt": "NULL",
+      "endAt": "NULL",
+      "isActive": "0",
+      "imagePath": "NULL"
+    },
+    {
+      "id": "270001",
+      "title": "Pilates with Cats",
+      "subtitle": "NULL",
+      "body": "NULL",
+      "eventTime": "8:00am - 9:30am",
+      "eventLocation": "Catfé",
+      "startAt": "NULL",
+      "endAt": "NULL",
+      "isActive": "1",
+      "imagePath": "https://raw.githubusercontent.com/jnegrete31/catfe-tv/main/assets/catfe-tv/2026/02/1771094210869-cropped.jpg"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\ttitle\tsubtitle\tbody\teventTime\teventLocation\tstartAt\tendAt\tisActive\timagePath\n2\tThe Purrfect Date Night\tNULL\tNULL\t5:30pm - 7:00pm\tCatfé\t2026-02-13 08:00:00\t2026-02-15 08:00:00\t0\thttps://raw.githubusercontent.com/jnegrete31/catfe-tv/main/assets/catfe-tv/2026/01/1769728338735-24790C86-549D-40A1-AA8E-BCA37B559D3D.png\n150002\tWelcome!\tNULL\tNULL\tNULL\tNULL\tNULL\tNULL\t0\tNULL\n270001\tPilates with Cats\tNULL\tNULL\t8:00am - 9:30am\tCatfé\tNULL\tNULL\t1\thttps://raw.githubusercontent.com/jnegrete31/catfe-tv/main/assets/catfe-tv/2026/02/1771094210869-cropped.jpg\n",
+  "stderr": "",
+  "execution_time_ms": 54
+}

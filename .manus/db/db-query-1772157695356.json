@@ -1,0 +1,40 @@
+{
+  "query": "SELECT id, title, isActive, startAt, endAt, eventTime, eventLocation, imagePath FROM screens WHERE screenType = 'EVENT';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2KjT5kGWaGHMws6.75433b4e530a --database aMDMXCoQ2ycSYTjhkKKJzm --execute SELECT id, title, isActive, startAt, endAt, eventTime, eventLocation, imagePath FROM screens WHERE screenType = 'EVENT';",
+  "rows": [
+    {
+      "id": "2",
+      "title": "The Purrfect Date Night",
+      "isActive": "0",
+      "startAt": "2026-02-13 08:00:00",
+      "endAt": "2026-02-15 08:00:00",
+      "eventTime": "5:30pm - 7:00pm",
+      "eventLocation": "Catfé",
+      "imagePath": "https://raw.githubusercontent.com/jnegrete31/catfe-tv/main/assets/catfe-tv/2026/01/1769728338735-24790C86-549D-40A1-AA8E-BCA37B559D3D.png"
+    },
+    {
+      "id": "150002",
+      "title": "Welcome!",
+      "isActive": "0",
+      "startAt": "NULL",
+      "endAt": "NULL",
+      "eventTime": "NULL",
+      "eventLocation": "NULL",
+      "imagePath": "NULL"
+    },
+    {
+      "id": "270001",
+      "title": "Pilates with Cats",
+      "isActive": "1",
+      "startAt": "NULL",
+      "endAt": "NULL",
+      "eventTime": "8:00am - 9:30am",
+      "eventLocation": "Catfé",
+      "imagePath": "https://raw.githubusercontent.com/jnegrete31/catfe-tv/main/assets/catfe-tv/2026/02/1771094210869-cropped.jpg"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\ttitle\tisActive\tstartAt\tendAt\teventTime\teventLocation\timagePath\n2\tThe Purrfect Date Night\t0\t2026-02-13 08:00:00\t2026-02-15 08:00:00\t5:30pm - 7:00pm\tCatfé\thttps://raw.githubusercontent.com/jnegrete31/catfe-tv/main/assets/catfe-tv/2026/01/1769728338735-24790C86-549D-40A1-AA8E-BCA37B559D3D.png\n150002\tWelcome!\t0\tNULL\tNULL\tNULL\tNULL\tNULL\n270001\tPilates with Cats\t1\tNULL\tNULL\t8:00am - 9:30am\tCatfé\thttps://raw.githubusercontent.com/jnegrete31/catfe-tv/main/assets/catfe-tv/2026/02/1771094210869-cropped.jpg\n",
+  "stderr": "",
+  "execution_time_ms": 107
+}

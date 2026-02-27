@@ -1,0 +1,40 @@
+{
+  "query": "SELECT id, title, subtitle, eventTime, eventLocation, startAt, endAt, isActive FROM screens WHERE screenType = 'EVENT' ORDER BY startAt DESC LIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2KjT5kGWaGHMws6.75433b4e530a --database aMDMXCoQ2ycSYTjhkKKJzm --execute SELECT id, title, subtitle, eventTime, eventLocation, startAt, endAt, isActive FROM screens WHERE screenType = 'EVENT' ORDER BY startAt DESC LIMIT 20;",
+  "rows": [
+    {
+      "id": "2",
+      "title": "The Purrfect Date Night",
+      "subtitle": "NULL",
+      "eventTime": "5:30pm - 7:00pm",
+      "eventLocation": "Catfé",
+      "startAt": "2026-02-13 08:00:00",
+      "endAt": "2026-02-15 08:00:00",
+      "isActive": "0"
+    },
+    {
+      "id": "270001",
+      "title": "Pilates with Cats",
+      "subtitle": "NULL",
+      "eventTime": "8:00am - 9:30am",
+      "eventLocation": "Catfé",
+      "startAt": "NULL",
+      "endAt": "NULL",
+      "isActive": "1"
+    },
+    {
+      "id": "150002",
+      "title": "Welcome!",
+      "subtitle": "NULL",
+      "eventTime": "NULL",
+      "eventLocation": "NULL",
+      "startAt": "NULL",
+      "endAt": "NULL",
+      "isActive": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\ttitle\tsubtitle\teventTime\teventLocation\tstartAt\tendAt\tisActive\n2\tThe Purrfect Date Night\tNULL\t5:30pm - 7:00pm\tCatfé\t2026-02-13 08:00:00\t2026-02-15 08:00:00\t0\n270001\tPilates with Cats\tNULL\t8:00am - 9:30am\tCatfé\tNULL\tNULL\t1\n150002\tWelcome!\tNULL\tNULL\tNULL\tNULL\tNULL\t0\n",
+  "stderr": "",
+  "execution_time_ms": 68
+}

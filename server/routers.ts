@@ -614,6 +614,38 @@ export const appRouter = router({
         return combined.slice(0, input.limit);
       }),
 
+    // Public: Get upcoming events for the landing page
+    getUpcomingEvents: publicProcedure
+      .input(z.object({ limit: z.number().min(1).max(20).default(6) }).optional())
+      .query(async ({ input }) => {
+        const limit = input?.limit ?? 6;
+        const eventScreens = await getScreensByType('EVENT');
+        // Filter to active events, sort by startAt (upcoming first), then by eventTime
+        const now = new Date();
+        const upcoming = eventScreens
+          .filter(e => e.isActive)
+          .sort((a, b) => {
+            // Events with startAt dates: sort by date
+            if (a.startAt && b.startAt) return new Date(a.startAt).getTime() - new Date(b.startAt).getTime();
+            if (a.startAt) return -1;
+            if (b.startAt) return 1;
+            // Fallback: sort by creation date
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          })
+          .slice(0, limit);
+        return upcoming.map(e => ({
+          id: e.id,
+          title: e.title,
+          subtitle: e.subtitle,
+          body: e.body,
+          eventTime: e.eventTime,
+          eventLocation: e.eventLocation,
+          startAt: e.startAt,
+          endAt: e.endAt,
+          imagePath: e.imagePath,
+        }));
+      }),
+
     // Get count of adopted cats (for success counter)
     getAdoptionCount: publicProcedure
       .query(async () => {

@@ -9,7 +9,7 @@ import {
   ChevronDown, ChevronRight, Settings, Tv, BookOpen,
   Smartphone, QrCode, Trophy, Sparkles, Users,
   ArrowRight, Image, MessageSquare, Shield,
-  MapPin, Clock, Phone, Mail, CalendarCheck,
+  MapPin, Clock, Phone, Mail, CalendarCheck, CalendarDays,
   Coffee, Ticket, PartyPopper, HandHeart, ExternalLink
 } from "lucide-react";
 
@@ -21,6 +21,9 @@ export default function Home() {
   const { data: snapPurrPhotos } = trpc.photos.getApproved.useQuery({ type: "snap_purr" });
   const { data: happyTailsPhotos } = trpc.photos.getApproved.useQuery({ type: "happy_tails" });
   const { data: topContestPhotos } = trpc.catPhotos.getTopPhotosForTV.useQuery({ limit: 8 });
+
+  // Fetch upcoming events
+  const { data: upcomingEvents } = trpc.screens.getUpcomingEvents.useQuery({ limit: 6 });
 
   const toggleSection = (id: string) => {
     setOpenSection(openSection === id ? null : id);
@@ -48,6 +51,9 @@ export default function Home() {
             </Button>
             <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex text-xs font-medium">
               <a href="#activities">Activities</a>
+            </Button>
+            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex text-xs font-medium">
+              <a href="#events">Events</a>
             </Button>
             <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex text-xs font-medium">
               <a href="#faq">FAQ</a>
@@ -457,6 +463,54 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* ═══════════════════════════════════════════════════════════════
+          UPCOMING EVENTS
+      ═══════════════════════════════════════════════════════════════ */}
+      {upcomingEvents && upcomingEvents.length > 0 && (
+        <section id="events" className="bg-white border-b border-amber-200/30">
+          <div className="container py-16 md:py-20">
+            <div className="max-w-5xl mx-auto">
+              <div className="text-center mb-12">
+                <div className="inline-flex items-center gap-2 bg-violet-100/80 text-violet-700 px-3 py-1 rounded-full text-sm font-semibold mb-4">
+                  <CalendarDays className="w-4 h-4" />
+                  What's Coming Up
+                </div>
+                <h2
+                  className="text-2xl md:text-4xl font-bold mb-3"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  Upcoming Events & Sessions
+                </h2>
+                <p className="text-muted-foreground text-base max-w-xl mx-auto">
+                  Special events, themed sessions, and community gatherings at Catfé
+                </p>
+              </div>
+
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {upcomingEvents.map((event) => (
+                  <EventCard key={event.id} event={event} />
+                ))}
+              </div>
+
+              <div className="text-center mt-8">
+                <Button asChild variant="outline" size="sm" className="bg-white/80">
+                  <a href="https://www.catfe.la/" target="_blank" rel="noopener noreferrer">
+                    <CalendarCheck className="w-4 h-4 mr-2" />
+                    Book Your Visit
+                    <ExternalLink className="w-3.5 h-3.5 ml-1.5" />
+                  </a>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Empty state anchor for events when none exist */}
+      {(!upcomingEvents || upcomingEvents.length === 0) && (
+        <div id="events" />
+      )}
 
       {/* ═══════════════════════════════════════════════════════════════
           GET INVOLVED
@@ -1048,6 +1102,125 @@ function InvolveCard({
     return <a href={href} target="_blank" rel="noopener noreferrer" className="block">{content}</a>;
   }
   return <Link href={href} className="block">{content}</Link>;
+}
+
+/** Event card for the upcoming events section */
+function EventCard({ event }: {
+  event: {
+    id: number;
+    title: string;
+    subtitle: string | null;
+    body: string | null;
+    eventTime: string | null;
+    eventLocation: string | null;
+    startAt: Date | null;
+    endAt: Date | null;
+    imagePath: string | null;
+  };
+}) {
+  // Format the date nicely
+  const formatEventDate = (date: Date | null) => {
+    if (!date) return null;
+    const d = new Date(date);
+    const now = new Date();
+    const isThisYear = d.getFullYear() === now.getFullYear();
+
+    const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
+    const month = d.toLocaleDateString('en-US', { month: 'short' });
+    const day = d.getDate();
+    const year = isThisYear ? '' : `, ${d.getFullYear()}`;
+
+    return { dayName, month, day, year, full: `${dayName}, ${month} ${day}${year}` };
+  };
+
+  const dateInfo = formatEventDate(event.startAt);
+
+  // Determine if the event is happening today or is in the past
+  const now = new Date();
+  const isToday = event.startAt && new Date(event.startAt).toDateString() === now.toDateString();
+  const isPast = event.endAt ? new Date(event.endAt) < now : (event.startAt ? new Date(event.startAt) < new Date(now.toDateString()) : false);
+
+  return (
+    <div className={`bg-white rounded-2xl border overflow-hidden shadow-sm hover:shadow-md transition-all group ${
+      isToday ? 'border-violet-300 ring-2 ring-violet-100' : isPast ? 'border-gray-200 opacity-70' : 'border-amber-200/50'
+    }`}>
+      {/* Event image if available */}
+      {event.imagePath && (
+        <div className="aspect-[16/9] overflow-hidden bg-amber-50">
+          <img
+            src={event.imagePath}
+            alt={event.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            loading="lazy"
+          />
+        </div>
+      )}
+
+      <div className="p-5">
+        {/* Date badge */}
+        <div className="flex items-start gap-3 mb-3">
+          {dateInfo ? (
+            <div className={`shrink-0 w-14 h-14 rounded-xl flex flex-col items-center justify-center text-center ${
+              isToday ? 'bg-violet-500 text-white' : isPast ? 'bg-gray-100 text-gray-500' : 'bg-primary/10 text-primary'
+            }`}>
+              <span className="text-[10px] font-bold uppercase leading-none">{dateInfo.month}</span>
+              <span className="text-xl font-bold leading-none mt-0.5">{dateInfo.day}</span>
+              <span className="text-[9px] font-medium leading-none mt-0.5">{dateInfo.dayName}</span>
+            </div>
+          ) : (
+            <div className="shrink-0 w-14 h-14 rounded-xl bg-amber-100 flex items-center justify-center">
+              <CalendarDays className="w-6 h-6 text-amber-600" />
+            </div>
+          )}
+
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              {isToday && (
+                <span className="inline-flex items-center gap-1 bg-violet-500 text-white px-2 py-0.5 rounded-full text-[10px] font-bold uppercase">
+                  <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                  Today
+                </span>
+              )}
+              {isPast && (
+                <span className="inline-flex items-center bg-gray-200 text-gray-500 px-2 py-0.5 rounded-full text-[10px] font-medium">
+                  Past
+                </span>
+              )}
+            </div>
+            <h3 className="font-bold text-base leading-tight" style={{ fontFamily: "var(--font-display)" }}>
+              {event.title}
+            </h3>
+            {event.subtitle && (
+              <p className="text-sm text-muted-foreground mt-0.5 leading-snug">{event.subtitle}</p>
+            )}
+          </div>
+        </div>
+
+        {/* Event details */}
+        <div className="space-y-1.5 ml-0">
+          {event.eventTime && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Clock className="w-3.5 h-3.5 shrink-0 text-amber-500" />
+              <span>{event.eventTime}</span>
+            </div>
+          )}
+          {event.eventLocation && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <MapPin className="w-3.5 h-3.5 shrink-0 text-amber-500" />
+              <span>{event.eventLocation}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Body text if available */}
+        {event.body && (
+          <p className="text-sm text-muted-foreground leading-relaxed mt-3 line-clamp-3">
+            {event.body}
+          </p>
+        )}
+      </div>
+    </div>
+  );
 }
 
 function FAQItem({

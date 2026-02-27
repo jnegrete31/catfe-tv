@@ -1,0 +1,13 @@
+{
+  "query": "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'screens' AND COLUMN_NAME LIKE '%type%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2KjT5kGWaGHMws6.75433b4e530a --database aMDMXCoQ2ycSYTjhkKKJzm --execute SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'screens' AND COLUMN_NAME LIKE '%type%';",
+  "rows": [
+    {
+      "COLUMN_NAME": "screenType"
+    }
+  ],
+  "messages": [],
+  "stdout": "COLUMN_NAME\nscreenType\n",
+  "stderr": "",
+  "execution_time_ms": 55
+}

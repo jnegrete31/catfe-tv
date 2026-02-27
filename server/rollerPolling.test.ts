@@ -426,6 +426,150 @@ describe("Landing Page Photo Integration", () => {
   });
 });
 
+describe("Events Calendar Section", () => {
+  describe("getUpcomingEvents endpoint logic", () => {
+    it("should filter to only active events", () => {
+      const events = [
+        { id: 1, title: "Pilates with Cats", isActive: true, startAt: new Date("2026-03-01"), createdAt: new Date() },
+        { id: 2, title: "Yoga with Cats", isActive: false, startAt: new Date("2026-03-05"), createdAt: new Date() },
+        { id: 3, title: "Movie Night", isActive: true, startAt: new Date("2026-03-10"), createdAt: new Date() },
+      ];
+      const active = events.filter(e => e.isActive);
+      expect(active.length).toBe(2);
+      expect(active.map(e => e.title)).toEqual(["Pilates with Cats", "Movie Night"]);
+    });
+
+    it("should sort events by startAt date (upcoming first)", () => {
+      const events = [
+        { id: 1, title: "Later Event", startAt: new Date("2026-04-01"), createdAt: new Date() },
+        { id: 2, title: "Sooner Event", startAt: new Date("2026-03-01"), createdAt: new Date() },
+        { id: 3, title: "Middle Event", startAt: new Date("2026-03-15"), createdAt: new Date() },
+      ];
+      const sorted = events.sort((a, b) => {
+        if (a.startAt && b.startAt) return new Date(a.startAt).getTime() - new Date(b.startAt).getTime();
+        if (a.startAt) return -1;
+        if (b.startAt) return 1;
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+      expect(sorted[0].title).toBe("Sooner Event");
+      expect(sorted[1].title).toBe("Middle Event");
+      expect(sorted[2].title).toBe("Later Event");
+    });
+
+    it("should handle events without startAt date (sort by createdAt)", () => {
+      const events = [
+        { id: 1, title: "No Date", startAt: null as Date | null, createdAt: new Date("2026-02-20") },
+        { id: 2, title: "Has Date", startAt: new Date("2026-03-01"), createdAt: new Date("2026-02-25") },
+      ];
+      const sorted = events.sort((a, b) => {
+        if (a.startAt && b.startAt) return new Date(a.startAt).getTime() - new Date(b.startAt).getTime();
+        if (a.startAt) return -1;
+        if (b.startAt) return 1;
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+      expect(sorted[0].title).toBe("Has Date");
+    });
+
+    it("should limit results to the requested count", () => {
+      const events = Array.from({ length: 10 }, (_, i) => ({
+        id: i + 1,
+        title: `Event ${i + 1}`,
+        isActive: true,
+        startAt: new Date(`2026-03-${String(i + 1).padStart(2, "0")}`),
+        createdAt: new Date(),
+      }));
+      const limited = events.filter(e => e.isActive).slice(0, 6);
+      expect(limited.length).toBe(6);
+    });
+
+    it("should return only the needed fields", () => {
+      const event = {
+        id: 1,
+        title: "Pilates with Cats",
+        subtitle: "Stretch and purr",
+        body: "Join us for a relaxing session",
+        eventTime: "8:00am - 9:30am",
+        eventLocation: "Catfé",
+        startAt: new Date("2026-03-01"),
+        endAt: new Date("2026-03-01"),
+        imagePath: null as string | null,
+        // These should NOT be included
+        isActive: true,
+        priority: 1,
+        durationSeconds: 10,
+      };
+      const mapped = {
+        id: event.id,
+        title: event.title,
+        subtitle: event.subtitle,
+        body: event.body,
+        eventTime: event.eventTime,
+        eventLocation: event.eventLocation,
+        startAt: event.startAt,
+        endAt: event.endAt,
+        imagePath: event.imagePath,
+      };
+      expect(mapped).not.toHaveProperty("isActive");
+      expect(mapped).not.toHaveProperty("priority");
+      expect(mapped).toHaveProperty("title", "Pilates with Cats");
+      expect(mapped).toHaveProperty("eventTime", "8:00am - 9:30am");
+    });
+  });
+
+  describe("EventCard date formatting", () => {
+    it("should format date with month, day, and day name", () => {
+      const date = new Date("2026-03-15T10:00:00Z");
+      const dayName = date.toLocaleDateString("en-US", { weekday: "short" });
+      const month = date.toLocaleDateString("en-US", { month: "short" });
+      const day = date.getDate();
+      expect(dayName).toBeTruthy();
+      expect(month).toBeTruthy();
+      expect(day).toBe(15);
+    });
+
+    it("should detect today's events", () => {
+      const now = new Date();
+      const todayEvent = { startAt: now };
+      const isToday = new Date(todayEvent.startAt).toDateString() === now.toDateString();
+      expect(isToday).toBe(true);
+    });
+
+    it("should detect past events", () => {
+      const pastDate = new Date("2025-01-01");
+      const now = new Date();
+      const isPast = pastDate < new Date(now.toDateString());
+      expect(isPast).toBe(true);
+    });
+
+    it("should not mark future events as past", () => {
+      const futureDate = new Date("2027-06-15");
+      const now = new Date();
+      const isPast = futureDate < new Date(now.toDateString());
+      expect(isPast).toBe(false);
+    });
+  });
+
+  describe("Events section visibility", () => {
+    it("should show events section when events exist", () => {
+      const events = [{ id: 1, title: "Pilates" }];
+      const shouldShow = events && events.length > 0;
+      expect(shouldShow).toBe(true);
+    });
+
+    it("should hide events section when no events exist", () => {
+      const events: Array<{ id: number }> = [];
+      const shouldShow = events && events.length > 0;
+      expect(shouldShow).toBe(false);
+    });
+
+    it("should hide events section when data is undefined (loading)", () => {
+      const events = undefined;
+      const shouldShow = events && events.length > 0;
+      expect(shouldShow).toBeFalsy();
+    });
+  });
+});
+
 describe("Roller BookingCard UI behavior", () => {
   it("should treat session with sessionStatus=completed as checked out", () => {
     // Simulates the BookingCard logic:

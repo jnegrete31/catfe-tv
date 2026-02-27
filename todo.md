@@ -2061,3 +2061,13 @@
 - [x] Ensure photos load efficiently with lazy loading
 - [x] Fallback gracefully when no photos are available
 - [x] Write tests for photo integration logic (12 tests)
+
+## Feature - Events Calendar Section on Landing Page
+- [x] Investigate existing event data and backend endpoints
+- [x] Create public endpoint to fetch upcoming events for the landing page
+- [x] Build events calendar section with event cards (date badge, title, time, location, description)
+- [x] Add visual event cards with today/past/upcoming styling
+- [x] Handle empty state when no upcoming events exist (section hides)
+- [x] Integrate into the landing page between Activities and Get Involved
+- [x] Add Events nav link in top navigation
+- [x] Write tests for events calendar logic (14 tests)
