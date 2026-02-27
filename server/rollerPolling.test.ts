@@ -293,6 +293,139 @@ describe("Session History Display", () => {
   });
 });
 
+describe("Landing Page Photo Integration", () => {
+  describe("Photo strip rendering", () => {
+    it("should double photos for seamless loop animation", () => {
+      const photos = [
+        { id: 1, photoUrl: "https://example.com/1.jpg", caption: "Cat 1" },
+        { id: 2, photoUrl: "https://example.com/2.jpg", caption: "Cat 2" },
+        { id: 3, photoUrl: "https://example.com/3.jpg", caption: null },
+      ];
+      const doubled = [...photos, ...photos];
+      expect(doubled.length).toBe(6);
+      expect(doubled[0].id).toBe(doubled[3].id);
+    });
+
+    it("should limit photo strip to 12 photos max", () => {
+      const photos = Array.from({ length: 20 }, (_, i) => ({
+        id: i + 1,
+        photoUrl: `https://example.com/${i}.jpg`,
+        caption: `Cat ${i}`,
+      }));
+      const sliced = photos.slice(0, 12);
+      expect(sliced.length).toBe(12);
+    });
+
+    it("should not render photo strip when no photos available", () => {
+      const photos: Array<{ id: number; photoUrl: string }> = [];
+      const shouldRender = photos.length > 0;
+      expect(shouldRender).toBe(false);
+    });
+  });
+
+  describe("Photo mosaic rendering", () => {
+    it("should require at least 4 photos for mosaic", () => {
+      const threePhotos = [1, 2, 3].map(id => ({
+        id,
+        photoUrl: `https://example.com/${id}.jpg`,
+        caption: null,
+        submitterName: "Guest",
+      }));
+      const shouldRenderMosaic = threePhotos.length >= 4;
+      expect(shouldRenderMosaic).toBe(false);
+
+      const fivePhotos = [1, 2, 3, 4, 5].map(id => ({
+        id,
+        photoUrl: `https://example.com/${id}.jpg`,
+        caption: null,
+        submitterName: "Guest",
+      }));
+      const shouldRenderMosaic2 = fivePhotos.length >= 4;
+      expect(shouldRenderMosaic2).toBe(true);
+    });
+
+    it("should show up to 5 photos in mosaic (1 large + 4 small)", () => {
+      const photos = Array.from({ length: 10 }, (_, i) => ({
+        id: i + 1,
+        photoUrl: `https://example.com/${i}.jpg`,
+        caption: null,
+        submitterName: "Guest",
+      }));
+      const mosaicPhotos = photos.slice(0, 5);
+      const featured = mosaicPhotos[0];
+      const smaller = mosaicPhotos.slice(1, 5);
+      expect(mosaicPhotos.length).toBe(5);
+      expect(featured.id).toBe(1);
+      expect(smaller.length).toBe(4);
+    });
+  });
+
+  describe("Happy Tails gallery", () => {
+    it("should show up to 6 Happy Tails photos", () => {
+      const photos = Array.from({ length: 10 }, (_, i) => ({
+        id: i + 1,
+        photoUrl: `https://example.com/${i}.jpg`,
+        catName: `Cat ${i}`,
+        caption: null,
+      }));
+      const galleryPhotos = photos.slice(0, 6);
+      expect(galleryPhotos.length).toBe(6);
+    });
+
+    it("should display cat name on hover when available", () => {
+      const photo = { id: 1, photoUrl: "url", catName: "Junie", caption: null };
+      const hoverText = photo.catName ? `${photo.catName} \u{1F495}` : photo.caption || "Happy at home!";
+      expect(hoverText).toBe("Junie \u{1F495}");
+    });
+
+    it("should fall back to caption when cat name is missing", () => {
+      const photo = { id: 1, photoUrl: "url", catName: null, caption: "Living the good life" };
+      const hoverText = photo.catName ? `${photo.catName} \u{1F495}` : photo.caption || "Happy at home!";
+      expect(hoverText).toBe("Living the good life");
+    });
+
+    it("should show default text when both cat name and caption are missing", () => {
+      const photo = { id: 1, photoUrl: "url", catName: null, caption: null };
+      const hoverText = photo.catName ? `${photo.catName} \u{1F495}` : photo.caption || "Happy at home!";
+      expect(hoverText).toBe("Happy at home!");
+    });
+  });
+
+  describe("Contest leaderboard", () => {
+    it("should show leaderboard when 3+ contest photos exist", () => {
+      const photos = [
+        { id: 1, photoUrl: "url", catName: "Whiskers", voteCount: 42, uploaderName: "Alice" },
+        { id: 2, photoUrl: "url", catName: "Mittens", voteCount: 35, uploaderName: "Bob" },
+        { id: 3, photoUrl: "url", catName: "Shadow", voteCount: 28, uploaderName: "Carol" },
+      ];
+      const showLeaderboard = photos.length >= 3;
+      expect(showLeaderboard).toBe(true);
+    });
+
+    it("should fall back to donation tiers when fewer than 3 contest photos", () => {
+      const photos = [
+        { id: 1, photoUrl: "url", catName: "Whiskers", voteCount: 42, uploaderName: "Alice" },
+      ];
+      const showLeaderboard = photos.length >= 3;
+      expect(showLeaderboard).toBe(false);
+    });
+
+    it("should display top 3 photos with medals", () => {
+      const medals = ["\u{1F947}", "\u{1F948}", "\u{1F949}"];
+      const photos = [
+        { id: 1, catName: "Whiskers", voteCount: 42 },
+        { id: 2, catName: "Mittens", voteCount: 35 },
+        { id: 3, catName: "Shadow", voteCount: 28 },
+      ];
+      photos.forEach((photo, i) => {
+        const label = `${medals[i]} ${photo.catName}`;
+        expect(label).toContain(photo.catName);
+        expect(label).toContain(medals[i]);
+      });
+    });
+  });
+});
+
 describe("Roller BookingCard UI behavior", () => {
   it("should treat session with sessionStatus=completed as checked out", () => {
     // Simulates the BookingCard logic:

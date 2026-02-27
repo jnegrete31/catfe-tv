@@ -2,7 +2,8 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { getLoginUrl } from "@/const";
 import { Link } from "wouter";
-import { useState } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { trpc } from "@/lib/trpc";
 import {
   Cat, Camera, Heart, PawPrint, Upload, Gift, Star,
   ChevronDown, ChevronRight, Settings, Tv, BookOpen,
@@ -15,6 +16,11 @@ import {
 export default function Home() {
   const { isAuthenticated, user } = useAuth();
   const [openSection, setOpenSection] = useState<string | null>(null);
+
+  // Fetch guest photos
+  const { data: snapPurrPhotos } = trpc.photos.getApproved.useQuery({ type: "snap_purr" });
+  const { data: happyTailsPhotos } = trpc.photos.getApproved.useQuery({ type: "happy_tails" });
+  const { data: topContestPhotos } = trpc.catPhotos.getTopPhotosForTV.useQuery({ limit: 8 });
 
   const toggleSection = (id: string) => {
     setOpenSection(openSection === id ? null : id);
@@ -122,7 +128,12 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Illustrated cat silhouettes peeking from bottom */}
+        {/* Photo strip from guest uploads */}
+        {snapPurrPhotos && snapPurrPhotos.length > 0 && (
+          <PhotoStrip photos={snapPurrPhotos.slice(0, 12)} />
+        )}
+
+        {/* Wave divider */}
         <div className="relative h-16 md:h-20 overflow-hidden">
           <svg viewBox="0 0 1200 80" className="absolute bottom-0 w-full" preserveAspectRatio="none">
             <path d="M0,80 L0,30 Q150,0 300,30 Q450,55 600,25 Q750,0 900,30 Q1050,55 1200,30 L1200,80 Z" fill="rgb(255,251,235)" />
@@ -202,11 +213,11 @@ export default function Home() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════
-          WHAT TO EXPECT
+          WHAT TO EXPECT — with real guest photos
       ═══════════════════════════════════════════════════════════════ */}
       <section className="bg-gradient-to-b from-amber-50/50 to-white border-y border-amber-200/30">
         <div className="container py-16 md:py-20">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-5xl mx-auto">
             <div className="grid md:grid-cols-2 gap-10 items-center">
               <div>
                 <div className="inline-flex items-center gap-2 bg-amber-100/80 text-amber-800 px-3 py-1 rounded-full text-sm font-semibold mb-4">
@@ -222,7 +233,7 @@ export default function Home() {
                 <p className="text-muted-foreground leading-relaxed mb-4">
                   Step into a warm, inviting space where adoptable cats roam freely. Our lounge features comfy seating, cat trees, and plenty of toys. Whether you're here to de-stress, socialize, or find your next family member, Catfé is the place.
                 </p>
-                <p className="text-muted-foreground leading-relaxed mb-6">
+                <p className="text-muted-foreground leading-relaxed mb-5">
                   Every cat at Catfé comes from <strong>Kitten Rescue</strong>, a dedicated rescue saving lives across Los Angeles. When you visit, you're directly supporting their mission.
                 </p>
                 <div className="flex flex-wrap gap-2">
@@ -237,31 +248,39 @@ export default function Home() {
                   </span>
                 </div>
               </div>
-              <div className="space-y-4">
-                <ExperienceCard
-                  icon={<Cat className="w-5 h-5" />}
-                  title="Cat Therapy"
-                  desc="Unwind in our cozy lounge and let the soothing purrs melt your stress away. Perfect for a midday reset."
-                  color="bg-amber-100 text-amber-700"
-                />
-                <ExperienceCard
-                  icon={<PartyPopper className="w-5 h-5" />}
-                  title="Host an Event"
-                  desc="Birthday parties, private events, or cozy gatherings — celebrate with the purrfect company."
-                  color="bg-pink-100 text-pink-700"
-                />
-                <ExperienceCard
-                  icon={<Heart className="w-5 h-5" />}
-                  title="Adopt a Cat"
-                  desc="Spend time with our adoptable cats, discover their personalities, and give a loving home to a furry friend."
-                  color="bg-rose-100 text-rose-700"
-                />
-                <ExperienceCard
-                  icon={<Coffee className="w-5 h-5" />}
-                  title="Bagel Boyz Next Door"
-                  desc="Grab delicious bagels and coffee from our plaza neighbor. Supporting local businesses is part of our mission."
-                  color="bg-teal-100 text-teal-700"
-                />
+
+              {/* Photo mosaic from Snap & Purr */}
+              <div>
+                {snapPurrPhotos && snapPurrPhotos.length >= 4 ? (
+                  <PhotoMosaic photos={snapPurrPhotos.slice(0, 5)} />
+                ) : (
+                  <div className="space-y-4">
+                    <ExperienceCard
+                      icon={<Cat className="w-5 h-5" />}
+                      title="Cat Therapy"
+                      desc="Unwind in our cozy lounge and let the soothing purrs melt your stress away. Perfect for a midday reset."
+                      color="bg-amber-100 text-amber-700"
+                    />
+                    <ExperienceCard
+                      icon={<PartyPopper className="w-5 h-5" />}
+                      title="Host an Event"
+                      desc="Birthday parties, private events, or cozy gatherings — celebrate with the purrfect company."
+                      color="bg-pink-100 text-pink-700"
+                    />
+                    <ExperienceCard
+                      icon={<Heart className="w-5 h-5" />}
+                      title="Adopt a Cat"
+                      desc="Spend time with our adoptable cats, discover their personalities, and give a loving home to a furry friend."
+                      color="bg-rose-100 text-rose-700"
+                    />
+                    <ExperienceCard
+                      icon={<Coffee className="w-5 h-5" />}
+                      title="Bagel Boyz Next Door"
+                      desc="Grab delicious bagels and coffee from our plaza neighbor. Supporting local businesses is part of our mission."
+                      color="bg-teal-100 text-teal-700"
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -269,7 +288,7 @@ export default function Home() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════
-          ADOPT SECTION
+          ADOPT SECTION — with Happy Tails photos
       ═══════════════════════════════════════════════════════════════ */}
       <section id="adopt" className="bg-white">
         <div className="container py-16 md:py-20">
@@ -287,6 +306,17 @@ export default function Home() {
             <p className="text-muted-foreground text-base max-w-2xl mx-auto mb-10 leading-relaxed">
               All of our cats come from Kitten Rescue and are looking for their forever families. Spend time with them during your visit, fall in love, and start the adoption process right here at Catfé.
             </p>
+
+            {/* Happy Tails photo gallery */}
+            {happyTailsPhotos && happyTailsPhotos.length > 0 && (
+              <div className="mb-10">
+                <p className="text-sm font-semibold text-amber-700 mb-4 flex items-center justify-center gap-2">
+                  <Heart className="w-4 h-4 text-pink-500" />
+                  Happy Tails — Our Alumni in Their Forever Homes
+                </p>
+                <HappyTailsGallery photos={happyTailsPhotos.slice(0, 6)} />
+              </div>
+            )}
 
             <div className="grid md:grid-cols-3 gap-5 mb-10">
               <AdoptStep
@@ -328,7 +358,7 @@ export default function Home() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════
-          ACTIVITIES & PHOTO CONTEST
+          ACTIVITIES & PHOTO CONTEST — with real contest photos
       ═══════════════════════════════════════════════════════════════ */}
       <section id="activities" className="bg-gradient-to-b from-amber-50/50 to-amber-100/30 border-y border-amber-200/30">
         <div className="container py-16 md:py-20">
@@ -349,7 +379,7 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Photo Contest Feature */}
+            {/* Photo Contest Feature — with real top-voted photos */}
             <div className="bg-white rounded-2xl border border-amber-200/50 shadow-sm overflow-hidden mb-8">
               <div className="grid md:grid-cols-2">
                 <div className="p-6 md:p-8">
@@ -378,13 +408,20 @@ export default function Home() {
                   </Button>
                 </div>
                 <div className="bg-gradient-to-br from-pink-50 to-amber-50 p-6 md:p-8 flex flex-col justify-center">
-                  <div className="space-y-3">
-                    <DonationTierMini emoji="🐾" name="Paw Print" price="$1" votes={1} />
-                    <DonationTierMini emoji="😺" name="Cat Nap" price="$5" votes={5} popular />
-                    <DonationTierMini emoji="🏆" name="Full Purr" price="$10" votes={15} />
-                  </div>
+                  {topContestPhotos && topContestPhotos.length >= 3 ? (
+                    <ContestLeaderboard photos={topContestPhotos.slice(0, 3)} />
+                  ) : (
+                    <div className="space-y-3">
+                      <DonationTierMini emoji="🐾" name="Paw Print" price="$1" votes={1} />
+                      <DonationTierMini emoji="😺" name="Cat Nap" price="$5" votes={5} popular />
+                      <DonationTierMini emoji="🏆" name="Full Purr" price="$10" votes={15} />
+                    </div>
+                  )}
                   <p className="text-[11px] text-muted-foreground mt-3 text-center">
-                    Donations support cat care via Stripe
+                    {topContestPhotos && topContestPhotos.length >= 3
+                      ? "Vote for your favorites — top photos appear on our TV!"
+                      : "Donations support cat care via Stripe"
+                    }
                   </p>
                 </div>
               </div>
@@ -724,6 +761,161 @@ export default function Home() {
           </div>
         </div>
       </footer>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PHOTO COMPONENTS
+═══════════════════════════════════════════════════════════════ */
+
+/** Scrolling photo strip below the hero */
+function PhotoStrip({ photos }: { photos: Array<{ id: number; photoUrl: string; caption?: string | null }> }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    let animationId: number;
+    let offset = 0;
+    const speed = 0.3; // pixels per frame
+
+    const animate = () => {
+      offset += speed;
+      if (offset >= el.scrollWidth / 2) offset = 0;
+      el.scrollLeft = offset;
+      animationId = requestAnimationFrame(animate);
+    };
+    animationId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationId);
+  }, [photos]);
+
+  // Double the photos for seamless loop
+  const doubled = [...photos, ...photos];
+
+  return (
+    <div className="relative overflow-hidden pb-2">
+      <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-amber-50 to-transparent z-10 pointer-events-none" />
+      <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-amber-50 to-transparent z-10 pointer-events-none" />
+      <div
+        ref={scrollRef}
+        className="flex gap-3 overflow-hidden px-4"
+        style={{ scrollBehavior: "auto" }}
+      >
+        {doubled.map((photo, i) => (
+          <div
+            key={`${photo.id}-${i}`}
+            className="shrink-0 w-28 h-28 md:w-36 md:h-36 rounded-xl overflow-hidden shadow-md border-2 border-white/80"
+          >
+            <img
+              src={photo.photoUrl}
+              alt={photo.caption || "Guest photo at Catfé"}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Photo mosaic for the experience section */
+function PhotoMosaic({ photos }: { photos: Array<{ id: number; photoUrl: string; caption?: string | null; submitterName: string }> }) {
+  if (photos.length < 4) return null;
+
+  return (
+    <div className="grid grid-cols-2 gap-3">
+      {/* Large featured photo */}
+      <div className="col-span-2 rounded-2xl overflow-hidden shadow-lg border-2 border-white/80 aspect-[16/9] relative group">
+        <img
+          src={photos[0].photoUrl}
+          alt={photos[0].caption || "Life at Catfé"}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          loading="lazy"
+        />
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent p-3">
+          <p className="text-white text-xs font-medium">
+            {photos[0].caption || `📸 by ${photos[0].submitterName}`}
+          </p>
+        </div>
+      </div>
+      {/* Smaller photos */}
+      {photos.slice(1, 5).map((photo) => (
+        <div
+          key={photo.id}
+          className="rounded-xl overflow-hidden shadow-md border-2 border-white/80 aspect-square relative group"
+        >
+          <img
+            src={photo.photoUrl}
+            alt={photo.caption || "Guest photo"}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            loading="lazy"
+          />
+        </div>
+      ))}
+      <p className="col-span-2 text-center text-xs text-muted-foreground mt-1">
+        <Camera className="w-3 h-3 inline mr-1" />
+        Real photos from our guests — <Link href="/upload/snap-purr" className="text-primary hover:underline">share yours!</Link>
+      </p>
+    </div>
+  );
+}
+
+/** Happy Tails gallery for the adoption section */
+function HappyTailsGallery({ photos }: { photos: Array<{ id: number; photoUrl: string; catName?: string | null; caption?: string | null }> }) {
+  return (
+    <div className="grid grid-cols-3 md:grid-cols-6 gap-3 max-w-3xl mx-auto">
+      {photos.map((photo) => (
+        <div
+          key={photo.id}
+          className="rounded-xl overflow-hidden shadow-md border-2 border-pink-100 aspect-square relative group cursor-pointer"
+        >
+          <img
+            src={photo.photoUrl}
+            alt={photo.catName ? `${photo.catName} in their forever home` : "Happy Tails"}
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            loading="lazy"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-2">
+            <p className="text-white text-[10px] font-medium leading-tight">
+              {photo.catName ? `${photo.catName} 💕` : photo.caption || "Happy at home!"}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Contest leaderboard showing top-voted photos */
+function ContestLeaderboard({ photos }: { photos: Array<{ id: number; photoUrl: string; catName: string; voteCount: number; uploaderName: string }> }) {
+  const medals = ["🥇", "🥈", "🥉"];
+  return (
+    <div className="space-y-3">
+      {photos.map((photo, i) => (
+        <div
+          key={photo.id}
+          className={`flex items-center gap-3 bg-white rounded-lg px-3 py-2.5 border ${i === 0 ? 'border-amber-300 shadow-sm' : 'border-amber-200/50'}`}
+        >
+          <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 border border-amber-200/50">
+            <img
+              src={photo.photoUrl}
+              alt={photo.catName}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+          </div>
+          <div className="flex-1 min-w-0">
+            <span className="font-semibold text-sm truncate block">{medals[i]} {photo.catName}</span>
+            <span className="text-[10px] text-muted-foreground">by {photo.uploaderName}</span>
+          </div>
+          <div className="text-right shrink-0">
+            <span className="font-bold text-sm text-primary">{photo.voteCount}</span>
+            <span className="text-[10px] text-muted-foreground block">votes</span>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

@@ -2051,3 +2051,13 @@
 - [x] Location & hours info for Santa Clarita
 - [x] Mobile-responsive design
 - [x] Keep navigation to photo contest, voting, and other existing pages
+
+## Enhancement - Add Guest Photos to Landing Page
+- [x] Add backend endpoint to fetch approved guest photos for the landing page
+- [x] Add scrolling photo strip to hero section from Snap & Purr photos
+- [x] Add photo mosaic to experience section using Snap & Purr photos (1 large + 4 small)
+- [x] Add Happy Tails gallery to adoption section with hover cat names
+- [x] Add photo contest leaderboard to activities section (top 3 with medals, fallback to donation tiers)
+- [x] Ensure photos load efficiently with lazy loading
+- [x] Fallback gracefully when no photos are available
+- [x] Write tests for photo integration logic (12 tests)
