@@ -2089,3 +2089,13 @@
 ## Bug Fix - How It Works Step Numbers Not Centered
 - [x] Fix step number badges floating to top-right corner of icon instead of being centered
 - [x] Numbers should be centered above the icon in a vertical stack layout
+
+## Feature - Full Logo Slide for TV Slideshow
+- [x] Investigate TV slideshow system and how slides are rendered
+- [x] Add LOGO screen type to shared/types.ts (SCREEN_TYPES, SCREEN_TYPE_CONFIG, SCREEN_TYPE_DURATIONS=8s)
+- [x] Add LOGO to drizzle schema screenType enum and push migration
+- [x] Create LogoScreen renderer with warm gradient, paw prints, logo from settings
+- [x] Pull logo from settings (logoUrl) with fallback cat emoji + location name
+- [x] Support optional subtitle from screen title/subtitle fields
+- [x] Auto-available in admin screen editor dropdown (uses shared SCREEN_TYPES)
+- [x] Write tests for LOGO screen type (8 tests, all passing)

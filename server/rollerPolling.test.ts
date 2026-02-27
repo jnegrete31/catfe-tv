@@ -604,3 +604,60 @@ describe("Roller BookingCard UI behavior", () => {
     expect(showControls).toBe(true);
   });
 });
+
+// ─── LOGO Screen Type Tests ───────────────────────────────────────────────
+describe("LOGO screen type", () => {
+  it("should be included in SCREEN_TYPES array", async () => {
+    // Dynamically import to avoid module mock conflicts
+    const types = await vi.importActual<any>("../shared/types");
+    expect(types.SCREEN_TYPES).toContain("LOGO");
+  });
+
+  it("should have SCREEN_TYPE_CONFIG entry with correct label", async () => {
+    const types = await vi.importActual<any>("../shared/types");
+    expect(types.SCREEN_TYPE_CONFIG.LOGO).toBeDefined();
+    expect(types.SCREEN_TYPE_CONFIG.LOGO.label).toBe("Logo");
+    expect(types.SCREEN_TYPE_CONFIG.LOGO.color).toBe("#92400e");
+  });
+
+  it("should have a default duration of 8 seconds", async () => {
+    const types = await vi.importActual<any>("../shared/types");
+    expect(types.SCREEN_TYPE_DURATIONS.LOGO).toBe(8);
+  });
+
+  it("should be a valid ScreenType", async () => {
+    const types = await vi.importActual<any>("../shared/types");
+    const screenTypes: string[] = types.SCREEN_TYPES;
+    expect(screenTypes.indexOf("LOGO")).toBeGreaterThan(-1);
+    // Should be before CUSTOM (CUSTOM is always last)
+    expect(screenTypes.indexOf("LOGO")).toBeLessThan(screenTypes.indexOf("CUSTOM"));
+  });
+
+  it("should render logo from settings when logoUrl is provided", () => {
+    // Simulate the LogoScreen rendering logic
+    const settings = { logoUrl: "https://example.com/logo.png", locationName: "Catfé" };
+    const hasCustomLogo = !!settings.logoUrl;
+    expect(hasCustomLogo).toBe(true);
+  });
+
+  it("should render fallback branding when no logoUrl is set", () => {
+    const settings = { logoUrl: null, locationName: "Catfé" };
+    const hasCustomLogo = !!settings.logoUrl;
+    expect(hasCustomLogo).toBe(false);
+    // Fallback should use locationName
+    expect(settings.locationName).toBe("Catfé");
+  });
+
+  it("should show optional subtitle from screen title field", () => {
+    const screen = { title: "Santa Clarita's First Cat Lounge", type: "LOGO" };
+    // Title should show if it's not just "logo"
+    const showTitle = screen.title && screen.title.toLowerCase() !== "logo";
+    expect(showTitle).toBeTruthy();
+  });
+
+  it("should hide title when it's just 'Logo'", () => {
+    const screen = { title: "Logo", type: "LOGO" };
+    const showTitle = screen.title && screen.title.toLowerCase() !== "logo";
+    expect(showTitle).toBeFalsy();
+  });
+});

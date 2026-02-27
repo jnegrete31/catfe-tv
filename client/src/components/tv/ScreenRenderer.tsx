@@ -3571,6 +3571,105 @@ function PhotoContestQRScreen({ screen, settings }: ScreenRendererProps) {
   );
 }
 
+// LOGO - Full-screen branded logo slide that pulls from app settings
+function LogoScreen({ screen, settings }: ScreenRendererProps) {
+  const logoUrl = settings?.logoUrl;
+  
+  return (
+    <div className="tv-screen relative overflow-hidden flex items-center justify-center"
+         style={{ background: 'linear-gradient(135deg, #FDF6EC 0%, #F5E6D3 30%, #EDE0D4 60%, #FDF6EC 100%)' }}>
+      {/* Subtle warm radial glow behind logo */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="w-[60vmin] h-[60vmin] rounded-full opacity-30"
+             style={{ background: 'radial-gradient(circle, rgba(218, 165, 32, 0.25) 0%, rgba(232, 145, 58, 0.1) 40%, transparent 70%)' }} />
+      </div>
+      
+      {/* Decorative paw prints scattered subtly */}
+      <div className="absolute inset-0 opacity-[0.04]">
+        <svg className="absolute top-[10%] left-[8%] w-20 h-20 rotate-[-15deg]" viewBox="0 0 100 100" fill="#92400e">
+          <ellipse cx="50" cy="65" rx="22" ry="18" />
+          <circle cx="30" cy="40" r="10" />
+          <circle cx="50" cy="32" r="10" />
+          <circle cx="70" cy="40" r="10" />
+        </svg>
+        <svg className="absolute top-[20%] right-[12%] w-16 h-16 rotate-[20deg]" viewBox="0 0 100 100" fill="#92400e">
+          <ellipse cx="50" cy="65" rx="22" ry="18" />
+          <circle cx="30" cy="40" r="10" />
+          <circle cx="50" cy="32" r="10" />
+          <circle cx="70" cy="40" r="10" />
+        </svg>
+        <svg className="absolute bottom-[15%] left-[15%] w-14 h-14 rotate-[45deg]" viewBox="0 0 100 100" fill="#92400e">
+          <ellipse cx="50" cy="65" rx="22" ry="18" />
+          <circle cx="30" cy="40" r="10" />
+          <circle cx="50" cy="32" r="10" />
+          <circle cx="70" cy="40" r="10" />
+        </svg>
+        <svg className="absolute bottom-[25%] right-[10%] w-18 h-18 rotate-[-30deg]" viewBox="0 0 100 100" fill="#92400e">
+          <ellipse cx="50" cy="65" rx="22" ry="18" />
+          <circle cx="30" cy="40" r="10" />
+          <circle cx="50" cy="32" r="10" />
+          <circle cx="70" cy="40" r="10" />
+        </svg>
+      </div>
+      
+      {/* Main logo content */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.85 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.8, ease: 'easeOut' }}
+        className="relative z-10 flex flex-col items-center justify-center"
+      >
+        {logoUrl ? (
+          <img 
+            src={logoUrl} 
+            alt={settings?.locationName || 'Catfé'}
+            className="max-w-[50vmin] max-h-[50vmin] object-contain drop-shadow-xl"
+          />
+        ) : (
+          /* Fallback when no custom logo is set */
+          <div className="flex flex-col items-center gap-6">
+            <div className="w-32 h-32 rounded-3xl bg-amber-600 flex items-center justify-center shadow-2xl">
+              <span className="text-7xl">🐱</span>
+            </div>
+            <h1 className="text-8xl font-bold tracking-tight drop-shadow-lg" 
+                style={{ fontFamily: 'Georgia, serif', color: '#92400e' }}>
+              {settings?.locationName || 'Catfé'}
+            </h1>
+          </div>
+        )}
+        
+        {/* Optional subtitle from screen title field */}
+        {screen.title && screen.title.toLowerCase() !== 'logo' && (
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.6 }}
+            className="mt-8 text-3xl font-medium tracking-wide"
+            style={{ fontFamily: 'Georgia, serif', color: '#92400e' }}
+          >
+            {screen.title}
+          </motion.p>
+        )}
+        {screen.subtitle && (
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.6 }}
+            className="mt-3 text-xl"
+            style={{ color: '#b45309' }}
+          >
+            {screen.subtitle}
+          </motion.p>
+        )}
+      </motion.div>
+      
+      {/* Bottom accent line */}
+      <div className="absolute bottom-0 left-0 right-0 h-1.5" 
+           style={{ background: 'linear-gradient(90deg, #86C5A9 0%, #E8913A 50%, #86C5A9 100%)' }} />
+    </div>
+  );
+}
+
 // Main renderer that selects the appropriate component
 export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendererProps) {
   // Auto count adoptions from DB + manual offset
@@ -3723,6 +3822,7 @@ export function ScreenRenderer({ screen, settings, adoptionCats }: ScreenRendere
     VOLUNTEER_SPOTLIGHT: VolunteerSpotlightScreen,
     GUEST_PHOTO_CONTEST: GuestPhotoContestScreen,
     PHOTO_CONTEST_QR: PhotoContestQRScreen,
+    LOGO: LogoScreen,
     // Custom slides always use TemplateRenderer with their saved template
     CUSTOM: ({ screen }) => {
       // For CUSTOM screens, render with dark elegant theme

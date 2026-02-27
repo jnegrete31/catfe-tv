@@ -421,6 +421,13 @@
       "when": 1772138200157,
       "tag": "0059_chubby_squirrel_girl",
       "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "5",
+      "when": 1772207053635,
+      "tag": "0060_brown_stark_industries",
+      "breakpoints": true
     }
   ]
 }

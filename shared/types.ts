@@ -33,6 +33,7 @@ export const SCREEN_TYPES = [
   "VOLUNTEER_SPOTLIGHT",
   "GUEST_PHOTO_CONTEST",
   "PHOTO_CONTEST_QR",
+  "LOGO",
   "CUSTOM",
 ] as const;
 
@@ -65,6 +66,7 @@ export const SCREEN_TYPE_CONFIG: Record<ScreenType, { label: string; color: stri
   VOLUNTEER_SPOTLIGHT: { label: "Volunteer Spotlight", color: "#2e7d32", bgColor: "#e8f5e9" },
   GUEST_PHOTO_CONTEST: { label: "Guest Photo Contest", color: "#d97706", bgColor: "#fffbeb" },
   PHOTO_CONTEST_QR: { label: "Photo Contest QR", color: "#b45309", bgColor: "#fef3c7" },
+  LOGO: { label: "Logo", color: "#92400e", bgColor: "#fef3c7" },
   CUSTOM: { label: "Custom Slide", color: "#6b7280", bgColor: "#f3f4f6" },
 };
 
@@ -111,4 +113,5 @@ export const SCREEN_TYPE_DURATIONS: Partial<Record<ScreenType, number>> = {
   VOLUNTEER_SPOTLIGHT: 15,
   GUEST_PHOTO_CONTEST: 20,
   PHOTO_CONTEST_QR: 15,
+  LOGO: 8,
 };
