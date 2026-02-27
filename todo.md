@@ -2008,3 +2008,8 @@
 - [x] Move Happy Tails submissions to its own sub-tab (with type filtering)
 - [x] Add backend endpoints: getContestStats, getPhotosForCurrentRound, resetCurrentRoundVotes, forceNewRound, getAdminPastRounds
 - [x] All 326 tests passing
+
+## Bug Fix - Roller Guest Check-Out Button Not Working
+- [x] Investigate why clicking 'Out' on Roller guests does nothing (isPast hid button when status=expired)
+- [x] Fix: Show red 'Check Out (Session Expired)' button for expired sessions, hide extend buttons
+- [x] All 326 tests passing

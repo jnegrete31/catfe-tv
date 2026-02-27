@@ -1082,7 +1082,9 @@ function BookingCard({ booking, showDate }: { booking: RollerBookingEntry; showD
   });
 
   const isArrived = !!booking.arrivedAt;
-  const isPast = booking.status === "completed" || booking.status === "expired";
+  const isCompleted = booking.status === "completed";
+  const isExpiredStatus = booking.status === "expired";
+  const isPast = isCompleted || isExpiredStatus;
   const [showEarlyDialog, setShowEarlyDialog] = useState(false);
 
   // Tick every second to update countdown when session is active
@@ -1272,37 +1274,42 @@ function BookingCard({ booking, showDate }: { booking: RollerBookingEntry; showD
         </div>
 
         {/* Session controls for arrived guests: extend + check out */}
-        {isArrived && booking.guestSessionId && !isPast && (
-          <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mt-3 pt-3 border-t border-green-200">
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 text-xs sm:text-sm px-2 sm:px-3"
-              onClick={() => extendMutation.mutate({ id: booking.guestSessionId!, additionalMinutes: 15 })}
-              disabled={extendMutation.isPending}
-            >
-              <Plus className="w-3 h-3 mr-0.5 sm:mr-1 shrink-0" />
-              15m
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 text-xs sm:text-sm px-2 sm:px-3"
-              onClick={() => extendMutation.mutate({ id: booking.guestSessionId!, additionalMinutes: 30 })}
-              disabled={extendMutation.isPending}
-            >
-              <Plus className="w-3 h-3 mr-0.5 sm:mr-1 shrink-0" />
-              30m
-            </Button>
+        {isArrived && booking.guestSessionId && !isCompleted && (
+          <div className={`grid ${isExpiredStatus || sessionCountdown?.isExpired ? 'grid-cols-1' : 'grid-cols-3'} gap-1.5 sm:gap-2 mt-3 pt-3 border-t ${isExpiredStatus || sessionCountdown?.isExpired ? 'border-red-200' : 'border-green-200'}`}>
+            {/* Only show extend buttons if session hasn't expired */}
+            {!isExpiredStatus && !sessionCountdown?.isExpired && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 text-xs sm:text-sm px-2 sm:px-3"
+                  onClick={() => extendMutation.mutate({ id: booking.guestSessionId!, additionalMinutes: 15 })}
+                  disabled={extendMutation.isPending}
+                >
+                  <Plus className="w-3 h-3 mr-0.5 sm:mr-1 shrink-0" />
+                  15m
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 text-xs sm:text-sm px-2 sm:px-3"
+                  onClick={() => extendMutation.mutate({ id: booking.guestSessionId!, additionalMinutes: 30 })}
+                  disabled={extendMutation.isPending}
+                >
+                  <Plus className="w-3 h-3 mr-0.5 sm:mr-1 shrink-0" />
+                  30m
+                </Button>
+              </>
+            )}
             <Button
               variant="default"
               size="sm"
-              className="h-9 text-xs sm:text-sm px-2 sm:px-3"
+              className={`h-9 text-xs sm:text-sm px-2 sm:px-3 ${isExpiredStatus || sessionCountdown?.isExpired ? 'bg-red-600 hover:bg-red-700' : ''}`}
               onClick={() => checkOutMutation.mutate({ id: booking.guestSessionId! })}
               disabled={checkOutMutation.isPending}
             >
               <LogOut className="w-3 h-3 mr-0.5 sm:mr-1 shrink-0" />
-              Out
+              {isExpiredStatus || sessionCountdown?.isExpired ? 'Check Out (Session Expired)' : 'Out'}
             </Button>
           </div>
         )}
