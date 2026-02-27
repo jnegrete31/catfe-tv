@@ -125,10 +125,10 @@ struct PhotoContestQRScreenView: View {
                             Spacer()
                             
                             if let qrURL = screen.qrCodeURL, !qrURL.isEmpty {
-                                QRCodeView(url: qrURL, size: Int(geo.size.height * 0.35), label: screen.qrLabel)
+                                QRCodeView(url: qrURL, size: geo.size.height * 0.35, label: screen.qrLabel)
                             } else {
                                 // Default QR to /vote/cats
-                                QRCodeView(url: "/vote/cats", size: Int(geo.size.height * 0.35), label: "Scan to Enter")
+                                QRCodeView(url: "/vote/cats", size: geo.size.height * 0.35, label: "Scan to Enter")
                             }
                             
                             Text("SCAN TO ENTER")
