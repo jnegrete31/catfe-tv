@@ -79,6 +79,7 @@ struct ScreenView: View {
                 }
             }
         }
+        .ignoresSafeArea()
         .transition(.opacity)
     }
 }
@@ -301,11 +302,13 @@ struct BaseScreenLayout<Content: View>: View {
         ZStack {
             // Lounge-inspired background
             LoungeBackground()
+                .ignoresSafeArea()
             
             // Content
             content
                 .padding(60)
         }
+        .ignoresSafeArea()
     }
 }
 

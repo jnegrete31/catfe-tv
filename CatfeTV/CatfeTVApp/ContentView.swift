@@ -20,8 +20,8 @@ struct ContentView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                // Background
-                Color.catfeCream
+                // Background - matches screen backgrounds to avoid visible border
+                Color.loungeCharcoal
                     .ignoresSafeArea()
                 
                 // Current Screen

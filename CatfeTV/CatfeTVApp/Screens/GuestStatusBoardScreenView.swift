@@ -30,11 +30,6 @@ struct GuestStatusBoardScreenView: View {
                         .opacity(appeared ? 1 : 0)
                         .animation(.easeOut(duration: 0.6), value: appeared)
                     
-                    // Session Window Timers
-                    sessionWindowTimers(now: now)
-                        .opacity(appeared ? 1 : 0)
-                        .animation(.easeOut(duration: 0.6).delay(0.15), value: appeared)
-                    
                     Spacer()
                     
                     // Guest Cards or Empty State
@@ -71,91 +66,7 @@ struct GuestStatusBoardScreenView: View {
         }
     }
     
-    // MARK: - Session Window Timers
-    
-    @ViewBuilder
-    private func sessionWindowTimers(now: Date) -> some View {
-        let calendar = Calendar.current
-        let currentMinute = calendar.component(.minute, from: now)
-        let currentSecond = calendar.component(.second, from: now)
-        
-        // Full Purr ends at :00 (top of the hour)
-        let fullPurrMinutesLeft = (60 - currentMinute - 1)
-        let fullPurrSecondsLeft = 60 - currentSecond
-        let fullPurrTotalSeconds = fullPurrMinutesLeft * 60 + fullPurrSecondsLeft
-        
-        // Mini Meow ends at :30
-        let miniMeowMinutesLeft = currentMinute < 30 ? (30 - currentMinute - 1) : (90 - currentMinute - 1)
-        let miniMeowSecondsLeft = 60 - currentSecond
-        let miniMeowTotalSeconds = miniMeowMinutesLeft * 60 + miniMeowSecondsLeft
-        
-        HStack(spacing: 30) {
-            // Full Purr Timer
-            sessionTimerCard(
-                icon: "🐱",
-                label: "Full Purr",
-                duration: "60 min",
-                minutesLeft: fullPurrTotalSeconds / 60,
-                secondsLeft: fullPurrTotalSeconds % 60,
-                totalSeconds: fullPurrTotalSeconds,
-                color: Color(red: 0.2, green: 0.7, blue: 0.7) // Teal
-            )
-            
-            // Mini Meow Timer
-            sessionTimerCard(
-                icon: "🐾",
-                label: "Mini Meow",
-                duration: "30 min",
-                minutesLeft: miniMeowTotalSeconds / 60,
-                secondsLeft: miniMeowTotalSeconds % 60,
-                totalSeconds: miniMeowTotalSeconds,
-                color: Color(red: 0.85, green: 0.65, blue: 0.2) // Amber
-            )
-        }
-    }
-    
-    @ViewBuilder
-    private func sessionTimerCard(
-        icon: String,
-        label: String,
-        duration: String,
-        minutesLeft: Int,
-        secondsLeft: Int,
-        totalSeconds: Int,
-        color: Color
-    ) -> some View {
-        HStack(spacing: 16) {
-            Text(icon)
-                .font(.system(size: 36))
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text(label)
-                    .font(.system(size: 20, weight: .semibold, design: .serif))
-                    .foregroundColor(.loungeCream)
-                Text(duration)
-                    .font(.system(size: 14))
-                    .foregroundColor(.loungeCream.opacity(0.6))
-            }
-            
-            Spacer()
-            
-            // Countdown
-            Text(String(format: "%d:%02d", minutesLeft, secondsLeft))
-                .font(.system(size: 36, weight: .bold, design: .monospaced))
-                .foregroundColor(totalSeconds < 300 ? .red : color)
-        }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 16)
-        .frame(maxWidth: .infinity)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(color.opacity(0.15))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(color.opacity(0.3), lineWidth: 1)
-                )
-        )
-    }
+    // Static session window timers removed - Roller integration handles session data now
     
     // MARK: - Guest Grid
     
