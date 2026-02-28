@@ -237,6 +237,13 @@ struct APIScreen: Codable {
     var createdAt: String
     var updatedAt: String
     
+    // Adoption-specific fields from API
+    var catName: String?
+    var catAge: String?
+    var catGender: String?
+    var catBreed: String?
+    var catDescription: String?
+    
     // Event-specific fields from API
     var eventDate: String?
     var eventTime: String?
@@ -291,6 +298,11 @@ struct APIScreen: Codable {
             schedule: schedule,
             livestreamUrl: livestreamUrl,
             templateOverlay: templateOverlay,
+            catName: catName,
+            catAge: catAge,
+            catGender: catGender,
+            catBreed: catBreed,
+            catDescription: catDescription,
             eventDate: eventDate,
             eventTime: eventTime,
             eventLocation: eventLocation

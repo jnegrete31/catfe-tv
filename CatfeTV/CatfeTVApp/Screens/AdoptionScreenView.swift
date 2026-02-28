@@ -318,8 +318,23 @@ struct AdoptionScreenView: View {
                         Spacer().frame(height: 20)
                         
                         // Age / Gender
-                        if let age = screen.catAge, let gender = screen.catGender {
-                            Text("\(age) · \(gender)")
+                        let genderDisplay: String? = {
+                            guard let g = screen.catGender, !g.isEmpty, g != "unknown" else { return nil }
+                            let icon = g == "Male" ? "♂" : "♀"
+                            return "\(icon) \(g)"
+                        }()
+                        let ageGenderText: String? = {
+                            if let age = screen.catAge, let gd = genderDisplay {
+                                return "\(age) · \(gd)"
+                            } else if let age = screen.catAge {
+                                return age
+                            } else if let gd = genderDisplay {
+                                return gd
+                            }
+                            return nil
+                        }()
+                        if let text = ageGenderText {
+                            Text(text)
                                 .font(.system(size: 28, weight: .light))
                                 .foregroundColor(Color(hex: "444444"))
                                 .opacity(appeared ? 1 : 0)

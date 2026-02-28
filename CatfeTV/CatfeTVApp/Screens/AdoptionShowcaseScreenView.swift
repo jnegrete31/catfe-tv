@@ -184,7 +184,14 @@ private struct CatShowcaseCard: View {
                     .font(.system(size: 22, weight: .semibold, design: .serif))
                     .foregroundColor(.loungeCream)
                 
-                if let age = cat.catAge {
+                if let gender = cat.catGender, !gender.isEmpty, gender != "unknown" {
+                    let genderIcon = gender == "Male" ? "♂" : "♀"
+                    let ageText = cat.catAge ?? ""
+                    let combined = ageText.isEmpty ? "\(genderIcon) \(gender)" : "\(genderIcon) \(gender) · \(ageText)"
+                    Text(combined)
+                        .font(CatfeTypography.small)
+                        .foregroundColor(.loungeCream.opacity(0.6))
+                } else if let age = cat.catAge {
                     Text(age)
                         .font(CatfeTypography.small)
                         .foregroundColor(.loungeCream.opacity(0.5))
