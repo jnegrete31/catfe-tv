@@ -458,7 +458,7 @@ private struct MagazineQRCode: View {
             }
         }
         .onAppear {
-            qrImage = QRCodeGenerator.generate(from: url, size: 130)
+            qrImage = QRCodeGenerator.generate(from: url, size: CGSize(width: 260, height: 260))
         }
     }
 }
