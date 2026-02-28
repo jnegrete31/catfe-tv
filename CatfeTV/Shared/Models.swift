@@ -891,3 +891,50 @@ struct TopGuestPhotoEntry: Codable {
     var voteCount: Int
     var caption: String?
 }
+
+// MARK: - Spotlight Donation Model (from catPhotos.getAllActiveSpotlights)
+struct SpotlightDonation: Codable, Identifiable {
+    var id: Int
+    var photoId: Int
+    var catId: Int
+    var donorName: String
+    var tierId: String
+    var durationMinutes: Int
+    var amountCents: Int
+    var startsAt: Date
+    var expiresAt: Date
+    var status: String
+    var photoUrl: String?
+    var caption: String?
+    var catName: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case id, photoId, catId, donorName, tierId, durationMinutes, amountCents
+        case startsAt, expiresAt, status, photoUrl, caption, catName
+    }
+    
+    var tierLabel: String {
+        switch tierId {
+        case "spotlight_5min": return "Quick Flash"
+        case "spotlight_30min": return "Mini Spotlight"
+        case "spotlight_1hr": return "Full Spotlight"
+        case "spotlight_allday": return "All Day Star"
+        default: return "Spotlight"
+        }
+    }
+    
+    var timeRemaining: String {
+        let now = Date()
+        let diff = expiresAt.timeIntervalSince(now)
+        if diff <= 0 { return "Expiring..." }
+        let minutes = Int(diff / 60)
+        if minutes < 60 { return "\(minutes)m left" }
+        let hours = minutes / 60
+        let mins = minutes % 60
+        return mins > 0 ? "\(hours)h \(mins)m left" : "\(hours)h left"
+    }
+    
+    var donationAmount: String {
+        "$\(amountCents / 100)"
+    }
+}

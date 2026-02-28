@@ -45,6 +45,9 @@ class APIClient: ObservableObject {
     @Published var cachedTopGuestPhotoPerCat: [String: TopGuestPhotoEntry] = [:] // catId string -> photo
     private var guestPhotosLastFetched: Date?
     
+    // Cached active spotlight donations for the Active Spotlights Board
+    @Published var cachedActiveSpotlights: [SpotlightDonation] = []
+    
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
     
@@ -748,10 +751,30 @@ class APIClient: ObservableObject {
         guestPhotosLastFetched = Date()
     }
     
+    /// Fetch active spotlight donations for the Active Spotlights Board TV slide.
+    func fetchActiveSpotlights() async {
+        do {
+            let url = URL(string: "\(baseURL)/api/trpc/catPhotos.getAllActiveSpotlights")!
+            var request = URLRequest(url: url)
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            
+            let (data, response) = try await URLSession.shared.data(for: request)
+            
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                let trpcResponse = try decoder.decode(TRPCResponse<[SpotlightDonation]>.self, from: data)
+                cachedActiveSpotlights = trpcResponse.result.data.json
+                print("[Spotlights] Cached \(cachedActiveSpotlights.count) active spotlights")
+            }
+        } catch {
+            print("[Spotlights] Failed to fetch active spotlights: \(error)")
+        }
+    }
+    
     /// Refresh all guest photo caches.
     func refreshGuestPhotos() async {
         await fetchTopGuestPhotos()
         await fetchTopGuestPhotoPerCat()
+        await fetchActiveSpotlights()
     }
     
     /// Get the top guest photo URL for a specific cat ID, or nil if none exists.
