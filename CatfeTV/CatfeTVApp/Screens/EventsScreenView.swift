@@ -24,7 +24,7 @@ struct EventsScreenView: View {
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                // Warm cream/amber gradient background
+                // Warm cream/amber gradient background (fills entire screen)
                 LinearGradient(
                     colors: [
                         Color(hex: "fef3c7"),
@@ -37,11 +37,12 @@ struct EventsScreenView: View {
                 .ignoresSafeArea()
                 
                 // Diagonal image panel - upper left triangle
+                // Diagonal goes from x=0.60 at top to x=0.35 at bottom
                 if screen.imageURL != nil {
                     ScreenImage(url: screen.imageURL)
                         .frame(width: geo.size.width, height: geo.size.height)
                         .clipped()
-                        .clipShape(DiagonalShape())
+                        .clipShape(EventDiagonalShape())
                         .opacity(appeared ? 1 : 0)
                         .offset(x: appeared ? 0 : -40)
                         .animation(.easeOut(duration: 0.8), value: appeared)
@@ -49,32 +50,35 @@ struct EventsScreenView: View {
                 
                 // Mint green diagonal accent line
                 if screen.imageURL != nil {
-                    DiagonalLineShape()
+                    EventDiagonalLineShape()
                         .fill(Color(hex: "a8d5ba"))
                         .frame(width: geo.size.width, height: geo.size.height)
                         .allowsHitTesting(false)
                 }
                 
-                // Content area - right side
-                HStack {
+                // Content area - positioned safely in the right cream panel
+                // The diagonal's rightmost point is at x=0.60 (top of screen)
+                // So content must start well past that
+                HStack(spacing: 0) {
                     if screen.imageURL != nil {
                         Spacer()
-                            .frame(width: geo.size.width * 0.42)
+                            .frame(width: geo.size.width * 0.62)
                     }
                     
-                    VStack(alignment: .leading, spacing: 20) {
+                    VStack(alignment: .leading, spacing: 16) {
                         Spacer()
+                            .frame(height: 20)
                         
                         // Upcoming Event badge
                         HStack(spacing: 10) {
                             Text("🎉")
-                                .font(.system(size: 28))
+                                .font(.system(size: 26))
                             Text("Upcoming Event")
-                                .font(.system(size: 24, weight: .semibold, design: .rounded))
+                                .font(.system(size: 22, weight: .semibold, design: .rounded))
                                 .foregroundColor(.white)
                         }
-                        .padding(.horizontal, 24)
-                        .padding(.vertical, 12)
+                        .padding(.horizontal, 22)
+                        .padding(.vertical, 10)
                         .background(
                             LinearGradient(
                                 colors: [Color(hex: "d97706"), Color(hex: "b45309")],
@@ -82,7 +86,7 @@ struct EventsScreenView: View {
                                 endPoint: .bottomTrailing
                             )
                         )
-                        .cornerRadius(30)
+                        .cornerRadius(28)
                         .shadow(color: Color(hex: "d97706").opacity(0.35), radius: 10, x: 0, y: 4)
                         .opacity(appeared ? 1 : 0)
                         .scaleEffect(appeared ? 1 : 0.8)
@@ -90,22 +94,25 @@ struct EventsScreenView: View {
                         
                         // Title
                         Text(screen.title)
-                            .font(.system(size: 60, weight: .bold, design: .serif))
+                            .font(.system(size: 52, weight: .bold, design: .serif))
                             .foregroundColor(Color(hex: "3d2914"))
                             .lineLimit(3)
                             .fixedSize(horizontal: false, vertical: true)
+                            .opacity(appeared ? 1 : 0)
+                            .offset(y: appeared ? 0 : 15)
+                            .animation(.easeOut(duration: 0.6).delay(0.2), value: appeared)
                         
-                        // Event details row
+                        // Event details - stacked vertically for better readability
                         if hasEventDetails {
-                            HStack(spacing: 24) {
-                                if let date = formattedDate {
-                                    eventDetailItem(icon: "calendar", text: date)
-                                }
+                            VStack(alignment: .leading, spacing: 12) {
                                 if let time = screen.eventTime {
                                     eventDetailItem(icon: "clock", text: time)
                                 }
                                 if let location = screen.eventLocation {
                                     eventDetailItem(icon: "mappin.and.ellipse", text: location)
+                                }
+                                if let date = formattedDate {
+                                    eventDetailItem(icon: "calendar", text: date)
                                 }
                             }
                             .opacity(appeared ? 1 : 0)
@@ -116,50 +123,55 @@ struct EventsScreenView: View {
                         // Subtitle
                         if let subtitle = screen.subtitle {
                             Text(subtitle)
-                                .font(.system(size: 32, weight: .medium, design: .serif))
+                                .font(.system(size: 26, weight: .medium, design: .serif))
                                 .italic()
                                 .foregroundColor(Color(hex: "6a5a4a"))
+                                .opacity(appeared ? 1 : 0)
+                                .animation(.easeOut(duration: 0.5).delay(0.45), value: appeared)
                         }
                         
                         // Body text
                         if let body = screen.bodyText {
                             Text(body)
-                                .font(.system(size: 28, weight: .regular, design: .rounded))
+                                .font(.system(size: 24, weight: .regular, design: .rounded))
                                 .foregroundColor(Color(hex: "7a6a5a"))
-                                .lineSpacing(6)
-                                .lineLimit(4)
+                                .lineSpacing(5)
+                                .lineLimit(3)
+                                .opacity(appeared ? 1 : 0)
+                                .animation(.easeOut(duration: 0.5).delay(0.5), value: appeared)
                         }
                         
                         Spacer()
                         
                         // QR Code
                         if let qrURL = screen.qrCodeURL, !qrURL.isEmpty {
-                            HStack(spacing: 20) {
-                                QRCodeView(url: qrURL, size: 120, label: nil)
+                            HStack(spacing: 16) {
+                                QRCodeView(url: qrURL, size: 100, label: nil)
                                 
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(screen.qrLabel ?? "Scan to RSVP")
-                                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                                        .font(.system(size: 20, weight: .bold, design: .rounded))
                                         .foregroundColor(Color(hex: "3d2914"))
                                     Text("Point your camera here")
-                                        .font(.system(size: 16, weight: .regular, design: .rounded))
+                                        .font(.system(size: 15, weight: .regular, design: .rounded))
                                         .foregroundColor(Color(hex: "8a7a6a"))
                                 }
                             }
-                            .padding(20)
+                            .padding(16)
                             .background(Color.white.opacity(0.85))
-                            .cornerRadius(20)
-                            .shadow(color: .black.opacity(0.1), radius: 15, x: 0, y: 4)
+                            .cornerRadius(18)
+                            .shadow(color: .black.opacity(0.1), radius: 12, x: 0, y: 4)
                             .opacity(appeared ? 1 : 0)
                             .scaleEffect(appeared ? 1 : 0.9)
                             .animation(.spring(response: 0.5, dampingFraction: 0.7).delay(0.5), value: appeared)
                         }
                         
                         Spacer()
+                            .frame(height: 20)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.trailing, geo.size.width * 0.05)
-                    .padding(.leading, screen.imageURL != nil ? geo.size.width * 0.02 : geo.size.width * 0.08)
+                    .padding(.trailing, 40)
+                    .padding(.leading, 20)
                     .opacity(appeared ? 1 : 0)
                     .offset(x: appeared ? 0 : 30)
                     .animation(.easeOut(duration: 0.6).delay(0.2), value: appeared)
@@ -215,26 +227,28 @@ struct EventsScreenView: View {
             ZStack {
                 Circle()
                     .fill(Color(hex: "d97706").opacity(0.15))
-                    .frame(width: 40, height: 40)
+                    .frame(width: 36, height: 36)
                 Image(systemName: icon)
-                    .font(.system(size: 18, weight: .medium))
+                    .font(.system(size: 16, weight: .medium))
                     .foregroundColor(Color(hex: "d97706"))
             }
             Text(text)
-                .font(.system(size: 26, weight: .medium, design: .rounded))
+                .font(.system(size: 24, weight: .medium, design: .rounded))
                 .foregroundColor(Color(hex: "5a4a3a"))
         }
     }
 }
 
 // MARK: - Diagonal Clip Shape (upper-left triangle for image)
+// Narrower diagonal: from x=0.60 at top to x=0.35 at bottom
+// This gives the image less horizontal spread and more room for content
 
-struct DiagonalShape: Shape {
+struct EventDiagonalShape: Shape {
     func path(in rect: CGRect) -> Path {
         var path = Path()
         path.move(to: CGPoint(x: 0, y: 0))
-        path.addLine(to: CGPoint(x: rect.width * 0.65, y: 0))
-        path.addLine(to: CGPoint(x: rect.width * 0.40, y: rect.height))
+        path.addLine(to: CGPoint(x: rect.width * 0.60, y: 0))
+        path.addLine(to: CGPoint(x: rect.width * 0.35, y: rect.height))
         path.addLine(to: CGPoint(x: 0, y: rect.height))
         path.closeSubpath()
         return path
@@ -242,15 +256,16 @@ struct DiagonalShape: Shape {
 }
 
 // MARK: - Diagonal Accent Line Shape
+// Runs along the right edge of the diagonal image clip
 
-struct DiagonalLineShape: Shape {
+struct EventDiagonalLineShape: Shape {
     func path(in rect: CGRect) -> Path {
         var path = Path()
-        let lineWidth: CGFloat = rect.width * 0.02
-        path.move(to: CGPoint(x: rect.width * 0.64, y: 0))
-        path.addLine(to: CGPoint(x: rect.width * 0.64 + lineWidth, y: 0))
-        path.addLine(to: CGPoint(x: rect.width * 0.39 + lineWidth, y: rect.height))
-        path.addLine(to: CGPoint(x: rect.width * 0.39, y: rect.height))
+        let lineWidth: CGFloat = rect.width * 0.015
+        path.move(to: CGPoint(x: rect.width * 0.595, y: 0))
+        path.addLine(to: CGPoint(x: rect.width * 0.595 + lineWidth, y: 0))
+        path.addLine(to: CGPoint(x: rect.width * 0.345 + lineWidth, y: rect.height))
+        path.addLine(to: CGPoint(x: rect.width * 0.345, y: rect.height))
         path.closeSubpath()
         return path
     }
