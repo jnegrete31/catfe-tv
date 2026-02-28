@@ -79,10 +79,10 @@ struct GuestPhotoContestScreenView: View {
                 
                 ScreenImage(
                     url: photo.photoUrl,
-                    contentMode: .fill,
-                    width: geo.size.width * 0.40,
-                    height: geo.size.height
+                    contentMode: .fill
                 )
+                .frame(width: geo.size.width * 0.40, height: geo.size.height)
+                .clipped()
                 
                 // Bottom gradient
                 VStack {
@@ -187,10 +187,9 @@ struct GuestPhotoContestScreenView: View {
             if let photoUrl = spotlight.photoUrl {
                 ScreenImage(
                     url: photoUrl,
-                    contentMode: .fill,
-                    width: 72,
-                    height: 72
+                    contentMode: .fill
                 )
+                .frame(width: 72, height: 72)
                 .clipShape(RoundedRectangle(cornerRadius: 14))
                 .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
             } else {
