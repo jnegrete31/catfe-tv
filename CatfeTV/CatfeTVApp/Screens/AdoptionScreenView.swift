@@ -378,7 +378,7 @@ struct AdoptionScreenView: View {
                         
                         // Adoption quote
                         if !screen.isAdopted {
-                            Text("\"Scan the QR to Adopt Me :)\"")
+                            Text("\"Scan to meet me, upload photos & adopt!\"")
                                 .font(.system(size: 18, weight: .regular, design: .serif))
                                 .italic()
                                 .foregroundColor(Color(hex: "888888"))
@@ -388,9 +388,10 @@ struct AdoptionScreenView: View {
                         
                         Spacer().frame(height: 20)
                         
-                        // QR Code
+                        // QR Code — prepend base URL if path is relative
                         if let qrURL = screen.qrCodeURL, !qrURL.isEmpty {
-                            MagazineQRCode(url: qrURL, label: screen.qrLabel)
+                            let fullURL = qrURL.hasPrefix("http") ? qrURL : "https://catfetv.com" + qrURL
+                            MagazineQRCode(url: fullURL, label: screen.qrLabel ?? "Upload photos & adopt")
                                 .opacity(appeared ? 1 : 0)
                                 .scaleEffect(appeared ? 1 : 0.9)
                                 .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.6), value: appeared)
