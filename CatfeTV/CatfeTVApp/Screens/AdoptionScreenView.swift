@@ -48,7 +48,7 @@ struct AdoptionScreenView: View {
         return Self.lookingForSayings[abs(index)]
     }
     
-    /// Get guest photos for this cat from the cached contest data
+    /// Get guest photos for this cat from the cached Snap & Purr data
     private var guestPhotosForCat: [GuestCatPhoto] {
         guard let catId = screen.numericId else { return [] }
         return apiClient.cachedTopGuestPhotos.filter { $0.catId == catId }
@@ -148,15 +148,15 @@ struct AdoptionScreenView: View {
                         .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.5), value: appeared)
                     }
                     
-                    // Photo contest callout overlay on photo (non-adopted only)
+                    // Snap & Purr spotlight callout overlay on photo (non-adopted only)
                     if !screen.isAdopted {
                         HStack(spacing: 10) {
                             Text("📸")
                                 .font(.system(size: 22))
-                            Text("Snap a photo of me! Enter our Photo Contest")
+                            Text("Snap a photo of me! Spotlight it on my profile")
                                 .font(.system(size: 20, weight: .semibold))
                                 .foregroundColor(.white)
-                            Text("🏆")
+                            Text("⭐")
                                 .font(.system(size: 20))
                         }
                         .padding(.horizontal, 20)
@@ -219,7 +219,7 @@ struct AdoptionScreenView: View {
                                 .padding(.vertical, 6)
                                 .background(Capsule().fill(Color.black.opacity(0.3)))
                                 .padding(.leading, 24)
-                                .padding(.bottom, screen.isAdopted ? 24 : 70) // Above the contest callout
+                                .padding(.bottom, screen.isAdopted ? 24 : 70) // Above the spotlight callout
                                 
                                 Spacer()
                             }
