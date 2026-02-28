@@ -153,6 +153,18 @@ struct AdoptionScreenView: View {
                                     .font(.system(size: 28, weight: .medium, design: .serif))
                                     .foregroundColor(Color(hex: "3d3d3d"))
                                 
+                                // Photo contest callout
+                                if !screen.isAdopted {
+                                    HStack(spacing: 6) {
+                                        Text("📸")
+                                            .font(.system(size: 16))
+                                        Text("Snap a photo of me!")
+                                            .font(.system(size: 15, weight: .semibold))
+                                            .foregroundColor(Color(hex: "E8913A"))
+                                    }
+                                    .padding(.top, 2)
+                                }
+                                
                                 // Photo indicator dots if multiple photos
                                 if allPhotoURLs.count > 1 {
                                     HStack(spacing: 6) {

@@ -195,6 +195,18 @@ private struct CatShowcaseCard: View {
                         .font(CatfeTypography.small)
                         .foregroundColor(.loungeMintGreen.opacity(0.8))
                 }
+                
+                // Photo contest callout
+                if !cat.isAdopted {
+                    HStack(spacing: 4) {
+                        Text("📸")
+                            .font(.system(size: 12))
+                        Text("Snap a photo of me!")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(Color(hex: "E8913A"))
+                    }
+                    .padding(.top, 2)
+                }
             }
             .padding(.vertical, 12)
         }
