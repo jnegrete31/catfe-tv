@@ -98,6 +98,31 @@ struct AdoptionScreenView: View {
                         .offset(y: appeared ? 0 : -20)
                         .animation(.easeOut(duration: 0.6), value: appeared)
                         
+                        // Photo contest callout - right below the title
+                        if !screen.isAdopted {
+                            HStack(spacing: 8) {
+                                Text("📸")
+                                    .font(.system(size: 24))
+                                Text("Snap a photo of me! Enter our Photo Contest to be featured on the big screen!")
+                                    .font(.system(size: 22, weight: .semibold))
+                                    .foregroundColor(Color(hex: "E8913A"))
+                                Text("🏆")
+                                    .font(.system(size: 24))
+                            }
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 10)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color(hex: "E8913A").opacity(0.12))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(Color(hex: "E8913A").opacity(0.3), lineWidth: 1)
+                                    )
+                            )
+                            .opacity(appeared ? 1 : 0)
+                            .animation(.easeOut(duration: 0.5).delay(0.3), value: appeared)
+                        }
+                        
                         Spacer()
                     }
                     
@@ -153,17 +178,7 @@ struct AdoptionScreenView: View {
                                     .font(.system(size: 28, weight: .medium, design: .serif))
                                     .foregroundColor(Color(hex: "3d3d3d"))
                                 
-                                // Photo contest callout
-                                if !screen.isAdopted {
-                                    HStack(spacing: 6) {
-                                        Text("📸")
-                                            .font(.system(size: 16))
-                                        Text("Snap a photo of me!")
-                                            .font(.system(size: 15, weight: .semibold))
-                                            .foregroundColor(Color(hex: "E8913A"))
-                                    }
-                                    .padding(.top, 2)
-                                }
+
                                 
                                 // Photo indicator dots if multiple photos
                                 if allPhotoURLs.count > 1 {
