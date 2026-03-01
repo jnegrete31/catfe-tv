@@ -564,6 +564,8 @@ struct PhotoSubmission: Codable, Identifiable {
     var isFeatured: Bool
     var backgroundStyle: String?
     var borderStyle: String?
+    var familyName: String?
+    var milestoneTag: String?
     var likesCount: Int
     var createdAt: String
     var updatedAt: String
@@ -576,6 +578,7 @@ struct PhotoSubmission: Codable, Identifiable {
         case reviewedAt, reviewedBy, rejectionReason
         case displayOrder, showOnTv, isFeatured
         case backgroundStyle, borderStyle
+        case familyName, milestoneTag
         case likesCount
         case createdAt, updatedAt
     }

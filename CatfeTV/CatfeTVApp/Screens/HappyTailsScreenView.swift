@@ -89,14 +89,38 @@ struct HappyTailsScreenView: View {
                             }
                             .clipShape(RoundedRectangle(cornerRadius: 4))
                             
-                            // Cat name or submitter
-                            Text(photo.catName ?? "by \(photo.submitterName)")
-                                .font(.system(size: 22, weight: .medium, design: .serif))
-                                .foregroundColor(Color(hex: "3d3d3d"))
-                                .lineLimit(2)
-                                .multilineTextAlignment(.center)
-                                .padding(.top, 16)
-                                .padding(.bottom, 8)
+                            // Cat name with optional family name
+                            VStack(spacing: 4) {
+                                if let catName = photo.catName {
+                                    if let familyName = photo.familyName, !familyName.isEmpty, familyName.lowercased() != catName.lowercased() {
+                                        Text("\(catName), now \(familyName)")
+                                            .font(.system(size: 22, weight: .medium, design: .serif))
+                                            .foregroundColor(Color(hex: "3d3d3d"))
+                                    } else {
+                                        Text(catName)
+                                            .font(.system(size: 22, weight: .medium, design: .serif))
+                                            .foregroundColor(Color(hex: "3d3d3d"))
+                                    }
+                                } else {
+                                    Text("by \(photo.submitterName)")
+                                        .font(.system(size: 22, weight: .medium, design: .serif))
+                                        .foregroundColor(Color(hex: "3d3d3d"))
+                                }
+                                
+                                // Milestone tag badge
+                                if let milestone = photo.milestoneTag, !milestone.isEmpty {
+                                    Text(milestone)
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundColor(.white)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 4)
+                                        .background(Capsule().fill(Color.loungeAmber))
+                                }
+                            }
+                            .lineLimit(2)
+                            .multilineTextAlignment(.center)
+                            .padding(.top, 16)
+                            .padding(.bottom, 8)
                         }
                         .padding(20)
                         .padding(.bottom, 30)
@@ -122,6 +146,35 @@ struct HappyTailsScreenView: View {
                                     .font(CatfeTypography.subtitle)
                                     .foregroundColor(.loungeCream.opacity(0.7))
                                     .lineLimit(3)
+                            }
+                            
+                            // Family name callout
+                            if let familyName = photo.familyName, !familyName.isEmpty,
+                               let catName = photo.catName, familyName.lowercased() != catName.lowercased() {
+                                HStack(spacing: 8) {
+                                    Text("🏷️").font(.system(size: 18))
+                                    Text("Now known as \(familyName)")
+                                        .font(.system(size: 18, weight: .medium, design: .serif))
+                                        .foregroundColor(.loungeAmber)
+                                        .italic()
+                                }
+                            }
+                            
+                            // Milestone tag
+                            if let milestone = photo.milestoneTag, !milestone.isEmpty {
+                                HStack(spacing: 8) {
+                                    Text("⭐").font(.system(size: 18))
+                                    Text(milestone)
+                                        .font(.system(size: 18, weight: .semibold))
+                                        .foregroundColor(.loungeAmber)
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 8)
+                                .background(
+                                    Capsule()
+                                        .fill(Color.loungeAmber.opacity(0.15))
+                                        .overlay(Capsule().stroke(Color.loungeAmber.opacity(0.3), lineWidth: 1))
+                                )
                             }
                             
                             // Adopted badge
