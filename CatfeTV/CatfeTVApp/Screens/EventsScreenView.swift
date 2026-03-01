@@ -37,7 +37,6 @@ struct EventsScreenView: View {
                 .ignoresSafeArea()
                 
                 // Diagonal image panel - upper left triangle
-                // Diagonal goes from x=0.60 at top to x=0.35 at bottom
                 if screen.imageURL != nil {
                     ScreenImage(url: screen.imageURL)
                         .frame(width: geo.size.width, height: geo.size.height)
@@ -56,29 +55,27 @@ struct EventsScreenView: View {
                         .allowsHitTesting(false)
                 }
                 
-                // Content area - positioned safely in the right cream panel
-                // The diagonal's rightmost point is at x=0.60 (top of screen)
-                // So content must start well past that
+                // Content area - right cream panel, vertically centered
                 HStack(spacing: 0) {
                     if screen.imageURL != nil {
                         Spacer()
                             .frame(width: geo.size.width * 0.62)
                     }
                     
-                    VStack(alignment: .leading, spacing: 16) {
+                    // Use a centered VStack so content fills the vertical space evenly
+                    VStack(alignment: .leading, spacing: 0) {
                         Spacer()
-                            .frame(height: 20)
                         
                         // Upcoming Event badge
                         HStack(spacing: 10) {
                             Text("🎉")
-                                .font(.system(size: 26))
+                                .font(.system(size: 30))
                             Text("Upcoming Event")
-                                .font(.system(size: 22, weight: .semibold, design: .rounded))
+                                .font(.system(size: 26, weight: .semibold, design: .rounded))
                                 .foregroundColor(.white)
                         }
-                        .padding(.horizontal, 22)
-                        .padding(.vertical, 10)
+                        .padding(.horizontal, 26)
+                        .padding(.vertical, 14)
                         .background(
                             LinearGradient(
                                 colors: [Color(hex: "d97706"), Color(hex: "b45309")],
@@ -86,15 +83,17 @@ struct EventsScreenView: View {
                                 endPoint: .bottomTrailing
                             )
                         )
-                        .cornerRadius(28)
+                        .cornerRadius(30)
                         .shadow(color: Color(hex: "d97706").opacity(0.35), radius: 10, x: 0, y: 4)
                         .opacity(appeared ? 1 : 0)
                         .scaleEffect(appeared ? 1 : 0.8)
                         .animation(.spring(response: 0.5, dampingFraction: 0.7).delay(0.3), value: appeared)
                         
-                        // Title
+                        Spacer().frame(height: 28)
+                        
+                        // Title - large and prominent
                         Text(screen.title)
-                            .font(.system(size: 52, weight: .bold, design: .serif))
+                            .font(.system(size: 58, weight: .bold, design: .serif))
                             .foregroundColor(Color(hex: "3d2914"))
                             .lineLimit(3)
                             .fixedSize(horizontal: false, vertical: true)
@@ -102,9 +101,11 @@ struct EventsScreenView: View {
                             .offset(y: appeared ? 0 : 15)
                             .animation(.easeOut(duration: 0.6).delay(0.2), value: appeared)
                         
-                        // Event details - stacked vertically for better readability
+                        Spacer().frame(height: 28)
+                        
+                        // Event details - stacked vertically with generous spacing
                         if hasEventDetails {
-                            VStack(alignment: .leading, spacing: 12) {
+                            VStack(alignment: .leading, spacing: 16) {
                                 if let time = screen.eventTime {
                                     eventDetailItem(icon: "clock", text: time)
                                 }
@@ -122,52 +123,54 @@ struct EventsScreenView: View {
                         
                         // Subtitle
                         if let subtitle = screen.subtitle {
+                            Spacer().frame(height: 28)
                             Text(subtitle)
-                                .font(.system(size: 26, weight: .medium, design: .serif))
+                                .font(.system(size: 30, weight: .medium, design: .serif))
                                 .italic()
                                 .foregroundColor(Color(hex: "6a5a4a"))
+                                .lineLimit(3)
                                 .opacity(appeared ? 1 : 0)
                                 .animation(.easeOut(duration: 0.5).delay(0.45), value: appeared)
                         }
                         
                         // Body text
                         if let body = screen.bodyText {
+                            Spacer().frame(height: 20)
                             Text(body)
-                                .font(.system(size: 24, weight: .regular, design: .rounded))
+                                .font(.system(size: 26, weight: .regular, design: .rounded))
                                 .foregroundColor(Color(hex: "7a6a5a"))
-                                .lineSpacing(5)
-                                .lineLimit(3)
+                                .lineSpacing(6)
+                                .lineLimit(4)
                                 .opacity(appeared ? 1 : 0)
                                 .animation(.easeOut(duration: 0.5).delay(0.5), value: appeared)
                         }
                         
                         Spacer()
                         
-                        // QR Code
+                        // QR Code - anchored at bottom
                         if let qrURL = screen.qrCodeURL, !qrURL.isEmpty {
-                            HStack(spacing: 16) {
-                                QRCodeView(url: qrURL, size: 100, label: nil)
+                            HStack(spacing: 18) {
+                                QRCodeView(url: qrURL, size: 110, label: nil)
                                 
-                                VStack(alignment: .leading, spacing: 4) {
+                                VStack(alignment: .leading, spacing: 6) {
                                     Text(screen.qrLabel ?? "Scan to RSVP")
-                                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                                        .font(.system(size: 22, weight: .bold, design: .rounded))
                                         .foregroundColor(Color(hex: "3d2914"))
                                     Text("Point your camera here")
-                                        .font(.system(size: 15, weight: .regular, design: .rounded))
+                                        .font(.system(size: 16, weight: .regular, design: .rounded))
                                         .foregroundColor(Color(hex: "8a7a6a"))
                                 }
                             }
-                            .padding(16)
+                            .padding(20)
                             .background(Color.white.opacity(0.85))
-                            .cornerRadius(18)
+                            .cornerRadius(20)
                             .shadow(color: .black.opacity(0.1), radius: 12, x: 0, y: 4)
                             .opacity(appeared ? 1 : 0)
                             .scaleEffect(appeared ? 1 : 0.9)
                             .animation(.spring(response: 0.5, dampingFraction: 0.7).delay(0.5), value: appeared)
                         }
                         
-                        Spacer()
-                            .frame(height: 20)
+                        Spacer().frame(height: 30)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.trailing, 40)
@@ -223,25 +226,23 @@ struct EventsScreenView: View {
     // Event detail item with icon in amber circle
     @ViewBuilder
     private func eventDetailItem(icon: String, text: String) -> some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 12) {
             ZStack {
                 Circle()
                     .fill(Color(hex: "d97706").opacity(0.15))
-                    .frame(width: 36, height: 36)
+                    .frame(width: 44, height: 44)
                 Image(systemName: icon)
-                    .font(.system(size: 16, weight: .medium))
+                    .font(.system(size: 20, weight: .medium))
                     .foregroundColor(Color(hex: "d97706"))
             }
             Text(text)
-                .font(.system(size: 24, weight: .medium, design: .rounded))
+                .font(.system(size: 28, weight: .medium, design: .rounded))
                 .foregroundColor(Color(hex: "5a4a3a"))
         }
     }
 }
 
 // MARK: - Diagonal Clip Shape (upper-left triangle for image)
-// Narrower diagonal: from x=0.60 at top to x=0.35 at bottom
-// This gives the image less horizontal spread and more room for content
 
 struct EventDiagonalShape: Shape {
     func path(in rect: CGRect) -> Path {
@@ -256,7 +257,6 @@ struct EventDiagonalShape: Shape {
 }
 
 // MARK: - Diagonal Accent Line Shape
-// Runs along the right edge of the diagonal image clip
 
 struct EventDiagonalLineShape: Shape {
     func path(in rect: CGRect) -> Path {
