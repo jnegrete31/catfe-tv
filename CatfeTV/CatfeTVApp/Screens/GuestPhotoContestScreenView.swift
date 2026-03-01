@@ -5,6 +5,7 @@
 //  Active Spotlights Board — Magazine Split design.
 //  Shows all currently active spotlight donations as a "wall of fame" for donors.
 //  Left panel rotates Snap & Purr gallery photos, right panel lists active spotlights.
+//  When no spotlights are active, shows a Cat Popularity Tracker based on photos & donations.
 //
 import SwiftUI
 
@@ -27,6 +28,10 @@ struct GuestPhotoContestScreenView: View {
         apiClient.cachedSnapPurrPhotos
     }
     
+    private var popularCats: [CatPopularity] {
+        apiClient.cachedCatPopularity
+    }
+    
     var body: some View {
         GeometryReader { geo in
             HStack(spacing: 0) {
@@ -45,7 +50,7 @@ struct GuestPhotoContestScreenView: View {
                     )
                     .frame(width: 6)
                 
-                // RIGHT PANEL — Active Spotlights Board
+                // RIGHT PANEL — Active Spotlights Board or Popularity Tracker
                 rightPanel(geo: geo)
                     .frame(maxWidth: .infinity)
             }
@@ -157,7 +162,7 @@ struct GuestPhotoContestScreenView: View {
                     .padding(.top, 4)
                 
                 if spotlights.isEmpty {
-                    emptyState(geo: geo)
+                    popularityTracker(geo: geo)
                 } else {
                     spotlightList(geo: geo)
                 }
@@ -266,49 +271,158 @@ struct GuestPhotoContestScreenView: View {
         )
     }
     
-    // MARK: - Empty State
+    // MARK: - Popularity Tracker (Fallback when no spotlights)
     
-    private func emptyState(geo: GeometryProxy) -> some View {
-        VStack(spacing: 20) {
-            Spacer()
-            
-            Image(systemName: "sparkles")
-                .font(.system(size: 60))
-                .foregroundColor(Color(hex: "E8913A").opacity(0.4))
-            
-            Text("No Active Spotlights")
-                .font(.system(size: 32, weight: .bold, design: .serif))
-                .foregroundColor(Color(hex: "2d2d2d"))
-            
-            Text("Donate to feature your photo on a cat's adoption profile!")
-                .font(.system(size: 20))
-                .foregroundColor(Color(hex: "8a8a7a"))
-                .multilineTextAlignment(.center)
-            
-            // Tier pills
-            HStack(spacing: 12) {
-                ForEach(["$1 \u{00B7} 5 min", "$3 \u{00B7} 30 min", "$5 \u{00B7} 1 hour", "$10 \u{00B7} All day"], id: \.self) { tier in
-                    Text(tier)
-                        .font(.system(size: 15, weight: .semibold))
+    private func popularityTracker(geo: GeometryProxy) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            if !popularCats.isEmpty {
+                // Sub-header
+                HStack(spacing: 8) {
+                    Image(systemName: "trophy.fill")
+                        .font(.system(size: 22))
                         .foregroundColor(Color(hex: "E8913A"))
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(Color(hex: "E8913A").opacity(0.1))
-                        .clipShape(Capsule())
+                    Text("Most Popular Cats")
+                        .font(.system(size: 26, weight: .bold, design: .serif))
+                        .foregroundColor(Color(hex: "2d2d2d"))
+                }
+                .padding(.horizontal, 40)
+                .padding(.top, 20)
+                .padding(.bottom, 12)
+                
+                // Popularity ranking list
+                VStack(spacing: 10) {
+                    ForEach(Array(popularCats.prefix(6).enumerated()), id: \.element.id) { idx, cat in
+                        popularCatRow(cat: cat, rank: idx, geo: geo)
+                    }
+                }
+                .padding(.horizontal, 40)
+                
+                // Footer message
+                Text("Upload photos & donate spotlights to boost your favorite cat!")
+                    .font(.system(size: 15))
+                    .foregroundColor(Color(hex: "aaa89e"))
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.top, 16)
+                    .padding(.horizontal, 40)
+            } else {
+                // No data at all
+                VStack(spacing: 20) {
+                    Spacer()
+                    
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 60))
+                        .foregroundColor(Color(hex: "E8913A").opacity(0.4))
+                    
+                    Text("No Active Spotlights")
+                        .font(.system(size: 32, weight: .bold, design: .serif))
+                        .foregroundColor(Color(hex: "2d2d2d"))
+                    
+                    Text("Donate to feature your photo on a cat's adoption profile!")
+                        .font(.system(size: 20))
+                        .foregroundColor(Color(hex: "8a8a7a"))
+                        .multilineTextAlignment(.center)
+                    
+                    // Tier pills
+                    HStack(spacing: 12) {
+                        ForEach(["$1 \u{00B7} 5 min", "$3 \u{00B7} 30 min", "$5 \u{00B7} 1 hour", "$10 \u{00B7} All day"], id: \.self) { tier in
+                            Text(tier)
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundColor(Color(hex: "E8913A"))
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 8)
+                                .background(Color(hex: "E8913A").opacity(0.1))
+                                .clipShape(Capsule())
+                        }
+                    }
+                    
+                    Spacer()
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 40)
+            }
+        }
+    }
+    
+    private func popularCatRow(cat: CatPopularity, rank: Int, geo: GeometryProxy) -> some View {
+        let medals = ["\u{1F947}", "\u{1F948}", "\u{1F949}"] // 🥇🥈🥉
+        let medal = rank < 3 ? medals[rank] : "#\(rank + 1)"
+        let isTop = rank == 0
+        
+        return HStack(spacing: 14) {
+            // Rank medal
+            Text(medal)
+                .font(.system(size: 24))
+                .frame(width: 40, alignment: .center)
+            
+            // Cat photo
+            if let photoUrl = cat.photoUrl {
+                ScreenImage(
+                    url: photoUrl,
+                    contentMode: .fill
+                )
+                .frame(width: 56, height: 56)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .shadow(color: .black.opacity(0.08), radius: 3, x: 0, y: 1)
+            } else {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color(hex: "f0ede8"))
+                    .frame(width: 56, height: 56)
+                    .overlay(
+                        Image(systemName: "cat.fill")
+                            .font(.system(size: 20))
+                            .foregroundColor(Color(hex: "8a8a7a"))
+                    )
+            }
+            
+            // Cat info
+            VStack(alignment: .leading, spacing: 3) {
+                Text(cat.name)
+                    .font(.system(size: 20, weight: .bold, design: .serif))
+                    .foregroundColor(Color(hex: "2d2d2d"))
+                    .lineLimit(1)
+                
+                HStack(spacing: 12) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "camera.fill")
+                            .font(.system(size: 12))
+                        Text("\(cat.photoCount) photo\(cat.photoCount != 1 ? "s" : "")")
+                            .font(.system(size: 14))
+                    }
+                    .foregroundColor(Color(hex: "8a8a7a"))
+                    
+                    if cat.donatedDollars > 0 {
+                        HStack(spacing: 4) {
+                            Image(systemName: "heart.fill")
+                                .font(.system(size: 12))
+                            Text("$\(cat.donatedDollars) donated")
+                                .font(.system(size: 14))
+                        }
+                        .foregroundColor(Color(hex: "E8913A"))
+                    }
                 }
             }
             
             Spacer()
         }
-        .frame(maxWidth: .infinity)
-        .padding(.horizontal, 40)
+        .padding(.horizontal, 18)
+        .padding(.vertical, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(isTop ? Color(hex: "E8913A").opacity(0.08) : Color.white)
+                .shadow(color: isTop ? Color(hex: "E8913A").opacity(0.1) : .black.opacity(0.03), radius: isTop ? 10 : 3, x: 0, y: 2)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(isTop ? Color(hex: "E8913A").opacity(0.3) : Color(hex: "eee"), lineWidth: isTop ? 2 : 1)
+        )
     }
     
     // MARK: - Bottom Bar
     
     private func bottomBar(geo: GeometryProxy) -> some View {
         HStack {
-            Text("\(spotlights.count) active spotlight\(spotlights.count != 1 ? "s" : "")")
+            let count = spotlights.count
+            Text(count > 0 ? "\(count) active spotlight\(count != 1 ? "s" : "")" : "Upload photos to boost your cat!")
                 .font(.system(size: 16, weight: .medium))
                 .foregroundColor(Color(hex: "aaa89e"))
             

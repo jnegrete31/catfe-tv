@@ -47,6 +47,7 @@ class APIClient: ObservableObject {
     
     // Cached active spotlight donations for the Active Spotlights Board
     @Published var cachedActiveSpotlights: [SpotlightDonation] = []
+    @Published var cachedCatPopularity: [CatPopularity] = []
     
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
@@ -775,6 +776,7 @@ class APIClient: ObservableObject {
         await fetchTopGuestPhotos()
         await fetchTopGuestPhotoPerCat()
         await fetchActiveSpotlights()
+        await fetchCatPopularity()
     }
     
     /// Get the top guest photo URL for a specific cat ID, or nil if none exists.
@@ -817,6 +819,26 @@ class APIClient: ObservableObject {
         }
         
         throw APIError(message: "Failed to parse upload response")
+    }
+    
+    // MARK: - Cat Popularity Rankings
+    
+    func fetchCatPopularity() async {
+        do {
+            let url = URL(string: "\(baseURL)/api/trpc/cats.getPopularityRankings")!
+            var request = URLRequest(url: url)
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            
+            let (data, response) = try await URLSession.shared.data(for: request)
+            
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                let trpcResponse = try decoder.decode(TRPCResponse<[CatPopularity]>.self, from: data)
+                cachedCatPopularity = trpcResponse.result.data.json
+                print("[Popularity] Cached \(cachedCatPopularity.count) popular cats")
+            }
+        } catch {
+            print("[Popularity] Failed to fetch cat popularity: \(error)")
+        }
     }
     
     // MARK: - Image URL Helper

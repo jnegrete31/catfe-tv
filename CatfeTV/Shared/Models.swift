@@ -955,3 +955,43 @@ struct SpotlightDonation: Codable, Identifiable {
         "$\(amountCents / 100)"
     }
 }
+
+// MARK: - Cat Popularity Ranking
+
+struct CatPopularity: Codable, Identifiable {
+    var id: Int
+    var name: String
+    var photoUrl: String?
+    var breed: String?
+    var sex: String?
+    var photoCount: Int
+    var spotlightCount: Int
+    var totalDonatedCents: Int
+    
+    enum CodingKeys: String, CodingKey {
+        case id, name, photoUrl, breed, sex, photoCount, spotlightCount, totalDonatedCents
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(Int.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        photoUrl = try container.decodeIfPresent(String.self, forKey: .photoUrl)
+        breed = try container.decodeIfPresent(String.self, forKey: .breed)
+        sex = try container.decodeIfPresent(String.self, forKey: .sex)
+        photoCount = try container.decode(Int.self, forKey: .photoCount)
+        spotlightCount = try container.decode(Int.self, forKey: .spotlightCount)
+        // Handle totalDonatedCents as either Int or String (tRPC may serialize as string)
+        if let intVal = try? container.decode(Int.self, forKey: .totalDonatedCents) {
+            totalDonatedCents = intVal
+        } else if let strVal = try? container.decode(String.self, forKey: .totalDonatedCents) {
+            totalDonatedCents = Int(strVal) ?? 0
+        } else {
+            totalDonatedCents = 0
+        }
+    }
+    
+    var donatedDollars: Int {
+        totalDonatedCents / 100
+    }
+}
