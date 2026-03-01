@@ -146,10 +146,13 @@ struct GuestStatusBoardScreenView: View {
                                 .fill(Color(hex: "E8913A"))
                                 .frame(width: 120, height: 4)
                             
-                            let totalGuests = guestSessions.reduce(0) { $0 + $1.guestCount }
+                            let activeGuests = guestSessions.filter { !$0.isWaiting }.reduce(0) { $0 + $1.guestCount }
+                            let waitingGuests = guestSessions.filter { $0.isWaiting }.reduce(0) { $0 + $1.guestCount }
                             Text(guestSessions.isEmpty
                                  ? "The lounge is waiting for you!"
-                                 : "\(totalGuests) guest\(totalGuests == 1 ? "" : "s") enjoying the lounge")
+                                 : waitingGuests > 0
+                                    ? "\(activeGuests) guest\(activeGuests == 1 ? "" : "s") in the lounge \u{00B7} \(waitingGuests) waiting"
+                                    : "\(activeGuests) guest\(activeGuests == 1 ? "" : "s") enjoying the lounge")
                                 .font(.system(size: 22))
                                 .foregroundColor(Color(hex: "78716c"))
                         }
@@ -212,9 +215,13 @@ struct GuestStatusBoardScreenView: View {
     
     private func sortedSessions(now: Date) -> [GuestSession] {
         guestSessions.sorted { a, b in
-            let aExpired = a.expiresAt <= now
-            let bExpired = b.expiresAt <= now
+            let aWaiting = a.isWaiting
+            let bWaiting = b.isWaiting
+            let aExpired = !aWaiting && a.expiresAt <= now
+            let bExpired = !bWaiting && b.expiresAt <= now
+            // Active first, then waiting, then expired
             if aExpired != bExpired { return !aExpired }
+            if aWaiting != bWaiting { return !aWaiting }
             return a.expiresAt < b.expiresAt
         }
     }
@@ -224,13 +231,16 @@ struct GuestStatusBoardScreenView: View {
     @ViewBuilder
     private func sessionCard(session: GuestSession, now: Date, index: Int) -> some View {
         let remaining = session.expiresAt.timeIntervalSince(now)
-        let isExpired = remaining <= 0
-        let isUrgent = remaining > 0 && remaining <= 300
+        let isWaiting = session.isWaiting
+        let isExpired = !isWaiting && remaining <= 0
+        let isUrgent = !isWaiting && remaining > 0 && remaining <= 300
         let minutes = max(0, Int(remaining)) / 60
         let seconds = max(0, Int(remaining)) % 60
         let accent = accentColor(for: session.duration)
         let totalDuration = (Double(session.duration) ?? 60) * 60
         let percent = isExpired ? 0 : min(1.0, remaining / totalDuration)
+        let amberColor = Color(hex: "F59E0B")
+        let darkAmberColor = Color(hex: "D97706")
         
         let checkInTime = session.checkInAt
         let formatter = DateFormatter()
@@ -238,10 +248,20 @@ struct GuestStatusBoardScreenView: View {
         let checkInString = formatter.string(from: checkInTime)
         
         HStack(spacing: 16) {
-            // Color dot
-            Circle()
-                .fill(isExpired ? Color.red : accent)
-                .frame(width: 12, height: 12)
+            // Color dot / waiting icon
+            if isWaiting {
+                ZStack {
+                    Circle()
+                        .fill(amberColor.opacity(0.2))
+                        .frame(width: 24, height: 24)
+                    Text("\u{23F3}")
+                        .font(.system(size: 14))
+                }
+            } else {
+                Circle()
+                    .fill(isExpired ? Color.red : accent)
+                    .frame(width: 12, height: 12)
+            }
             
             // Guest info
             VStack(alignment: .leading, spacing: 4) {
@@ -259,24 +279,39 @@ struct GuestStatusBoardScreenView: View {
                 }
                 
                 HStack(spacing: 8) {
-                    Text(session.sessionTypeLabel)
+                    Text(isWaiting ? "Waiting" : session.sessionTypeLabel)
                         .font(.system(size: 15, weight: .semibold))
-                        .foregroundColor(isExpired ? .red : accent)
+                        .foregroundColor(isWaiting ? amberColor : isExpired ? .red : accent)
                     
-                    Text("•")
+                    Text("\u{2022}")
                         .font(.system(size: 12))
                         .foregroundColor(Color(hex: "9CA3AF"))
                     
-                    Text("Checked in \(checkInString)")
-                        .font(.system(size: 14))
-                        .foregroundColor(Color(hex: "9CA3AF"))
+                    if isWaiting {
+                        Text("\(session.sessionTypeLabel) \u{00B7} Starts at \(session.formattedScheduledStart)")
+                            .font(.system(size: 14))
+                            .foregroundColor(Color(hex: "9CA3AF"))
+                    } else {
+                        Text("Checked in \(checkInString)")
+                            .font(.system(size: 14))
+                            .foregroundColor(Color(hex: "9CA3AF"))
+                    }
                 }
             }
             
             Spacer()
             
-            // Countdown
-            if isExpired {
+            // Countdown / Waiting indicator
+            if isWaiting {
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(session.formattedScheduledStart)
+                        .font(.system(size: 22, weight: .semibold))
+                        .foregroundColor(amberColor)
+                    Text("Session starts soon")
+                        .font(.system(size: 13))
+                        .foregroundColor(darkAmberColor)
+                }
+            } else if isExpired {
                 VStack(alignment: .trailing, spacing: 2) {
                     Text("Time's up")
                         .font(.system(size: 22, weight: .bold))
@@ -295,23 +330,23 @@ struct GuestStatusBoardScreenView: View {
         .padding(.vertical, 16)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(isExpired ? Color.red.opacity(0.06) : accent.opacity(0.06))
+                .fill(isWaiting ? amberColor.opacity(0.06) : isExpired ? Color.red.opacity(0.06) : accent.opacity(0.06))
         )
         .overlay(
             // Left accent border
             HStack {
                 RoundedRectangle(cornerRadius: 2)
-                    .fill(isExpired ? Color.red : accent)
+                    .fill(isWaiting ? amberColor : isExpired ? Color.red : accent)
                     .frame(width: 4)
                 Spacer()
             }
         )
         .overlay(
-            // Progress bar at bottom
+            // Progress bar at bottom (not for waiting sessions)
             VStack {
                 Spacer()
                 GeometryReader { barGeo in
-                    if !isExpired {
+                    if !isExpired && !isWaiting {
                         ZStack(alignment: .leading) {
                             Rectangle()
                                 .fill(Color.black.opacity(0.05))
@@ -326,6 +361,7 @@ struct GuestStatusBoardScreenView: View {
             }
             .clipShape(RoundedRectangle(cornerRadius: 12))
         )
+        .opacity(isWaiting ? 0.85 : 1.0)
         .opacity(appeared ? 1 : 0)
         .offset(x: appeared ? 0 : 20)
         .animation(.easeOut(duration: 0.4).delay(Double(index) * 0.08), value: appeared)
@@ -429,7 +465,7 @@ struct GuestStatusBoardScreenView: View {
             do {
                 let sessions = try await apiClient.fetchGuestSessions()
                 await MainActor.run {
-                    self.guestSessions = sessions.filter { $0.status == "active" || $0.status == "extended" }
+                    self.guestSessions = sessions.filter { $0.status == "active" || $0.status == "extended" || $0.status == "waiting" }
                     self.fetchError = nil
                 }
             } catch {

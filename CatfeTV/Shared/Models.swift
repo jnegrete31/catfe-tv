@@ -745,12 +745,13 @@ struct GuestSession: Codable, Identifiable {
     var guestName: String
     var guestCount: Int
     var duration: String // "15", "30", or "60" minutes
-    var status: String // "active", "completed", "extended"
+    var status: String // "active", "completed", "extended", "waiting"
     var checkInAt: Date
     var expiresAt: Date
     var checkedOutAt: Date?
     var notes: String?
     var reminderShown: Bool
+    var scheduledStartAt: Date?
     
     enum CodingKeys: String, CodingKey {
         case id
@@ -763,6 +764,7 @@ struct GuestSession: Codable, Identifiable {
         case checkedOutAt
         case notes
         case reminderShown
+        case scheduledStartAt
     }
     
     /// Time remaining until session expires (in seconds)
@@ -782,7 +784,20 @@ struct GuestSession: Codable, Identifiable {
     
     /// Whether the session has expired
     var isExpired: Bool {
-        return timeRemaining <= 0
+        return status != "waiting" && timeRemaining <= 0
+    }
+    
+    /// Whether the session is in waiting state (lounge was full at check-in)
+    var isWaiting: Bool {
+        return status == "waiting"
+    }
+    
+    /// Formatted scheduled start time (e.g., "2:30 PM")
+    var formattedScheduledStart: String {
+        guard let scheduled = scheduledStartAt else { return "Soon" }
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h:mm a"
+        return formatter.string(from: scheduled)
     }
     
     /// Formatted time remaining string (e.g., "4:32")
