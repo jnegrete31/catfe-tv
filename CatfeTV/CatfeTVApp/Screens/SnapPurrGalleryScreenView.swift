@@ -260,6 +260,8 @@ struct SnapPurrGalleryScreenView: View {
         VStack(spacing: 0) {
             Spacer().frame(height: 20)
             
+            // .id(page) forces SwiftUI to rebuild the entire grid when the
+            // page changes, ensuring images update along with captions.
             VStack(spacing: spacing) {
                 ForEach(0..<rows, id: \.self) { row in
                     HStack(spacing: spacing) {
@@ -275,6 +277,8 @@ struct SnapPurrGalleryScreenView: View {
                 }
             }
             .padding(.horizontal, 20)
+            .id(page)
+            .transition(.opacity)
             
             Spacer().frame(height: 8)
             

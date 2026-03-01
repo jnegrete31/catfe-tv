@@ -80,7 +80,8 @@ struct HappyTailsScreenView: View {
                     .padding(.top, 16)
                     .frame(height: topPadding)
                 
-                // Photo grid
+                // Photo grid — .id(pageIndex) forces SwiftUI to rebuild the entire
+                // grid when the page changes, ensuring images update (not just text).
                 HStack(spacing: spacing) {
                     // Left: Large featured photo
                     if let featured = currentPage.first {
@@ -119,6 +120,8 @@ struct HappyTailsScreenView: View {
                     }
                 }
                 .padding(.horizontal, sidePadding)
+                .id(pageIndex)
+                .transition(.opacity)
                 
                 // Bottom bar: page dots + QR
                 bottomBar(geo: geo)
