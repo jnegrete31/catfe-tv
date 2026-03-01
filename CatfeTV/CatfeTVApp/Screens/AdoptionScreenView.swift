@@ -4,7 +4,8 @@
 //
 //  Individual cat adoption screen - Modern Magazine split-screen design
 //  Full-bleed cat photo on left, orange accent divider, clean cream info panel on right
-//  Rotates through guest photos + admin photo
+//  Rotates through spotlight photos, guest photos + admin photo
+//  Shows spotlight indicator when cat has active spotlight donations
 //
 
 import SwiftUI
@@ -48,34 +49,62 @@ struct AdoptionScreenView: View {
         return Self.lookingForSayings[abs(index)]
     }
     
+    /// Active spotlight donations for this cat
+    private var activeSpotlightsForCat: [SpotlightDonation] {
+        guard let catId = screen.numericId else { return [] }
+        let now = Date()
+        return apiClient.cachedActiveSpotlights.filter { $0.catId == catId && $0.expiresAt > now }
+    }
+    
     /// Get guest photos for this cat from the cached Snap & Purr data
     private var guestPhotosForCat: [GuestCatPhoto] {
         guard let catId = screen.numericId else { return [] }
         return apiClient.cachedTopGuestPhotos.filter { $0.catId == catId }
     }
     
-    /// All photo URLs to display: guest photos first, then admin photo as fallback
-    private var allPhotoURLs: [(url: String, isGuest: Bool, uploaderName: String?)] {
-        var photos: [(url: String, isGuest: Bool, uploaderName: String?)] = []
+    /// Photo source enum to track where each photo came from
+    private enum PhotoSource {
+        case spotlight(donorName: String, caption: String?, tierId: String)
+        case guest(uploaderName: String?)
+        case admin
+    }
+    
+    /// All photo URLs to display: spotlight photos first, then guest photos, then admin photo
+    private var allPhotos: [(url: String, source: PhotoSource)] {
+        var photos: [(url: String, source: PhotoSource)] = []
         
-        // Add guest photos first
+        // Add spotlight photos first (highest priority)
+        for spotlight in activeSpotlightsForCat {
+            if let url = spotlight.photoUrl, !url.isEmpty {
+                photos.append((
+                    url: url,
+                    source: .spotlight(
+                        donorName: spotlight.donorName,
+                        caption: spotlight.caption,
+                        tierId: spotlight.tierId
+                    )
+                ))
+            }
+        }
+        
+        // Add guest photos
         for guestPhoto in guestPhotosForCat {
-            photos.append((url: guestPhoto.photoUrl, isGuest: true, uploaderName: guestPhoto.uploaderName))
+            photos.append((url: guestPhoto.photoUrl, source: .guest(uploaderName: guestPhoto.uploaderName)))
         }
         
         // Add admin photo as fallback (always include it)
         if let adminURL = screen.imageURL {
-            photos.append((url: adminURL, isGuest: false, uploaderName: nil))
+            photos.append((url: adminURL, source: .admin))
         }
         
         return photos
     }
     
     /// The current photo to display
-    private var currentPhoto: (url: String, isGuest: Bool, uploaderName: String?)? {
-        guard !allPhotoURLs.isEmpty else { return nil }
-        let index = currentPhotoIndex % allPhotoURLs.count
-        return allPhotoURLs[index]
+    private var currentPhoto: (url: String, source: PhotoSource)? {
+        guard !allPhotos.isEmpty else { return nil }
+        let index = currentPhotoIndex % allPhotos.count
+        return allPhotos[index]
     }
     
     /// Timer to rotate through photos
@@ -148,37 +177,107 @@ struct AdoptionScreenView: View {
                         .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.5), value: appeared)
                     }
                     
-                    // Snap & Purr spotlight callout overlay on photo (non-adopted only)
-                    if !screen.isAdopted {
-                        HStack(spacing: 10) {
-                            Text("📸")
-                                .font(.system(size: 22))
-                            Text("Snap a photo of me! Spotlight it on my profile")
-                                .font(.system(size: 20, weight: .semibold))
-                                .foregroundColor(.white)
-                            Text("⭐")
-                                .font(.system(size: 20))
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 12)
-                        .background(
-                            RoundedRectangle(cornerRadius: 14)
-                                .fill(Color.black.opacity(0.55))
+                    // Photo credit overlay at bottom of photo
+                    if let photo = currentPhoto {
+                        VStack {
+                            Spacer()
+                            
+                            // Spotlight photo credit
+                            if case .spotlight(let donorName, let caption, _) = photo.source {
+                                HStack(spacing: 10) {
+                                    Text("⭐")
+                                        .font(.system(size: 22))
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Spotlight by \(donorName)")
+                                            .font(.system(size: 20, weight: .bold))
+                                            .foregroundColor(.white)
+                                        if let caption = caption, !caption.isEmpty {
+                                            Text("\"\(caption)\"")
+                                                .font(.system(size: 16, weight: .regular, design: .serif))
+                                                .italic()
+                                                .foregroundColor(.white.opacity(0.8))
+                                                .lineLimit(1)
+                                        }
+                                    }
+                                    Spacer()
+                                }
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 12)
                                 .background(
                                     RoundedRectangle(cornerRadius: 14)
-                                        .fill(.ultraThinMaterial)
+                                        .fill(
+                                            LinearGradient(
+                                                colors: [Color(hex: "E8913A").opacity(0.85), Color(hex: "D4782A").opacity(0.85)],
+                                                startPoint: .leading, endPoint: .trailing
+                                            )
+                                        )
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 14)
+                                                .fill(.ultraThinMaterial)
+                                        )
                                 )
-                        )
-                        .clipShape(RoundedRectangle(cornerRadius: 14))
-                        .padding(.horizontal, 24)
-                        .padding(.bottom, 24)
+                                .clipShape(RoundedRectangle(cornerRadius: 14))
+                                .padding(.horizontal, 24)
+                                .padding(.bottom, 24)
+                            }
+                            // Guest photo credit
+                            else if case .guest(let uploaderName) = photo.source, let name = uploaderName, !name.isEmpty {
+                                HStack(spacing: 10) {
+                                    Text("📸")
+                                        .font(.system(size: 22))
+                                    Text("Snap a photo of me! Spotlight it on my profile")
+                                        .font(.system(size: 20, weight: .semibold))
+                                        .foregroundColor(.white)
+                                    Text("⭐")
+                                        .font(.system(size: 20))
+                                }
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 12)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 14)
+                                        .fill(Color.black.opacity(0.55))
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 14)
+                                                .fill(.ultraThinMaterial)
+                                        )
+                                )
+                                .clipShape(RoundedRectangle(cornerRadius: 14))
+                                .padding(.horizontal, 24)
+                                .padding(.bottom, 24)
+                            }
+                            // Admin photo — show snap & purr callout for non-adopted cats
+                            else if case .admin = photo.source, !screen.isAdopted {
+                                HStack(spacing: 10) {
+                                    Text("📸")
+                                        .font(.system(size: 22))
+                                    Text("Snap a photo of me! Spotlight it on my profile")
+                                        .font(.system(size: 20, weight: .semibold))
+                                        .foregroundColor(.white)
+                                    Text("⭐")
+                                        .font(.system(size: 20))
+                                }
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 12)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 14)
+                                        .fill(Color.black.opacity(0.55))
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 14)
+                                                .fill(.ultraThinMaterial)
+                                        )
+                                )
+                                .clipShape(RoundedRectangle(cornerRadius: 14))
+                                .padding(.horizontal, 24)
+                                .padding(.bottom, 24)
+                            }
+                        }
                         .opacity(appeared ? 1 : 0)
                         .offset(y: appeared ? 0 : 20)
                         .animation(.easeOut(duration: 0.5).delay(0.8), value: appeared)
                     }
                     
-                    // Guest photo credit
-                    if let photo = currentPhoto, photo.isGuest, let name = photo.uploaderName, !name.isEmpty {
+                    // Guest photo credit badge (top-right of photo)
+                    if let photo = currentPhoto, case .guest(let uploaderName) = photo.source, let name = uploaderName, !name.isEmpty {
                         VStack {
                             HStack {
                                 Spacer()
@@ -203,15 +302,20 @@ struct AdoptionScreenView: View {
                     }
                     
                     // Photo indicator dots
-                    if allPhotoURLs.count > 1 {
+                    if allPhotos.count > 1 {
                         VStack {
                             Spacer()
                             HStack {
                                 HStack(spacing: 6) {
-                                    ForEach(0..<allPhotoURLs.count, id: \.self) { i in
+                                    ForEach(0..<allPhotos.count, id: \.self) { i in
+                                        let isSpotlight: Bool = {
+                                            if case .spotlight = allPhotos[i].source { return true }
+                                            return false
+                                        }()
                                         Circle()
-                                            .fill(i == (currentPhotoIndex % allPhotoURLs.count) ?
-                                                  Color.white : Color.white.opacity(0.4))
+                                            .fill(i == (currentPhotoIndex % allPhotos.count) ?
+                                                  (isSpotlight ? Color(hex: "E8913A") : Color.white) :
+                                                  (isSpotlight ? Color(hex: "E8913A").opacity(0.4) : Color.white.opacity(0.4)))
                                             .frame(width: 8, height: 8)
                                     }
                                 }
@@ -219,7 +323,7 @@ struct AdoptionScreenView: View {
                                 .padding(.vertical, 6)
                                 .background(Capsule().fill(Color.black.opacity(0.3)))
                                 .padding(.leading, 24)
-                                .padding(.bottom, screen.isAdopted ? 24 : 70) // Above the spotlight callout
+                                .padding(.bottom, screen.isAdopted ? 24 : 70) // Above the credit overlay
                                 
                                 Spacer()
                             }
@@ -234,7 +338,7 @@ struct AdoptionScreenView: View {
                 // ── ORANGE ACCENT DIVIDER ──
                 Rectangle()
                     .fill(Color(hex: "E8913A"))
-                    .frame(width: 5)
+                    .frame(width: 6)
                 
                 // ── RIGHT HALF: Clean cream info panel ──
                 ZStack {
@@ -276,6 +380,50 @@ struct AdoptionScreenView: View {
                         .animation(.easeOut(duration: 0.6).delay(0.2), value: appeared)
                         
                         Spacer().frame(height: 28)
+                        
+                        // ── SPOTLIGHT INDICATOR ──
+                        if !activeSpotlightsForCat.isEmpty {
+                            let spotlightCount = activeSpotlightsForCat.count
+                            let firstSpotlight = activeSpotlightsForCat[0]
+                            
+                            HStack(spacing: 10) {
+                                Text("⭐")
+                                    .font(.system(size: 22))
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("In the Spotlight!")
+                                        .font(.system(size: 20, weight: .bold))
+                                        .foregroundColor(.white)
+                                    Text(spotlightCount == 1
+                                         ? "by \(firstSpotlight.donorName)"
+                                         : "\(spotlightCount) spotlights active")
+                                        .font(.system(size: 16, weight: .medium))
+                                        .foregroundColor(.white.opacity(0.85))
+                                }
+                                Spacer()
+                                Text(firstSpotlight.tierLabel)
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundColor(Color(hex: "E8913A"))
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 4)
+                                    .background(Color.white.opacity(0.9))
+                                    .cornerRadius(12)
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 14)
+                            .background(
+                                LinearGradient(
+                                    colors: [Color(hex: "E8913A"), Color(hex: "D4782A")],
+                                    startPoint: .leading, endPoint: .trailing
+                                )
+                            )
+                            .cornerRadius(16)
+                            .shadow(color: Color(hex: "E8913A").opacity(0.3), radius: 10, x: 0, y: 4)
+                            .opacity(appeared ? 1 : 0)
+                            .scaleEffect(appeared ? 1 : 0.9)
+                            .animation(.easeOut(duration: 0.5).delay(0.25), value: appeared)
+                            
+                            Spacer().frame(height: 16)
+                        }
                         
                         // Adoption status badge
                         HStack(spacing: 8) {
@@ -427,7 +575,7 @@ struct AdoptionScreenView: View {
             }
         }
         .onReceive(photoTimer) { _ in
-            guard allPhotoURLs.count > 1 else { return }
+            guard allPhotos.count > 1 else { return }
             withAnimation(.easeInOut(duration: 0.8)) {
                 currentPhotoIndex += 1
             }
@@ -482,39 +630,27 @@ private struct MagazineQRCode: View {
 // MARK: - Paw Print Watermark
 private struct PawPrintWatermark: View {
     var body: some View {
-        Canvas { context, size in
-            let color = Color(hex: "E8913A")
+        ZStack {
             // Main pad
-            context.fill(
-                Ellipse().path(in: CGRect(x: size.width * 0.22, y: size.height * 0.45, width: size.width * 0.56, height: size.height * 0.44)),
-                with: .color(color)
-            )
-            // Top toes
-            let toePositions: [(CGFloat, CGFloat, CGFloat)] = [
-                (0.22, 0.28, 0.10),
-                (0.42, 0.18, 0.10),
-                (0.62, 0.28, 0.10),
-            ]
-            for (x, y, r) in toePositions {
-                context.fill(
-                    Circle().path(in: CGRect(x: size.width * (x - r), y: size.height * (y - r), width: size.width * r * 2, height: size.height * r * 2)),
-                    with: .color(color)
-                )
+            Circle()
+                .fill(Color(hex: "2d2d2d"))
+                .frame(width: 50, height: 50)
+                .offset(y: 10)
+            // Toe beans
+            ForEach(0..<4) { i in
+                let angle = Double(i) * 30 - 45
+                let x = cos(angle * .pi / 180) * 35
+                let y = sin(angle * .pi / 180) * 35 - 15
+                Circle()
+                    .fill(Color(hex: "2d2d2d"))
+                    .frame(width: 22, height: 22)
+                    .offset(x: CGFloat(x), y: CGFloat(y))
             }
-            // Side toes
-            context.fill(
-                Circle().path(in: CGRect(x: size.width * 0.06, y: size.height * 0.42, width: size.width * 0.16, height: size.height * 0.16)),
-                with: .color(color)
-            )
-            context.fill(
-                Circle().path(in: CGRect(x: size.width * 0.78, y: size.height * 0.42, width: size.width * 0.16, height: size.height * 0.16)),
-                with: .color(color)
-            )
         }
     }
 }
 
-// MARK: - Simple Flow Layout for Tags
+// MARK: - Flow Layout for personality tags
 private struct FlowLayout: Layout {
     var spacing: CGFloat = 8
     
@@ -524,7 +660,7 @@ private struct FlowLayout: Layout {
     }
     
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        let result = arrange(proposal: ProposedViewSize(width: bounds.width, height: bounds.height), subviews: subviews)
+        let result = arrange(proposal: proposal, subviews: subviews)
         for (index, position) in result.positions.enumerated() {
             subviews[index].place(at: CGPoint(x: bounds.minX + position.x, y: bounds.minY + position.y), proposal: .unspecified)
         }
@@ -536,11 +672,10 @@ private struct FlowLayout: Layout {
         var x: CGFloat = 0
         var y: CGFloat = 0
         var rowHeight: CGFloat = 0
-        var maxX: CGFloat = 0
         
         for subview in subviews {
             let size = subview.sizeThatFits(.unspecified)
-            if x + size.width > maxWidth && x > 0 {
+            if x + size.width > maxWidth, x > 0 {
                 x = 0
                 y += rowHeight + spacing
                 rowHeight = 0
@@ -548,18 +683,8 @@ private struct FlowLayout: Layout {
             positions.append(CGPoint(x: x, y: y))
             rowHeight = max(rowHeight, size.height)
             x += size.width + spacing
-            maxX = max(maxX, x)
         }
         
-        return (CGSize(width: maxX, height: y + rowHeight), positions)
+        return (CGSize(width: maxWidth, height: y + rowHeight), positions)
     }
 }
-
-#if DEBUG
-struct AdoptionScreenView_Previews: PreviewProvider {
-    static var previews: some View {
-        AdoptionScreenView(screen: Screen.sampleScreens[1])
-            .environmentObject(APIClient.shared)
-    }
-}
-#endif
