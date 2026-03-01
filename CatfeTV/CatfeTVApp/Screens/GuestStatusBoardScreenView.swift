@@ -402,7 +402,7 @@ struct GuestStatusBoardScreenView: View {
             legendItem(color: Color(hex: "3B82F6"), label: "Study Sesh (90 min)")
             legendItem(color: Color(hex: "14B8A6"), label: "Full Meow (60 min)")
             legendItem(color: Color(hex: "F59E0B"), label: "Mini Meow (30 min)")
-            legendItem(color: Color(hex: "A855F7"), label: "Guest Pass (15 min)")
+            legendItem(color: Color(hex: "A855F7"), label: "Quick Purr (15 min)")
         }
         .padding(.top, 12)
         .overlay(

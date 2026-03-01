@@ -811,7 +811,7 @@ struct GuestSession: Codable, Identifiable {
     /// Session type label based on duration
     var sessionTypeLabel: String {
         switch duration {
-        case "15": return "Guest Pass"
+        case "15": return "Quick Purr"
         case "30": return "Mini Meow"
         case "60": return "Full Meow"
         default: return "Session"
