@@ -49,16 +49,24 @@ struct AdoptionScreenView: View {
         return Self.lookingForSayings[abs(index)]
     }
     
+    /// The real cat database ID (from catId field, or derived from synthetic screen id)
+    private var realCatId: Int? {
+        if let catId = screen.catId { return catId }
+        // Fallback: synthetic screen IDs are 100000 + cat.id
+        if let numId = screen.numericId, numId > 100000 { return numId - 100000 }
+        return screen.numericId
+    }
+    
     /// Active spotlight donations for this cat
     private var activeSpotlightsForCat: [SpotlightDonation] {
-        guard let catId = screen.numericId else { return [] }
+        guard let catId = realCatId else { return [] }
         let now = Date()
         return apiClient.cachedActiveSpotlights.filter { $0.catId == catId && $0.expiresAt > now }
     }
     
     /// Get guest photos for this cat from the cached Snap & Purr data
     private var guestPhotosForCat: [GuestCatPhoto] {
-        guard let catId = screen.numericId else { return [] }
+        guard let catId = realCatId else { return [] }
         return apiClient.cachedTopGuestPhotos.filter { $0.catId == catId }
     }
     

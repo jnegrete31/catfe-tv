@@ -137,7 +137,16 @@ struct AdoptionShowcaseScreenView: View {
     
     /// Get the top guest photo URL for a given cat screen, if available
     private func guestPhotoURL(for cat: Screen) -> String? {
-        guard let catId = cat.numericId else { return nil }
+        // Use catId field first, then fallback to deriving from synthetic screen id
+        let realCatId: Int?
+        if let cid = cat.catId {
+            realCatId = cid
+        } else if let numId = cat.numericId, numId > 100000 {
+            realCatId = numId - 100000
+        } else {
+            realCatId = cat.numericId
+        }
+        guard let catId = realCatId else { return nil }
         return apiClient.topGuestPhotoURL(forCatId: catId)
     }
 }

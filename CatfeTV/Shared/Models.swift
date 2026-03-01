@@ -130,6 +130,7 @@ struct Screen: Identifiable, Codable, Equatable {
     var updatedAt: Date
     
     // Adoption-specific fields
+    var catId: Int?
     var catName: String?
     var catAge: String?
     var catGender: String?
@@ -162,6 +163,7 @@ struct Screen: Identifiable, Codable, Equatable {
         schedule: ScreenSchedule? = nil,
         livestreamUrl: String? = nil,
         templateOverlay: TemplateOverlay? = nil,
+        catId: Int? = nil,
         catName: String? = nil,
         catAge: String? = nil,
         catGender: String? = nil,
@@ -193,6 +195,7 @@ struct Screen: Identifiable, Codable, Equatable {
         self.templateOverlay = templateOverlay
         self.createdAt = Date()
         self.updatedAt = Date()
+        self.catId = catId
         self.catName = catName
         self.catAge = catAge
         self.catGender = catGender
@@ -238,6 +241,7 @@ struct APIScreen: Codable {
     var updatedAt: String
     
     // Adoption-specific fields from API
+    var catId: Int?
     var catName: String?
     var catAge: String?
     var catGender: String?
@@ -298,6 +302,7 @@ struct APIScreen: Codable {
             schedule: schedule,
             livestreamUrl: livestreamUrl,
             templateOverlay: templateOverlay,
+            catId: catId,
             catName: catName,
             catAge: catAge,
             catGender: catGender,
