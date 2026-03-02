@@ -261,11 +261,7 @@ struct GuestReminderWidget: View {
             
             VStack(alignment: .leading, spacing: 16) {
                 if hasContent {
-                    // Welcome messages for newly checked-in guests
-                    ForEach(activeWelcomes) { welcome in
-                        WelcomeCard(welcome: welcome, now: now)
-                            .transition(.move(edge: .leading).combined(with: .opacity))
-                    }
+                    // Welcome messages now handled by full-screen WelcomeOverlayView
                     
                     // Scheduled time-based reminders
                     ForEach(activeReminders) { reminder in

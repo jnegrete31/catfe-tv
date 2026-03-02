@@ -28,6 +28,7 @@
 			TV018 /* GuestReminderWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF019 /* GuestReminderWidget.swift */; };
 			TV020 /* WaiverWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF020 /* WaiverWidget.swift */; };
 			TV021 /* LogoWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF021 /* LogoWidget.swift */; };
+			TV022 /* WelcomeOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = TVF022 /* WelcomeOverlayView.swift */; };
 		
 		/* iOS Admin App */
 		IOS001 /* CatfeTVAdminApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = IOSF001 /* CatfeTVAdminApp.swift */; };
@@ -95,6 +96,7 @@
 			TVF019 /* GuestReminderWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestReminderWidget.swift; sourceTree = "<group>"; };
 			TVF020 /* WaiverWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaiverWidget.swift; sourceTree = "<group>"; };
 			TVF021 /* LogoWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogoWidget.swift; sourceTree = "<group>"; };
+			TVF022 /* WelcomeOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeOverlayView.swift; sourceTree = "<group>"; };
 		
 		/* iOS Admin App Files */
 		IOSF001 /* CatfeTVAdminApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatfeTVAdminApp.swift; sourceTree = "<group>"; };
@@ -233,6 +235,7 @@
 					TVF019 /* GuestReminderWidget.swift */,
 					TVF020 /* WaiverWidget.swift */,
 					TVF021 /* LogoWidget.swift */,
+					TVF022 /* WelcomeOverlayView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -402,6 +405,7 @@
 					TV018 /* GuestReminderWidget.swift in Sources */,
 					TV020 /* WaiverWidget.swift in Sources */,
 					TV021 /* LogoWidget.swift in Sources */,
+					TV022 /* WelcomeOverlayView.swift in Sources */,
 					SH001 /* Models.swift in Sources */,
 				SH003 /* APIClient.swift in Sources */,
 				SH005 /* WeatherService.swift in Sources */,

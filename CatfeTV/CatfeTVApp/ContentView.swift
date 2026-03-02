@@ -87,6 +87,9 @@ struct ContentView: View {
                     }
                 }
                 
+                // Full-screen Welcome Overlay for newly checked-in guests
+                WelcomeOverlayView()
+                
                 // Progress Indicator
                 VStack {
                     Spacer()
