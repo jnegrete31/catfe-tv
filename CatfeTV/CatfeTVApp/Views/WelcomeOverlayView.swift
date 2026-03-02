@@ -92,11 +92,11 @@ struct WelcomeOverlayView: View {
                 VStack(spacing: 0) {
                     Spacer()
                     
-                    // Cat icon with glow
+                    // Catfé logo from admin settings
                     ZStack {
                         Circle()
                             .fill(Color(hex: "F59E0B").opacity(0.3))
-                            .frame(width: 200, height: 200)
+                            .frame(width: 220, height: 220)
                             .blur(radius: 30)
                         
                         Circle()
@@ -110,16 +110,33 @@ struct WelcomeOverlayView: View {
                                     endPoint: .bottomTrailing
                                 )
                             )
-                            .frame(width: 160, height: 160)
+                            .frame(width: 180, height: 180)
                             .overlay(
                                 Circle()
                                     .stroke(Color(hex: "FCD34D").opacity(0.3), lineWidth: 2)
                             )
                         
-                        Image(systemName: "cat.fill")
-                            .font(.system(size: 80))
-                            .foregroundColor(Color(hex: "FEF3C7"))
-                            .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
+                        if let logoUrl = apiClient.settings.logoUrl,
+                           !logoUrl.isEmpty,
+                           let imageURL = URL(string: logoUrl) {
+                            CachedAsyncImage(url: imageURL) { image in
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 140, height: 140)
+                                    .clipShape(Circle())
+                                    .shadow(color: .black.opacity(0.3), radius: 8, y: 4)
+                            } placeholder: {
+                                Image(systemName: "cat.fill")
+                                    .font(.system(size: 80))
+                                    .foregroundColor(Color(hex: "FEF3C7"))
+                            }
+                        } else {
+                            Image(systemName: "cat.fill")
+                                .font(.system(size: 80))
+                                .foregroundColor(Color(hex: "FEF3C7"))
+                                .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
+                        }
                     }
                     .scaleEffect(animationPhase == .displaying ? 1.0 : 0.85)
                     .animation(.spring(response: 0.7, dampingFraction: 0.6), value: animationPhase)
