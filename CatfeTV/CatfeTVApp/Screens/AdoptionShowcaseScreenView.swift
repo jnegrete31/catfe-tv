@@ -193,9 +193,10 @@ private struct CatShowcaseCard: View {
                     }
                 }
                 
-                // New Cat! badge (top-left)
+                // New Cat! badge (bottom-left)
                 if cat.isNewCat && !cat.isAdopted {
                     VStack {
+                        Spacer()
                         HStack {
                             HStack(spacing: 4) {
                                 Text("\u{2728}")
@@ -218,7 +219,6 @@ private struct CatShowcaseCard: View {
                             
                             Spacer()
                         }
-                        Spacer()
                     }
                 }
             }

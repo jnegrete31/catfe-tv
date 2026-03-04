@@ -185,9 +185,10 @@ struct AdoptionScreenView: View {
                         .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.5), value: appeared)
                     }
                     
-                    // New Cat! banner
+                    // New Cat! banner (bottom-left of photo, above credit overlay)
                     if screen.isNewCat && !screen.isAdopted {
                         VStack {
+                            Spacer()
                             HStack {
                                 HStack(spacing: 8) {
                                     Text("\u{2728}")
@@ -210,9 +211,7 @@ struct AdoptionScreenView: View {
                                 Spacer()
                             }
                             .padding(.leading, 32)
-                            .padding(.top, 32)
-                            
-                            Spacer()
+                            .padding(.bottom, 80)
                         }
                         .opacity(appeared ? 1 : 0)
                         .scaleEffect(appeared ? 1 : 0.8)
