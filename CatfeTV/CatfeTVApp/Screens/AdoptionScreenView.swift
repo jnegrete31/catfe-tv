@@ -156,7 +156,7 @@ struct AdoptionScreenView: View {
                         VStack {
                             HStack {
                                 HStack(spacing: 8) {
-                                    Text("🎉")
+                                    Text("\u{1F389}")
                                         .font(.system(size: 26))
                                     Text("Adopted!")
                                         .font(.system(size: 26, weight: .bold))
@@ -167,6 +167,40 @@ struct AdoptionScreenView: View {
                                 .background(
                                     LinearGradient(
                                         colors: [Color(hex: "86C5A9"), Color(hex: "5A9E80")],
+                                        startPoint: .topLeading, endPoint: .bottomTrailing
+                                    )
+                                )
+                                .cornerRadius(24)
+                                .shadow(color: .black.opacity(0.3), radius: 12, x: 0, y: 4)
+                                
+                                Spacer()
+                            }
+                            .padding(.leading, 32)
+                            .padding(.top, 32)
+                            
+                            Spacer()
+                        }
+                        .opacity(appeared ? 1 : 0)
+                        .scaleEffect(appeared ? 1 : 0.8)
+                        .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.5), value: appeared)
+                    }
+                    
+                    // New Cat! banner
+                    if screen.isNewCat && !screen.isAdopted {
+                        VStack {
+                            HStack {
+                                HStack(spacing: 8) {
+                                    Text("\u{2728}")
+                                        .font(.system(size: 26))
+                                    Text("New Cat!")
+                                        .font(.system(size: 26, weight: .bold))
+                                        .foregroundColor(.white)
+                                }
+                                .padding(.horizontal, 24)
+                                .padding(.vertical, 12)
+                                .background(
+                                    LinearGradient(
+                                        colors: [Color(hex: "F59E0B"), Color(hex: "D97706")],
                                         startPoint: .topLeading, endPoint: .bottomTrailing
                                     )
                                 )

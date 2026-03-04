@@ -165,26 +165,61 @@ private struct CatShowcaseCard: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            ZStack(alignment: .bottomTrailing) {
+            ZStack {
                 ScreenImage(url: displayPhotoURL)
                     .frame(maxWidth: .infinity)
                     .frame(height: 200)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
                 
-                // Guest photo badge
-                if guestPhotoURL != nil {
-                    HStack(spacing: 3) {
-                        Image(systemName: "camera.fill")
-                            .font(.system(size: 10))
-                        Text("Guest")
-                            .font(.system(size: 11, weight: .semibold))
+                // Guest photo badge (bottom-right)
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        if guestPhotoURL != nil {
+                            HStack(spacing: 3) {
+                                Image(systemName: "camera.fill")
+                                    .font(.system(size: 10))
+                                Text("Guest")
+                                    .font(.system(size: 11, weight: .semibold))
+                            }
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.loungeWarmOrange.opacity(0.85))
+                            .cornerRadius(8)
+                            .padding(8)
+                        }
                     }
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.loungeWarmOrange.opacity(0.85))
-                    .cornerRadius(8)
-                    .padding(8)
+                }
+                
+                // New Cat! badge (top-left)
+                if cat.isNewCat && !cat.isAdopted {
+                    VStack {
+                        HStack {
+                            HStack(spacing: 4) {
+                                Text("\u{2728}")
+                                    .font(.system(size: 12))
+                                Text("New!")
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundColor(.white)
+                            }
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .background(
+                                LinearGradient(
+                                    colors: [Color(hex: "F59E0B"), Color(hex: "D97706")],
+                                    startPoint: .leading, endPoint: .trailing
+                                )
+                            )
+                            .cornerRadius(10)
+                            .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
+                            .padding(8)
+                            
+                            Spacer()
+                        }
+                        Spacer()
+                    }
                 }
             }
             
