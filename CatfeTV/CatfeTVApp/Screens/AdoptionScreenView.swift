@@ -185,8 +185,41 @@ struct AdoptionScreenView: View {
                         .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.5), value: appeared)
                     }
                     
+                    // Birthday banner (bottom-left, takes priority over New Cat)
+                    if screen.isBirthday && !screen.isAdopted {
+                        VStack {
+                            Spacer()
+                            HStack {
+                                HStack(spacing: 8) {
+                                    Text("\u{1F382}")
+                                        .font(.system(size: 26))
+                                    Text(screen.birthdayDate != nil ? "Birthday \(screen.birthdayDate!)!" : "Happy Birthday!")
+                                        .font(.system(size: 26, weight: .bold))
+                                        .foregroundColor(.white)
+                                }
+                                .padding(.horizontal, 24)
+                                .padding(.vertical, 12)
+                                .background(
+                                    LinearGradient(
+                                        colors: [Color(hex: "EC4899"), Color(hex: "DB2777")],
+                                        startPoint: .topLeading, endPoint: .bottomTrailing
+                                    )
+                                )
+                                .cornerRadius(24)
+                                .shadow(color: .black.opacity(0.3), radius: 12, x: 0, y: 4)
+                                
+                                Spacer()
+                            }
+                            .padding(.leading, 32)
+                            .padding(.bottom, 80)
+                        }
+                        .opacity(appeared ? 1 : 0)
+                        .scaleEffect(appeared ? 1 : 0.8)
+                        .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.5), value: appeared)
+                    }
+                    
                     // New Cat! banner (bottom-left of photo, above credit overlay)
-                    if screen.isNewCat && !screen.isAdopted {
+                    if screen.isNewCat && !screen.isAdopted && !screen.isBirthday {
                         VStack {
                             Spacer()
                             HStack {
@@ -466,11 +499,13 @@ struct AdoptionScreenView: View {
                             Spacer().frame(height: 16)
                         }
                         
-                        // Adoption status badge
+                        // Adoption status badge (birthday takes priority for non-adopted cats)
                         HStack(spacing: 8) {
-                            Text(screen.isAdopted ? "🎉" : "🐱")
+                            let badgeEmoji = screen.isAdopted ? "\u{1F389}" : (screen.isBirthday ? "\u{1F382}" : "\u{1F431}")
+                            let badgeText = screen.isAdopted ? "Found a Forever Home!" : (screen.isBirthday ? (screen.birthdayDate != nil ? "Birthday \(screen.birthdayDate!)! Wish me well!" : "Happy Birthday! Wish me well!") : lookingForText)
+                            Text(badgeEmoji)
                                 .font(.system(size: 22))
-                            Text(screen.isAdopted ? "Found a Forever Home!" : lookingForText)
+                            Text(badgeText)
                                 .font(.system(size: 22, weight: .bold))
                                 .foregroundColor(.white)
                         }
@@ -480,7 +515,7 @@ struct AdoptionScreenView: View {
                             LinearGradient(
                                 colors: screen.isAdopted ?
                                     [Color(hex: "86C5A9"), Color(hex: "5A9E80")] :
-                                    [Color(hex: "E8913A"), Color(hex: "D4782A")],
+                                    (screen.isBirthday ? [Color(hex: "EC4899"), Color(hex: "DB2777")] : [Color(hex: "E8913A"), Color(hex: "D4782A")]),
                                 startPoint: .topLeading, endPoint: .bottomTrailing
                             )
                         )

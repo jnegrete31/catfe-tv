@@ -121,6 +121,8 @@ struct Screen: Identifiable, Codable, Equatable {
     var isActive: Bool
     var isAdopted: Bool // For adoption screens
     var isNewCat: Bool // Cat arrived within last 14 days
+    var isBirthday: Bool // Cat's birthday is today or within 7 days
+    var birthdayDate: String? // The upcoming birthday date string e.g. "Mar 15"
     var hideOverlay: Bool // Hide clock/weather overlay on this screen
     var isProtected: Bool
     var sortOrder: Int
@@ -159,6 +161,8 @@ struct Screen: Identifiable, Codable, Equatable {
         isActive: Bool = true,
         isAdopted: Bool = false,
         isNewCat: Bool = false,
+        isBirthday: Bool = false,
+        birthdayDate: String? = nil,
         hideOverlay: Bool = false,
         isProtected: Bool = false,
         sortOrder: Int = 0,
@@ -190,6 +194,8 @@ struct Screen: Identifiable, Codable, Equatable {
         self.isActive = isActive
         self.isAdopted = isAdopted
         self.isNewCat = isNewCat
+        self.isBirthday = isBirthday
+        self.birthdayDate = birthdayDate
         self.hideOverlay = hideOverlay
         self.isProtected = isProtected
         self.sortOrder = sortOrder
@@ -238,6 +244,8 @@ struct APIScreen: Codable {
     var isProtected: Bool
     var isAdopted: Bool
     var isNewCat: Bool?
+    var isBirthday: Bool?
+    var birthdayDate: String?
     var hideOverlay: Bool?
     var livestreamUrl: String?
     var templateOverlay: TemplateOverlay? // Template data from Slide Editor
@@ -301,6 +309,8 @@ struct APIScreen: Codable {
             isActive: isActive,
             isAdopted: isAdopted,
             isNewCat: isNewCat ?? false,
+            isBirthday: isBirthday ?? false,
+            birthdayDate: birthdayDate,
             hideOverlay: hideOverlay ?? false,
             isProtected: isProtected,
             sortOrder: sortOrder,

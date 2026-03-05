@@ -193,8 +193,37 @@ private struct CatShowcaseCard: View {
                     }
                 }
                 
+                // Birthday badge (bottom-left, takes priority over New Cat)
+                if cat.isBirthday && !cat.isAdopted {
+                    VStack {
+                        Spacer()
+                        HStack {
+                            HStack(spacing: 4) {
+                                Text("\u{1F382}")
+                                    .font(.system(size: 12))
+                                Text("Bday!")
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundColor(.white)
+                            }
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .background(
+                                LinearGradient(
+                                    colors: [Color(hex: "EC4899"), Color(hex: "DB2777")],
+                                    startPoint: .leading, endPoint: .trailing
+                                )
+                            )
+                            .cornerRadius(10)
+                            .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
+                            .padding(8)
+                            
+                            Spacer()
+                        }
+                    }
+                }
+                
                 // New Cat! badge (bottom-left)
-                if cat.isNewCat && !cat.isAdopted {
+                if cat.isNewCat && !cat.isAdopted && !cat.isBirthday {
                     VStack {
                         Spacer()
                         HStack {
