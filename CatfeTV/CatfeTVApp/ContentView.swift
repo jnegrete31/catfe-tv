@@ -203,8 +203,9 @@ struct ContentView: View {
             }
         }
         
-        // Refresh Roller sessions every 5 minutes for Live Availability & Today's Sessions
-        Timer.scheduledTimer(withTimeInterval: 300, repeats: true) { _ in
+        // Refresh Roller sessions every 15 minutes for Live Availability & Today's Sessions
+        // Server-side caches Roller API responses for 5 min, so this reduces actual API calls
+        Timer.scheduledTimer(withTimeInterval: 900, repeats: true) { _ in
             Task { @MainActor in
                 await apiClient.fetchRollerSessions()
             }
