@@ -138,9 +138,10 @@ struct UpcomingEventsScreenView: View {
                     case .success(let image):
                         image
                             .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(height: 180)
-                            .clipped()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(maxHeight: 220)
+                            .frame(maxWidth: .infinity)
+                            .background(Color.white.opacity(0.5))
                     default:
                         Rectangle()
                             .fill(Color.purple.opacity(0.1))
