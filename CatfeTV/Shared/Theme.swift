@@ -275,6 +275,7 @@ extension ScreenType {
         case .volunteerSpotlight: return .catfeSage
         case .guestPhotoContest: return .loungeAmber
         case .photoContestQR: return .loungeAmber
+        case .upcomingEvents: return .purple
         case .logo: return .loungeAmber
         case .custom: return .loungeWarmOrange
         }

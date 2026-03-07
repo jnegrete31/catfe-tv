@@ -37,6 +37,7 @@ enum ScreenType: String, Codable, CaseIterable, Identifiable {
     case volunteerSpotlight = "VOLUNTEER_SPOTLIGHT"
     case guestPhotoContest = "GUEST_PHOTO_CONTEST"
     case photoContestQR = "PHOTO_CONTEST_QR"
+    case upcomingEvents = "UPCOMING_EVENTS"
     case logo = "LOGO"
     case custom = "CUSTOM"
     
@@ -69,6 +70,7 @@ enum ScreenType: String, Codable, CaseIterable, Identifiable {
         case .volunteerSpotlight: return "Volunteer Spotlight"
         case .guestPhotoContest: return "Photo Contest"
         case .photoContestQR: return "Photo Contest QR"
+        case .upcomingEvents: return "Upcoming Events"
         case .logo: return "Logo"
         case .custom: return "Custom"
         }
@@ -97,6 +99,7 @@ enum ScreenType: String, Codable, CaseIterable, Identifiable {
         case .volunteerSpotlight: return "person.2.fill"
         case .guestPhotoContest: return "trophy.fill"
         case .photoContestQR: return "qrcode"
+        case .upcomingEvents: return "calendar.badge.clock"
         case .logo: return "sparkle"
         case .custom: return "star.fill"
         }

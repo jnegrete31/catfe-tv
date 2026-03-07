@@ -72,6 +72,8 @@ struct ScreenView: View {
                     GuestPhotoContestScreenView(screen: screen)
                 case .photoContestQR:
                     PhotoContestQRScreenView(screen: screen)
+                case .upcomingEvents:
+                    UpcomingEventsScreenView(screen: screen, settings: settings)
                 case .logo:
                     LogoScreenView(screen: screen, settings: settings)
                 case .custom, .poll, .pollQR:

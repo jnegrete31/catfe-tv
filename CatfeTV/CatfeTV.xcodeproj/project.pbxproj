@@ -65,8 +65,9 @@
 			BDC00001 /* BirthdayCelebrationScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDC00002 /* BirthdayCelebrationScreenView.swift */; };
 			VSP00001 /* VolunteerSpotlightScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = VSP00002 /* VolunteerSpotlightScreenView.swift */; };
 			GPC00001 /* GuestPhotoContestScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = GPC00002 /* GuestPhotoContestScreenView.swift */; };
-			PCQ00001 /* PhotoContestQRScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PCQ00002 /* PhotoContestQRScreenView.swift */; };
-			LGO00001 /* LogoScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LGO00002 /* LogoScreenView.swift */; };
+				PCQ00001 /* PhotoContestQRScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PCQ00002 /* PhotoContestQRScreenView.swift */; };
+				UPE00001 /* UpcomingEventsScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = UPE00002 /* UpcomingEventsScreenView.swift */; };
+				LGO00001 /* LogoScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LGO00002 /* LogoScreenView.swift */; };
 		22810065BDE340519254637D /* CosmicHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86CB68B09382437D9B459095 /* CosmicHelpers.swift */; };
 		303610EFC664458D9517DB33 /* HappyTailsQRScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95CD9A1BFCB64E6BB89476CB /* HappyTailsQRScreenView.swift */; };
 		160E26B617F844B9A485E8BA /* HappyTailsScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18F4708A52AA458882948CFB /* HappyTailsScreenView.swift */; };
@@ -138,6 +139,7 @@
 			VSP00002 /* VolunteerSpotlightScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolunteerSpotlightScreenView.swift; sourceTree = "<group>"; };
 			GPC00002 /* GuestPhotoContestScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestPhotoContestScreenView.swift; sourceTree = "<group>"; };
 			PCQ00002 /* PhotoContestQRScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoContestQRScreenView.swift; sourceTree = "<group>"; };
+			UPE00002 /* UpcomingEventsScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpcomingEventsScreenView.swift; sourceTree = "<group>"; };
 			LGO00002 /* LogoScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogoScreenView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -221,6 +223,7 @@
 					VSP00002 /* VolunteerSpotlightScreenView.swift */,
 					GPC00002 /* GuestPhotoContestScreenView.swift */,
 					PCQ00002 /* PhotoContestQRScreenView.swift */,
+					UPE00002 /* UpcomingEventsScreenView.swift */,
 					LGO00002 /* LogoScreenView.swift */,
 			);
 			path = Screens;
@@ -398,6 +401,7 @@
 					VSP00001 /* VolunteerSpotlightScreenView.swift in Sources */,
 					GPC00001 /* GuestPhotoContestScreenView.swift in Sources */,
 					PCQ00001 /* PhotoContestQRScreenView.swift in Sources */,
+					UPE00001 /* UpcomingEventsScreenView.swift in Sources */,
 					LGO00001 /* LogoScreenView.swift in Sources */,
 
 
