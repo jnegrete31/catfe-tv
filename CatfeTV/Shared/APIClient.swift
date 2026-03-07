@@ -39,6 +39,7 @@ class APIClient: ObservableObject {
     @Published var cachedBirthdayCats: [BirthdayCat] = []
     @Published var cachedUpcomingBirthdays: [BirthdayCat] = []
     @Published var cachedFeaturedVolunteers: [Volunteer] = []
+    @Published var cachedUpcomingEvents: [CatfeEvent] = []
     
     // Cached guest contest photos for adoption slides and photo contest screen
     @Published var cachedTopGuestPhotos: [GuestCatPhoto] = []
@@ -628,6 +629,24 @@ class APIClient: ObservableObject {
             }
         } catch {
             print("[Birthdays] Failed to fetch: \(error)")
+        }
+    }
+    
+    // MARK: - Upcoming Events
+    
+    func fetchUpcomingEvents() async {
+        do {
+            let inputJSON = "{\"json\":{\"limit\":6}}"
+            let encodedInput = inputJSON.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? inputJSON
+            let url = URL(string: "\(baseURL)/api/trpc/events.getUpcoming?input=\(encodedInput)")!
+            let request = URLRequest(url: url)
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else { return }
+            let trpcResponse = try JSONDecoder().decode(TRPCResponse<[CatfeEvent]>.self, from: data)
+            cachedUpcomingEvents = trpcResponse.result.data.json
+            print("[Events] Cached \(cachedUpcomingEvents.count) upcoming events")
+        } catch {
+            print("[Events] Failed to fetch: \(error)")
         }
     }
     

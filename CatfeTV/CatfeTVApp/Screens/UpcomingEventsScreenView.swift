@@ -3,30 +3,21 @@
 //  CatfeTV
 //
 //  Upcoming Events overview slide - shows multiple events from the events table
+//  Uses APIClient.cachedUpcomingEvents (fetched via fetchUpcomingEvents)
 //
 
 import SwiftUI
-
-// MARK: - Event Model for API response
-
-struct CatfeEvent: Codable, Identifiable {
-    let id: Int
-    let name: String
-    let description: String?
-    let eventDate: String
-    let endDate: String?
-    let eventTime: String?
-    let location: String?
-    let imagePath: String?
-    let isActive: Bool
-}
 
 struct UpcomingEventsScreenView: View {
     let screen: Screen
     let settings: AppSettings?
     
-    @State private var events: [CatfeEvent] = []
-    @State private var isLoading = true
+    @EnvironmentObject var apiClient: APIClient
+    @State private var appeared = false
+    
+    private var events: [CatfeEvent] {
+        apiClient.cachedUpcomingEvents
+    }
     
     var body: some View {
         ZStack {
@@ -53,17 +44,14 @@ struct UpcomingEventsScreenView: View {
                 .frame(width: 300, height: 300)
                 .offset(x: -500, y: 350)
             
-            if isLoading {
-                ProgressView()
-                    .scaleEffect(2)
-            } else if events.isEmpty {
+            if events.isEmpty {
                 emptyState
             } else {
                 eventsContent
             }
         }
         .onAppear {
-            fetchEvents()
+            withAnimation { appeared = true }
         }
     }
     
@@ -168,30 +156,38 @@ struct UpcomingEventsScreenView: View {
             // Event Info
             VStack(alignment: .leading, spacing: 10) {
                 HStack(alignment: .top) {
-                    Text(event.name)
+                    Text(event.title)
                         .font(.system(size: 32, weight: .bold, design: .serif))
                         .foregroundColor(Color(hex: "3d2914"))
                         .lineLimit(2)
                     
                     Spacer()
                     
-                    Text(daysUntilText(event.eventDate))
-                        .font(.system(size: 18, weight: .semibold, design: .rounded))
-                        .foregroundColor(daysUntilColor(event.eventDate))
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(daysUntilBgColor(event.eventDate))
-                        .cornerRadius(12)
+                    // Days-until badge using startAt or eventDate
+                    let dateStr = event.startAt ?? event.eventDate ?? ""
+                    if !dateStr.isEmpty {
+                        Text(daysUntilText(dateStr))
+                            .font(.system(size: 18, weight: .semibold, design: .rounded))
+                            .foregroundColor(daysUntilColor(dateStr))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(daysUntilBgColor(dateStr))
+                            .cornerRadius(12)
+                    }
                 }
                 
+                // Date and time row
                 HStack(spacing: 16) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "calendar")
-                            .font(.system(size: 20))
-                            .foregroundColor(Color(hex: "d97706"))
-                        Text(formatDate(event.eventDate))
-                            .font(.system(size: 22, weight: .regular, design: .rounded))
-                            .foregroundColor(Color(hex: "6a5a4a"))
+                    let dateStr = event.startAt ?? event.eventDate ?? ""
+                    if !dateStr.isEmpty {
+                        HStack(spacing: 6) {
+                            Image(systemName: "calendar")
+                                .font(.system(size: 20))
+                                .foregroundColor(Color(hex: "d97706"))
+                            Text(formatDate(dateStr))
+                                .font(.system(size: 22, weight: .regular, design: .rounded))
+                                .foregroundColor(Color(hex: "6a5a4a"))
+                        }
                     }
                     
                     if let time = event.eventTime, !time.isEmpty {
@@ -206,14 +202,20 @@ struct UpcomingEventsScreenView: View {
                     }
                 }
                 
-                if let desc = event.description, !desc.isEmpty {
-                    Text(desc)
+                // Subtitle or body text
+                if let subtitle = event.subtitle, !subtitle.isEmpty {
+                    Text(subtitle)
+                        .font(.system(size: 22, weight: .regular, design: .rounded))
+                        .foregroundColor(Color(hex: "7a6a5a"))
+                        .lineLimit(2)
+                } else if let body = event.body, !body.isEmpty {
+                    Text(body)
                         .font(.system(size: 22, weight: .regular, design: .rounded))
                         .foregroundColor(Color(hex: "7a6a5a"))
                         .lineLimit(2)
                 }
                 
-                if let location = event.location, !location.isEmpty {
+                if let location = event.eventLocation, !location.isEmpty {
                     HStack(spacing: 6) {
                         Image(systemName: "mappin.circle.fill")
                             .font(.system(size: 18))
@@ -241,6 +243,7 @@ struct UpcomingEventsScreenView: View {
         let diff = calendar.dateComponents([.day], from: today, to: eventDay).day ?? 0
         if diff == 0 { return "Today!" }
         if diff == 1 { return "Tomorrow" }
+        if diff < 0 { return "Past" }
         return "In \(diff) days"
     }
     
@@ -275,50 +278,20 @@ struct UpcomingEventsScreenView: View {
     }
     
     private func parseDate(_ dateStr: String) -> Date? {
+        // Try ISO 8601 with fractional seconds
         let isoFormatter = ISO8601DateFormatter()
         isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         if let date = isoFormatter.date(from: dateStr) { return date }
         
+        // Try ISO 8601 without fractional seconds
         let isoNoFrac = ISO8601DateFormatter()
         isoNoFrac.formatOptions = [.withInternetDateTime]
-        return isoNoFrac.date(from: dateStr)
-    }
-    
-    // MARK: - API Fetch
-    
-    private func fetchEvents() {
-        guard let baseURL = APIClient.shared.baseURL else {
-            isLoading = false
-            return
-        }
+        if let date = isoNoFrac.date(from: dateStr) { return date }
         
-        // Use tRPC batch format to fetch upcoming events
-        let urlString = "\(baseURL)/api/trpc/events.getUpcoming?batch=1&input=%7B%220%22%3A%7B%22limit%22%3A6%7D%7D"
-        guard let url = URL(string: urlString) else {
-            isLoading = false
-            return
-        }
-        
-        URLSession.shared.dataTask(with: url) { data, response, error in
-            defer { DispatchQueue.main.async { isLoading = false } }
-            guard let data = data, error == nil else { return }
-            
-            do {
-                // tRPC batch response: [{ "result": { "data": [...] } }]
-                if let json = try JSONSerialization.jsonObject(with: data) as? [[String: Any]],
-                   let first = json.first,
-                   let result = first["result"] as? [String: Any],
-                   let resultData = result["data"] as? [String: Any],
-                   let eventsData = resultData["json"] as? [[String: Any]] {
-                    let jsonData = try JSONSerialization.data(withJSONObject: eventsData)
-                    let decoded = try JSONDecoder().decode([CatfeEvent].self, from: jsonData)
-                    DispatchQueue.main.async {
-                        self.events = decoded
-                    }
-                }
-            } catch {
-                print("[UpcomingEvents] Failed to decode events: \(error)")
-            }
-        }.resume()
+        // Try simple date format (YYYY-MM-DD)
+        let simpleFmt = DateFormatter()
+        simpleFmt.dateFormat = "yyyy-MM-dd"
+        simpleFmt.timeZone = TimeZone(identifier: "America/Los_Angeles")
+        return simpleFmt.date(from: dateStr)
     }
 }

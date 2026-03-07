@@ -901,6 +901,21 @@ struct BirthdayCat: Codable, Identifiable {
     }
 }
 
+// MARK: - Event Model (from events.getUpcoming API)
+
+struct CatfeEvent: Codable, Identifiable {
+    let id: Int
+    let title: String
+    let subtitle: String?
+    let body: String?
+    let eventDate: String?
+    let eventTime: String?
+    let eventLocation: String?
+    let startAt: String?
+    let endAt: String?
+    let imagePath: String?
+}
+
 // MARK: - Volunteer Model (from volunteers.getFeatured API)
 
 struct Volunteer: Codable, Identifiable {
