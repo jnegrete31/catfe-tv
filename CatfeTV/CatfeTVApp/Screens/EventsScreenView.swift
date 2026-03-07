@@ -2,7 +2,8 @@
 //  EventsScreenView.swift
 //  CatfeTVApp
 //
-//  Event screen - Split Diagonal design with image on left, details on right
+//  Event screen - Magazine split-screen design matching AdoptionScreenView
+//  Full-bleed event image on left, orange accent divider, cream info panel on right
 //
 
 import SwiftUI
@@ -17,256 +18,274 @@ struct EventsScreenView: View {
         return date
     }
     
-    private var hasEventDetails: Bool {
-        formattedDate != nil || screen.eventTime != nil || screen.eventLocation != nil
-    }
-    
     var body: some View {
         GeometryReader { geo in
-            ZStack {
-                // Warm cream/amber gradient background (fills entire screen)
-                LinearGradient(
-                    colors: [
-                        Color(hex: "fef3c7"),
-                        Color(hex: "f5e6d3"),
-                        Color(hex: "ede0d4")
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
-                
-                // Diagonal image panel - upper left triangle
-                if screen.imageURL != nil {
-                    ScreenImage(url: screen.imageURL)
-                        .frame(width: geo.size.width, height: geo.size.height)
-                        .clipped()
-                        .clipShape(EventDiagonalShape())
-                        .opacity(appeared ? 1 : 0)
-                        .offset(x: appeared ? 0 : -40)
-                        .animation(.easeOut(duration: 0.8), value: appeared)
-                }
-                
-                // Mint green diagonal accent line
-                if screen.imageURL != nil {
-                    EventDiagonalLineShape()
-                        .fill(Color(hex: "a8d5ba"))
-                        .frame(width: geo.size.width, height: geo.size.height)
-                        .allowsHitTesting(false)
-                }
-                
-                // Content area - right cream panel, vertically centered
-                HStack(spacing: 0) {
+            HStack(spacing: 0) {
+                // ── LEFT HALF: Full-bleed event image ──
+                ZStack(alignment: .bottom) {
                     if screen.imageURL != nil {
-                        Spacer()
-                            .frame(width: geo.size.width * 0.62)
+                        ScreenImage(url: screen.imageURL)
+                            .frame(width: geo.size.width * 0.52, height: geo.size.height)
+                            .clipped()
+                    } else {
+                        // Fallback placeholder
+                        Rectangle()
+                            .fill(Color(hex: "e8e4dc"))
+                            .overlay(
+                                Text("🎉")
+                                    .font(.system(size: 160))
+                            )
                     }
                     
-                    // Use a centered VStack so content fills the vertical space evenly
+                    // Subtle gradient for depth at right edge
+                    HStack {
+                        Spacer()
+                        LinearGradient(
+                            colors: [.clear, Color(hex: "FAFAF5").opacity(0.15)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                        .frame(width: 80)
+                    }
+                }
+                .frame(width: geo.size.width * 0.52, height: geo.size.height)
+                .opacity(appeared ? 1 : 0)
+                .offset(x: appeared ? 0 : -40)
+                .animation(.easeOut(duration: 0.7), value: appeared)
+                
+                // ── ORANGE ACCENT DIVIDER ──
+                Rectangle()
+                    .fill(Color(hex: "E8913A"))
+                    .frame(width: 6)
+                
+                // ── RIGHT HALF: Clean cream info panel ──
+                ZStack {
+                    // Cream background
+                    Color(hex: "FAFAF5")
+                    
+                    // Subtle paw print watermark
+                    VStack {
+                        HStack {
+                            Spacer()
+                            PawPrintWatermark()
+                                .frame(width: 120, height: 120)
+                                .opacity(0.04)
+                                .padding(.top, 30)
+                                .padding(.trailing, 30)
+                        }
+                        Spacer()
+                    }
+                    
+                    // Info content
                     VStack(alignment: .leading, spacing: 0) {
                         Spacer()
                         
+                        // Title
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(screen.title)
+                                .font(.system(size: 64, weight: .heavy, design: .default))
+                                .foregroundColor(Color(hex: "1a1a1a"))
+                                .lineLimit(2)
+                                .minimumScaleFactor(0.7)
+                            
+                            // Orange accent underline
+                            RoundedRectangle(cornerRadius: 2)
+                                .fill(Color(hex: "E8913A"))
+                                .frame(width: 180, height: 4)
+                        }
+                        .opacity(appeared ? 1 : 0)
+                        .offset(y: appeared ? 0 : -20)
+                        .animation(.easeOut(duration: 0.6).delay(0.2), value: appeared)
+                        
+                        Spacer().frame(height: 28)
+                        
                         // Upcoming Event badge
-                        HStack(spacing: 10) {
+                        HStack(spacing: 8) {
                             Text("🎉")
-                                .font(.system(size: 30))
+                                .font(.system(size: 22))
                             Text("Upcoming Event")
-                                .font(.system(size: 26, weight: .semibold, design: .rounded))
+                                .font(.system(size: 22, weight: .bold))
                                 .foregroundColor(.white)
                         }
-                        .padding(.horizontal, 26)
-                        .padding(.vertical, 14)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 10)
                         .background(
                             LinearGradient(
-                                colors: [Color(hex: "d97706"), Color(hex: "b45309")],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
+                                colors: [Color(hex: "E8913A"), Color(hex: "D4782A")],
+                                startPoint: .topLeading, endPoint: .bottomTrailing
                             )
                         )
-                        .cornerRadius(30)
-                        .shadow(color: Color(hex: "d97706").opacity(0.35), radius: 10, x: 0, y: 4)
+                        .cornerRadius(24)
+                        .shadow(color: Color.black.opacity(0.1), radius: 6, x: 0, y: 3)
                         .opacity(appeared ? 1 : 0)
-                        .scaleEffect(appeared ? 1 : 0.8)
-                        .animation(.spring(response: 0.5, dampingFraction: 0.7).delay(0.3), value: appeared)
+                        .scaleEffect(appeared ? 1 : 0.9)
+                        .animation(.easeOut(duration: 0.5).delay(0.3), value: appeared)
                         
-                        Spacer().frame(height: 28)
+                        Spacer().frame(height: 24)
                         
-                        // Title - large and prominent
-                        Text(screen.title)
-                            .font(.system(size: 58, weight: .bold, design: .serif))
-                            .foregroundColor(Color(hex: "3d2914"))
-                            .lineLimit(3)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .opacity(appeared ? 1 : 0)
-                            .offset(y: appeared ? 0 : 15)
-                            .animation(.easeOut(duration: 0.6).delay(0.2), value: appeared)
-                        
-                        Spacer().frame(height: 28)
-                        
-                        // Event details - stacked vertically with generous spacing
-                        if hasEventDetails {
-                            VStack(alignment: .leading, spacing: 16) {
-                                if let time = screen.eventTime {
-                                    eventDetailItem(icon: "clock", text: time)
-                                }
-                                if let location = screen.eventLocation {
-                                    eventDetailItem(icon: "mappin.and.ellipse", text: location)
-                                }
-                                if let date = formattedDate {
-                                    eventDetailItem(icon: "calendar", text: date)
-                                }
+                        // Event details - stacked vertically
+                        VStack(alignment: .leading, spacing: 16) {
+                            if let date = formattedDate {
+                                eventDetailItem(icon: "calendar", text: date)
                             }
-                            .opacity(appeared ? 1 : 0)
-                            .offset(y: appeared ? 0 : 10)
-                            .animation(.easeOut(duration: 0.5).delay(0.4), value: appeared)
+                            if let time = screen.eventTime {
+                                eventDetailItem(icon: "clock", text: time)
+                            }
+                            if let location = screen.eventLocation {
+                                eventDetailItem(icon: "mappin.and.ellipse", text: location)
+                            }
                         }
+                        .opacity(appeared ? 1 : 0)
+                        .offset(x: appeared ? 0 : 20)
+                        .animation(.easeOut(duration: 0.5).delay(0.4), value: appeared)
                         
-                        // Subtitle
+                        Spacer().frame(height: 20)
+                        
+                        // Subtitle / Description
                         if let subtitle = screen.subtitle {
-                            Spacer().frame(height: 28)
                             Text(subtitle)
-                                .font(.system(size: 30, weight: .medium, design: .serif))
+                                .font(.system(size: 18, weight: .regular, design: .serif))
                                 .italic()
-                                .foregroundColor(Color(hex: "6a5a4a"))
+                                .foregroundColor(Color(hex: "888888"))
                                 .lineLimit(3)
-                                .opacity(appeared ? 1 : 0)
-                                .animation(.easeOut(duration: 0.5).delay(0.45), value: appeared)
-                        }
-                        
-                        // Body text
-                        if let body = screen.bodyText {
-                            Spacer().frame(height: 20)
-                            Text(body)
-                                .font(.system(size: 26, weight: .regular, design: .rounded))
-                                .foregroundColor(Color(hex: "7a6a5a"))
-                                .lineSpacing(6)
-                                .lineLimit(4)
                                 .opacity(appeared ? 1 : 0)
                                 .animation(.easeOut(duration: 0.5).delay(0.5), value: appeared)
                         }
                         
-                        Spacer()
-                        
-                        // QR Code - anchored at bottom
-                        if let qrURL = screen.qrCodeURL, !qrURL.isEmpty {
-                            HStack(spacing: 18) {
-                                QRCodeView(url: qrURL, size: 110, label: nil)
-                                
-                                VStack(alignment: .leading, spacing: 6) {
-                                    Text(screen.qrLabel ?? "Scan to RSVP")
-                                        .font(.system(size: 22, weight: .bold, design: .rounded))
-                                        .foregroundColor(Color(hex: "3d2914"))
-                                    Text("Point your camera here")
-                                        .font(.system(size: 16, weight: .regular, design: .rounded))
-                                        .foregroundColor(Color(hex: "8a7a6a"))
-                                }
-                            }
-                            .padding(20)
-                            .background(Color.white.opacity(0.85))
-                            .cornerRadius(20)
-                            .shadow(color: .black.opacity(0.1), radius: 12, x: 0, y: 4)
-                            .opacity(appeared ? 1 : 0)
-                            .scaleEffect(appeared ? 1 : 0.9)
-                            .animation(.spring(response: 0.5, dampingFraction: 0.7).delay(0.5), value: appeared)
+                        // Body text
+                        if let body = screen.bodyText {
+                            Spacer().frame(height: 12)
+                            Text(body)
+                                .font(.system(size: 18, weight: .regular))
+                                .foregroundColor(Color(hex: "666666"))
+                                .lineSpacing(6)
+                                .lineLimit(4)
+                                .opacity(appeared ? 1 : 0)
+                                .animation(.easeOut(duration: 0.5).delay(0.52), value: appeared)
                         }
                         
-                        Spacer().frame(height: 30)
+                        Spacer().frame(height: 20)
+                        
+                        // QR Code
+                        if let qrURL = screen.qrCodeURL, !qrURL.isEmpty {
+                            let fullURL = qrURL.hasPrefix("http") ? qrURL : "https://catfetv.com" + qrURL
+                            EventQRCode(url: fullURL, label: screen.qrLabel ?? "Scan to RSVP")
+                                .opacity(appeared ? 1 : 0)
+                                .scaleEffect(appeared ? 1 : 0.9)
+                                .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.6), value: appeared)
+                        }
+                        
+                        Spacer()
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.trailing, 40)
-                    .padding(.leading, 20)
-                    .opacity(appeared ? 1 : 0)
-                    .offset(x: appeared ? 0 : 30)
-                    .animation(.easeOut(duration: 0.6).delay(0.2), value: appeared)
+                    .padding(.horizontal, 50)
+                    .padding(.vertical, 40)
                 }
-                
-                // No-image fallback: warm amber glow
-                if screen.imageURL == nil {
-                    Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: [Color(hex: "daa520").opacity(0.3), Color.clear],
-                                center: .center,
-                                startRadius: 0,
-                                endRadius: geo.size.width * 0.4
-                            )
-                        )
-                        .frame(width: geo.size.width * 0.8, height: geo.size.width * 0.8)
-                        .position(x: geo.size.width * 0.25, y: 0)
-                    
-                    Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: [Color(hex: "a8d5ba").opacity(0.3), Color.clear],
-                                center: .center,
-                                startRadius: 0,
-                                endRadius: geo.size.width * 0.3
-                            )
-                        )
-                        .frame(width: geo.size.width * 0.5, height: geo.size.width * 0.5)
-                        .position(x: geo.size.width * 0.75, y: geo.size.height)
-                }
-                
-                // Mint green accent strip at bottom
-                VStack {
-                    Spacer()
-                    Rectangle()
-                        .fill(Color(hex: "a8d5ba"))
-                        .frame(height: 4)
-                }
-                .ignoresSafeArea()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .ignoresSafeArea()
         .onAppear {
-            withAnimation { appeared = true }
+            withAnimation {
+                appeared = true
+            }
         }
     }
     
     // Event detail item with icon in amber circle
     @ViewBuilder
     private func eventDetailItem(icon: String, text: String) -> some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 14) {
             ZStack {
                 Circle()
-                    .fill(Color(hex: "d97706").opacity(0.15))
-                    .frame(width: 44, height: 44)
+                    .fill(Color(hex: "E8913A").opacity(0.15))
+                    .frame(width: 48, height: 48)
                 Image(systemName: icon)
-                    .font(.system(size: 20, weight: .medium))
-                    .foregroundColor(Color(hex: "d97706"))
+                    .font(.system(size: 22, weight: .medium))
+                    .foregroundColor(Color(hex: "E8913A"))
             }
             Text(text)
-                .font(.system(size: 28, weight: .medium, design: .rounded))
-                .foregroundColor(Color(hex: "5a4a3a"))
+                .font(.system(size: 28, weight: .light))
+                .foregroundColor(Color(hex: "444444"))
         }
     }
 }
 
-// MARK: - Diagonal Clip Shape (upper-left triangle for image)
-
-struct EventDiagonalShape: Shape {
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        path.move(to: CGPoint(x: 0, y: 0))
-        path.addLine(to: CGPoint(x: rect.width * 0.60, y: 0))
-        path.addLine(to: CGPoint(x: rect.width * 0.35, y: rect.height))
-        path.addLine(to: CGPoint(x: 0, y: rect.height))
-        path.closeSubpath()
-        return path
+// MARK: - Paw Print Watermark
+private struct PawPrintWatermark: View {
+    var body: some View {
+        ZStack {
+            // Main pad
+            Circle()
+                .fill(Color(hex: "2d2d2d"))
+                .frame(width: 50, height: 50)
+                .offset(y: 10)
+            // Toe beans
+            ForEach(0..<4) { i in
+                let angle = Double(i) * 30 - 45
+                let x = cos(angle * .pi / 180) * 35
+                let y = sin(angle * .pi / 180) * 35 - 15
+                Circle()
+                    .fill(Color(hex: "2d2d2d"))
+                    .frame(width: 22, height: 22)
+                    .offset(x: CGFloat(x), y: CGFloat(y))
+            }
+        }
     }
 }
 
-// MARK: - Diagonal Accent Line Shape
-
-struct EventDiagonalLineShape: Shape {
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        let lineWidth: CGFloat = rect.width * 0.015
-        path.move(to: CGPoint(x: rect.width * 0.595, y: 0))
-        path.addLine(to: CGPoint(x: rect.width * 0.595 + lineWidth, y: 0))
-        path.addLine(to: CGPoint(x: rect.width * 0.345 + lineWidth, y: rect.height))
-        path.addLine(to: CGPoint(x: rect.width * 0.345, y: rect.height))
-        path.closeSubpath()
-        return path
+// MARK: - Event QR Code (matching adoption magazine style)
+private struct EventQRCode: View {
+    let url: String
+    var label: String?
+    
+    @State private var qrImage: UIImage?
+    
+    var body: some View {
+        Group {
+            if let image = qrImage {
+                VStack(spacing: 8) {
+                    Image(uiImage: image)
+                        .interpolation(.none)
+                        .resizable()
+                        .frame(width: 130, height: 130)
+                    
+                    Text(label ?? "Scan to RSVP")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: "666666"))
+                }
+                .padding(18)
+                .background(Color.white)
+                .cornerRadius(16)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color(hex: "e5e0d8"), lineWidth: 1)
+                )
+                .shadow(color: .black.opacity(0.08), radius: 10, x: 0, y: 4)
+            } else {
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color.white)
+                    .frame(width: 166, height: 196)
+                    .overlay(
+                        ProgressView()
+                            .tint(Color(hex: "E8913A"))
+                    )
+            }
+        }
+        .onAppear {
+            generateQR()
+        }
+    }
+    
+    private func generateQR() {
+        guard let data = url.data(using: .utf8) else { return }
+        let filter = CIFilter(name: "CIQRCodeGenerator")
+        filter?.setValue(data, forKey: "inputMessage")
+        filter?.setValue("M", forKey: "inputCorrectionLevel")
+        guard let ciImage = filter?.outputImage else { return }
+        let scale = 130.0 / ciImage.extent.width
+        let transformed = ciImage.transformed(by: CGAffineTransform(scaleX: scale, y: scale))
+        let context = CIContext()
+        guard let cgImage = context.createCGImage(transformed, from: transformed.extent) else { return }
+        qrImage = UIImage(cgImage: cgImage)
     }
 }
