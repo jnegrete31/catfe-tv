@@ -156,15 +156,15 @@ struct UpcomingEventsScreenView: View {
             // Event Info
             VStack(alignment: .leading, spacing: 10) {
                 HStack(alignment: .top) {
-                    Text(event.title)
+                    Text(event.name)
                         .font(.system(size: 32, weight: .bold, design: .serif))
                         .foregroundColor(Color(hex: "3d2914"))
                         .lineLimit(2)
                     
                     Spacer()
                     
-                    // Days-until badge using startAt or eventDate
-                    let dateStr = event.startAt ?? event.eventDate ?? ""
+                    // Days-until badge using eventDate
+                    let dateStr = event.eventDate ?? ""
                     if !dateStr.isEmpty {
                         Text(daysUntilText(dateStr))
                             .font(.system(size: 18, weight: .semibold, design: .rounded))
@@ -178,7 +178,7 @@ struct UpcomingEventsScreenView: View {
                 
                 // Date and time row
                 HStack(spacing: 16) {
-                    let dateStr = event.startAt ?? event.eventDate ?? ""
+                    let dateStr = event.eventDate ?? ""
                     if !dateStr.isEmpty {
                         HStack(spacing: 6) {
                             Image(systemName: "calendar")
@@ -202,20 +202,15 @@ struct UpcomingEventsScreenView: View {
                     }
                 }
                 
-                // Subtitle or body text
-                if let subtitle = event.subtitle, !subtitle.isEmpty {
-                    Text(subtitle)
-                        .font(.system(size: 22, weight: .regular, design: .rounded))
-                        .foregroundColor(Color(hex: "7a6a5a"))
-                        .lineLimit(2)
-                } else if let body = event.body, !body.isEmpty {
-                    Text(body)
+                // Description text
+                if let description = event.description, !description.isEmpty {
+                    Text(description)
                         .font(.system(size: 22, weight: .regular, design: .rounded))
                         .foregroundColor(Color(hex: "7a6a5a"))
                         .lineLimit(2)
                 }
                 
-                if let location = event.eventLocation, !location.isEmpty {
+                if let location = event.location, !location.isEmpty {
                     HStack(spacing: 6) {
                         Image(systemName: "mappin.circle.fill")
                             .font(.system(size: 18))

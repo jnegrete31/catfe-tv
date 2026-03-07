@@ -905,15 +905,14 @@ struct BirthdayCat: Codable, Identifiable {
 
 struct CatfeEvent: Codable, Identifiable {
     let id: Int
-    let title: String
-    let subtitle: String?
-    let body: String?
+    let name: String
+    let description: String?
     let eventDate: String?
+    let endDate: String?
     let eventTime: String?
-    let eventLocation: String?
-    let startAt: String?
-    let endAt: String?
+    let location: String?
     let imagePath: String?
+    let isActive: Bool?
 }
 
 // MARK: - Volunteer Model (from volunteers.getFeatured API)
