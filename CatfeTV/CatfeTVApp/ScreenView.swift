@@ -74,6 +74,8 @@ struct ScreenView: View {
                     PhotoContestQRScreenView(screen: screen)
                 case .upcomingEvents:
                     UpcomingEventsScreenView(screen: screen, settings: settings)
+                case .catWordCloud:
+                    CatWordCloudScreenView(screen: screen)
                 case .logo:
                     LogoScreenView(screen: screen, settings: settings)
                 case .custom, .poll, .pollQR:

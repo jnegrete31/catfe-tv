@@ -68,6 +68,7 @@
 				PCQ00001 /* PhotoContestQRScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PCQ00002 /* PhotoContestQRScreenView.swift */; };
 				UPE00001 /* UpcomingEventsScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = UPE00002 /* UpcomingEventsScreenView.swift */; };
 				LGO00001 /* LogoScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LGO00002 /* LogoScreenView.swift */; };
+			CWC00001 /* CatWordCloudScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CWC00002 /* CatWordCloudScreenView.swift */; };
 		22810065BDE340519254637D /* CosmicHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86CB68B09382437D9B459095 /* CosmicHelpers.swift */; };
 		303610EFC664458D9517DB33 /* HappyTailsQRScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95CD9A1BFCB64E6BB89476CB /* HappyTailsQRScreenView.swift */; };
 		160E26B617F844B9A485E8BA /* HappyTailsScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18F4708A52AA458882948CFB /* HappyTailsScreenView.swift */; };
@@ -141,6 +142,7 @@
 			PCQ00002 /* PhotoContestQRScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoContestQRScreenView.swift; sourceTree = "<group>"; };
 			UPE00002 /* UpcomingEventsScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpcomingEventsScreenView.swift; sourceTree = "<group>"; };
 			LGO00002 /* LogoScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogoScreenView.swift; sourceTree = "<group>"; };
+			CWC00002 /* CatWordCloudScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatWordCloudScreenView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -225,6 +227,7 @@
 					PCQ00002 /* PhotoContestQRScreenView.swift */,
 					UPE00002 /* UpcomingEventsScreenView.swift */,
 					LGO00002 /* LogoScreenView.swift */,
+					CWC00002 /* CatWordCloudScreenView.swift */,
 			);
 			path = Screens;
 			sourceTree = "<group>";
@@ -403,6 +406,7 @@
 					PCQ00001 /* PhotoContestQRScreenView.swift in Sources */,
 					UPE00001 /* UpcomingEventsScreenView.swift in Sources */,
 					LGO00001 /* LogoScreenView.swift in Sources */,
+					CWC00001 /* CatWordCloudScreenView.swift in Sources */,
 
 
 					TV017 /* TemplateOverlayView.swift in Sources */,
