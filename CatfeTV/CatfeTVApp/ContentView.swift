@@ -87,6 +87,14 @@ struct ContentView: View {
                     }
                 }
                 
+                // Overstay Popup - persistent alert for guests expired 3+ min ago
+                VStack {
+                    Spacer()
+                    OverstayPopupView()
+                        .frame(maxWidth: 700)
+                        .padding(.bottom, 120)
+                }
+                
                 // Full-screen Welcome Overlay for newly checked-in guests
                 WelcomeOverlayView()
                 

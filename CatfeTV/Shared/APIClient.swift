@@ -482,6 +482,34 @@ class APIClient: ObservableObject {
         }
     }
     
+    func fetchOverstayGuests() async throws -> [GuestSession] {
+        let url = URL(string: "\(baseURL)/api/trpc/guestSessions.getOverstay")!
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200 else {
+            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
+            print("[APIClient] fetchOverstayGuests failed with status: \(statusCode)")
+            throw APIError(message: "Failed to fetch overstay guests")
+        }
+        
+        if let rawString = String(data: data, encoding: .utf8) {
+            print("[APIClient] getOverstay raw response: \(rawString.prefix(500))")
+        }
+        
+        do {
+            let trpcResponse = try decoder.decode(TRPCResponse<[GuestSession]>.self, from: data)
+            print("[APIClient] getOverstay decoded \(trpcResponse.result.data.json.count) overstay guests")
+            return trpcResponse.result.data.json
+        } catch {
+            print("[APIClient] getOverstay DECODE ERROR: \(error)")
+            throw error
+        }
+    }
+    
     // MARK: - Photos
     
     func fetchApprovedPhotos(type: String) async throws -> [PhotoSubmission] {

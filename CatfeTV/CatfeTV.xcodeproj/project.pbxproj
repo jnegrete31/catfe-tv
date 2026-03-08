@@ -69,6 +69,7 @@
 				UPE00001 /* UpcomingEventsScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = UPE00002 /* UpcomingEventsScreenView.swift */; };
 				LGO00001 /* LogoScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LGO00002 /* LogoScreenView.swift */; };
 			CWC00001 /* CatWordCloudScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CWC00002 /* CatWordCloudScreenView.swift */; };
+			OSP00001 /* OverstayPopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = OSP00002 /* OverstayPopupView.swift */; };
 		22810065BDE340519254637D /* CosmicHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86CB68B09382437D9B459095 /* CosmicHelpers.swift */; };
 		303610EFC664458D9517DB33 /* HappyTailsQRScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95CD9A1BFCB64E6BB89476CB /* HappyTailsQRScreenView.swift */; };
 		160E26B617F844B9A485E8BA /* HappyTailsScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18F4708A52AA458882948CFB /* HappyTailsScreenView.swift */; };
@@ -99,6 +100,7 @@
 			TVF020 /* WaiverWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaiverWidget.swift; sourceTree = "<group>"; };
 			TVF021 /* LogoWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogoWidget.swift; sourceTree = "<group>"; };
 			TVF022 /* WelcomeOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeOverlayView.swift; sourceTree = "<group>"; };
+			OSP00002 /* OverstayPopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverstayPopupView.swift; sourceTree = "<group>"; };
 		
 		/* iOS Admin App Files */
 		IOSF001 /* CatfeTVAdminApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatfeTVAdminApp.swift; sourceTree = "<group>"; };
@@ -242,6 +244,7 @@
 					TVF020 /* WaiverWidget.swift */,
 					TVF021 /* LogoWidget.swift */,
 					TVF022 /* WelcomeOverlayView.swift */,
+					OSP00002 /* OverstayPopupView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -414,6 +417,7 @@
 					TV020 /* WaiverWidget.swift in Sources */,
 					TV021 /* LogoWidget.swift in Sources */,
 					TV022 /* WelcomeOverlayView.swift in Sources */,
+					OSP00001 /* OverstayPopupView.swift in Sources */,
 					SH001 /* Models.swift in Sources */,
 				SH003 /* APIClient.swift in Sources */,
 				SH005 /* WeatherService.swift in Sources */,
