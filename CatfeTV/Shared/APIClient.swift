@@ -639,7 +639,7 @@ class APIClient: ObservableObject {
             let todayRequest = URLRequest(url: todayUrl)
             let (todayData, todayResponse) = try await URLSession.shared.data(for: todayRequest)
             if let httpResponse = todayResponse as? HTTPURLResponse, httpResponse.statusCode == 200 {
-                let trpcResponse = try JSONDecoder().decode(TRPCResponse<[BirthdayCat]>.self, from: todayData)
+                let trpcResponse = try decoder.decode(TRPCResponse<[BirthdayCat]>.self, from: todayData)
                 cachedBirthdayCats = trpcResponse.result.data.json
                 print("[Birthdays] \(cachedBirthdayCats.count) cats have birthdays today")
             }
@@ -651,7 +651,7 @@ class APIClient: ObservableObject {
             let upcomingRequest = URLRequest(url: upcomingUrl)
             let (upcomingData, upcomingResponse) = try await URLSession.shared.data(for: upcomingRequest)
             if let httpResponse = upcomingResponse as? HTTPURLResponse, httpResponse.statusCode == 200 {
-                let trpcResponse = try JSONDecoder().decode(TRPCResponse<[BirthdayCat]>.self, from: upcomingData)
+                let trpcResponse = try decoder.decode(TRPCResponse<[BirthdayCat]>.self, from: upcomingData)
                 cachedUpcomingBirthdays = trpcResponse.result.data.json
                 print("[Birthdays] \(cachedUpcomingBirthdays.count) upcoming birthdays")
             }
