@@ -148,13 +148,22 @@ struct CatWordCloudScreenView: View {
                         
                         Spacer()
                         
-                        // Footer CTA
-                        HStack(spacing: 12) {
-                            Text("🐾")
-                                .font(.system(size: 28))
-                            Text("Visit \(catName)'s profile to add your own words!")
-                                .font(.system(size: 22, weight: .semibold, design: .rounded))
-                                .foregroundColor(Color(hex: "92400e"))
+                        // Footer CTA with QR Code
+                        HStack(spacing: 20) {
+                            // QR Code
+                            if let qrUrl = screen.qrCodeURL, !qrUrl.isEmpty {
+                                let fullUrl = qrUrl.hasPrefix("http") ? qrUrl : "https://www.catfetv.com" + qrUrl
+                                QRCodeView(url: fullUrl, size: 100, label: nil)
+                            }
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(screen.qrLabel ?? "Add your words for \(catName)!")
+                                    .font(.system(size: 22, weight: .semibold, design: .rounded))
+                                    .foregroundColor(Color(hex: "92400e"))
+                                Text("Scan to visit \(catName)'s profile")
+                                    .font(.system(size: 18, weight: .medium, design: .rounded))
+                                    .foregroundColor(Color(hex: "b45309"))
+                            }
                         }
                         .padding(.horizontal, 20)
                         .padding(.vertical, 14)
