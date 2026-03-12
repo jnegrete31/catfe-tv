@@ -50,6 +50,9 @@ class APIClient: ObservableObject {
     @Published var cachedActiveSpotlights: [SpotlightDonation] = []
     @Published var cachedCatPopularity: [CatPopularity] = []
     
+    // Cached adoption count from DB (auto-counted from cats marked as adopted)
+    @Published var cachedAdoptionCount: Int = 0
+    
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
     
@@ -583,6 +586,33 @@ class APIClient: ObservableObject {
             print("[AdoptedCats] Cached \(cachedRecentlyAdoptedCats.count) recently adopted cats")
         } catch {
             print("[AdoptedCats] Failed to fetch recently adopted cats: \(error)")
+        }
+    }
+    
+    // MARK: - Adoption Count (from DB)
+    
+    /// Fetch the total adoption count from the screens.getAdoptionCount endpoint.
+    /// This counts cats marked as adopted in the database.
+    func fetchAdoptionCount() async {
+        do {
+            let url = URL(string: "\(baseURL)/api/trpc/screens.getAdoptionCount")!
+            var request = URLRequest(url: url)
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            
+            let (data, response) = try await URLSession.shared.data(for: request)
+            
+            guard let httpResponse = response as? HTTPURLResponse,
+                  httpResponse.statusCode == 200 else {
+                let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
+                print("[AdoptionCount] HTTP \(statusCode) fetching adoption count")
+                return
+            }
+            
+            let trpcResponse = try JSONDecoder().decode(TRPCResponse<AdoptionCountResponse>.self, from: data)
+            cachedAdoptionCount = trpcResponse.result.data.json.count
+            print("[AdoptionCount] Total adopted: \(cachedAdoptionCount)")
+        } catch {
+            print("[AdoptionCount] Failed to fetch adoption count: \(error)")
         }
     }
     

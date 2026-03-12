@@ -683,6 +683,12 @@ struct ScreensResponse: Codable {
     var settings: AppSettings?
 }
 
+// MARK: - Adoption Count Response
+
+struct AdoptionCountResponse: Codable {
+    var count: Int
+}
+
 struct APIError: Error, LocalizedError {
     var message: String
     

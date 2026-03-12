@@ -31,7 +31,7 @@ struct ContentView: View {
                     // Combine with recently adopted cats for the adoption counter
                     let allAdoptionCats = adoptionCats + apiClient.cachedRecentlyAdoptedCats
                     
-                    ScreenView(screen: currentScreen, adoptionCats: allAdoptionCats, settings: apiClient.settings)
+                    ScreenView(screen: currentScreen, adoptionCats: allAdoptionCats, settings: apiClient.settings, adoptionCount: apiClient.cachedAdoptionCount)
                         .id(currentScreen.id)
                         .transition(.opacity.animation(.easeInOut(duration: apiClient.settings.transitionDuration)))
                 } else {
@@ -143,6 +143,7 @@ struct ContentView: View {
             Task { @MainActor in
                 await apiClient.refreshPhotos()
                 await apiClient.fetchRecentlyAdoptedCats()
+                await apiClient.fetchAdoptionCount()
                 await apiClient.fetchRollerSessions()
                 await apiClient.fetchSocialPosts()
                 await apiClient.fetchBirthdayCats()
@@ -208,6 +209,7 @@ struct ContentView: View {
             Task { @MainActor in
                 await apiClient.refreshPhotos()
                 await apiClient.fetchRecentlyAdoptedCats()
+                await apiClient.fetchAdoptionCount()
                 await apiClient.refreshGuestPhotos()
             }
         }

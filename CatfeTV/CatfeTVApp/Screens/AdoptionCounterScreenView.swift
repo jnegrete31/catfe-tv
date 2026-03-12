@@ -67,8 +67,10 @@ struct AdoptionCounterScreenView: View {
     @State private var currentCatIndex: Int = 0
     @State private var milestoneGlowOpacity: Double = 0
     
+    var adoptionCount: Int = 0
+    
     private var targetCount: Int {
-        settings.totalAdoptionCount
+        adoptionCount > 0 ? adoptionCount : settings.totalAdoptionCount
     }
     
     private var milestone: MilestoneInfo {

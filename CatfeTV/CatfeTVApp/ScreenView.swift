@@ -11,6 +11,7 @@ struct ScreenView: View {
     let screen: Screen
     var adoptionCats: [Screen] = [] // For adoption showcase grid
     var settings: AppSettings = .default
+    var adoptionCount: Int = 0
     
     /// Check if this screen has a saved template overlay with elements
     private var hasTemplateOverlay: Bool {
@@ -45,7 +46,7 @@ struct ScreenView: View {
                 case .adoptionShowcase:
                     AdoptionShowcaseScreenView(screen: screen, adoptionCats: adoptionCats)
                 case .adoptionCounter:
-                    AdoptionCounterScreenView(screen: screen, settings: settings, adoptionCats: adoptionCats)
+                    AdoptionCounterScreenView(screen: screen, settings: settings, adoptionCats: adoptionCats, adoptionCount: adoptionCount)
                 case .thankYou:
                     ThankYouScreenView(screen: screen)
                 case .happyTails:
