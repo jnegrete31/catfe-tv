@@ -19,67 +19,90 @@ struct ScreenView: View {
         return !overlay.elements.isEmpty
     }
     
+    /// Screen types that have dedicated native SwiftUI views.
+    /// These ALWAYS use their native view, even if a template overlay exists,
+    /// because the native view renders settings-driven content (WiFi, house rules, etc.)
+    /// that a generic template cannot reproduce.
+    private var hasNativeView: Bool {
+        switch screen.type {
+        case .snapPurr, .snapPurrGallery, .snapPurrQR,
+             .events, .today, .membership, .reminders,
+             .adoption, .adoptionShowcase, .adoptionCounter,
+             .thankYou, .happyTails, .happyTailsQR,
+             .livestream, .checkIn, .guestStatusBoard,
+             .liveAvailability, .sessionBoard, .socialFeed,
+             .birthdayCelebration, .volunteerSpotlight,
+             .guestPhotoContest, .photoContestQR,
+             .upcomingEvents, .catWordCloud, .logo:
+            return true
+        case .custom, .poll, .pollQR:
+            return false
+        }
+    }
+    
     var body: some View {
         Group {
-            if hasTemplateOverlay {
-                // Template exists: use it as full replacement to prevent doubling
-                TemplateFullScreenView(screen: screen, settings: settings)
-            } else {
-                // No template: use default native screen design
-                switch screen.type {
-                case .snapPurr:
-                    SnapPurrScreenView(screen: screen)
-                case .snapPurrGallery:
-                    SnapPurrGalleryScreenView(screen: screen)
-                case .snapPurrQR:
-                    SnapPurrQRScreenView(screen: screen)
-                case .events:
-                    EventsScreenView(screen: screen)
-                case .today:
-                    TodayScreenView(screen: screen)
-                case .membership:
-                    MembershipScreenView(screen: screen)
-                case .reminders:
-                    RemindersScreenView(screen: screen)
-                case .adoption:
-                    AdoptionScreenView(screen: screen)
-                case .adoptionShowcase:
-                    AdoptionShowcaseScreenView(screen: screen, adoptionCats: adoptionCats)
-                case .adoptionCounter:
-                    AdoptionCounterScreenView(screen: screen, settings: settings, adoptionCats: adoptionCats, adoptionCount: adoptionCount)
-                case .thankYou:
-                    ThankYouScreenView(screen: screen)
-                case .happyTails:
-                    HappyTailsScreenView(screen: screen)
-                case .happyTailsQR:
-                    HappyTailsQRScreenView(screen: screen)
-                case .livestream:
-                    LivestreamScreenView(screen: screen)
-                case .checkIn:
-                    CheckInScreenView(screen: screen, settings: settings)
-                case .guestStatusBoard:
-                    GuestStatusBoardScreenView(screen: screen, settings: settings)
-                case .liveAvailability:
-                    LiveAvailabilityScreenView(screen: screen, settings: settings)
-                case .sessionBoard:
-                    TodaysSessionsScreenView(screen: screen, settings: settings)
-                case .socialFeed:
-                    SocialFeedScreenView(screen: screen)
-                case .birthdayCelebration:
-                    BirthdayCelebrationScreenView(screen: screen)
-                case .volunteerSpotlight:
-                    VolunteerSpotlightScreenView(screen: screen)
-                case .guestPhotoContest:
-                    GuestPhotoContestScreenView(screen: screen)
-                case .photoContestQR:
-                    PhotoContestQRScreenView(screen: screen)
-                case .upcomingEvents:
-                    UpcomingEventsScreenView(screen: screen, settings: settings)
-                case .catWordCloud:
-                    CatWordCloudScreenView(screen: screen)
-                case .logo:
-                    LogoScreenView(screen: screen, settings: settings)
-                case .custom, .poll, .pollQR:
+            // Native screen types ALWAYS use their dedicated SwiftUI view,
+            // even if a template overlay was saved. Template overlays are only
+            // used as full-screen replacements for CUSTOM / generic screen types.
+            switch screen.type {
+            case .snapPurr:
+                SnapPurrScreenView(screen: screen)
+            case .snapPurrGallery:
+                SnapPurrGalleryScreenView(screen: screen)
+            case .snapPurrQR:
+                SnapPurrQRScreenView(screen: screen)
+            case .events:
+                EventsScreenView(screen: screen)
+            case .today:
+                TodayScreenView(screen: screen)
+            case .membership:
+                MembershipScreenView(screen: screen)
+            case .reminders:
+                RemindersScreenView(screen: screen)
+            case .adoption:
+                AdoptionScreenView(screen: screen)
+            case .adoptionShowcase:
+                AdoptionShowcaseScreenView(screen: screen, adoptionCats: adoptionCats)
+            case .adoptionCounter:
+                AdoptionCounterScreenView(screen: screen, settings: settings, adoptionCats: adoptionCats, adoptionCount: adoptionCount)
+            case .thankYou:
+                ThankYouScreenView(screen: screen)
+            case .happyTails:
+                HappyTailsScreenView(screen: screen)
+            case .happyTailsQR:
+                HappyTailsQRScreenView(screen: screen)
+            case .livestream:
+                LivestreamScreenView(screen: screen)
+            case .checkIn:
+                CheckInScreenView(screen: screen, settings: settings)
+            case .guestStatusBoard:
+                GuestStatusBoardScreenView(screen: screen, settings: settings)
+            case .liveAvailability:
+                LiveAvailabilityScreenView(screen: screen, settings: settings)
+            case .sessionBoard:
+                TodaysSessionsScreenView(screen: screen, settings: settings)
+            case .socialFeed:
+                SocialFeedScreenView(screen: screen)
+            case .birthdayCelebration:
+                BirthdayCelebrationScreenView(screen: screen)
+            case .volunteerSpotlight:
+                VolunteerSpotlightScreenView(screen: screen)
+            case .guestPhotoContest:
+                GuestPhotoContestScreenView(screen: screen)
+            case .photoContestQR:
+                PhotoContestQRScreenView(screen: screen)
+            case .upcomingEvents:
+                UpcomingEventsScreenView(screen: screen, settings: settings)
+            case .catWordCloud:
+                CatWordCloudScreenView(screen: screen)
+            case .logo:
+                LogoScreenView(screen: screen, settings: settings)
+            case .custom, .poll, .pollQR:
+                // Generic/custom types: use template overlay if available, otherwise fallback
+                if hasTemplateOverlay {
+                    TemplateFullScreenView(screen: screen, settings: settings)
+                } else {
                     GenericScreenView(screen: screen)
                 }
             }
