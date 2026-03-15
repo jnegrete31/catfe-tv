@@ -613,7 +613,18 @@ struct AdoptionScreenView: View {
                             }
                         }
                         
-                        Spacer().frame(height: 20)
+                        Spacer().frame(height: 16)
+                        
+                        // ── GUEST WORD CLOUD ──
+                        if let catId = screen.catId,
+                           let traits = apiClient.cachedCatTraits[catId],
+                           !traits.isEmpty {
+                            GuestTraitCloud(traits: traits, appeared: appeared)
+                                .opacity(appeared ? 1 : 0)
+                                .animation(.easeOut(duration: 0.6).delay(0.55), value: appeared)
+                            
+                            Spacer().frame(height: 16)
+                        }
                         
                         // Adoption quote
                         if !screen.isAdopted {
@@ -622,10 +633,10 @@ struct AdoptionScreenView: View {
                                 .italic()
                                 .foregroundColor(Color(hex: "888888"))
                                 .opacity(appeared ? 1 : 0)
-                                .animation(.easeOut(duration: 0.5).delay(0.55), value: appeared)
+                                .animation(.easeOut(duration: 0.5).delay(0.6), value: appeared)
                         }
                         
-                        Spacer().frame(height: 20)
+                        Spacer().frame(height: 16)
                         
                         // QR Code — prepend base URL if path is relative
                         if let qrURL = screen.qrCodeURL, !qrURL.isEmpty {
@@ -762,5 +773,82 @@ private struct FlowLayout: Layout {
         }
         
         return (CGSize(width: maxWidth, height: y + rowHeight), positions)
+    }
+}
+
+// MARK: - Guest Trait Word Cloud (compact, for adoption profile)
+private struct GuestTraitCloud: View {
+    let traits: [(word: String, count: Int)]
+    let appeared: Bool
+    
+    // Warm Catfe palette for trait words
+    private let traitColors: [Color] = [
+        Color(hex: "E8913A"),  // Amber
+        Color(hex: "d97706"),  // Dark amber
+        Color(hex: "ea580c"),  // Orange
+        Color(hex: "b45309"),  // Brown amber
+        Color(hex: "f59e0b"),  // Yellow amber
+        Color(hex: "c2410c"),  // Burnt orange
+        Color(hex: "92400e"),  // Dark brown
+        Color(hex: "a16207"),  // Gold brown
+    ]
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            // Header
+            HStack(spacing: 8) {
+                Text("\u{1F4AC}")
+                    .font(.system(size: 18))
+                Text("GUESTS SAY")
+                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                    .tracking(2)
+                    .foregroundColor(Color(hex: "E8913A"))
+            }
+            
+            // Trait pills in a flow layout
+            let sorted = traits.sorted { $0.count > $1.count }
+            let maxCount = sorted.first?.count ?? 1
+            let displayed = Array(sorted.prefix(12)) // Show top 12 traits
+            
+            FlowLayout(spacing: 8) {
+                ForEach(Array(displayed.enumerated()), id: \.offset) { index, trait in
+                    let ratio = maxCount > 1 ? Double(trait.count) / Double(maxCount) : 0.5
+                    let fontSize = 14.0 + ratio * 10.0 // 14pt to 24pt
+                    let color = traitColors[index % traitColors.count]
+                    
+                    HStack(spacing: 4) {
+                        Text(trait.word)
+                            .font(.system(size: CGFloat(fontSize), weight: ratio > 0.6 ? .bold : .semibold, design: .rounded))
+                            .foregroundColor(color)
+                        
+                        if trait.count > 1 {
+                            Text("\(trait.count)")
+                                .font(.system(size: 11, weight: .medium, design: .rounded))
+                                .foregroundColor(color.opacity(0.6))
+                        }
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(color.opacity(0.08))
+                    .cornerRadius(20)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(color.opacity(0.15), lineWidth: 1)
+                    )
+                    .scaleEffect(appeared ? 1 : 0.7)
+                    .animation(
+                        .spring(response: 0.4, dampingFraction: 0.65)
+                            .delay(0.6 + Double(index) * 0.05),
+                        value: appeared
+                    )
+                }
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(Color(hex: "E8913A").opacity(0.04))
+        )
     }
 }

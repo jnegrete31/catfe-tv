@@ -53,6 +53,9 @@ class APIClient: ObservableObject {
     // Cached adoption count from DB (auto-counted from cats marked as adopted)
     @Published var cachedAdoptionCount: Int = 0
     
+    // Cached cat trait counts for word clouds on adoption screens
+    @Published var cachedCatTraits: [Int: [(word: String, count: Int)]] = [:]
+    
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
     
@@ -854,6 +857,43 @@ class APIClient: ObservableObject {
         await fetchTopGuestPhotoPerCat()
         await fetchActiveSpotlights()
         await fetchCatPopularity()
+        await fetchCatTraits()
+    }
+    
+    /// Fetch all cat trait counts for word clouds on adoption screens.
+    private func fetchCatTraits() async {
+        do {
+            let url = URL(string: "\(baseURL)/api/trpc/catTraits.getAllCounts")!
+            var request = URLRequest(url: url)
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+                print("[CatTraits] Non-200 response")
+                return
+            }
+            
+            struct TraitRow: Decodable {
+                let catId: Int
+                let word: String
+                let count: Int
+            }
+            
+            let trpcResponse = try JSONDecoder().decode(TRPCResponse<[TraitRow]>.self, from: data)
+            let rows = trpcResponse.result.data.json
+            
+            // Group by catId
+            var grouped: [Int: [(word: String, count: Int)]] = [:]
+            for row in rows {
+                if grouped[row.catId] == nil { grouped[row.catId] = [] }
+                grouped[row.catId]!.append((word: row.word, count: row.count))
+            }
+            
+            cachedCatTraits = grouped
+            print("[CatTraits] Cached traits for \(grouped.count) cats")
+        } catch {
+            print("[CatTraits] Failed to fetch: \(error)")
+        }
     }
     
     /// Get the top guest photo URL for a specific cat ID, or nil if none exists.
