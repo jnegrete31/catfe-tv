@@ -3,7 +3,7 @@
 //  CatfeTVApp
 //
 //  Guest Status Board - Magazine Split design
-//  Left: Grid of cat photos from the lounge (adoption screens)
+//  Left: Square grid of cat photos from the lounge (adoption screens)
 //  Orange accent divider
 //  Right: Clean cream panel with compact session cards
 //
@@ -25,7 +25,7 @@ struct GuestStatusBoardScreenView: View {
             .filter { $0.type == .adoption && $0.imageURL != nil && !($0.imageURL ?? "").isEmpty }
             .compactMap { screen in
                 guard let url = screen.imageURL else { return nil }
-                let name = screen.title ?? "Cat"
+                let name = screen.title
                 return (url: url, name: name)
             }
     }
@@ -36,11 +36,7 @@ struct GuestStatusBoardScreenView: View {
                 // -- LEFT PANEL: Cat Photo Grid --
                 ZStack {
                     // Background
-                    LinearGradient(
-                        colors: [Color(hex: "1a1a1a"), Color(hex: "2d2418")],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
+                    Color(hex: "1a1a1a")
                     
                     if catPhotos.isEmpty {
                         // Fallback: branded placeholder
@@ -55,7 +51,7 @@ struct GuestStatusBoardScreenView: View {
                                 .foregroundColor(.white.opacity(0.7))
                         }
                     } else {
-                        catPhotoGrid(size: geo.size)
+                        catPhotoSquareGrid(panelWidth: geo.size.width * 0.40, panelHeight: geo.size.height)
                     }
                     
                     // Subtle "Meet Our Cats" label at bottom
@@ -165,69 +161,77 @@ struct GuestStatusBoardScreenView: View {
         }
     }
     
-    // MARK: - Cat Photo Grid
+    // MARK: - Square Cat Photo Grid
     
+    /// Calculates the optimal number of columns to make cells as square as possible
+    /// and fit all photos in the available space
     @ViewBuilder
-    private func catPhotoGrid(size: CGSize) -> some View {
-        let panelWidth = size.width * 0.40
-        let panelHeight = size.height
-        let photos = Array(catPhotos.prefix(6)) // Max 6 photos in grid
+    private func catPhotoSquareGrid(panelWidth: CGFloat, panelHeight: CGFloat) -> some View {
+        let photos = catPhotos
         let count = photos.count
+        let gap: CGFloat = 2
         
-        if count == 1 {
-            // Single photo - full panel
-            singleCatPhoto(photos[0], width: panelWidth, height: panelHeight)
-        } else if count == 2 {
-            // 2 photos - side by side
-            HStack(spacing: 3) {
-                singleCatPhoto(photos[0], width: panelWidth / 2 - 1.5, height: panelHeight)
-                singleCatPhoto(photos[1], width: panelWidth / 2 - 1.5, height: panelHeight)
-            }
-        } else if count == 3 {
-            // 1 large left + 2 stacked right
-            HStack(spacing: 3) {
-                singleCatPhoto(photos[0], width: panelWidth * 0.55, height: panelHeight)
-                VStack(spacing: 3) {
-                    singleCatPhoto(photos[1], width: panelWidth * 0.45 - 3, height: panelHeight / 2 - 1.5)
-                    singleCatPhoto(photos[2], width: panelWidth * 0.45 - 3, height: panelHeight / 2 - 1.5)
-                }
-            }
-        } else if count == 4 {
-            // 2x2 grid
-            VStack(spacing: 3) {
-                HStack(spacing: 3) {
-                    singleCatPhoto(photos[0], width: panelWidth / 2 - 1.5, height: panelHeight / 2 - 1.5)
-                    singleCatPhoto(photos[1], width: panelWidth / 2 - 1.5, height: panelHeight / 2 - 1.5)
-                }
-                HStack(spacing: 3) {
-                    singleCatPhoto(photos[2], width: panelWidth / 2 - 1.5, height: panelHeight / 2 - 1.5)
-                    singleCatPhoto(photos[3], width: panelWidth / 2 - 1.5, height: panelHeight / 2 - 1.5)
-                }
-            }
-        } else {
-            // 5-6 photos: 2 top + 3 bottom (or 3+3)
-            let topRow = count >= 6 ? Array(photos[0..<3]) : Array(photos[0..<2])
-            let bottomRow = count >= 6 ? Array(photos[3..<6]) : Array(photos[2..<count])
-            let topCount = CGFloat(topRow.count)
-            let bottomCount = CGFloat(bottomRow.count)
-            
-            VStack(spacing: 3) {
-                HStack(spacing: 3) {
-                    ForEach(Array(topRow.enumerated()), id: \.offset) { _, photo in
-                        singleCatPhoto(photo, width: (panelWidth - 3 * (topCount - 1)) / topCount, height: panelHeight / 2 - 1.5)
-                    }
-                }
-                HStack(spacing: 3) {
-                    ForEach(Array(bottomRow.enumerated()), id: \.offset) { _, photo in
-                        singleCatPhoto(photo, width: (panelWidth - 3 * (bottomCount - 1)) / bottomCount, height: panelHeight / 2 - 1.5)
+        // Calculate optimal columns to make cells square-ish and fit all photos
+        // Try different column counts and pick the one that gives the most square cells
+        let cols = optimalColumns(count: count, width: panelWidth, height: panelHeight, gap: gap)
+        let rows = Int(ceil(Double(count) / Double(cols)))
+        
+        let totalHGap = gap * CGFloat(cols - 1)
+        let totalVGap = gap * CGFloat(rows - 1)
+        let cellWidth = (panelWidth - totalHGap) / CGFloat(cols)
+        let cellHeight = (panelHeight - totalVGap) / CGFloat(rows)
+        
+        VStack(spacing: gap) {
+            ForEach(0..<rows, id: \.self) { row in
+                HStack(spacing: gap) {
+                    ForEach(0..<cols, id: \.self) { col in
+                        let index = row * cols + col
+                        if index < count {
+                            squareCatCell(photos[index], width: cellWidth, height: cellHeight)
+                        } else {
+                            // Empty cell with dark fill to maintain grid
+                            Rectangle()
+                                .fill(Color(hex: "1a1a1a"))
+                                .frame(width: cellWidth, height: cellHeight)
+                        }
                     }
                 }
             }
         }
     }
     
+    /// Find the number of columns that makes cells closest to square
+    private func optimalColumns(count: Int, width: CGFloat, height: CGFloat, gap: CGFloat) -> Int {
+        guard count > 0 else { return 1 }
+        
+        var bestCols = 1
+        var bestRatio: CGFloat = .infinity
+        
+        // Try column counts from 1 to count
+        let maxCols = min(count, 8) // Cap at 8 columns
+        for c in 1...maxCols {
+            let r = Int(ceil(Double(count) / Double(c)))
+            let cellW = (width - gap * CGFloat(c - 1)) / CGFloat(c)
+            let cellH = (height - gap * CGFloat(r - 1)) / CGFloat(r)
+            
+            // Skip if cells would be too small
+            if cellW < 60 || cellH < 60 { continue }
+            
+            // Ratio of 1.0 = perfect square; we want closest to 1.0
+            let ratio = cellW / cellH
+            let deviation = abs(ratio - 1.0)
+            
+            if deviation < bestRatio {
+                bestRatio = deviation
+                bestCols = c
+            }
+        }
+        
+        return bestCols
+    }
+    
     @ViewBuilder
-    private func singleCatPhoto(_ photo: (url: String, name: String), width: CGFloat, height: CGFloat) -> some View {
+    private func squareCatCell(_ photo: (url: String, name: String), width: CGFloat, height: CGFloat) -> some View {
         ZStack(alignment: .bottomLeading) {
             AsyncImage(url: URL(string: photo.url)) { phase in
                 switch phase {
@@ -243,25 +247,27 @@ struct GuestStatusBoardScreenView: View {
                         .frame(width: width, height: height)
                         .overlay(
                             Text("\u{1F431}")
-                                .font(.system(size: 40))
+                                .font(.system(size: min(width, height) * 0.3))
                         )
                 }
             }
             
-            // Cat name overlay
-            LinearGradient(
-                colors: [.clear, .black.opacity(0.6)],
-                startPoint: .center,
-                endPoint: .bottom
-            )
-            .frame(height: height * 0.4)
+            // Name overlay at bottom
+            ZStack(alignment: .bottomLeading) {
+                LinearGradient(
+                    colors: [.clear, .black.opacity(0.65)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: height * 0.35)
+                
+                Text(photo.name)
+                    .font(.system(size: min(width, height) * 0.10, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+                    .shadow(color: .black.opacity(0.5), radius: 3, x: 0, y: 1)
+                    .padding(8)
+            }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
-            
-            Text(photo.name)
-                .font(.system(size: 18, weight: .bold, design: .rounded))
-                .foregroundColor(.white)
-                .shadow(color: .black.opacity(0.5), radius: 4, x: 0, y: 2)
-                .padding(10)
         }
         .frame(width: width, height: height)
         .clipped()
@@ -275,7 +281,6 @@ struct GuestStatusBoardScreenView: View {
             let bWaiting = b.isWaiting
             let aExpired = !aWaiting && a.expiresAt <= now
             let bExpired = !bWaiting && b.expiresAt <= now
-            // Active first, then waiting, then expired
             if aExpired != bExpired { return !aExpired }
             if aWaiting != bWaiting { return !aWaiting }
             return a.expiresAt < b.expiresAt
@@ -389,7 +394,6 @@ struct GuestStatusBoardScreenView: View {
                 .fill(isWaiting ? amberColor.opacity(0.06) : isExpired ? Color.red.opacity(0.06) : accent.opacity(0.06))
         )
         .overlay(
-            // Left accent border
             HStack {
                 RoundedRectangle(cornerRadius: 2)
                     .fill(isWaiting ? amberColor : isExpired ? Color.red : accent)
@@ -398,7 +402,6 @@ struct GuestStatusBoardScreenView: View {
             }
         )
         .overlay(
-            // Progress bar at bottom (not for waiting sessions)
             VStack {
                 Spacer()
                 GeometryReader { barGeo in
@@ -427,10 +430,10 @@ struct GuestStatusBoardScreenView: View {
     
     private func accentColor(for duration: String) -> Color {
         switch duration {
-        case "90": return Color(hex: "3B82F6") // Blue
-        case "60": return Color(hex: "14B8A6") // Teal
-        case "30": return Color(hex: "F59E0B") // Amber
-        case "15": return Color(hex: "A855F7") // Purple
+        case "90": return Color(hex: "3B82F6")
+        case "60": return Color(hex: "14B8A6")
+        case "30": return Color(hex: "F59E0B")
+        case "15": return Color(hex: "A855F7")
         default: return Color(hex: "9CA3AF")
         }
     }
@@ -487,12 +490,10 @@ struct GuestStatusBoardScreenView: View {
         var body: some View {
             Canvas { context, size in
                 let color = Color(hex: "E8913A")
-                // Main pad
                 context.fill(
                     Ellipse().path(in: CGRect(x: size.width * 0.22, y: size.height * 0.45, width: size.width * 0.56, height: size.height * 0.44)),
                     with: .color(color)
                 )
-                // Toes
                 let toePositions: [(CGFloat, CGFloat, CGFloat)] = [
                     (0.22, 0.28, 0.10),
                     (0.42, 0.18, 0.10),
