@@ -2,8 +2,8 @@
 //  GuestStatusBoardScreenView.swift
 //  CatfeTVApp
 //
-//  Guest Status Board — Magazine Split design
-//  Left: Rotating Snap & Purr gallery photos
+//  Guest Status Board - Magazine Split design
+//  Left: Grid of cat photos from the lounge (adoption screens)
 //  Orange accent divider
 //  Right: Clean cream panel with compact session cards
 //
@@ -18,116 +18,76 @@ struct GuestStatusBoardScreenView: View {
     @State private var guestSessions: [GuestSession] = []
     @State private var appeared = false
     @State private var fetchError: String?
-    @State private var currentPhotoIndex = 0
     
-    /// Timer to rotate photos every 6 seconds
-    private let photoTimer = Timer.publish(every: 6, on: .main, in: .common).autoconnect()
+    /// Cat photos from adoption screens
+    private var catPhotos: [(url: String, name: String)] {
+        apiClient.screens
+            .filter { $0.type == .adoption && $0.imageURL != nil && !($0.imageURL ?? "").isEmpty }
+            .compactMap { screen in
+                guard let url = screen.imageURL else { return nil }
+                let name = screen.title ?? "Cat"
+                return (url: url, name: name)
+            }
+    }
     
     var body: some View {
         GeometryReader { geo in
             HStack(spacing: 0) {
-                // ── LEFT PANEL: Snap & Purr Photo Gallery ──
-                ZStack(alignment: .bottomLeading) {
-                    let photos = apiClient.cachedSnapPurrPhotos
+                // -- LEFT PANEL: Cat Photo Grid --
+                ZStack {
+                    // Background
+                    LinearGradient(
+                        colors: [Color(hex: "1a1a1a"), Color(hex: "2d2418")],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
                     
-                    if photos.isEmpty {
+                    if catPhotos.isEmpty {
                         // Fallback: branded placeholder
-                        Rectangle()
-                            .fill(
-                                LinearGradient(
-                                    colors: [Color(hex: "E8913A"), Color(hex: "D4782A")],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .overlay(
-                                VStack(spacing: 16) {
-                                    Text("📸")
-                                        .font(.system(size: 100))
-                                    Text("Snap & Purr")
-                                        .font(.system(size: 36, weight: .bold, design: .serif))
-                                        .foregroundColor(.white)
-                                    Text("Guest photos coming soon!")
-                                        .font(.system(size: 20))
-                                        .foregroundColor(.white.opacity(0.7))
-                                }
-                            )
+                        VStack(spacing: 16) {
+                            Text("\u{1F431}")
+                                .font(.system(size: 100))
+                            Text("Our Cats")
+                                .font(.system(size: 36, weight: .bold, design: .serif))
+                                .foregroundColor(.white)
+                            Text("Meet the residents!")
+                                .font(.system(size: 20))
+                                .foregroundColor(.white.opacity(0.7))
+                        }
                     } else {
-                        let safeIndex = currentPhotoIndex % photos.count
-                        let photo = photos[safeIndex]
-                        
-                        ScreenImage(url: photo.photoUrl)
-                            .frame(width: geo.size.width * 0.40, height: geo.size.height)
-                            .clipped()
-                            .id(currentPhotoIndex)
-                            .transition(.opacity)
-                            .animation(.easeInOut(duration: 0.8), value: currentPhotoIndex)
+                        catPhotoGrid(size: geo.size)
                     }
                     
-                    // Subtle gradient for depth at right edge
-                    HStack {
+                    // Subtle "Meet Our Cats" label at bottom
+                    VStack {
                         Spacer()
-                        LinearGradient(
-                            colors: [.clear, Color(hex: "FAFAF5").opacity(0.15)],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                        .frame(width: 60)
-                    }
-                    
-                    // Photo credit overlay
-                    if !apiClient.cachedSnapPurrPhotos.isEmpty {
-                        let photos = apiClient.cachedSnapPurrPhotos
-                        let safeIndex = currentPhotoIndex % max(1, photos.count)
-                        
-                        if safeIndex < photos.count {
-                            let photo = photos[safeIndex]
-                            let name = photo.submitterName
-                            
-                            if !name.isEmpty {
-                                HStack(spacing: 6) {
-                                    Text("📷")
-                                        .font(.system(size: 14))
-                                    Text(name)
-                                        .font(.system(size: 14, weight: .medium))
-                                        .foregroundColor(.white.opacity(0.9))
-                                }
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .fill(.black.opacity(0.5))
-                                )
-                                .padding(16)
+                        HStack {
+                            HStack(spacing: 8) {
+                                Text("\u{1F43E}")
+                                    .font(.system(size: 16))
+                                Text("Meet Our Cats")
+                                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                                    .foregroundColor(.white.opacity(0.9))
                             }
-                        }
-                    }
-                    
-                    // Photo indicator dots (bottom right)
-                    if apiClient.cachedSnapPurrPhotos.count > 1 {
-                        let dotCount = min(8, apiClient.cachedSnapPurrPhotos.count)
-                        HStack(spacing: 6) {
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                            .background(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(.black.opacity(0.55))
+                            )
                             Spacer()
-                            ForEach(0..<dotCount, id: \.self) { i in
-                                Circle()
-                                    .fill(i == currentPhotoIndex % apiClient.cachedSnapPurrPhotos.count
-                                          ? Color(hex: "E8913A")
-                                          : Color.white.opacity(0.5))
-                                    .frame(width: 8, height: 8)
-                            }
                         }
-                        .padding(.horizontal, 16)
-                        .padding(.bottom, 16)
+                        .padding(16)
                     }
                 }
                 .frame(width: geo.size.width * 0.40)
                 
-                // ── ORANGE ACCENT DIVIDER ──
+                // -- ORANGE ACCENT DIVIDER --
                 Rectangle()
                     .fill(Color(hex: "E8913A"))
                     .frame(width: 5)
                 
-                // ── RIGHT PANEL: Session Cards ──
+                // -- RIGHT PANEL: Session Cards --
                 ZStack(alignment: .topTrailing) {
                     // Subtle paw print watermark
                     PawPrintWatermark()
@@ -203,12 +163,108 @@ struct GuestStatusBoardScreenView: View {
         .onReceive(Timer.publish(every: 10, on: .main, in: .common).autoconnect()) { _ in
             fetchSessions()
         }
-        .onReceive(photoTimer) { _ in
-            guard !apiClient.cachedSnapPurrPhotos.isEmpty else { return }
-            withAnimation {
-                currentPhotoIndex = (currentPhotoIndex + 1) % apiClient.cachedSnapPurrPhotos.count
+    }
+    
+    // MARK: - Cat Photo Grid
+    
+    @ViewBuilder
+    private func catPhotoGrid(size: CGSize) -> some View {
+        let panelWidth = size.width * 0.40
+        let panelHeight = size.height
+        let photos = Array(catPhotos.prefix(6)) // Max 6 photos in grid
+        let count = photos.count
+        
+        if count == 1 {
+            // Single photo - full panel
+            singleCatPhoto(photos[0], width: panelWidth, height: panelHeight)
+        } else if count == 2 {
+            // 2 photos - side by side
+            HStack(spacing: 3) {
+                singleCatPhoto(photos[0], width: panelWidth / 2 - 1.5, height: panelHeight)
+                singleCatPhoto(photos[1], width: panelWidth / 2 - 1.5, height: panelHeight)
+            }
+        } else if count == 3 {
+            // 1 large left + 2 stacked right
+            HStack(spacing: 3) {
+                singleCatPhoto(photos[0], width: panelWidth * 0.55, height: panelHeight)
+                VStack(spacing: 3) {
+                    singleCatPhoto(photos[1], width: panelWidth * 0.45 - 3, height: panelHeight / 2 - 1.5)
+                    singleCatPhoto(photos[2], width: panelWidth * 0.45 - 3, height: panelHeight / 2 - 1.5)
+                }
+            }
+        } else if count == 4 {
+            // 2x2 grid
+            VStack(spacing: 3) {
+                HStack(spacing: 3) {
+                    singleCatPhoto(photos[0], width: panelWidth / 2 - 1.5, height: panelHeight / 2 - 1.5)
+                    singleCatPhoto(photos[1], width: panelWidth / 2 - 1.5, height: panelHeight / 2 - 1.5)
+                }
+                HStack(spacing: 3) {
+                    singleCatPhoto(photos[2], width: panelWidth / 2 - 1.5, height: panelHeight / 2 - 1.5)
+                    singleCatPhoto(photos[3], width: panelWidth / 2 - 1.5, height: panelHeight / 2 - 1.5)
+                }
+            }
+        } else {
+            // 5-6 photos: 2 top + 3 bottom (or 3+3)
+            let topRow = count >= 6 ? Array(photos[0..<3]) : Array(photos[0..<2])
+            let bottomRow = count >= 6 ? Array(photos[3..<6]) : Array(photos[2..<count])
+            let topCount = CGFloat(topRow.count)
+            let bottomCount = CGFloat(bottomRow.count)
+            
+            VStack(spacing: 3) {
+                HStack(spacing: 3) {
+                    ForEach(Array(topRow.enumerated()), id: \.offset) { _, photo in
+                        singleCatPhoto(photo, width: (panelWidth - 3 * (topCount - 1)) / topCount, height: panelHeight / 2 - 1.5)
+                    }
+                }
+                HStack(spacing: 3) {
+                    ForEach(Array(bottomRow.enumerated()), id: \.offset) { _, photo in
+                        singleCatPhoto(photo, width: (panelWidth - 3 * (bottomCount - 1)) / bottomCount, height: panelHeight / 2 - 1.5)
+                    }
+                }
             }
         }
+    }
+    
+    @ViewBuilder
+    private func singleCatPhoto(_ photo: (url: String, name: String), width: CGFloat, height: CGFloat) -> some View {
+        ZStack(alignment: .bottomLeading) {
+            AsyncImage(url: URL(string: photo.url)) { phase in
+                switch phase {
+                case .success(let image):
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: width, height: height)
+                        .clipped()
+                default:
+                    Rectangle()
+                        .fill(Color(hex: "2d2418"))
+                        .frame(width: width, height: height)
+                        .overlay(
+                            Text("\u{1F431}")
+                                .font(.system(size: 40))
+                        )
+                }
+            }
+            
+            // Cat name overlay
+            LinearGradient(
+                colors: [.clear, .black.opacity(0.6)],
+                startPoint: .center,
+                endPoint: .bottom
+            )
+            .frame(height: height * 0.4)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+            
+            Text(photo.name)
+                .font(.system(size: 18, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
+                .shadow(color: .black.opacity(0.5), radius: 4, x: 0, y: 2)
+                .padding(10)
+        }
+        .frame(width: width, height: height)
+        .clipped()
     }
     
     // MARK: - Sorted Sessions
@@ -383,7 +439,7 @@ struct GuestStatusBoardScreenView: View {
     
     private var emptyState: some View {
         VStack(spacing: 16) {
-            Text("🐾")
+            Text("\u{1F43E}")
                 .font(.system(size: 72))
             Text("No active sessions")
                 .font(.system(size: 32, weight: .bold))

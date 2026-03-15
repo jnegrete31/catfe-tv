@@ -14,6 +14,7 @@ struct UpcomingEventsScreenView: View {
     
     @EnvironmentObject var apiClient: APIClient
     @State private var appeared = false
+    @State private var currentTime = Date()
     
     private var events: [CatfeEvent] {
         apiClient.cachedUpcomingEvents
@@ -21,7 +22,7 @@ struct UpcomingEventsScreenView: View {
     
     var body: some View {
         ZStack {
-            // Warm cream gradient background matching Catfé brand
+            // Warm cream gradient background matching Catfe brand
             LinearGradient(
                 colors: [
                     Color(hex: "fef3c7"),
@@ -52,6 +53,10 @@ struct UpcomingEventsScreenView: View {
         }
         .onAppear {
             withAnimation { appeared = true }
+            // Update currentTime every 30 seconds to refresh "Happening Now" status
+            Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { _ in
+                currentTime = Date()
+            }
         }
     }
     
@@ -59,12 +64,12 @@ struct UpcomingEventsScreenView: View {
     
     private var emptyState: some View {
         VStack(spacing: 24) {
-            Text("📅")
+            Text("\u{1F4C5}")
                 .font(.system(size: 80))
             Text("No Upcoming Events")
                 .font(.system(size: 56, weight: .bold, design: .serif))
                 .foregroundColor(Color(hex: "3d2914"))
-            Text("Stay tuned for exciting events at Catfé!")
+            Text("Stay tuned for exciting events at Catfe!")
                 .font(.system(size: 32, weight: .regular, design: .rounded))
                 .foregroundColor(Color(hex: "7a6a5a"))
         }
@@ -77,7 +82,7 @@ struct UpcomingEventsScreenView: View {
             // Header
             HStack(spacing: 16) {
                 HStack(spacing: 12) {
-                    Text("📅")
+                    Text("\u{1F4C5}")
                         .font(.system(size: 36))
                     Text("Upcoming Events")
                         .font(.system(size: 36, weight: .semibold, design: .rounded))
@@ -97,7 +102,7 @@ struct UpcomingEventsScreenView: View {
                 
                 Spacer()
                 
-                Text(settings?.locationName ?? "Catfé")
+                Text(settings?.locationName ?? "Catfe")
                     .font(.system(size: 28, weight: .regular, design: .serif))
                     .italic()
                     .foregroundColor(Color(hex: "8a7a6a"))
@@ -130,7 +135,9 @@ struct UpcomingEventsScreenView: View {
     // MARK: - Event Card
     
     private func eventCard(_ event: CatfeEvent) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
+        let happeningNow = isEventHappeningNow(event)
+        
+        return VStack(alignment: .leading, spacing: 0) {
             // Event Image
             if let imagePath = event.imagePath, !imagePath.isEmpty {
                 AsyncImage(url: URL(string: imagePath)) { phase in
@@ -147,7 +154,7 @@ struct UpcomingEventsScreenView: View {
                             .fill(Color.purple.opacity(0.1))
                             .frame(height: 180)
                             .overlay(
-                                Text("📅")
+                                Text("\u{1F4C5}")
                                     .font(.system(size: 50))
                             )
                     }
@@ -167,13 +174,36 @@ struct UpcomingEventsScreenView: View {
                     // Days-until badge using eventDate
                     let dateStr = event.eventDate ?? ""
                     if !dateStr.isEmpty {
-                        Text(daysUntilText(dateStr))
-                            .font(.system(size: 18, weight: .semibold, design: .rounded))
-                            .foregroundColor(daysUntilColor(dateStr))
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(daysUntilBgColor(dateStr))
-                            .cornerRadius(12)
+                        if happeningNow {
+                            // Happening Now badge - animated pulse effect
+                            HStack(spacing: 6) {
+                                Circle()
+                                    .fill(Color.white)
+                                    .frame(width: 8, height: 8)
+                                Text("LIVE NOW")
+                                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                                    .foregroundColor(.white)
+                            }
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                            .background(
+                                LinearGradient(
+                                    colors: [Color(hex: "dc2626"), Color(hex: "b91c1c")],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .cornerRadius(16)
+                            .shadow(color: Color.red.opacity(0.4), radius: 8, x: 0, y: 2)
+                        } else {
+                            Text(daysUntilText(dateStr))
+                                .font(.system(size: 18, weight: .semibold, design: .rounded))
+                                .foregroundColor(daysUntilColor(dateStr))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(daysUntilBgColor(dateStr))
+                                .cornerRadius(12)
+                        }
                     }
                 }
                 
@@ -193,12 +223,12 @@ struct UpcomingEventsScreenView: View {
                     
                     if let time = event.eventTime, !time.isEmpty {
                         HStack(spacing: 6) {
-                            Image(systemName: "clock")
+                            Image(systemName: happeningNow ? "clock.badge.checkmark" : "clock")
                                 .font(.system(size: 20))
-                                .foregroundColor(Color(hex: "d97706"))
+                                .foregroundColor(happeningNow ? Color(hex: "dc2626") : Color(hex: "d97706"))
                             Text(time)
-                                .font(.system(size: 22, weight: .regular, design: .rounded))
-                                .foregroundColor(Color(hex: "6a5a4a"))
+                                .font(.system(size: 22, weight: happeningNow ? .semibold : .regular, design: .rounded))
+                                .foregroundColor(happeningNow ? Color(hex: "dc2626") : Color(hex: "6a5a4a"))
                         }
                     }
                 }
@@ -224,12 +254,28 @@ struct UpcomingEventsScreenView: View {
             }
             .padding(24)
         }
-        .background(Color.white.opacity(0.85))
+        .background(happeningNow ? Color.white.opacity(0.95) : Color.white.opacity(0.85))
         .cornerRadius(20)
-        .shadow(color: .black.opacity(0.08), radius: 15, x: 0, y: 5)
+        .shadow(color: happeningNow ? Color.red.opacity(0.15) : .black.opacity(0.08), radius: happeningNow ? 20 : 15, x: 0, y: 5)
+        .overlay(
+            // Subtle red border for happening now events
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(happeningNow ? Color(hex: "dc2626").opacity(0.4) : Color.clear, lineWidth: 2)
+        )
     }
     
     // MARK: - Helpers
+    
+    /// Check if an event is currently happening
+    /// The eventDate stores the start time, so if we're past it and it's still today, it's happening now
+    private func isEventHappeningNow(_ event: CatfeEvent) -> Bool {
+        guard let dateStr = event.eventDate, let eventDate = parseDate(dateStr) else { return false }
+        let now = currentTime
+        let calendar = Calendar.current
+        let isToday = calendar.isDateInToday(eventDate)
+        // Event has started (now >= eventDate) and it's still today
+        return isToday && now >= eventDate
+    }
     
     private func daysUntilText(_ dateStr: String) -> String {
         guard let date = parseDate(dateStr) else { return "" }
