@@ -91,6 +91,7 @@ struct TodayScreenView: View {
                     // Events or fallback
                     if todayEvents.isEmpty {
                         // Fallback: show screen image + title/subtitle/body
+                        Group {
                         if let imageURL = screen.imageURL, !imageURL.isEmpty {
                             // Has image — use hero layout with image on left, text on right
                             HStack(spacing: 40) {
@@ -210,10 +211,11 @@ struct TodayScreenView: View {
                                 
                                 Spacer()
                             }
-                        }
-                        .opacity(appeared ? 1 : 0)
-                        .animation(.easeOut(duration: 0.6).delay(0.3), value: appeared)
-                    } else if todayEvents.count == 1 {
+                    }
+                    } // end Group
+                    .opacity(appeared ? 1 : 0)
+                    .animation(.easeOut(duration: 0.6).delay(0.3), value: appeared)
+                } else if todayEvents.count == 1 {
                         // Single event — prominent hero layout
                         singleEventHero(event: todayEvents[0], geo: geo)
                     } else {
