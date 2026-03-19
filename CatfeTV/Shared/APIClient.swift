@@ -40,6 +40,7 @@ class APIClient: ObservableObject {
     @Published var cachedUpcomingBirthdays: [BirthdayCat] = []
     @Published var cachedFeaturedVolunteers: [Volunteer] = []
     @Published var cachedUpcomingEvents: [CatfeEvent] = []
+    @Published var cachedTodayEvents: [CatfeEvent] = []
     
     // Cached guest contest photos for adoption slides and photo contest screen
     @Published var cachedTopGuestPhotos: [GuestCatPhoto] = []
@@ -708,6 +709,22 @@ class APIClient: ObservableObject {
             print("[Events] Cached \(cachedUpcomingEvents.count) upcoming events")
         } catch {
             print("[Events] Failed to fetch: \(error)")
+        }
+    }
+    
+    // MARK: - Today's Events
+    
+    func fetchTodayEvents() async {
+        do {
+            let url = URL(string: "\(baseURL)/api/trpc/events.getToday")!
+            let request = URLRequest(url: url)
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else { return }
+            let trpcResponse = try JSONDecoder().decode(TRPCResponse<[CatfeEvent]>.self, from: data)
+            cachedTodayEvents = trpcResponse.result.data.json
+            print("[Events] Cached \(cachedTodayEvents.count) today's events")
+        } catch {
+            print("[Events] Failed to fetch today's events: \(error)")
         }
     }
     

@@ -55,7 +55,7 @@ struct ScreenView: View {
             case .events:
                 EventsScreenView(screen: screen)
             case .today:
-                TodayScreenView(screen: screen)
+                TodayScreenView(screen: screen, settings: settings)
             case .membership:
                 MembershipScreenView(screen: screen)
             case .reminders:

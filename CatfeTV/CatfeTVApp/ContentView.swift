@@ -148,6 +148,7 @@ struct ContentView: View {
                 await apiClient.fetchSocialPosts()
                 await apiClient.fetchBirthdayCats()
                 await apiClient.fetchUpcomingEvents()
+                await apiClient.fetchTodayEvents()
                 await apiClient.fetchFeaturedVolunteers()
                 await apiClient.refreshGuestPhotos()
             }
@@ -228,6 +229,7 @@ struct ContentView: View {
                 await apiClient.fetchSocialPosts()
                 await apiClient.fetchBirthdayCats()
                 await apiClient.fetchUpcomingEvents()
+                await apiClient.fetchTodayEvents()
                 await apiClient.fetchFeaturedVolunteers()
             }
         }
