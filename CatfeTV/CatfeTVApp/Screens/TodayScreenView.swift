@@ -135,9 +135,12 @@ struct TodayScreenView: View {
                         }
                         .opacity(appeared ? 1 : 0)
                         .animation(.easeOut(duration: 0.6).delay(0.3), value: appeared)
+                    } else if todayEvents.count == 1 {
+                        // Single event — prominent hero layout
+                        singleEventHero(event: todayEvents[0], geo: geo)
                     } else {
-                        // Events grid
-                        let columns = todayEvents.count == 1 ? 1 : (todayEvents.count <= 4 ? 2 : 3)
+                        // Multiple events grid
+                        let columns = todayEvents.count <= 4 ? 2 : 3
                         let gridColumns = Array(repeating: GridItem(.flexible(), spacing: 24), count: columns)
                         
                         LazyVGrid(columns: gridColumns, spacing: 24) {
@@ -167,7 +170,107 @@ struct TodayScreenView: View {
         }
     }
     
-    // MARK: - Event Card
+    // MARK: - Single Event Hero Layout
+    
+    @ViewBuilder
+    private func singleEventHero(event: CatfeEvent, geo: GeometryProxy) -> some View {
+        HStack(spacing: 40) {
+            // Left side: Large event image
+            if let imagePath = event.imagePath, !imagePath.isEmpty {
+                AsyncImage(url: URL(string: imagePath)) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .clipShape(RoundedRectangle(cornerRadius: 20))
+                    case .failure:
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(Color(hex: "261E16"))
+                            .overlay(
+                                Image(systemName: "calendar.badge.clock")
+                                    .font(.system(size: 60))
+                                    .foregroundColor(Color(hex: "C4956A").opacity(0.3))
+                            )
+                    default:
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(Color(hex: "261E16"))
+                            .overlay(
+                                ProgressView()
+                                    .tint(Color(hex: "C4956A"))
+                            )
+                    }
+                }
+                .frame(maxWidth: geo.size.width * 0.45, maxHeight: geo.size.height * 0.55)
+                .shadow(color: .black.opacity(0.4), radius: 24, x: 0, y: 12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(Color(hex: "C4956A").opacity(0.15), lineWidth: 1)
+                )
+                .opacity(appeared ? 1 : 0)
+                .offset(x: appeared ? 0 : -30)
+                .animation(.easeOut(duration: 0.6).delay(0.2), value: appeared)
+            }
+            
+            // Right side: Event details
+            VStack(alignment: .leading, spacing: 20) {
+                Text(event.name)
+                    .font(.system(size: 48, weight: .bold, design: .serif))
+                    .foregroundColor(Color(hex: "F5E6D3"))
+                    .lineLimit(3)
+                
+                // Decorative divider
+                LinearGradient(
+                    colors: [Color(hex: "C4956A"), Color(hex: "E8913A"), .clear],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+                .frame(width: 120, height: 2)
+                
+                // Time
+                if let eventTime = event.eventTime, !eventTime.isEmpty {
+                    HStack(spacing: 12) {
+                        Image(systemName: "clock.fill")
+                            .font(.system(size: 22))
+                            .foregroundColor(Color(hex: "E8913A"))
+                        Text(eventTime)
+                            .font(.system(size: 28, weight: .semibold))
+                            .foregroundColor(Color(hex: "E8913A"))
+                    }
+                }
+                
+                // Description
+                if let description = event.description, !description.isEmpty {
+                    Text(description)
+                        .font(.system(size: 24))
+                        .foregroundColor(Color(hex: "F5E6D3").opacity(0.6))
+                        .lineLimit(4)
+                        .lineSpacing(6)
+                        .padding(.top, 4)
+                }
+                
+                // Location
+                if let location = event.location, !location.isEmpty {
+                    HStack(spacing: 10) {
+                        Image(systemName: "mappin.circle.fill")
+                            .font(.system(size: 20))
+                            .foregroundColor(Color(hex: "C4956A").opacity(0.7))
+                        Text(location)
+                            .font(.system(size: 20, weight: .medium))
+                            .foregroundColor(Color(hex: "C4956A").opacity(0.7))
+                    }
+                    .padding(.top, 8)
+                }
+            }
+            .frame(maxWidth: geo.size.width * 0.4, alignment: .leading)
+            .opacity(appeared ? 1 : 0)
+            .offset(x: appeared ? 0 : 30)
+            .animation(.easeOut(duration: 0.6).delay(0.3), value: appeared)
+        }
+        .padding(.horizontal, 60)
+    }
+    
+    // MARK: - Multi-Event Card
     
     @ViewBuilder
     private func eventCard(event: CatfeEvent, geo: GeometryProxy, index: Int) -> some View {
@@ -180,13 +283,13 @@ struct TodayScreenView: View {
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fit)
-                            .frame(maxHeight: 180)
+                            .frame(maxHeight: 200)
                     default:
                         EmptyView()
                     }
                 }
                 .frame(maxWidth: .infinity)
-                .frame(height: 180)
+                .frame(height: 200)
                 .background(Color(hex: "F5E6D3").opacity(0.04))
                 .clipped()
             }

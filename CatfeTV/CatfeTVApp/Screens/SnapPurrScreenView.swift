@@ -4,6 +4,7 @@
 //
 //  "Follow Us" social media channels screen — premium dark design
 //  Shows Instagram, Facebook, Threads, TikTok with platform-colored cards
+//  Each card has its own QR code linking to the profile
 //
 
 import SwiftUI
@@ -139,7 +140,7 @@ struct SnapPurrScreenView: View {
                 .padding(.top, 50)
                 .padding(.bottom, 30)
                 
-                // Four social channel cards
+                // Four social channel cards with QR codes
                 HStack(alignment: .top, spacing: 40) {
                     ForEach(Array(socialChannels.enumerated()), id: \.offset) { index, channel in
                         SocialChannelCard(channel: channel)
@@ -154,14 +155,6 @@ struct SnapPurrScreenView: View {
                 .padding(.horizontal, 80)
                 
                 Spacer(minLength: 16)
-                
-                // QR code at bottom
-                if let qrURL = screen.qrCodeURL, !qrURL.isEmpty {
-                    QRCodeView(url: qrURL, size: 100, label: screen.qrLabel ?? "Scan to Follow")
-                        .opacity(appeared ? 1 : 0)
-                        .animation(.easeOut(duration: 0.4).delay(0.7), value: appeared)
-                        .padding(.bottom, 40)
-                }
             }
         }
         .ignoresSafeArea()
@@ -178,7 +171,7 @@ private struct SocialChannelCard: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Glow effect
+            // Glow effect + Icon
             ZStack {
                 Circle()
                     .fill(RadialGradient(
@@ -186,62 +179,58 @@ private struct SocialChannelCard: View {
                         center: .center, startRadius: 0,
                         endRadius: 80
                     ))
-                    .frame(width: 160, height: 160)
+                    .frame(width: 140, height: 140)
                 
                 // Icon
                 Image(systemName: channel.systemIcon)
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 44, height: 44)
+                    .frame(width: 40, height: 40)
                     .foregroundColor(channel.accent)
-                    .padding(20)
+                    .padding(18)
                     .background(channel.accent.opacity(0.12))
-                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    .clipShape(RoundedRectangle(cornerRadius: 18))
             }
-            .padding(.top, 24)
-            .padding(.bottom, 8)
+            .padding(.top, 20)
+            .padding(.bottom, 4)
             
             // Platform name
             Text(channel.name)
-                .font(.system(size: 36, weight: .bold, design: .serif))
+                .font(.system(size: 32, weight: .bold, design: .serif))
                 .foregroundColor(Color(hex: "F5E6D3"))
-                .padding(.bottom, 4)
+                .padding(.bottom, 2)
             
             // Handle
             Text(channel.handle)
-                .font(.system(size: 24, weight: .medium))
+                .font(.system(size: 22, weight: .medium))
                 .foregroundColor(channel.accent)
                 .padding(.bottom, 12)
             
-            // Decorative flourish
-            HStack(spacing: 8) {
-                Rectangle()
-                    .fill(channel.accent.opacity(0.25))
-                    .frame(width: 30, height: 1)
-                Text("\u{2726}")
-                    .font(.system(size: 10))
-                    .foregroundColor(channel.accent)
-                Rectangle()
-                    .fill(channel.accent.opacity(0.25))
-                    .frame(width: 30, height: 1)
-            }
+            // QR Code for this channel
+            QRCodeView(url: channel.url, size: 100, label: nil)
+                .padding(.bottom, 6)
             
-            Spacer()
+            Text("Scan to follow")
+                .font(.system(size: 14))
+                .foregroundColor(Color(hex: "F5E6D3").opacity(0.35))
+                .padding(.bottom, 8)
+            
+            Spacer(minLength: 0)
             
             // CTA button
             Text("FOLLOW US")
-                .font(.system(size: 18, weight: .bold))
+                .font(.system(size: 16, weight: .bold))
                 .tracking(3)
                 .foregroundColor(channel.accent)
-                .padding(.horizontal, 24)
-                .padding(.vertical, 12)
+                .padding(.horizontal, 22)
+                .padding(.vertical, 10)
                 .background(channel.accent.opacity(0.12))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 24)
+                    RoundedRectangle(cornerRadius: 22)
                         .stroke(channel.accent.opacity(0.25), lineWidth: 1)
                 )
-                .clipShape(RoundedRectangle(cornerRadius: 24))
-                .padding(.bottom, 28)
+                .clipShape(RoundedRectangle(cornerRadius: 22))
+                .padding(.bottom, 24)
         }
         .frame(maxWidth: .infinity)
         .background(
