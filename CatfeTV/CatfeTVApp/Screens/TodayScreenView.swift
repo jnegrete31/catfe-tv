@@ -90,48 +90,126 @@ struct TodayScreenView: View {
                     
                     // Events or fallback
                     if todayEvents.isEmpty {
-                        // Fallback: show screen title/subtitle/body
-                        VStack(spacing: 20) {
-                            Spacer()
-                            
-                            if !screen.title.isEmpty {
-                                Text(screen.title)
-                                    .font(.system(size: 48, weight: .bold, design: .serif))
-                                    .foregroundColor(Color(hex: "F5E6D3"))
-                                    .multilineTextAlignment(.center)
-                            }
-                            
-                            if let subtitle = screen.subtitle, !subtitle.isEmpty {
-                                Text(subtitle)
-                                    .font(.system(size: 28, weight: .regular, design: .serif))
-                                    .foregroundColor(Color(hex: "F5E6D3").opacity(0.7))
-                                    .multilineTextAlignment(.center)
-                            }
-                            
-                            if let body = screen.bodyText, !body.isEmpty {
-                                Text(body)
-                                    .font(.system(size: 22))
-                                    .foregroundColor(Color(hex: "F5E6D3").opacity(0.5))
-                                    .multilineTextAlignment(.center)
-                                    .frame(maxWidth: geo.size.width * 0.6)
-                            }
-                            
-                            if screen.title.isEmpty && screen.subtitle == nil && screen.bodyText == nil {
-                                Text("☕")
-                                    .font(.system(size: 60))
-                                    .padding(.bottom, 10)
+                        // Fallback: show screen image + title/subtitle/body
+                        if let imageURL = screen.imageURL, !imageURL.isEmpty {
+                            // Has image — use hero layout with image on left, text on right
+                            HStack(spacing: 40) {
+                                // Left: Screen image
+                                AsyncImage(url: URL(string: imageURL)) { phase in
+                                    switch phase {
+                                    case .success(let image):
+                                        image
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fit)
+                                            .clipShape(RoundedRectangle(cornerRadius: 20))
+                                    case .failure:
+                                        RoundedRectangle(cornerRadius: 20)
+                                            .fill(Color(hex: "261E16"))
+                                            .overlay(
+                                                Image(systemName: "photo")
+                                                    .font(.system(size: 60))
+                                                    .foregroundColor(Color(hex: "C4956A").opacity(0.3))
+                                            )
+                                    default:
+                                        RoundedRectangle(cornerRadius: 20)
+                                            .fill(Color(hex: "261E16"))
+                                            .overlay(
+                                                ProgressView()
+                                                    .tint(Color(hex: "C4956A"))
+                                            )
+                                    }
+                                }
+                                .frame(maxWidth: geo.size.width * 0.45, maxHeight: geo.size.height * 0.55)
+                                .shadow(color: .black.opacity(0.4), radius: 24, x: 0, y: 12)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .stroke(Color(hex: "C4956A").opacity(0.15), lineWidth: 1)
+                                )
+                                .opacity(appeared ? 1 : 0)
+                                .offset(x: appeared ? 0 : -30)
+                                .animation(.easeOut(duration: 0.6).delay(0.2), value: appeared)
                                 
-                                Text("No events scheduled today")
-                                    .font(.system(size: 28, design: .serif))
-                                    .foregroundColor(Color(hex: "F5E6D3").opacity(0.5))
-                                
-                                Text("Check back soon for upcoming activities!")
-                                    .font(.system(size: 20))
-                                    .foregroundColor(Color(hex: "C4956A").opacity(0.5))
-                                    .padding(.top, 4)
+                                // Right: Text content
+                                VStack(alignment: .leading, spacing: 20) {
+                                    if !screen.title.isEmpty {
+                                        Text(screen.title)
+                                            .font(.system(size: 48, weight: .bold, design: .serif))
+                                            .foregroundColor(Color(hex: "F5E6D3"))
+                                            .lineLimit(3)
+                                    }
+                                    
+                                    // Decorative divider
+                                    LinearGradient(
+                                        colors: [Color(hex: "C4956A"), Color(hex: "E8913A"), .clear],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                    .frame(width: 120, height: 2)
+                                    
+                                    if let subtitle = screen.subtitle, !subtitle.isEmpty {
+                                        Text(subtitle)
+                                            .font(.system(size: 28, weight: .semibold))
+                                            .foregroundColor(Color(hex: "E8913A"))
+                                    }
+                                    
+                                    if let body = screen.bodyText, !body.isEmpty {
+                                        Text(body)
+                                            .font(.system(size: 24))
+                                            .foregroundColor(Color(hex: "F5E6D3").opacity(0.6))
+                                            .lineLimit(6)
+                                            .lineSpacing(6)
+                                    }
+                                }
+                                .frame(maxWidth: geo.size.width * 0.4, alignment: .leading)
+                                .opacity(appeared ? 1 : 0)
+                                .offset(x: appeared ? 0 : 30)
+                                .animation(.easeOut(duration: 0.6).delay(0.3), value: appeared)
                             }
-                            
-                            Spacer()
+                            .padding(.horizontal, 60)
+                        } else {
+                            // No image — centered text layout
+                            VStack(spacing: 20) {
+                                Spacer()
+                                
+                                if !screen.title.isEmpty {
+                                    Text(screen.title)
+                                        .font(.system(size: 48, weight: .bold, design: .serif))
+                                        .foregroundColor(Color(hex: "F5E6D3"))
+                                        .multilineTextAlignment(.center)
+                                }
+                                
+                                if let subtitle = screen.subtitle, !subtitle.isEmpty {
+                                    Text(subtitle)
+                                        .font(.system(size: 28, weight: .regular, design: .serif))
+                                        .foregroundColor(Color(hex: "F5E6D3").opacity(0.7))
+                                        .multilineTextAlignment(.center)
+                                }
+                                
+                                if let body = screen.bodyText, !body.isEmpty {
+                                    Text(body)
+                                        .font(.system(size: 22))
+                                        .foregroundColor(Color(hex: "F5E6D3").opacity(0.5))
+                                        .multilineTextAlignment(.center)
+                                        .frame(maxWidth: geo.size.width * 0.6)
+                                }
+                                
+                                if screen.title.isEmpty && screen.subtitle == nil && screen.bodyText == nil {
+                                    Text("☕")
+                                        .font(.system(size: 60))
+                                        .padding(.bottom, 10)
+                                    
+                                    Text("No events scheduled today")
+                                        .font(.system(size: 28, design: .serif))
+                                        .foregroundColor(Color(hex: "F5E6D3").opacity(0.5))
+                                    
+                                    Text("Check back soon for upcoming activities!")
+                                        .font(.system(size: 20))
+                                        .foregroundColor(Color(hex: "C4956A").opacity(0.5))
+                                        .padding(.top, 4)
+                                }
+                                
+                                Spacer()
+                            }
                         }
                         .opacity(appeared ? 1 : 0)
                         .animation(.easeOut(duration: 0.6).delay(0.3), value: appeared)
