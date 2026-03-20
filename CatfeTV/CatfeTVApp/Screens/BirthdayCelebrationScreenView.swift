@@ -7,12 +7,137 @@
 
 import SwiftUI
 
+// MARK: - Confetti Particle Model
+
+private struct ConfettiParticle: Identifiable {
+    let id: Int
+    var x: CGFloat
+    var y: CGFloat
+    let size: CGFloat
+    let color: Color
+    let speed: CGFloat       // points per tick
+    let drift: CGFloat       // horizontal sway amplitude
+    let rotation: Double
+    let rotationSpeed: Double
+    let shape: Int           // 0 = circle, 1 = rectangle, 2 = triangle
+}
+
+// MARK: - Confetti Overlay View
+
+private struct ConfettiOverlay: View {
+    let particleCount: Int
+    
+    @State private var particles: [ConfettiParticle] = []
+    @State private var tick: Int = 0
+    
+    private let timer = Timer.publish(every: 0.05, on: .main, in: .common).autoconnect()
+    
+    private let confettiColors: [Color] = [
+        .catfeGold, .loungeWarmOrange, .catfeBlush,
+        .loungeMintGreen, .purple, Color(hex: "FFD700"),
+        Color(hex: "FF69B4"), Color(hex: "87CEEB")
+    ]
+    
+    var body: some View {
+        GeometryReader { geo in
+            ZStack {
+                ForEach(particles) { p in
+                    confettiShape(p)
+                        .position(x: p.x, y: p.y)
+                        .rotationEffect(.degrees(p.rotation + Double(tick) * p.rotationSpeed))
+                }
+            }
+            .onAppear {
+                initParticles(in: geo.size)
+            }
+            .onReceive(timer) { _ in
+                tick += 1
+                updateParticles(in: geo.size)
+            }
+        }
+        .allowsHitTesting(false)
+    }
+    
+    @ViewBuilder
+    private func confettiShape(_ p: ConfettiParticle) -> some View {
+        switch p.shape {
+        case 1:
+            Rectangle()
+                .fill(p.color)
+                .frame(width: p.size * 0.6, height: p.size)
+                .opacity(0.85)
+        case 2:
+            Triangle()
+                .fill(p.color)
+                .frame(width: p.size, height: p.size)
+                .opacity(0.85)
+        default:
+            Circle()
+                .fill(p.color)
+                .frame(width: p.size, height: p.size)
+                .opacity(0.85)
+        }
+    }
+    
+    private func initParticles(in size: CGSize) {
+        particles = (0..<particleCount).map { i in
+            makeParticle(id: i, screenSize: size, startAbove: false)
+        }
+    }
+    
+    private func makeParticle(id: Int, screenSize: CGSize, startAbove: Bool) -> ConfettiParticle {
+        ConfettiParticle(
+            id: id,
+            x: CGFloat.random(in: 0...screenSize.width),
+            y: startAbove
+                ? CGFloat.random(in: -100 ... -10)
+                : CGFloat.random(in: -100...screenSize.height),
+            size: CGFloat.random(in: 6...14),
+            color: confettiColors[id % confettiColors.count],
+            speed: CGFloat.random(in: 1.5...4.0),
+            drift: CGFloat.random(in: -1.5...1.5),
+            rotation: Double.random(in: 0...360),
+            rotationSpeed: Double.random(in: -3...3),
+            shape: Int.random(in: 0...2)
+        )
+    }
+    
+    private func updateParticles(in size: CGSize) {
+        for i in particles.indices {
+            particles[i].y += particles[i].speed
+            particles[i].x += particles[i].drift + CGFloat(sin(Double(tick) * 0.05 + Double(i))) * 0.8
+            
+            // Recycle particles that fall off screen
+            if particles[i].y > size.height + 20 {
+                particles[i] = makeParticle(id: particles[i].id, screenSize: size, startAbove: true)
+            }
+            // Wrap horizontally
+            if particles[i].x < -20 { particles[i].x = size.width + 10 }
+            if particles[i].x > size.width + 20 { particles[i].x = -10 }
+        }
+    }
+}
+
+// MARK: - Triangle Shape
+
+private struct Triangle: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.midX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+        path.closeSubpath()
+        return path
+    }
+}
+
+// MARK: - Birthday Celebration Screen
+
 struct BirthdayCelebrationScreenView: View {
     let screen: Screen
     
     @EnvironmentObject var apiClient: APIClient
     @State private var appeared = false
-    @State private var confettiVisible = false
     
     private var todayBirthdays: [BirthdayCat] {
         apiClient.cachedBirthdayCats
@@ -31,9 +156,9 @@ struct BirthdayCelebrationScreenView: View {
             // Festive background
             birthdayBackground
             
-            // Confetti overlay
-            if confettiVisible && hasTodayBirthdays {
-                confettiView
+            // Confetti overlay — real falling particles
+            if hasTodayBirthdays {
+                ConfettiOverlay(particleCount: 40)
             }
             
             VStack(spacing: 24) {
@@ -59,11 +184,6 @@ struct BirthdayCelebrationScreenView: View {
         .onAppear {
             withAnimation(.easeOut(duration: 0.8)) {
                 appeared = true
-            }
-            if hasTodayBirthdays {
-                withAnimation(.easeOut(duration: 1.0).delay(0.5)) {
-                    confettiVisible = true
-                }
             }
         }
     }
@@ -99,35 +219,6 @@ struct BirthdayCelebrationScreenView: View {
                     .position(x: geo.size.width * 0.5, y: geo.size.height * 0.3)
             }
         }
-    }
-    
-    // MARK: - Confetti
-    
-    private var confettiView: some View {
-        GeometryReader { geo in
-            ForEach(0..<20, id: \.self) { i in
-                confettiPiece(index: i, geo: geo)
-            }
-        }
-    }
-    
-    private func confettiPiece(index: Int, geo: GeometryProxy) -> some View {
-        let colors: [Color] = [.catfeGold, .loungeWarmOrange, .catfeBlush, .loungeMintGreen, .purple]
-        let color = colors[index % colors.count]
-        let xPos = CGFloat.random(in: 0...geo.size.width)
-        let size = CGFloat.random(in: 8...16)
-        
-        return Circle()
-            .fill(color)
-            .frame(width: size, height: size)
-            .position(x: xPos, y: CGFloat.random(in: -50...geo.size.height * 0.6))
-            .opacity(confettiVisible ? 0.8 : 0)
-            .animation(
-                .easeOut(duration: Double.random(in: 2...4))
-                .repeatForever(autoreverses: true)
-                .delay(Double.random(in: 0...2)),
-                value: confettiVisible
-            )
     }
     
     // MARK: - Header
@@ -238,8 +329,10 @@ struct BirthdayCelebrationScreenView: View {
             
             // Birthday date (for upcoming)
             if !isCelebrating, let dob = cat.dob {
+                // Format the DOB in UTC to get the correct month/day
                 let formatter = DateFormatter()
                 let _ = formatter.dateFormat = "MMM d"
+                let _ = formatter.timeZone = TimeZone(identifier: "UTC")
                 Text(formatter.string(from: dob))
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(.loungeStone)

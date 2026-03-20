@@ -901,23 +901,36 @@ struct BirthdayCat: Codable, Identifiable {
         case id, name, breed, photoUrl, dob, description
     }
     
-    /// Calculate the age the cat is turning on their next birthday
+    /// Calculate the age the cat is turning on their next birthday.
+    /// DOB dates are stored as UTC midnight in the database, so we must
+    /// extract month/day in UTC to avoid the date shifting back a day in
+    /// Pacific time (e.g. 2020-03-20T00:00:00Z → Mar 19 PDT).
     var ageYears: Int? {
         guard let dob = dob else { return nil }
-        let calendar = Calendar.current
+        
+        // Use UTC calendar to extract the true month/day from the DOB
+        var utcCalendar = Calendar(identifier: .gregorian)
+        utcCalendar.timeZone = TimeZone(identifier: "UTC")!
+        let dobMonth = utcCalendar.component(.month, from: dob)
+        let dobDay = utcCalendar.component(.day, from: dob)
+        let dobYear = utcCalendar.component(.year, from: dob)
+        
+        // Use Pacific time for "today" since the lounge is in Santa Clarita
+        var ptCalendar = Calendar(identifier: .gregorian)
+        ptCalendar.timeZone = TimeZone(identifier: "America/Los_Angeles")!
         let now = Date()
-        let currentYear = calendar.component(.year, from: now)
-        let dobYear = calendar.component(.year, from: dob)
+        let currentYear = ptCalendar.component(.year, from: now)
+        let currentMonth = ptCalendar.component(.month, from: now)
+        let currentDay = ptCalendar.component(.day, from: now)
         
-        // Build this year's birthday
-        var thisYearBday = calendar.dateComponents([.month, .day], from: dob)
-        thisYearBday.year = currentYear
-        guard let thisYearDate = calendar.date(from: thisYearBday) else {
-            return currentYear - dobYear
-        }
+        // Has this year's birthday already passed?
+        let birthdayPassedThisYear: Bool = {
+            if dobMonth < currentMonth { return true }
+            if dobMonth == currentMonth && dobDay < currentDay { return true }
+            return false
+        }()
         
-        // If birthday already passed, next birthday is next year
-        let nextBdayYear = thisYearDate < calendar.startOfDay(for: now) ? currentYear + 1 : currentYear
+        let nextBdayYear = birthdayPassedThisYear ? currentYear + 1 : currentYear
         return nextBdayYear - dobYear
     }
 }
