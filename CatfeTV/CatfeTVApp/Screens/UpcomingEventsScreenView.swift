@@ -209,26 +209,48 @@ struct UpcomingEventsScreenView: View {
                 
                 // Date and time row
                 HStack(spacing: 16) {
-                    let dateStr = event.eventDate ?? ""
-                    if !dateStr.isEmpty {
+                    if let isMultiDay = event.isMultiDay, isMultiDay, let formattedDates = event.formattedDates, !formattedDates.isEmpty {
+                        // Multi-day event: show formatted dates with calendar icon
                         HStack(spacing: 6) {
                             Image(systemName: "calendar")
                                 .font(.system(size: 20))
                                 .foregroundColor(Color(hex: "d97706"))
-                            Text(formatDate(dateStr))
+                            Text(formattedDates)
                                 .font(.system(size: 22, weight: .regular, design: .rounded))
                                 .foregroundColor(Color(hex: "6a5a4a"))
                         }
-                    }
-                    
-                    if let time = event.eventTime, !time.isEmpty {
+                        // Show "All Day" with clock icon
                         HStack(spacing: 6) {
-                            Image(systemName: happeningNow ? "clock.badge.checkmark" : "clock")
+                            Image(systemName: "clock")
                                 .font(.system(size: 20))
-                                .foregroundColor(happeningNow ? Color(hex: "dc2626") : Color(hex: "d97706"))
-                            Text(time)
-                                .font(.system(size: 22, weight: happeningNow ? .semibold : .regular, design: .rounded))
-                                .foregroundColor(happeningNow ? Color(hex: "dc2626") : Color(hex: "6a5a4a"))
+                                .foregroundColor(Color(hex: "d97706"))
+                            Text("All Day")
+                                .font(.system(size: 22, weight: .regular, design: .rounded))
+                                .foregroundColor(Color(hex: "6a5a4a"))
+                        }
+                    } else {
+                        // Single-day event: show eventDate and eventTime normally
+                        let dateStr = event.eventDate ?? ""
+                        if !dateStr.isEmpty {
+                            HStack(spacing: 6) {
+                                Image(systemName: "calendar")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(Color(hex: "d97706"))
+                                Text(formatDate(dateStr))
+                                    .font(.system(size: 22, weight: .regular, design: .rounded))
+                                    .foregroundColor(Color(hex: "6a5a4a"))
+                            }
+                        }
+                        
+                        if let time = event.eventTime, !time.isEmpty {
+                            HStack(spacing: 6) {
+                                Image(systemName: happeningNow ? "clock.badge.checkmark" : "clock")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(happeningNow ? Color(hex: "dc2626") : Color(hex: "d97706"))
+                                Text(time)
+                                    .font(.system(size: 22, weight: happeningNow ? .semibold : .regular, design: .rounded))
+                                    .foregroundColor(happeningNow ? Color(hex: "dc2626") : Color(hex: "6a5a4a"))
+                            }
                         }
                     }
                 }

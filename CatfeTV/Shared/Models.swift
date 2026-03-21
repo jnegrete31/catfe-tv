@@ -947,6 +947,8 @@ struct CatfeEvent: Codable, Identifiable {
     let location: String?
     let imagePath: String?
     let isActive: Bool?
+    let formattedDates: String?
+    let isMultiDay: Bool?
 }
 
 // MARK: - Volunteer Model (from volunteers.getFeatured API)
