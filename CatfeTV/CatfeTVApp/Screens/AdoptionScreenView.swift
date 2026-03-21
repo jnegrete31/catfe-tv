@@ -667,6 +667,18 @@ struct AdoptionScreenView: View {
                 currentPhotoIndex += 1
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .remoteSwipeUp)) { _ in
+            guard allPhotos.count > 1 else { return }
+            withAnimation(.easeInOut(duration: 0.5)) {
+                currentPhotoIndex = currentPhotoIndex > 0 ? currentPhotoIndex - 1 : allPhotos.count - 1
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .remoteSwipeDown)) { _ in
+            guard allPhotos.count > 1 else { return }
+            withAnimation(.easeInOut(duration: 0.5)) {
+                currentPhotoIndex += 1
+            }
+        }
     }
 }
 

@@ -59,6 +59,18 @@ struct HappyTailsScreenView: View {
             cycleTimer?.invalidate()
             cycleTimer = nil
         }
+        .onReceive(NotificationCenter.default.publisher(for: .remoteSwipeUp)) { _ in
+            guard pages.count > 1 else { return }
+            withAnimation(.easeInOut(duration: 0.5)) {
+                pageIndex = pageIndex > 0 ? pageIndex - 1 : pages.count - 1
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .remoteSwipeDown)) { _ in
+            guard pages.count > 1 else { return }
+            withAnimation(.easeInOut(duration: 0.5)) {
+                pageIndex = (pageIndex + 1) % pages.count
+            }
+        }
     }
     
     // MARK: - Photo Grid Layout
@@ -415,4 +427,5 @@ struct HappyTailsScreenView: View {
             }
         }
     }
+    
 }

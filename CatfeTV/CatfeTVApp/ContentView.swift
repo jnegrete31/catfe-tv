@@ -165,8 +165,10 @@ struct ContentView: View {
             screenRotator.previousScreen()
         case .right:
             screenRotator.nextScreen()
-        case .up, .down:
-            break
+        case .up:
+            NotificationCenter.default.post(name: .remoteSwipeUp, object: nil)
+        case .down:
+            NotificationCenter.default.post(name: .remoteSwipeDown, object: nil)
         @unknown default:
             break
         }
@@ -280,6 +282,13 @@ struct ProgressBar: View {
             }
         }
     }
+}
+
+// MARK: - Remote Notification Names
+
+extension Notification.Name {
+    static let remoteSwipeUp = Notification.Name("remoteSwipeUp")
+    static let remoteSwipeDown = Notification.Name("remoteSwipeDown")
 }
 
 // MARK: - Preview
