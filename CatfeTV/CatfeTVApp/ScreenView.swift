@@ -135,52 +135,51 @@ struct TemplateFullScreenView: View {
     
     @ViewBuilder
     private func templateBackground(_ overlay: TemplateOverlay) -> some View {
-        let bgColor = overlay.backgroundColor ?? "#1a1a2e"
+        let bgColor = overlay.backgroundColor ?? "#1C1410"
         
         ZStack {
             Color(hex: bgColor.replacingOccurrences(of: "#", with: ""))
                 .ignoresSafeArea()
             
-            // Check if dark background for lounge decorations
+            // Check if dark background for premium decorations
             let isDark = bgColor.hasPrefix("#1") || bgColor.hasPrefix("#2") || bgColor.hasPrefix("#0")
             
             if isDark {
-                // Warm amber light glows
+                // Warm copper/bronze radial glows (premium dark theme)
                 GeometryReader { geometry in
                     Circle()
                         .fill(
                             RadialGradient(
-                                colors: [Color.loungeAmber.opacity(0.2), Color.clear],
+                                colors: [Color(hex: "8B5E3C").opacity(0.12), Color.clear],
                                 center: .center,
                                 startRadius: 0,
-                                endRadius: geometry.size.width * 0.35
+                                endRadius: geometry.size.width * 0.4
                             )
                         )
-                        .frame(width: geometry.size.width * 0.7, height: geometry.size.width * 0.7)
-                        .position(x: geometry.size.width * 0.25, y: -geometry.size.height * 0.1)
+                        .frame(width: geometry.size.width * 0.8, height: geometry.size.width * 0.8)
+                        .position(x: geometry.size.width * 0.3, y: 0)
                     
                     Circle()
                         .fill(
                             RadialGradient(
-                                colors: [Color.loungeWarmOrange.opacity(0.15), Color.clear],
+                                colors: [Color(hex: "C4956A").opacity(0.08), Color.clear],
                                 center: .center,
                                 startRadius: 0,
                                 endRadius: geometry.size.width * 0.3
                             )
                         )
                         .frame(width: geometry.size.width * 0.6, height: geometry.size.width * 0.6)
-                        .position(x: geometry.size.width * 0.75, y: -geometry.size.height * 0.05)
+                        .position(x: geometry.size.width * 0.8, y: geometry.size.height * 0.8)
                 }
                 
-                // Mint green floor reflection
+                // Top accent line
                 VStack {
-                    Spacer()
                     LinearGradient(
-                        colors: [Color.clear, Color.loungeMintGreen.opacity(0.2)],
-                        startPoint: .top,
-                        endPoint: .bottom
+                        colors: [.clear, Color(hex: "C4956A"), Color(hex: "B87333"), Color(hex: "D4A574"), .clear],
+                        startPoint: .leading, endPoint: .trailing
                     )
-                    .frame(height: 150)
+                    .frame(height: 2)
+                    Spacer()
                 }
                 .ignoresSafeArea()
             }
@@ -189,50 +188,147 @@ struct TemplateFullScreenView: View {
 }
 
 // MARK: - Generic Screen View (for types without custom views)
+// Premium dark theme matching adoption grid & membership
 
 struct GenericScreenView: View {
     let screen: Screen
     
+    @State private var appeared = false
+    
+    // Theme colors
+    private let bgColor = Color(hex: "1C1410")
+    private let creamColor = Color(hex: "F5E6D3")
+    private let copperColor = Color(hex: "C4956A")
+    private let bronzeColor = Color(hex: "B87333")
+    private let goldColor = Color(hex: "D4A574")
+    
     var body: some View {
-        BaseScreenLayout(screen: screen) {
-            VStack(spacing: 40) {
+        ZStack {
+            // Dark premium background
+            bgColor.ignoresSafeArea()
+            
+            // Warm radial glows
+            GeometryReader { geo in
+                Circle()
+                    .fill(RadialGradient(
+                        colors: [Color(hex: "8B5E3C").opacity(0.12), .clear],
+                        center: .center, startRadius: 0,
+                        endRadius: geo.size.width * 0.4
+                    ))
+                    .frame(width: geo.size.width * 0.8, height: geo.size.width * 0.8)
+                    .position(x: geo.size.width * 0.3, y: 0)
+                
+                Circle()
+                    .fill(RadialGradient(
+                        colors: [copperColor.opacity(0.08), .clear],
+                        center: .center, startRadius: 0,
+                        endRadius: geo.size.width * 0.3
+                    ))
+                    .frame(width: geo.size.width * 0.6, height: geo.size.width * 0.6)
+                    .position(x: geo.size.width * 0.8, y: geo.size.height * 0.8)
+            }
+            
+            // Top accent line
+            VStack {
+                LinearGradient(
+                    colors: [.clear, copperColor, bronzeColor, goldColor, .clear],
+                    startPoint: .leading, endPoint: .trailing
+                )
+                .frame(height: 2)
+                Spacer()
+            }
+            .ignoresSafeArea()
+            
+            // Content
+            VStack(spacing: 30) {
+                Spacer()
+                
                 // Image if available
                 if let imageURL = screen.imageURL, !imageURL.isEmpty {
                     ScreenImage(url: imageURL)
-                        .frame(maxWidth: 600, maxHeight: 400)
-                        .clipShape(RoundedRectangle(cornerRadius: 20))
-                        .shadow(color: .black.opacity(0.3), radius: 20, x: 0, y: 10)
+                        .frame(maxWidth: 600, maxHeight: 380)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(copperColor.opacity(0.2), lineWidth: 1)
+                        )
+                        .shadow(color: .black.opacity(0.4), radius: 25, x: 0, y: 12)
+                        .opacity(appeared ? 1 : 0)
+                        .scaleEffect(appeared ? 1 : 0.9)
+                        .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.1), value: appeared)
                 }
                 
                 // Title
                 Text(screen.title)
-                    .font(CatfeTypography.title)
-                    .foregroundColor(.loungeCream)
+                    .font(.system(size: 48, weight: .bold, design: .serif))
+                    .foregroundColor(creamColor)
                     .multilineTextAlignment(.center)
+                    .opacity(appeared ? 1 : 0)
+                    .animation(.easeOut(duration: 0.6).delay(0.15), value: appeared)
+                
+                // Decorative divider
+                HStack(spacing: 12) {
+                    Rectangle()
+                        .fill(
+                            LinearGradient(
+                                colors: [.clear, copperColor],
+                                startPoint: .leading, endPoint: .trailing
+                            )
+                        )
+                        .frame(width: 60, height: 1)
+                    Text("✦")
+                        .font(.system(size: 10))
+                        .foregroundColor(copperColor)
+                    Rectangle()
+                        .fill(
+                            LinearGradient(
+                                colors: [copperColor, .clear],
+                                startPoint: .leading, endPoint: .trailing
+                            )
+                        )
+                        .frame(width: 60, height: 1)
+                }
+                .opacity(appeared ? 1 : 0)
+                .animation(.easeOut(duration: 0.6).delay(0.2), value: appeared)
                 
                 // Subtitle
                 if let subtitle = screen.subtitle {
                     Text(subtitle)
-                        .font(CatfeTypography.subtitle)
-                        .foregroundColor(.loungeAmber)
+                        .font(.system(size: 26, weight: .medium, design: .serif))
+                        .foregroundColor(copperColor)
                         .multilineTextAlignment(.center)
+                        .opacity(appeared ? 1 : 0)
+                        .animation(.easeOut(duration: 0.6).delay(0.25), value: appeared)
                 }
                 
                 // Body text
                 if let body = screen.bodyText {
                     Text(body)
-                        .font(CatfeTypography.body)
-                        .foregroundColor(.loungeCream.opacity(0.8))
+                        .font(.system(size: 22, weight: .regular, design: .serif))
+                        .foregroundColor(creamColor.opacity(0.7))
                         .multilineTextAlignment(.center)
                         .lineSpacing(8)
+                        .frame(maxWidth: 800)
+                        .opacity(appeared ? 1 : 0)
+                        .animation(.easeOut(duration: 0.6).delay(0.3), value: appeared)
                 }
                 
                 // QR Code
                 if let qrUrl = screen.qrCodeURL, !qrUrl.isEmpty {
                     QRCodeView(url: qrUrl, size: 200, label: screen.qrLabel)
+                        .opacity(appeared ? 1 : 0)
+                        .scaleEffect(appeared ? 1 : 0.8)
+                        .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.35), value: appeared)
                 }
+                
+                Spacer()
             }
+            .padding(60)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .ignoresSafeArea()
+        .onAppear {
+            withAnimation { appeared = true }
         }
     }
 }
