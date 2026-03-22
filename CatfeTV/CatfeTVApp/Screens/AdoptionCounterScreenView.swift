@@ -2,8 +2,8 @@
 //  AdoptionCounterScreenView.swift
 //  CatfeTVApp
 //
-//  Adoption Counter screen - Hybrid Concept C design
-//  Split layout: counter + branding on left (cream), photo mosaic + carousel on right (dark)
+//  Adoption Counter screen — Premium dark theme
+//  Split layout: counter on left, photo mosaic + carousel on right
 //
 
 import SwiftUI
@@ -54,7 +54,16 @@ private func getMilestoneInfo(count: Int) -> MilestoneInfo {
     return MilestoneInfo(isMilestone: false, label: "", tier: .bronze)
 }
 
-// MARK: - Adoption Counter Screen (Hybrid Concept C)
+// MARK: - Premium Dark Theme Colors
+
+private let premiumBg = Color(hex: "1C1410")
+private let premiumCream = Color(hex: "F5E6D3")
+private let premiumCopper = Color(hex: "C4956A")
+private let premiumBronze = Color(hex: "B87333")
+private let premiumGold = Color(hex: "D4A574")
+private let premiumDarkCard = Color(hex: "2A1F18")
+
+// MARK: - Adoption Counter Screen (Premium Dark Theme)
 
 struct AdoptionCounterScreenView: View {
     let screen: Screen
@@ -90,12 +99,52 @@ struct AdoptionCounterScreenView: View {
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                // Full-screen split layout
+                // Full dark background
+                premiumBg.ignoresSafeArea()
+                
+                // Warm radial glows
+                Circle()
+                    .fill(RadialGradient(
+                        colors: [Color(hex: "8B5E3C").opacity(0.12), .clear],
+                        center: .center, startRadius: 0,
+                        endRadius: geo.size.width * 0.35
+                    ))
+                    .frame(width: geo.size.width * 0.7, height: geo.size.width * 0.7)
+                    .position(x: geo.size.width * 0.25, y: geo.size.height * 0.1)
+                
+                Circle()
+                    .fill(RadialGradient(
+                        colors: [premiumCopper.opacity(0.08), .clear],
+                        center: .center, startRadius: 0,
+                        endRadius: geo.size.width * 0.25
+                    ))
+                    .frame(width: geo.size.width * 0.5, height: geo.size.width * 0.5)
+                    .position(x: geo.size.width * 0.8, y: geo.size.height * 0.85)
+                
+                // Top accent line
+                VStack {
+                    LinearGradient(
+                        colors: [.clear, premiumCopper, premiumBronze, premiumGold, .clear],
+                        startPoint: .leading, endPoint: .trailing
+                    )
+                    .frame(height: 2)
+                    Spacer()
+                }
+                .ignoresSafeArea()
+                
+                // Split layout
                 HStack(spacing: 0) {
-                    // LEFT SIDE — Counter & branding (cream warm tones)
+                    // LEFT — Counter
                     leftSide(width: geo.size.width / 2, height: geo.size.height)
                     
-                    // RIGHT SIDE — Photo mosaic background + carousel
+                    // Vertical divider
+                    LinearGradient(
+                        colors: [.clear, premiumCopper.opacity(0.3), premiumGold.opacity(0.4), premiumCopper.opacity(0.3), .clear],
+                        startPoint: .top, endPoint: .bottom
+                    )
+                    .frame(width: 1)
+                    
+                    // RIGHT — Photo mosaic + carousel
                     rightSide(width: geo.size.width / 2, height: geo.size.height)
                 }
                 
@@ -118,59 +167,20 @@ struct AdoptionCounterScreenView: View {
     
     private func leftSide(width: CGFloat, height: CGFloat) -> some View {
         ZStack {
-            // Cream gradient background
-            LinearGradient(
-                colors: [Color(hex: "F5E6D3"), Color(hex: "EDE0D4"), Color(hex: "E8DDD0")],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            
-            // Warm light glow
-            Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [
-                            (milestone.isMilestone && countUpDone
-                                ? milestone.tier.glowColor.opacity(0.4)
-                                : Color(hex: "DAA520").opacity(0.3)),
-                            .clear
-                        ],
-                        center: .center,
-                        startRadius: 0,
-                        endRadius: 150
-                    )
-                )
-                .frame(width: 300, height: 300)
-                .offset(x: -width * 0.15, y: -height * 0.2)
-                .opacity(milestone.isMilestone && countUpDone ? 0.7 : 0.4)
-            
             // Milestone glow pulse
             if milestone.isMilestone && countUpDone {
-                Color.clear
-                    .overlay(
-                        RadialGradient(
-                            colors: [milestone.tier.glowColor.opacity(0.15), .clear],
-                            center: .center,
-                            startRadius: 0,
-                            endRadius: width * 0.6
-                        )
-                    )
-                    .opacity(milestoneGlowOpacity)
-                    .onAppear {
-                        withAnimation(.easeInOut(duration: 2).repeatForever(autoreverses: true)) {
-                            milestoneGlowOpacity = 1
-                        }
+                RadialGradient(
+                    colors: [milestone.tier.glowColor.opacity(0.12), .clear],
+                    center: .center,
+                    startRadius: 0,
+                    endRadius: width * 0.5
+                )
+                .opacity(milestoneGlowOpacity)
+                .onAppear {
+                    withAnimation(.easeInOut(duration: 2).repeatForever(autoreverses: true)) {
+                        milestoneGlowOpacity = 1
                     }
-            }
-            
-            // Mint accent bar at top
-            VStack {
-                Rectangle()
-                    .fill(milestone.isMilestone && countUpDone
-                        ? Color(hex: "DAA520")
-                        : Color(hex: "86C5A9"))
-                    .frame(height: 4)
-                Spacer()
+                }
             }
             
             // Decorative cat silhouette
@@ -178,7 +188,7 @@ struct AdoptionCounterScreenView: View {
                 Spacer()
                 HStack {
                     CatSilhouette()
-                        .opacity(0.06)
+                        .opacity(0.04)
                         .frame(width: 120, height: 120)
                         .padding(.leading, 30)
                         .padding(.bottom, 30)
@@ -196,31 +206,42 @@ struct AdoptionCounterScreenView: View {
                         .padding(.bottom, 16)
                 }
                 
-                // "Forever Homes" label
-                HStack(spacing: 8) {
+                // "Forever Homes" label with decorative lines
+                HStack(spacing: 12) {
                     Rectangle()
-                        .fill(Color(hex: "DAA520"))
+                        .fill(
+                            LinearGradient(
+                                colors: [.clear, premiumCopper],
+                                startPoint: .leading, endPoint: .trailing
+                            )
+                        )
                         .frame(width: 48, height: 1)
                     Text("Forever Homes")
                         .font(.system(size: 16, weight: .regular, design: .serif))
                         .tracking(6)
                         .textCase(.uppercase)
-                        .foregroundColor(Color(hex: "86C5A9"))
+                        .foregroundColor(premiumCopper)
                     Rectangle()
-                        .fill(Color(hex: "DAA520"))
+                        .fill(
+                            LinearGradient(
+                                colors: [premiumCopper, .clear],
+                                startPoint: .leading, endPoint: .trailing
+                            )
+                        )
                         .frame(width: 48, height: 1)
                 }
                 .padding(.bottom, 16)
                 .opacity(appeared ? 1 : 0)
+                .animation(.easeOut(duration: 0.6).delay(0.1), value: appeared)
                 
                 // Big counter number
                 Text("\(displayCount)")
                     .font(.system(size: 160, weight: .black, design: .serif))
                     .foregroundStyle(counterGradient)
                     .shadow(color: milestone.isMilestone && countUpDone
-                        ? Color(hex: "FFD700").opacity(0.4)
-                        : Color(hex: "DAA520").opacity(0.2),
-                        radius: milestone.isMilestone && countUpDone ? 20 : 15, y: 4)
+                        ? milestone.tier.glowColor.opacity(0.4)
+                        : premiumGold.opacity(0.3),
+                        radius: milestone.isMilestone && countUpDone ? 25 : 15, y: 4)
                     .scaleEffect(milestone.isMilestone && countUpDone && appeared ? 1.02 : 1.0)
                     .animation(
                         milestone.isMilestone && countUpDone
@@ -233,18 +254,46 @@ struct AdoptionCounterScreenView: View {
                 Text("Cats Adopted")
                     .font(.system(size: 28, weight: .regular, design: .serif))
                     .tracking(3)
-                    .foregroundColor(Color(hex: "2d2d2d"))
+                    .foregroundColor(premiumCream)
                     .padding(.top, 12)
                     .opacity(appeared ? 1 : 0)
+                    .animation(.easeOut(duration: 0.6).delay(0.2), value: appeared)
+                
+                // Decorative flourish
+                HStack(spacing: 8) {
+                    Rectangle()
+                        .fill(
+                            LinearGradient(
+                                colors: [.clear, premiumCopper.opacity(0.5)],
+                                startPoint: .leading, endPoint: .trailing
+                            )
+                        )
+                        .frame(width: 40, height: 1)
+                    Text("✦")
+                        .font(.system(size: 8))
+                        .foregroundColor(premiumCopper.opacity(0.6))
+                    Rectangle()
+                        .fill(
+                            LinearGradient(
+                                colors: [premiumCopper.opacity(0.5), .clear],
+                                startPoint: .leading, endPoint: .trailing
+                            )
+                        )
+                        .frame(width: 40, height: 1)
+                }
+                .padding(.top, 12)
+                .opacity(appeared ? 1 : 0)
+                .animation(.easeOut(duration: 0.6).delay(0.25), value: appeared)
                 
                 // Subtitle
                 Text(milestone.isMilestone
                     ? "Thank you for making this possible!"
                     : "Every visit helps us find forever homes")
-                    .font(.system(size: 16, weight: .regular))
-                    .foregroundColor(Color(hex: "2d2d2d").opacity(0.5))
-                    .padding(.top, 8)
+                    .font(.system(size: 16, weight: .regular, design: .serif))
+                    .foregroundColor(premiumCream.opacity(0.5))
+                    .padding(.top, 12)
                     .opacity(appeared ? 1 : 0)
+                    .animation(.easeOut(duration: 0.6).delay(0.3), value: appeared)
                 
                 Spacer()
             }
@@ -257,260 +306,170 @@ struct AdoptionCounterScreenView: View {
     
     private func rightSide(width: CGFloat, height: CGFloat) -> some View {
         ZStack {
-            // Dark gradient background
-            LinearGradient(
-                colors: [Color(hex: "2d2d2d"), Color(hex: "1a1a1a")],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            
             // Photo mosaic background (dimmed)
             photoMosaic(width: width, height: height)
-                .opacity(0.20)
+                .opacity(0.15)
             
             // Dark overlay to make carousel pop
             RadialGradient(
                 colors: [
-                    Color(hex: "1e1e1e").opacity(0.5),
-                    Color(hex: "1a1a1a").opacity(0.8)
+                    premiumBg.opacity(0.4),
+                    premiumBg.opacity(0.7)
                 ],
                 center: .center,
                 startRadius: 0,
                 endRadius: width * 0.7
             )
             
-            // Amber glow top-left
-            Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [Color(hex: "DAA520").opacity(0.5), .clear],
-                        center: .center,
-                        startRadius: 0,
-                        endRadius: 150
-                    )
-                )
-                .frame(width: 300, height: 300)
-                .offset(x: -width * 0.3, y: -height * 0.3)
-                .opacity(0.2)
-            
-            // Mint floor reflection
-            VStack {
+            // Carousel content
+            VStack(spacing: 24) {
                 Spacer()
-                LinearGradient(
-                    colors: [Color(hex: "86C5A9").opacity(0.1), .clear],
-                    startPoint: .bottom,
-                    endPoint: .top
-                )
-                .frame(height: height * 0.25)
-            }
-            
-            // "Recently Adopted" label
-            VStack {
-                Text("Recently Adopted")
-                    .font(.system(size: 16, weight: .regular))
-                    .tracking(6)
-                    .textCase(.uppercase)
-                    .foregroundColor(Color(hex: "86C5A9").opacity(0.6))
-                    .padding(.top, 40)
-                Spacer()
-            }
-            
-            // Cat card carousel
-            catCarousel(width: width)
-            
-            // Dot indicators
-            if adoptedCats.count > 1 {
-                VStack {
-                    Spacer()
+                
+                if !adoptedCats.isEmpty {
+                    // Recently adopted header
                     HStack(spacing: 8) {
-                        ForEach(0..<min(adoptedCats.count, 8), id: \.self) { i in
-                            Circle()
-                                .fill(i == currentCatIndex % min(adoptedCats.count, 8)
-                                    ? Color(hex: "DAA520")
-                                    : Color(hex: "F5E6D3").opacity(0.2))
-                                .frame(width: 8, height: 8)
-                                .scaleEffect(i == currentCatIndex % min(adoptedCats.count, 8) ? 1.3 : 1.0)
-                                .animation(.easeOut(duration: 0.3), value: currentCatIndex)
+                        Text("✦")
+                            .font(.system(size: 8))
+                            .foregroundColor(premiumCopper)
+                        Text("Recently Adopted")
+                            .font(.system(size: 18, weight: .medium, design: .serif))
+                            .tracking(4)
+                            .textCase(.uppercase)
+                            .foregroundColor(premiumCopper)
+                        Text("✦")
+                            .font(.system(size: 8))
+                            .foregroundColor(premiumCopper)
+                    }
+                    .opacity(appeared ? 1 : 0)
+                    .animation(.easeOut(duration: 0.6).delay(0.3), value: appeared)
+                    
+                    // Cat carousel card
+                    if currentCatIndex < adoptedCats.count {
+                        let cat = adoptedCats[currentCatIndex]
+                        
+                        VStack(spacing: 16) {
+                            // Photo
+                            if let imageURL = cat.imageURL {
+                                ScreenImage(url: imageURL)
+                                    .frame(width: width * 0.55, height: width * 0.55)
+                                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 16)
+                                            .stroke(
+                                                LinearGradient(
+                                                    colors: [premiumCopper.opacity(0.4), premiumGold.opacity(0.2), premiumCopper.opacity(0.4)],
+                                                    startPoint: .topLeading, endPoint: .bottomTrailing
+                                                ),
+                                                lineWidth: 1.5
+                                            )
+                                    )
+                                    .shadow(color: premiumCopper.opacity(0.2), radius: 20, y: 8)
+                            }
+                            
+                            // Cat name
+                            Text(cat.title)
+                                .font(.system(size: 28, weight: .bold, design: .serif))
+                                .foregroundColor(premiumCream)
+                            
+                            // "Found their forever home" label
+                            Text("Found their forever home 🏡")
+                                .font(.system(size: 16, weight: .regular, design: .serif))
+                                .foregroundColor(premiumCream.opacity(0.6))
+                        }
+                        .transition(.asymmetric(
+                            insertion: .opacity.combined(with: .scale(scale: 0.95)),
+                            removal: .opacity.combined(with: .scale(scale: 1.05))
+                        ))
+                        .id("cat-\(currentCatIndex)")
+                    }
+                    
+                    // Page dots
+                    if adoptedCats.count > 1 {
+                        HStack(spacing: 6) {
+                            ForEach(0..<min(adoptedCats.count, 8), id: \.self) { i in
+                                Circle()
+                                    .fill(i == currentCatIndex % min(adoptedCats.count, 8)
+                                        ? premiumCopper
+                                        : premiumCream.opacity(0.2))
+                                    .frame(width: 6, height: 6)
+                            }
                         }
                     }
-                    .padding(.bottom, 40)
+                } else {
+                    // Empty state
+                    VStack(spacing: 16) {
+                        Text("🐱")
+                            .font(.system(size: 60))
+                        Text("Every cat deserves a\nforever home")
+                            .font(.system(size: 22, weight: .medium, design: .serif))
+                            .foregroundColor(premiumCream.opacity(0.6))
+                            .multilineTextAlignment(.center)
+                    }
                 }
+                
+                Spacer()
             }
+            .padding(30)
         }
         .frame(width: width, height: height)
+        .clipped()
     }
     
     // MARK: - Photo Mosaic
     
     private func photoMosaic(width: CGFloat, height: CGFloat) -> some View {
         let columns = 4
-        let rows = 3
-        let cellWidth = width / CGFloat(columns)
-        let cellHeight = height / CGFloat(rows)
+        let rows = 4
+        let tileW = width / CGFloat(columns)
+        let tileH = height / CGFloat(rows)
         
         return ZStack {
-            ForEach(0..<(columns * rows), id: \.self) { i in
-                let row = i / columns
-                let col = i % columns
-                let cat = allCatsWithPhotos.isEmpty ? nil : allCatsWithPhotos[i % allCatsWithPhotos.count]
+            ForEach(0..<(columns * rows), id: \.self) { index in
+                let col = index % columns
+                let row = index / columns
                 
-                Group {
-                    if let imageURL = cat?.imageURL, let url = URL(string: imageURL) {
-                        CachedAsyncImage(url: url) { image in
-                            image
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                        } placeholder: {
-                            Rectangle()
-                                .fill(LinearGradient(
-                                    colors: [Color(hex: "3a3a3a"), Color(hex: "2a2a2a")],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ))
-                        }
-                    } else {
-                        Rectangle()
-                            .fill(LinearGradient(
-                                colors: [Color(hex: "3a3a3a"), Color(hex: "2a2a2a")],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ))
-                    }
+                if index < allCatsWithPhotos.count,
+                   let url = allCatsWithPhotos[index].imageURL {
+                    ScreenImage(url: url)
+                        .frame(width: tileW, height: tileH)
+                        .clipped()
+                        .position(
+                            x: CGFloat(col) * tileW + tileW / 2,
+                            y: CGFloat(row) * tileH + tileH / 2
+                        )
+                } else {
+                    Rectangle()
+                        .fill(premiumDarkCard.opacity(0.5))
+                        .frame(width: tileW, height: tileH)
+                        .position(
+                            x: CGFloat(col) * tileW + tileW / 2,
+                            y: CGFloat(row) * tileH + tileH / 2
+                        )
                 }
-                .frame(width: cellWidth - 1, height: cellHeight - 1)
-                .clipped()
-                .position(
-                    x: CGFloat(col) * cellWidth + cellWidth / 2,
-                    y: CGFloat(row) * cellHeight + cellHeight / 2
-                )
-                .opacity(appeared ? 1 : 0)
-                .animation(.easeOut(duration: 0.5).delay(Double(i) * 0.08), value: appeared)
             }
         }
         .frame(width: width, height: height)
     }
     
-    // MARK: - Cat Carousel
-    
-    private func catCarousel(width: CGFloat) -> some View {
-        Group {
-            if !adoptedCats.isEmpty {
-                let cat = adoptedCats[currentCatIndex % adoptedCats.count]
-                polaroidCard(cat: cat, width: width)
-                    .id(currentCatIndex)
-                    .transition(.asymmetric(
-                        insertion: .move(edge: .trailing).combined(with: .opacity),
-                        removal: .move(edge: .leading).combined(with: .opacity)
-                    ))
-                    .animation(.easeInOut(duration: 0.6), value: currentCatIndex)
-            } else {
-                // Empty state
-                VStack(spacing: 16) {
-                    Text("🐱")
-                        .font(.system(size: 60))
-                    Text("More happy tails coming soon")
-                        .font(.system(size: 22, weight: .regular, design: .serif))
-                        .foregroundColor(Color(hex: "F5E6D3").opacity(0.5))
-                }
-            }
-        }
-    }
-    
-    // MARK: - Polaroid Card
-    
-    private func polaroidCard(cat: Screen, width: CGFloat) -> some View {
-        let cardWidth: CGFloat = min(width * 0.6, 320)
-        let catName = cat.title.replacingOccurrences(of: "Meet ", with: "")
-        
-        return VStack(spacing: 0) {
-            // Photo
-            ZStack(alignment: .topTrailing) {
-                if let imageURL = cat.imageURL, let url = URL(string: imageURL) {
-                    CachedAsyncImage(url: url) { image in
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                    } placeholder: {
-                        Rectangle()
-                            .fill(Color(hex: "3a3a3a"))
-                            .overlay(
-                                Image(systemName: "cat.fill")
-                                    .font(.system(size: 40))
-                                    .foregroundColor(Color(hex: "78716c"))
-                            )
-                    }
-                    .frame(width: cardWidth, height: cardWidth)
-                    .clipped()
-                }
-                
-                // "Adopted!" ribbon
-                Text("Adopted!")
-                    .font(.system(size: 14, weight: .bold))
-                    .tracking(1)
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                    .background(
-                        Capsule()
-                            .fill(LinearGradient(
-                                colors: [Color(hex: "86C5A9"), Color(hex: "6BAF92")],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ))
-                    )
-                    .shadow(color: .black.opacity(0.3), radius: 6, y: 3)
-                    .padding(16)
-            }
-            
-            // Info section
-            VStack(spacing: 4) {
-                Text(catName)
-                    .font(.system(size: 28, weight: .bold, design: .serif))
-                    .foregroundColor(Color(hex: "2d2d2d"))
-                
-                if let breed = cat.catBreed, !breed.isEmpty {
-                    Text(breed)
-                        .font(.system(size: 14))
-                        .foregroundColor(Color(hex: "2d2d2d").opacity(0.5))
-                }
-            }
-            .padding(.vertical, 20)
-            .frame(maxWidth: .infinity)
-        }
-        .frame(width: cardWidth)
-        .background(Color(hex: "F5E6D3"))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .shadow(color: .black.opacity(0.4), radius: 20, y: 10)
-    }
-    
     // MARK: - Milestone Badge
     
     private var milestoneBadge: some View {
-        HStack(spacing: 8) {
-            Text("🎉")
-                .font(.system(size: 20))
-            Text(milestone.label)
-                .font(.system(size: 14, weight: .bold, design: .serif))
-                .tracking(2)
-                .textCase(.uppercase)
-                .foregroundColor(.white)
-                .shadow(color: .black.opacity(0.3), radius: 3, y: 1)
-            Text("🎉")
-                .font(.system(size: 20))
-        }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 10)
-        .background(
-            Capsule()
-                .fill(LinearGradient(
-                    colors: milestone.tier.gradientColors,
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                ))
-        )
-        .shadow(color: milestone.tier.glowColor.opacity(0.5), radius: 10, y: 3)
-        .scaleEffect(appeared ? 1 : 0)
-        .animation(.spring(response: 0.6, dampingFraction: 0.6).delay(0.5), value: appeared)
+        Text(milestone.label)
+            .font(.system(size: 18, weight: .bold, design: .serif))
+            .foregroundColor(premiumBg)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 10)
+            .background(
+                Capsule()
+                    .fill(LinearGradient(
+                        colors: milestone.tier.gradientColors,
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ))
+            )
+            .shadow(color: milestone.tier.glowColor.opacity(0.5), radius: 10, y: 3)
+            .scaleEffect(appeared ? 1 : 0)
+            .animation(.spring(response: 0.6, dampingFraction: 0.6).delay(0.5), value: appeared)
     }
     
     // MARK: - Counter Gradient
@@ -524,7 +483,7 @@ struct AdoptionCounterScreenView: View {
             )
         } else {
             return LinearGradient(
-                colors: [Color(hex: "E8913A"), Color(hex: "DAA520"), Color(hex: "86C5A9")],
+                colors: [premiumGold, premiumCopper, premiumBronze],
                 startPoint: .top,
                 endPoint: .bottom
             )
@@ -567,30 +526,26 @@ struct AdoptionCounterScreenView: View {
 private struct CatSilhouette: View {
     var body: some View {
         Canvas { context, size in
-            // Simple cat silhouette
             var path = Path()
             let w = size.width
             let h = size.height
             
             // Body (ellipse)
             path.addEllipse(in: CGRect(x: w * 0.15, y: h * 0.3, width: w * 0.7, height: h * 0.6))
-            
             // Head (circle)
             path.addEllipse(in: CGRect(x: w * 0.28, y: h * 0.08, width: w * 0.44, height: h * 0.44))
-            
             // Left ear
             path.move(to: CGPoint(x: w * 0.3, y: h * 0.15))
             path.addLine(to: CGPoint(x: w * 0.35, y: h * 0.35))
             path.addLine(to: CGPoint(x: w * 0.25, y: h * 0.3))
             path.closeSubpath()
-            
             // Right ear
             path.move(to: CGPoint(x: w * 0.7, y: h * 0.15))
             path.addLine(to: CGPoint(x: w * 0.65, y: h * 0.35))
             path.addLine(to: CGPoint(x: w * 0.75, y: h * 0.3))
             path.closeSubpath()
             
-            context.fill(path, with: .color(Color(hex: "2d2d2d")))
+            context.fill(path, with: .color(premiumCream.opacity(0.3)))
         }
     }
 }
