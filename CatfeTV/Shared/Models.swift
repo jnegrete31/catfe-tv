@@ -145,6 +145,7 @@ struct Screen: Identifiable, Codable, Equatable {
     var catGender: String?
     var catBreed: String?
     var catDescription: String?
+    var daysAtCatfe: Int?
     
     // Event-specific fields
     var eventDate: String?
@@ -181,6 +182,7 @@ struct Screen: Identifiable, Codable, Equatable {
         catGender: String? = nil,
         catBreed: String? = nil,
         catDescription: String? = nil,
+        daysAtCatfe: Int? = nil,
         eventDate: String? = nil,
         eventTime: String? = nil,
         eventLocation: String? = nil
@@ -216,6 +218,7 @@ struct Screen: Identifiable, Codable, Equatable {
         self.catGender = catGender
         self.catBreed = catBreed
         self.catDescription = catDescription
+        self.daysAtCatfe = daysAtCatfe
         self.eventDate = eventDate
         self.eventTime = eventTime
         self.eventLocation = eventLocation
@@ -265,6 +268,7 @@ struct APIScreen: Codable {
     var catGender: String?
     var catBreed: String?
     var catDescription: String?
+    var daysAtCatfe: Int?
     
     // Event-specific fields from API
     var eventDate: String?
@@ -329,6 +333,7 @@ struct APIScreen: Codable {
             catGender: catGender,
             catBreed: catBreed,
             catDescription: catDescription,
+            daysAtCatfe: daysAtCatfe,
             eventDate: eventDate,
             eventTime: eventTime,
             eventLocation: eventLocation

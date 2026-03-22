@@ -566,6 +566,29 @@ struct AdoptionScreenView: View {
                                 .animation(.easeOut(duration: 0.5).delay(0.4), value: appeared)
                         }
                         
+                        // Days at Catfé
+                        if let days = screen.daysAtCatfe, !screen.isAdopted {
+                            HStack(spacing: 8) {
+                                Text("\u{1F3E0}")
+                                    .font(.system(size: 18))
+                                Text("\(days) \(days == 1 ? "day" : "days") at Catfé")
+                                    .font(.system(size: 20, weight: .semibold))
+                                    .foregroundColor(Color(hex: "92400E"))
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(Color(hex: "FEF3C7"))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 14)
+                                    .stroke(Color(hex: "FDE68A"), lineWidth: 1)
+                            )
+                            .cornerRadius(14)
+                            .padding(.top, 8)
+                            .opacity(appeared ? 1 : 0)
+                            .offset(x: appeared ? 0 : 20)
+                            .animation(.easeOut(duration: 0.5).delay(0.43), value: appeared)
+                        }
+                        
                         // Breed
                         if let breed = screen.catBreed {
                             Text(breed)
