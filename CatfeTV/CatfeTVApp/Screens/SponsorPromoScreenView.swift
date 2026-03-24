@@ -371,21 +371,15 @@ struct SponsorPromoScreenView: View {
     }
     
     private var stepArrow: some View {
-        VStack(spacing: 2) {
-            Rectangle()
-                .fill(
-                    LinearGradient(
-                        colors: [promoCopper, promoGoldenrod],
-                        startPoint: .leading, endPoint: .trailing
-                    )
+        Image(systemName: "chevron.right")
+            .font(.system(size: 20, weight: .semibold))
+            .foregroundStyle(
+                LinearGradient(
+                    colors: [promoCopper, promoGoldenrod],
+                    startPoint: .leading, endPoint: .trailing
                 )
-                .frame(width: 30, height: 1)
-            
-            Image(systemName: "arrowtriangle.right.fill")
-                .font(.system(size: 8))
-                .foregroundColor(promoCopper)
-        }
-        .padding(.bottom, 20) // offset to align with circles
+            )
+            .padding(.bottom, 24) // offset to align with circle centers, not labels
     }
     
     // MARK: - Cat Silhouette
