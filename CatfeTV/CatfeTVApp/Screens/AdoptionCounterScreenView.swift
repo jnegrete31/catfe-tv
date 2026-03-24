@@ -295,6 +295,58 @@ struct AdoptionCounterScreenView: View {
                     .opacity(appeared ? 1 : 0)
                     .animation(.easeOut(duration: 0.6).delay(0.3), value: appeared)
                 
+                // NutriSource + PetStop Adoption Perk
+                VStack(spacing: 8) {
+                    Rectangle()
+                        .fill(premiumCopper.opacity(0.2))
+                        .frame(width: 120, height: 1)
+                        .padding(.bottom, 4)
+                    
+                    Text("Adoption Perk")
+                        .font(.system(size: 12, weight: .medium, design: .serif))
+                        .tracking(3)
+                        .textCase(.uppercase)
+                        .foregroundColor(Color(hex: "86C5A9"))
+                    
+                    HStack(spacing: 16) {
+                        AsyncImage(url: URL(string: "https://d2xsxph8kpxj0f.cloudfront.net/310519663322973980/aMDMXCoQ2ycSYTjhkKKJzm/nutrisource-logo-official_a4a0409d.webp")) { image in
+                            image.resizable().aspectRatio(contentMode: .fit)
+                        } placeholder: {
+                            Color.clear
+                        }
+                        .frame(height: 36)
+                        
+                        Text("+")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(premiumGold)
+                        
+                        AsyncImage(url: URL(string: "https://d2xsxph8kpxj0f.cloudfront.net/310519663322973980/aMDMXCoQ2ycSYTjhkKKJzm/petstop-logo_ff8d5686.png")) { image in
+                            image.resizable().aspectRatio(contentMode: .fit)
+                        } placeholder: {
+                            Color.clear
+                        }
+                        .frame(height: 36)
+                    }
+                    
+                    HStack(spacing: 0) {
+                        Text("Adopt from Catfé & get a ")
+                            .foregroundColor(premiumCream.opacity(0.6))
+                        Text("FREE bag")
+                            .foregroundColor(Color(hex: "E8913A"))
+                            .fontWeight(.bold)
+                        Text(" of")
+                            .foregroundColor(premiumCream.opacity(0.6))
+                    }
+                    .font(.system(size: 13, weight: .regular, design: .serif))
+                    
+                    Text("NutriSource cat food at Pet Stop!")
+                        .font(.system(size: 13, weight: .regular, design: .serif))
+                        .foregroundColor(premiumCream.opacity(0.6))
+                }
+                .padding(.top, 24)
+                .opacity(appeared ? 1 : 0)
+                .animation(.easeOut(duration: 0.6).delay(0.4), value: appeared)
+                
                 Spacer()
             }
             .padding(.horizontal, 40)
