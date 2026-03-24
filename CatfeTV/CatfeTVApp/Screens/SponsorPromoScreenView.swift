@@ -90,7 +90,7 @@ struct SponsorPromoScreenView: View {
                     VStack {
                         Spacer()
                         HStack {
-                            CatSilhouette()
+                            catSilhouetteView
                                 .opacity(0.04)
                                 .frame(width: 100, height: 100)
                                 .padding(.leading, 30)
@@ -102,7 +102,7 @@ struct SponsorPromoScreenView: View {
                     VStack {
                         HStack {
                             Spacer()
-                            CatSilhouette()
+                            catSilhouetteView
                                 .opacity(0.03)
                                 .rotationEffect(.degrees(12))
                                 .frame(width: 70, height: 70)
@@ -386,6 +386,47 @@ struct SponsorPromoScreenView: View {
                 .foregroundColor(promoCopper)
         }
         .padding(.bottom, 20) // offset to align with circles
+    }
+    
+    // MARK: - Cat Silhouette
+    
+    private var catSilhouetteView: some View {
+        Canvas { context, size in
+            // Body (ellipse)
+            let bodyRect = CGRect(
+                x: size.width * 0.15,
+                y: size.height * 0.35,
+                width: size.width * 0.7,
+                height: size.height * 0.55
+            )
+            context.fill(Ellipse().path(in: bodyRect), with: .color(promoCream))
+            
+            // Head (circle)
+            let headSize = size.width * 0.44
+            let headRect = CGRect(
+                x: (size.width - headSize) / 2,
+                y: size.height * 0.08,
+                width: headSize,
+                height: headSize
+            )
+            context.fill(Circle().path(in: headRect), with: .color(promoCream))
+            
+            // Left ear
+            var leftEar = Path()
+            leftEar.move(to: CGPoint(x: size.width * 0.30, y: size.height * 0.15))
+            leftEar.addLine(to: CGPoint(x: size.width * 0.35, y: size.height * 0.35))
+            leftEar.addLine(to: CGPoint(x: size.width * 0.25, y: size.height * 0.30))
+            leftEar.closeSubpath()
+            context.fill(leftEar, with: .color(promoCream))
+            
+            // Right ear
+            var rightEar = Path()
+            rightEar.move(to: CGPoint(x: size.width * 0.70, y: size.height * 0.15))
+            rightEar.addLine(to: CGPoint(x: size.width * 0.65, y: size.height * 0.35))
+            rightEar.addLine(to: CGPoint(x: size.width * 0.75, y: size.height * 0.30))
+            rightEar.closeSubpath()
+            context.fill(rightEar, with: .color(promoCream))
+        }
     }
 }
 
