@@ -334,37 +334,49 @@ struct SponsorPromoScreenView: View {
     // MARK: - Steps View
     
     private func stepsView(geo: GeometryProxy) -> some View {
-        HStack(spacing: geo.size.width * 0.02) {
+        HStack(spacing: 0) {
+            Spacer()
+            
             stepView(icon: "cat.fill", label: "Adopt from Catfé", accentColor: promoMint, geo: geo)
             
+            Spacer()
             stepArrow
+            Spacer()
             
             stepView(icon: "mappin.and.ellipse", label: "Visit Pet Stop", accentColor: promoGoldenrod, geo: geo)
             
+            Spacer()
             stepArrow
+            Spacer()
             
             stepView(icon: "gift.fill", label: "Get FREE Food!", accentColor: promoAmber, geo: geo)
+            
+            Spacer()
         }
+        .padding(.horizontal, geo.size.width * 0.05)
     }
     
     private func stepView(icon: String, label: String, accentColor: Color, geo: GeometryProxy) -> some View {
-        VStack(spacing: 10) {
+        let circleSize: CGFloat = 110
+        let iconSize: CGFloat = 48
+        
+        return VStack(spacing: 16) {
             ZStack {
                 Circle()
                     .fill(accentColor.opacity(0.12))
-                    .frame(width: 52, height: 52)
+                    .frame(width: circleSize, height: circleSize)
                 
                 Circle()
-                    .stroke(accentColor.opacity(0.25), lineWidth: 1)
-                    .frame(width: 52, height: 52)
+                    .stroke(accentColor.opacity(0.3), lineWidth: 2)
+                    .frame(width: circleSize, height: circleSize)
                 
                 Image(systemName: icon)
-                    .font(.system(size: 22))
+                    .font(.system(size: iconSize))
                     .foregroundColor(accentColor)
             }
             
             Text(label)
-                .font(.system(size: 14, weight: .medium, design: .serif))
+                .font(.system(size: 22, weight: .medium, design: .serif))
                 .foregroundColor(promoCream)
                 .multilineTextAlignment(.center)
         }
@@ -372,14 +384,14 @@ struct SponsorPromoScreenView: View {
     
     private var stepArrow: some View {
         Image(systemName: "chevron.right")
-            .font(.system(size: 20, weight: .semibold))
+            .font(.system(size: 36, weight: .semibold))
             .foregroundStyle(
                 LinearGradient(
                     colors: [promoCopper, promoGoldenrod],
                     startPoint: .leading, endPoint: .trailing
                 )
             )
-            .padding(.bottom, 24) // offset to align with circle centers, not labels
+            .padding(.bottom, 40) // offset to align with circle centers, not labels
     }
     
     // MARK: - Cat Silhouette
