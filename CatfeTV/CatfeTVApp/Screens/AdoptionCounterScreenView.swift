@@ -342,6 +342,12 @@ struct AdoptionCounterScreenView: View {
                     Text("NutriSource cat food at Pet Stop!")
                         .font(.system(size: 13, weight: .regular, design: .serif))
                         .foregroundColor(premiumCream.opacity(0.6))
+                    
+                    Text("through Astro Adoption Program")
+                        .font(.system(size: 11, weight: .regular, design: .serif))
+                        .italic()
+                        .foregroundColor(premiumCopper.opacity(0.5))
+                        .padding(.top, 2)
                 }
                 .padding(.top, 24)
                 .opacity(appeared ? 1 : 0)

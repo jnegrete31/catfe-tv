@@ -160,6 +160,11 @@ struct SponsorPromoScreenView: View {
                         Text("Adopt from Catfé & head to Pet Stop for your free bag of NutriSource!")
                             .font(.system(size: 20, weight: .regular, design: .serif))
                             .foregroundColor(promoCream.opacity(0.5))
+                        
+                        Text("through Astro Adoption Program")
+                            .font(.system(size: 16, weight: .regular, design: .serif))
+                            .italic()
+                            .foregroundColor(promoGoldenrod.opacity(0.6))
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, geo.size.width * 0.15)
                             .padding(.top, 8)
