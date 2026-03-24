@@ -2,10 +2,24 @@
 //  SponsorPromoScreenView.swift
 //  CatfeTVApp
 //
-//  Sponsor Promo screen - NutriSource + PetStop adoption perk promo.
-//  Matches the web app's SPONSOR_PROMO screen type.
+//  Sponsor Promo screen — Premium dark theme
+//  NutriSource + PetStop adoption perk promo.
+//  Matches the Adoption Counter's premium dark aesthetic.
 //
+
 import SwiftUI
+
+// MARK: - Premium Dark Theme Colors (shared with AdoptionCounter)
+
+private let promoBg = Color(hex: "1C1410")
+private let promoCream = Color(hex: "F5E6D3")
+private let promoCopper = Color(hex: "C4956A")
+private let promoBronze = Color(hex: "B87333")
+private let promoGold = Color(hex: "D4A574")
+private let promoAmber = Color(hex: "E8913A")
+private let promoGoldenrod = Color(hex: "DAA520")
+private let promoMint = Color(hex: "86C5A9")
+private let promoDarkCard = Color(hex: "2A1F18")
 
 struct SponsorPromoScreenView: View {
     let screen: Screen
@@ -19,165 +33,178 @@ struct SponsorPromoScreenView: View {
         BaseScreenLayout(screen: screen) {
             GeometryReader { geo in
                 ZStack {
-                    // Warm cream gradient background
-                    LinearGradient(
-                        colors: [
-                            Color(hex: "F5E6D3"),
-                            Color(hex: "EDE0D4"),
-                            Color(hex: "E8DDD0")
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
+                    // Full dark background
+                    promoBg.ignoresSafeArea()
                     
-                    // Decorative warm glow top-right
+                    // Warm radial glows
                     Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: [Color(hex: "DAA520").opacity(0.3), .clear],
-                                center: .center,
-                                startRadius: 0,
-                                endRadius: geo.size.width * 0.3
-                            )
-                        )
+                        .fill(RadialGradient(
+                            colors: [Color(hex: "8B5E3C").opacity(0.12), .clear],
+                            center: .center, startRadius: 0,
+                            endRadius: geo.size.width * 0.35
+                        ))
+                        .frame(width: geo.size.width * 0.7, height: geo.size.width * 0.7)
+                        .position(x: geo.size.width * 0.2, y: geo.size.height * 0.1)
+                    
+                    Circle()
+                        .fill(RadialGradient(
+                            colors: [promoCopper.opacity(0.08), .clear],
+                            center: .center, startRadius: 0,
+                            endRadius: geo.size.width * 0.25
+                        ))
                         .frame(width: geo.size.width * 0.5, height: geo.size.width * 0.5)
-                        .position(x: geo.size.width * 0.8, y: geo.size.height * 0.15)
+                        .position(x: geo.size.width * 0.8, y: geo.size.height * 0.85)
                     
-                    // Decorative mint glow bottom-left
                     Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: [Color(hex: "86C5A9").opacity(0.2), .clear],
-                                center: .center,
-                                startRadius: 0,
-                                endRadius: geo.size.width * 0.25
-                            )
-                        )
-                        .frame(width: geo.size.width * 0.4, height: geo.size.width * 0.4)
-                        .position(x: geo.size.width * 0.15, y: geo.size.height * 0.85)
+                        .fill(RadialGradient(
+                            colors: [promoMint.opacity(0.06), .clear],
+                            center: .center, startRadius: 0,
+                            endRadius: geo.size.width * 0.15
+                        ))
+                        .frame(width: geo.size.width * 0.3, height: geo.size.width * 0.3)
+                        .position(x: geo.size.width * 0.6, y: geo.size.height * 0.4)
                     
-                    // Mint accent bar at top
+                    // Top accent line
                     VStack {
-                        Rectangle()
-                            .fill(Color(hex: "86C5A9"))
-                            .frame(height: 4)
+                        LinearGradient(
+                            colors: [.clear, promoCopper, promoBronze, promoGold, .clear],
+                            startPoint: .leading, endPoint: .trailing
+                        )
+                        .frame(height: 2)
+                        Spacer()
+                    }
+                    .ignoresSafeArea()
+                    
+                    // Bottom accent line
+                    VStack {
+                        Spacer()
+                        LinearGradient(
+                            colors: [.clear, promoCopper, promoBronze, promoCopper, .clear],
+                            startPoint: .leading, endPoint: .trailing
+                        )
+                        .frame(height: 2)
+                    }
+                    .ignoresSafeArea()
+                    
+                    // Decorative cat silhouettes
+                    VStack {
+                        Spacer()
+                        HStack {
+                            CatSilhouette()
+                                .opacity(0.04)
+                                .frame(width: 100, height: 100)
+                                .padding(.leading, 30)
+                                .padding(.bottom, 30)
+                            Spacer()
+                        }
+                    }
+                    
+                    VStack {
+                        HStack {
+                            Spacer()
+                            CatSilhouette()
+                                .opacity(0.03)
+                                .rotationEffect(.degrees(12))
+                                .frame(width: 70, height: 70)
+                                .padding(.trailing, 40)
+                                .padding(.top, 40)
+                        }
                         Spacer()
                     }
                     
-                    // Paw print accents
-                    pawPrintAccents(geo: geo)
-                    
                     // Main content
-                    VStack(spacing: geo.size.height * 0.03) {
+                    VStack(spacing: 0) {
                         Spacer()
                         
-                        // Top label
-                        HStack(spacing: 12) {
-                            Rectangle()
-                                .fill(Color(hex: "DAA520"))
-                                .frame(width: 60, height: 1)
+                        // Top label with decorative lines
+                        HStack(spacing: 14) {
+                            LinearGradient(
+                                colors: [.clear, promoCopper],
+                                startPoint: .leading, endPoint: .trailing
+                            )
+                            .frame(width: 60, height: 1)
                             
-                            Text("ADOPTION PERK")
-                                .font(.system(size: geo.size.height * 0.022, weight: .medium))
+                            Text("✦ Adoption Perk ✦")
+                                .font(.system(size: 14, weight: .medium, design: .serif))
                                 .tracking(6)
-                                .foregroundColor(Color(hex: "86C5A9"))
+                                .textCase(.uppercase)
+                                .foregroundColor(promoMint)
                             
-                            Rectangle()
-                                .fill(Color(hex: "DAA520"))
-                                .frame(width: 60, height: 1)
+                            LinearGradient(
+                                colors: [promoCopper, .clear],
+                                startPoint: .leading, endPoint: .trailing
+                            )
+                            .frame(width: 60, height: 1)
                         }
                         .opacity(appeared ? 1 : 0)
-                        .offset(y: appeared ? 0 : -20)
-                        .animation(.easeOut(duration: 0.6), value: appeared)
+                        .offset(y: appeared ? 0 : -15)
+                        .animation(.easeOut(duration: 0.8), value: appeared)
+                        .padding(.bottom, 20)
                         
-                        // Headline
+                        // Headline with gradient text
                         Text("FREE Bag of Cat Food")
-                            .font(.system(size: geo.size.height * 0.07, weight: .bold, design: .serif))
-                            .foregroundColor(Color(hex: "2d2d2d"))
+                            .font(.system(size: geo.size.height * 0.08, weight: .black, design: .serif))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [promoAmber, promoGoldenrod, promoGold],
+                                    startPoint: .top, endPoint: .bottom
+                                )
+                            )
+                            .shadow(color: promoGoldenrod.opacity(0.3), radius: 20, y: 4)
                             .multilineTextAlignment(.center)
                             .opacity(appeared ? 1 : 0)
                             .offset(y: appeared ? 0 : 20)
-                            .animation(.easeOut(duration: 0.6).delay(0.2), value: appeared)
+                            .animation(.easeOut(duration: 0.8).delay(0.2), value: appeared)
                         
                         // Subtitle
-                        Text("When you adopt from Catfé, head to Pet Stop for your free bag of NutriSource!")
-                            .font(.system(size: geo.size.height * 0.03, design: .serif))
-                            .foregroundColor(Color(hex: "2d2d2d").opacity(0.6))
+                        Text("Adopt from Catfé & head to Pet Stop for your free bag of NutriSource!")
+                            .font(.system(size: 20, weight: .regular, design: .serif))
+                            .foregroundColor(promoCream.opacity(0.5))
                             .multilineTextAlignment(.center)
-                            .padding(.horizontal, geo.size.width * 0.1)
+                            .padding(.horizontal, geo.size.width * 0.15)
+                            .padding(.top, 8)
                             .opacity(appeared ? 1 : 0)
-                            .offset(y: appeared ? 0 : 20)
-                            .animation(.easeOut(duration: 0.6).delay(0.3), value: appeared)
+                            .offset(y: appeared ? 0 : 15)
+                            .animation(.easeOut(duration: 0.8).delay(0.3), value: appeared)
                         
-                        // Logos
-                        HStack(spacing: geo.size.width * 0.04) {
-                            AsyncImage(url: URL(string: nutrisourceLogoUrl)) { phase in
-                                switch phase {
-                                case .success(let image):
-                                    image
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fit)
-                                        .frame(height: geo.size.height * 0.12)
-                                default:
-                                    Text("NutriSource")
-                                        .font(.system(size: geo.size.height * 0.04, weight: .bold, design: .serif))
-                                        .foregroundColor(Color(hex: "2d2d2d"))
-                                }
-                            }
-                            
-                            Text("+")
-                                .font(.system(size: geo.size.height * 0.05, weight: .bold))
-                                .foregroundColor(Color(hex: "DAA520"))
-                            
-                            AsyncImage(url: URL(string: petstopLogoUrl)) { phase in
-                                switch phase {
-                                case .success(let image):
-                                    image
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fit)
-                                        .frame(height: geo.size.height * 0.12)
-                                default:
-                                    Text("Pet Stop")
-                                        .font(.system(size: geo.size.height * 0.04, weight: .bold, design: .serif))
-                                        .foregroundColor(Color(hex: "2d2d2d"))
-                                }
-                            }
-                        }
-                        .opacity(appeared ? 1 : 0)
-                        .scaleEffect(appeared ? 1 : 0.9)
-                        .animation(.easeOut(duration: 0.6).delay(0.4), value: appeared)
-                        .padding(.vertical, geo.size.height * 0.02)
+                        // Logos in decorative frame
+                        logoFrame(geo: geo)
+                            .padding(.top, 28)
+                            .opacity(appeared ? 1 : 0)
+                            .scaleEffect(appeared ? 1 : 0.9)
+                            .animation(.easeOut(duration: 0.8).delay(0.4), value: appeared)
                         
                         // How it works steps
-                        HStack(spacing: geo.size.width * 0.03) {
-                            stepView(icon: "cat.fill", label: "Adopt from Catfé", bgColor: "86C5A9", geo: geo)
-                            
-                            Image(systemName: "arrow.right")
-                                .font(.system(size: geo.size.height * 0.03))
-                                .foregroundColor(Color(hex: "DAA520"))
-                            
-                            stepView(icon: "mappin.and.ellipse", label: "Visit Pet Stop", bgColor: "DAA520", geo: geo)
-                            
-                            Image(systemName: "arrow.right")
-                                .font(.system(size: geo.size.height * 0.03))
-                                .foregroundColor(Color(hex: "DAA520"))
-                            
-                            stepView(icon: "gift.fill", label: "Get FREE Food!", bgColor: "E8913A", geo: geo)
-                        }
-                        .opacity(appeared ? 1 : 0)
-                        .offset(y: appeared ? 0 : 20)
-                        .animation(.easeOut(duration: 0.6).delay(0.5), value: appeared)
+                        stepsView(geo: geo)
+                            .padding(.top, 28)
+                            .opacity(appeared ? 1 : 0)
+                            .offset(y: appeared ? 0 : 15)
+                            .animation(.easeOut(duration: 0.8).delay(0.5), value: appeared)
                         
                         Spacer()
                         
                         // Bottom note
-                        Text("26870 Sierra Hwy, Santa Clarita · petstopsantaclarita.com")
-                            .font(.system(size: geo.size.height * 0.018, weight: .medium))
-                            .tracking(1)
-                            .foregroundColor(Color(hex: "2d2d2d").opacity(0.4))
-                            .opacity(appeared ? 1 : 0)
-                            .animation(.easeOut(duration: 0.6).delay(0.7), value: appeared)
-                            .padding(.bottom, geo.size.height * 0.05)
+                        HStack(spacing: 10) {
+                            LinearGradient(
+                                colors: [.clear, promoCopper.opacity(0.3)],
+                                startPoint: .leading, endPoint: .trailing
+                            )
+                            .frame(width: 30, height: 1)
+                            
+                            Text("26870 Sierra Hwy, Santa Clarita · petstopsantaclarita.com")
+                                .font(.system(size: 12, weight: .medium, design: .serif))
+                                .tracking(1.5)
+                                .foregroundColor(promoCopper.opacity(0.4))
+                            
+                            LinearGradient(
+                                colors: [promoCopper.opacity(0.3), .clear],
+                                startPoint: .leading, endPoint: .trailing
+                            )
+                            .frame(width: 30, height: 1)
+                        }
+                        .opacity(appeared ? 1 : 0)
+                        .animation(.easeOut(duration: 0.8).delay(0.7), value: appeared)
+                        .padding(.bottom, geo.size.height * 0.04)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
@@ -190,55 +217,175 @@ struct SponsorPromoScreenView: View {
         }
     }
     
-    // MARK: - Step View
+    // MARK: - Logo Frame
     
-    private func stepView(icon: String, label: String, bgColor: String, geo: GeometryProxy) -> some View {
-        VStack(spacing: geo.size.height * 0.015) {
+    private func logoFrame(geo: GeometryProxy) -> some View {
+        ZStack {
+            // Frame background
+            RoundedRectangle(cornerRadius: 4)
+                .fill(
+                    LinearGradient(
+                        colors: [promoDarkCard.opacity(0.8), promoBg.opacity(0.9)],
+                        startPoint: .topLeading, endPoint: .bottomTrailing
+                    )
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 4)
+                        .stroke(promoCopper.opacity(0.2), lineWidth: 1)
+                )
+                .shadow(color: promoBronze.opacity(0.08), radius: 30)
+            
+            // Corner accents
+            cornerAccents
+            
+            // Logo content
+            HStack(spacing: geo.size.width * 0.04) {
+                // NutriSource logo on light background
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(promoCream.opacity(0.95))
+                    .frame(width: geo.size.height * 0.18, height: geo.size.height * 0.12)
+                    .overlay(
+                        AsyncImage(url: URL(string: nutrisourceLogoUrl)) { phase in
+                            switch phase {
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .padding(8)
+                            default:
+                                Text("NutriSource")
+                                    .font(.system(size: 16, weight: .bold, design: .serif))
+                                    .foregroundColor(Color(hex: "2d2d2d"))
+                            }
+                        }
+                    )
+                
+                Text("+")
+                    .font(.system(size: 28, weight: .bold))
+                    .foregroundColor(promoGold)
+                
+                // PetStop logo on light background
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(promoCream.opacity(0.95))
+                    .frame(width: geo.size.height * 0.18, height: geo.size.height * 0.12)
+                    .overlay(
+                        AsyncImage(url: URL(string: petstopLogoUrl)) { phase in
+                            switch phase {
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .padding(8)
+                            default:
+                                Text("Pet Stop")
+                                    .font(.system(size: 16, weight: .bold, design: .serif))
+                                    .foregroundColor(Color(hex: "2d2d2d"))
+                            }
+                        }
+                    )
+            }
+            .padding(.vertical, 16)
+            .padding(.horizontal, 24)
+        }
+        .fixedSize()
+    }
+    
+    // MARK: - Corner Accents
+    
+    private var cornerAccents: some View {
+        GeometryReader { geo in
+            let cornerSize: CGFloat = 12
+            let lineWidth: CGFloat = 1.5
+            
+            // Top-left
+            Path { path in
+                path.move(to: CGPoint(x: 0, y: cornerSize))
+                path.addLine(to: CGPoint(x: 0, y: 0))
+                path.addLine(to: CGPoint(x: cornerSize, y: 0))
+            }
+            .stroke(promoCopper, lineWidth: lineWidth)
+            
+            // Top-right
+            Path { path in
+                path.move(to: CGPoint(x: geo.size.width - cornerSize, y: 0))
+                path.addLine(to: CGPoint(x: geo.size.width, y: 0))
+                path.addLine(to: CGPoint(x: geo.size.width, y: cornerSize))
+            }
+            .stroke(promoCopper, lineWidth: lineWidth)
+            
+            // Bottom-left
+            Path { path in
+                path.move(to: CGPoint(x: 0, y: geo.size.height - cornerSize))
+                path.addLine(to: CGPoint(x: 0, y: geo.size.height))
+                path.addLine(to: CGPoint(x: cornerSize, y: geo.size.height))
+            }
+            .stroke(promoCopper, lineWidth: lineWidth)
+            
+            // Bottom-right
+            Path { path in
+                path.move(to: CGPoint(x: geo.size.width - cornerSize, y: geo.size.height))
+                path.addLine(to: CGPoint(x: geo.size.width, y: geo.size.height))
+                path.addLine(to: CGPoint(x: geo.size.width, y: geo.size.height - cornerSize))
+            }
+            .stroke(promoCopper, lineWidth: lineWidth)
+        }
+    }
+    
+    // MARK: - Steps View
+    
+    private func stepsView(geo: GeometryProxy) -> some View {
+        HStack(spacing: geo.size.width * 0.02) {
+            stepView(icon: "cat.fill", label: "Adopt from Catfé", accentColor: promoMint, geo: geo)
+            
+            stepArrow
+            
+            stepView(icon: "mappin.and.ellipse", label: "Visit Pet Stop", accentColor: promoGoldenrod, geo: geo)
+            
+            stepArrow
+            
+            stepView(icon: "gift.fill", label: "Get FREE Food!", accentColor: promoAmber, geo: geo)
+        }
+    }
+    
+    private func stepView(icon: String, label: String, accentColor: Color, geo: GeometryProxy) -> some View {
+        VStack(spacing: 10) {
             ZStack {
                 Circle()
-                    .fill(Color(hex: bgColor).opacity(0.2))
-                    .frame(width: geo.size.height * 0.08, height: geo.size.height * 0.08)
+                    .fill(accentColor.opacity(0.12))
+                    .frame(width: 52, height: 52)
+                
+                Circle()
+                    .stroke(accentColor.opacity(0.25), lineWidth: 1)
+                    .frame(width: 52, height: 52)
                 
                 Image(systemName: icon)
-                    .font(.system(size: geo.size.height * 0.03))
-                    .foregroundColor(Color(hex: bgColor))
+                    .font(.system(size: 22))
+                    .foregroundColor(accentColor)
             }
             
             Text(label)
-                .font(.system(size: geo.size.height * 0.02, weight: .medium, design: .serif))
-                .foregroundColor(Color(hex: "2d2d2d"))
+                .font(.system(size: 14, weight: .medium, design: .serif))
+                .foregroundColor(promoCream)
                 .multilineTextAlignment(.center)
         }
     }
     
-    // MARK: - Paw Print Accents
-    
-    private func pawPrintAccents(geo: GeometryProxy) -> some View {
-        ZStack {
-            Image(systemName: "pawprint.fill")
-                .font(.system(size: geo.size.height * 0.07))
-                .foregroundColor(Color(hex: "2d2d2d").opacity(0.04))
-                .rotationEffect(.degrees(-15))
-                .position(x: geo.size.width * 0.08, y: geo.size.height * 0.12)
+    private var stepArrow: some View {
+        VStack(spacing: 2) {
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        colors: [promoCopper, promoGoldenrod],
+                        startPoint: .leading, endPoint: .trailing
+                    )
+                )
+                .frame(width: 30, height: 1)
             
-            Image(systemName: "pawprint.fill")
-                .font(.system(size: geo.size.height * 0.05))
-                .foregroundColor(Color(hex: "2d2d2d").opacity(0.03))
-                .rotationEffect(.degrees(25))
-                .position(x: geo.size.width * 0.9, y: geo.size.height * 0.1)
-            
-            Image(systemName: "pawprint.fill")
-                .font(.system(size: geo.size.height * 0.06))
-                .foregroundColor(Color(hex: "2d2d2d").opacity(0.03))
-                .rotationEffect(.degrees(-30))
-                .position(x: geo.size.width * 0.92, y: geo.size.height * 0.88)
-            
-            Image(systemName: "pawprint.fill")
-                .font(.system(size: geo.size.height * 0.05))
-                .foregroundColor(Color(hex: "2d2d2d").opacity(0.04))
-                .rotationEffect(.degrees(10))
-                .position(x: geo.size.width * 0.1, y: geo.size.height * 0.9)
+            Image(systemName: "arrowtriangle.right.fill")
+                .font(.system(size: 8))
+                .foregroundColor(promoCopper)
         }
+        .padding(.bottom, 20) // offset to align with circles
     }
 }
 
