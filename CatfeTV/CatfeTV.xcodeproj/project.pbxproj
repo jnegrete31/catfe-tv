@@ -68,6 +68,7 @@
 				PCQ00001 /* PhotoContestQRScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PCQ00002 /* PhotoContestQRScreenView.swift */; };
 				UPE00001 /* UpcomingEventsScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = UPE00002 /* UpcomingEventsScreenView.swift */; };
 				LGO00001 /* LogoScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LGO00002 /* LogoScreenView.swift */; };
+				SPP00001 /* SponsorPromoScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SPP00002 /* SponsorPromoScreenView.swift */; };
 			CWC00001 /* CatWordCloudScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CWC00002 /* CatWordCloudScreenView.swift */; };
 			OSP00001 /* OverstayPopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = OSP00002 /* OverstayPopupView.swift */; };
 		22810065BDE340519254637D /* CosmicHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86CB68B09382437D9B459095 /* CosmicHelpers.swift */; };
@@ -144,6 +145,7 @@
 			PCQ00002 /* PhotoContestQRScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoContestQRScreenView.swift; sourceTree = "<group>"; };
 			UPE00002 /* UpcomingEventsScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpcomingEventsScreenView.swift; sourceTree = "<group>"; };
 			LGO00002 /* LogoScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogoScreenView.swift; sourceTree = "<group>"; };
+			SPP00002 /* SponsorPromoScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SponsorPromoScreenView.swift; sourceTree = "<group>"; };
 			CWC00002 /* CatWordCloudScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatWordCloudScreenView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -229,6 +231,7 @@
 					PCQ00002 /* PhotoContestQRScreenView.swift */,
 					UPE00002 /* UpcomingEventsScreenView.swift */,
 					LGO00002 /* LogoScreenView.swift */,
+					SPP00002 /* SponsorPromoScreenView.swift */,
 					CWC00002 /* CatWordCloudScreenView.swift */,
 			);
 			path = Screens;
@@ -409,6 +412,7 @@
 					PCQ00001 /* PhotoContestQRScreenView.swift in Sources */,
 					UPE00001 /* UpcomingEventsScreenView.swift in Sources */,
 					LGO00001 /* LogoScreenView.swift in Sources */,
+					SPP00001 /* SponsorPromoScreenView.swift in Sources */,
 					CWC00001 /* CatWordCloudScreenView.swift in Sources */,
 
 

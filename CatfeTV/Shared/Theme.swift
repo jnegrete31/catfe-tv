@@ -278,6 +278,7 @@ extension ScreenType {
         case .upcomingEvents: return .purple
         case .catWordCloud: return .loungeMintGreen
         case .logo: return .loungeAmber
+        case .sponsorPromo: return .loungeAmber
         case .custom: return .loungeWarmOrange
         }
     }
