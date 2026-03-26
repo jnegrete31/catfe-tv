@@ -370,8 +370,6 @@ struct BirthdayCelebrationScreenView: View {
         let dobMonth = utcCal.component(.month, from: dob)
         let dobDay = utcCal.component(.day, from: dob)
         
-        let currentMonth = calendar.component(.month, from: now)
-        let currentDay = calendar.component(.day, from: now)
         let currentYear = calendar.component(.year, from: now)
         
         // Build this year's birthday in local time
