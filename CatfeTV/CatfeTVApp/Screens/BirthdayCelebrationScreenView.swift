@@ -2,134 +2,10 @@
 //  BirthdayCelebrationScreenView.swift
 //  CatfeTVApp
 //
-//  Birthday Celebration - festive display for cat birthdays
+//  Birthday Celebration - premium dark theme with 2x2 grid
 //
 
 import SwiftUI
-
-// MARK: - Confetti Particle Model
-
-private struct ConfettiParticle: Identifiable {
-    let id: Int
-    var x: CGFloat
-    var y: CGFloat
-    let size: CGFloat
-    let color: Color
-    let speed: CGFloat       // points per tick
-    let drift: CGFloat       // horizontal sway amplitude
-    let rotation: Double
-    let rotationSpeed: Double
-    let shape: Int           // 0 = circle, 1 = rectangle, 2 = triangle
-}
-
-// MARK: - Confetti Overlay View
-
-private struct ConfettiOverlay: View {
-    let particleCount: Int
-    
-    @State private var particles: [ConfettiParticle] = []
-    @State private var tick: Int = 0
-    
-    private let timer = Timer.publish(every: 0.05, on: .main, in: .common).autoconnect()
-    
-    private let confettiColors: [Color] = [
-        .catfeGold, .loungeWarmOrange, .catfeBlush,
-        .loungeMintGreen, .purple, Color(hex: "FFD700"),
-        Color(hex: "FF69B4"), Color(hex: "87CEEB")
-    ]
-    
-    var body: some View {
-        GeometryReader { geo in
-            ZStack {
-                ForEach(particles) { p in
-                    confettiShape(p)
-                        .position(x: p.x, y: p.y)
-                        .rotationEffect(.degrees(p.rotation + Double(tick) * p.rotationSpeed))
-                }
-            }
-            .onAppear {
-                initParticles(in: geo.size)
-            }
-            .onReceive(timer) { _ in
-                tick += 1
-                updateParticles(in: geo.size)
-            }
-        }
-        .allowsHitTesting(false)
-    }
-    
-    @ViewBuilder
-    private func confettiShape(_ p: ConfettiParticle) -> some View {
-        switch p.shape {
-        case 1:
-            Rectangle()
-                .fill(p.color)
-                .frame(width: p.size * 0.6, height: p.size)
-                .opacity(0.85)
-        case 2:
-            Triangle()
-                .fill(p.color)
-                .frame(width: p.size, height: p.size)
-                .opacity(0.85)
-        default:
-            Circle()
-                .fill(p.color)
-                .frame(width: p.size, height: p.size)
-                .opacity(0.85)
-        }
-    }
-    
-    private func initParticles(in size: CGSize) {
-        particles = (0..<particleCount).map { i in
-            makeParticle(id: i, screenSize: size, startAbove: false)
-        }
-    }
-    
-    private func makeParticle(id: Int, screenSize: CGSize, startAbove: Bool) -> ConfettiParticle {
-        ConfettiParticle(
-            id: id,
-            x: CGFloat.random(in: 0...screenSize.width),
-            y: startAbove
-                ? CGFloat.random(in: -100 ... -10)
-                : CGFloat.random(in: -100...screenSize.height),
-            size: CGFloat.random(in: 6...14),
-            color: confettiColors[id % confettiColors.count],
-            speed: CGFloat.random(in: 1.5...4.0),
-            drift: CGFloat.random(in: -1.5...1.5),
-            rotation: Double.random(in: 0...360),
-            rotationSpeed: Double.random(in: -3...3),
-            shape: Int.random(in: 0...2)
-        )
-    }
-    
-    private func updateParticles(in size: CGSize) {
-        for i in particles.indices {
-            particles[i].y += particles[i].speed
-            particles[i].x += particles[i].drift + CGFloat(sin(Double(tick) * 0.05 + Double(i))) * 0.8
-            
-            // Recycle particles that fall off screen
-            if particles[i].y > size.height + 20 {
-                particles[i] = makeParticle(id: particles[i].id, screenSize: size, startAbove: true)
-            }
-            // Wrap horizontally
-            if particles[i].x < -20 { particles[i].x = size.width + 10 }
-            if particles[i].x > size.width + 20 { particles[i].x = -10 }
-        }
-    }
-}
-
-// MARK: - Triangle Shape
-
-private struct Triangle: Shape {
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        path.move(to: CGPoint(x: rect.midX, y: rect.minY))
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
-        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
-        path.closeSubpath()
-        return path
-    }
-}
 
 // MARK: - Birthday Celebration Screen
 
@@ -151,28 +27,106 @@ struct BirthdayCelebrationScreenView: View {
         !todayBirthdays.isEmpty
     }
     
+    /// Combine today + upcoming (excluding today's), limit to 4 for 2x2 grid
+    private var allBirthdayCats: [BirthdayCat] {
+        let upcomingOnly = upcomingBirthdays.filter { upcoming in
+            !todayBirthdays.contains(where: { $0.id == upcoming.id })
+        }
+        return Array((todayBirthdays + upcomingOnly).prefix(4))
+    }
+    
+    // Premium dark theme colors
+    private let darkBg = Color(hex: "1C1410")
+    private let promoCopper = Color(hex: "CD7F32")
+    private let promoGold = Color(hex: "DAA520")
+    private let promoCream = Color(hex: "F5DEB3")
+    
     var body: some View {
         ZStack {
-            // Festive background
-            birthdayBackground
+            // Dark background
+            darkBg.ignoresSafeArea()
             
-            // Confetti overlay — real falling particles
-            if hasTodayBirthdays {
-                ConfettiOverlay(particleCount: 40)
+            // Warm radial glows
+            GeometryReader { geo in
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [promoGold.opacity(0.12), Color.clear],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: geo.size.width * 0.35
+                        )
+                    )
+                    .frame(width: geo.size.width * 0.7, height: geo.size.width * 0.7)
+                    .position(x: geo.size.width * 0.3, y: geo.size.height * 0.2)
+                
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [promoCopper.opacity(0.08), Color.clear],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: geo.size.width * 0.3
+                        )
+                    )
+                    .frame(width: geo.size.width * 0.5, height: geo.size.width * 0.5)
+                    .position(x: geo.size.width * 0.8, y: geo.size.height * 0.7)
             }
             
-            VStack(spacing: 24) {
+            // Top decorative line
+            VStack {
+                LinearGradient(
+                    colors: [.clear, promoGold, promoCopper, promoGold, .clear],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+                .frame(height: 2)
+                Spacer()
+                // Bottom decorative line
+                LinearGradient(
+                    colors: [.clear, promoCopper, promoGold, promoCopper, .clear],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+                .frame(height: 2)
+            }
+            .ignoresSafeArea()
+            
+            // Decorative cat silhouette
+            VStack {
+                Spacer()
+                HStack {
+                    catSilhouetteView
+                        .opacity(0.04)
+                        .frame(width: 100, height: 100)
+                        .padding(.leading, 30)
+                        .padding(.bottom, 30)
+                    Spacer()
+                }
+            }
+            
+            // Subtle sparkles
+            ForEach(0..<8, id: \.self) { i in
+                Circle()
+                    .fill([promoGold, promoCopper, promoGold, promoCopper][i % 4])
+                    .frame(width: CGFloat.random(in: 3...6), height: CGFloat.random(in: 3...6))
+                    .opacity(appeared ? 0.25 : 0)
+                    .position(
+                        x: CGFloat(50 + (i * 200) % 1600),
+                        y: CGFloat(80 + (i * 150) % 800)
+                    )
+            }
+            
+            // Main content
+            VStack(spacing: 20) {
                 // Header
                 headerView
                 
-                if hasTodayBirthdays {
-                    // Today's birthday cats - big celebration
-                    todayBirthdaySection
-                } else if !upcomingBirthdays.isEmpty {
-                    // No birthdays today, show upcoming
-                    upcomingBirthdaySection
-                } else {
+                if allBirthdayCats.isEmpty {
                     emptyStateView
+                } else {
+                    // 2x2 Grid
+                    birthdayGrid
                 }
                 
                 Spacer(minLength: 0)
@@ -188,164 +142,193 @@ struct BirthdayCelebrationScreenView: View {
         }
     }
     
-    // MARK: - Background
-    
-    private var birthdayBackground: some View {
-        ZStack {
-            // Warm golden gradient
-            LinearGradient(
-                colors: [
-                    Color(hex: "1a1a2e"),
-                    Color(hex: "2e1a1a"),
-                    Color(hex: "1a1a2e")
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
-            
-            // Golden glow
-            GeometryReader { geo in
-                Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [Color.catfeGold.opacity(0.3), Color.clear],
-                            center: .center,
-                            startRadius: 0,
-                            endRadius: geo.size.width * 0.4
-                        )
-                    )
-                    .frame(width: geo.size.width * 0.8, height: geo.size.width * 0.8)
-                    .position(x: geo.size.width * 0.5, y: geo.size.height * 0.3)
-            }
-        }
-    }
-    
     // MARK: - Header
     
     private var headerView: some View {
-        HStack(spacing: 16) {
-            Text("🎂")
-                .font(.system(size: 48))
-            
-            VStack(alignment: .leading, spacing: 4) {
-                let titleText = hasTodayBirthdays
-                    ? (screen.title.isEmpty ? "Happy Birthday!" : screen.title)
-                    : "Upcoming Birthdays"
+        VStack(spacing: 8) {
+            // Decorative line with sparkles
+            HStack(spacing: 12) {
+                LinearGradient(
+                    colors: [.clear, promoGold],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+                .frame(width: 60, height: 1)
                 
-                Text(titleText)
-                    .font(.system(size: 46, weight: .bold, design: .serif))
-                    .foregroundColor(.loungeCream)
+                Text("✦ UPCOMING BIRTHDAYS ✦")
+                    .font(.system(size: 14, weight: .medium))
+                    .tracking(6)
+                    .foregroundColor(promoGold)
                 
-                if hasTodayBirthdays {
-                    let subtitle = screen.subtitle ?? "Celebrating our furry friends today!"
-                    Text(subtitle)
-                        .font(.system(size: 22, weight: .medium))
-                        .foregroundColor(.catfeGold.opacity(0.8))
-                }
+                LinearGradient(
+                    colors: [promoGold, .clear],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+                .frame(width: 60, height: 1)
             }
             
-            Spacer()
+            Text(hasTodayBirthdays ? "🎂 Happy Birthday!" : "Celebrate With Us")
+                .font(.system(size: 48, weight: .bold, design: .serif))
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [promoGold, promoCream, promoGold, promoCopper],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
             
-            Text("🎉")
-                .font(.system(size: 48))
+            Text(hasTodayBirthdays ? "Celebrating our furry friends today!" : "Mark your calendars for these special days")
+                .font(.system(size: 18, weight: .medium))
+                .foregroundColor(promoCream.opacity(0.5))
         }
         .opacity(appeared ? 1 : 0)
         .offset(y: appeared ? 0 : -20)
     }
     
-    // MARK: - Today's Birthdays
+    // MARK: - 2x2 Grid
     
-    private var todayBirthdaySection: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 32) {
-                ForEach(Array(todayBirthdays.enumerated()), id: \.element.id) { index, cat in
-                    birthdayCatCard(cat: cat, index: index, isCelebrating: true)
-                }
-            }
-            .padding(.horizontal, 20)
-        }
-    }
-    
-    // MARK: - Upcoming Birthdays
-    
-    private var upcomingBirthdaySection: some View {
-        VStack(spacing: 16) {
-            Text("Coming up in the next 30 days")
-                .font(.system(size: 22, weight: .medium))
-                .foregroundColor(.loungeStone)
-            
-            let gridColumns = [
-                GridItem(.flexible(), spacing: 20),
-                GridItem(.flexible(), spacing: 20),
-                GridItem(.flexible(), spacing: 20),
-                GridItem(.flexible(), spacing: 20)
-            ]
-            
-            LazyVGrid(columns: gridColumns, spacing: 20) {
-                ForEach(Array(upcomingBirthdays.prefix(8).enumerated()), id: \.element.id) { index, cat in
-                    birthdayCatCard(cat: cat, index: index, isCelebrating: false)
-                }
-            }
-        }
-    }
-    
-    // MARK: - Birthday Cat Card
-    
-    private func birthdayCatCard(cat: BirthdayCat, index: Int, isCelebrating: Bool) -> some View {
-        let cardWidth: CGFloat = isCelebrating ? 350 : 0 // 0 = flexible in grid
-        let cardHeight: CGFloat = isCelebrating ? 420 : 300
-        let borderColor: Color = isCelebrating ? .catfeGold : .loungeStone.opacity(0.3)
+    private var birthdayGrid: some View {
+        let columns = [
+            GridItem(.flexible(), spacing: 24),
+            GridItem(.flexible(), spacing: 24)
+        ]
         
-        return VStack(spacing: 12) {
+        return LazyVGrid(columns: columns, spacing: 24) {
+            ForEach(Array(allBirthdayCats.enumerated()), id: \.element.id) { index, cat in
+                birthdayCard(cat: cat, index: index)
+            }
+        }
+        .padding(.top, 8)
+    }
+    
+    // MARK: - Birthday Card
+    
+    private func birthdayCard(cat: BirthdayCat, index: Int) -> some View {
+        let isBirthdayToday = isCatBirthdayToday(cat)
+        
+        return HStack(spacing: 20) {
             // Cat photo
-            if let photoUrl = cat.photoUrl, !photoUrl.isEmpty {
-                ScreenImage(url: photoUrl)
-                    .frame(height: isCelebrating ? 250 : 160)
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-            } else {
-                // Placeholder
+            ZStack {
+                if let photoUrl = cat.photoUrl, !photoUrl.isEmpty {
+                    ScreenImage(url: photoUrl)
+                        .frame(width: 160, height: 160)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                } else {
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(promoGold.opacity(0.1))
+                        .frame(width: 160, height: 160)
+                        .overlay(
+                            Text("🐱")
+                                .font(.system(size: 50))
+                        )
+                }
+                
+                // Age badge
+                if let age = cat.ageYears {
+                    VStack {
+                        Spacer()
+                        HStack {
+                            Spacer()
+                            Text("\(age)yr")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundColor(darkBg)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(
+                                    Capsule()
+                                        .fill(
+                                            LinearGradient(
+                                                colors: [promoGold, promoCopper],
+                                                startPoint: .leading,
+                                                endPoint: .trailing
+                                            )
+                                        )
+                                )
+                        }
+                    }
+                    .padding(6)
+                }
+            }
+            .frame(width: 160, height: 160)
+            .overlay(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.loungeStone.opacity(0.2))
-                    .frame(height: isCelebrating ? 250 : 160)
-                    .overlay(
-                        Text("🐱")
-                            .font(.system(size: isCelebrating ? 60 : 40))
+                    .stroke(
+                        isBirthdayToday ? promoGold : promoCream.opacity(0.12),
+                        lineWidth: isBirthdayToday ? 2 : 1
                     )
+            )
+            
+            // Cat info
+            VStack(alignment: .leading, spacing: 8) {
+                Text(cat.name)
+                    .font(.system(size: 30, weight: .bold, design: .serif))
+                    .foregroundColor(promoCream)
+                    .lineLimit(1)
+                
+                if let breed = cat.breed, !breed.isEmpty {
+                    Text(breed)
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(promoCream.opacity(0.4))
+                }
+                
+                // Birthday date
+                HStack(spacing: 8) {
+                    Text("🎂")
+                        .font(.system(size: 18))
+                    
+                    if let dob = cat.dob {
+                        let formatter = DateFormatter()
+                        let _ = formatter.dateFormat = "MMM d"
+                        let _ = formatter.timeZone = TimeZone(identifier: "UTC")
+                        Text(formatter.string(from: dob))
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(isBirthdayToday ? promoGold : promoCopper)
+                    }
+                    
+                    Text("·")
+                        .foregroundColor(promoCream.opacity(0.3))
+                    
+                    Text(birthdayLabel(for: cat))
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(isBirthdayToday ? promoGold : promoCream.opacity(0.5))
+                }
+                
+                if isBirthdayToday {
+                    Text("🎉 Birthday Today!")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(darkBg)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(
+                            Capsule()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [promoGold, promoCopper],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                        )
+                }
             }
             
-            // Cat name
-            Text(cat.name)
-                .font(.system(size: isCelebrating ? 32 : 22, weight: .bold, design: .serif))
-                .foregroundColor(.loungeCream)
-            
-            // Age
-            if let age = cat.ageYears {
-                let ageText = isCelebrating ? "Turning \(age)!" : "Turns \(age)"
-                Text(ageText)
-                    .font(.system(size: isCelebrating ? 22 : 16, weight: .medium))
-                    .foregroundColor(.catfeGold)
-            }
-            
-            // Birthday date (for upcoming)
-            if !isCelebrating, let dob = cat.dob {
-                // Format the DOB in UTC to get the correct month/day
-                let formatter = DateFormatter()
-                let _ = formatter.dateFormat = "MMM d"
-                let _ = formatter.timeZone = TimeZone(identifier: "UTC")
-                Text(formatter.string(from: dob))
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.loungeStone)
-            }
+            Spacer(minLength: 0)
         }
         .padding(16)
-        .frame(width: cardWidth > 0 ? cardWidth : nil, height: cardHeight)
         .background(
             RoundedRectangle(cornerRadius: 20)
-                .fill(Color.white.opacity(0.08))
+                .fill(
+                    isBirthdayToday
+                        ? LinearGradient(colors: [promoGold.opacity(0.12), promoCopper.opacity(0.06)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                        : LinearGradient(colors: [promoCream.opacity(0.04), promoCream.opacity(0.02)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                )
                 .overlay(
                     RoundedRectangle(cornerRadius: 20)
-                        .stroke(borderColor, lineWidth: isCelebrating ? 2 : 1)
+                        .stroke(
+                            isBirthdayToday ? promoGold.opacity(0.35) : promoCream.opacity(0.06),
+                            lineWidth: 1
+                        )
                 )
         )
         .opacity(appeared ? 1 : 0)
@@ -360,13 +343,82 @@ struct BirthdayCelebrationScreenView: View {
             Spacer()
             Text("🎂")
                 .font(.system(size: 80))
-            Text("No upcoming birthdays")
-                .font(.system(size: 28, weight: .medium))
-                .foregroundColor(.loungeStone.opacity(0.6))
-            Text("Add cat birthdays in the admin panel")
-                .font(.system(size: 20))
-                .foregroundColor(.loungeStone.opacity(0.4))
+            Text("No Upcoming Birthdays")
+                .font(.system(size: 30, weight: .bold, design: .serif))
+                .foregroundColor(promoCream)
+            Text("Add dates of birth to your cats in the admin panel")
+                .font(.system(size: 18, weight: .medium))
+                .foregroundColor(promoCream.opacity(0.4))
             Spacer()
+        }
+    }
+    
+    // MARK: - Helpers
+    
+    private func isCatBirthdayToday(_ cat: BirthdayCat) -> Bool {
+        todayBirthdays.contains(where: { $0.id == cat.id })
+    }
+    
+    private func birthdayLabel(for cat: BirthdayCat) -> String {
+        guard let dob = cat.dob else { return "" }
+        let calendar = Calendar.current
+        let now = Date()
+        
+        // Get UTC month/day from DOB
+        var utcCal = Calendar(identifier: .gregorian)
+        utcCal.timeZone = TimeZone(identifier: "UTC")!
+        let dobMonth = utcCal.component(.month, from: dob)
+        let dobDay = utcCal.component(.day, from: dob)
+        
+        let currentMonth = calendar.component(.month, from: now)
+        let currentDay = calendar.component(.day, from: now)
+        let currentYear = calendar.component(.year, from: now)
+        
+        // Build this year's birthday in local time
+        var components = DateComponents()
+        components.year = currentYear
+        components.month = dobMonth
+        components.day = dobDay
+        
+        guard var thisYearBday = calendar.date(from: components) else { return "" }
+        
+        let todayStart = calendar.startOfDay(for: now)
+        if thisYearBday < todayStart {
+            components.year = currentYear + 1
+            thisYearBday = calendar.date(from: components) ?? thisYearBday
+        }
+        
+        let diffDays = calendar.dateComponents([.day], from: todayStart, to: thisYearBday).day ?? 0
+        
+        if diffDays == 0 { return "Today!" }
+        if diffDays == 1 { return "Tomorrow!" }
+        return "In \(diffDays) days"
+    }
+    
+    // MARK: - Cat Silhouette
+    
+    private var catSilhouetteView: some View {
+        Canvas { context, size in
+            // Body
+            let bodyRect = CGRect(x: size.width * 0.15, y: size.height * 0.45, width: size.width * 0.7, height: size.height * 0.45)
+            context.fill(Path(ellipseIn: bodyRect), with: .color(promoGold))
+            // Head
+            let headRect = CGRect(x: size.width * 0.25, y: size.height * 0.15, width: size.width * 0.5, height: size.height * 0.4)
+            context.fill(Path(ellipseIn: headRect), with: .color(promoGold))
+            // Left ear
+            var leftEar = Path()
+            leftEar.move(to: CGPoint(x: size.width * 0.28, y: size.height * 0.08))
+            leftEar.addLine(to: CGPoint(x: size.width * 0.38, y: size.height * 0.28))
+            leftEar.addLine(to: CGPoint(x: size.width * 0.22, y: size.height * 0.25))
+            leftEar.closeSubpath()
+            context.fill(leftEar, with: .color(promoGold))
+            // Right ear
+            var rightEar = Path()
+            rightEar.move(to: CGPoint(x: size.width * 0.72, y: size.height * 0.08))
+            rightEar.addLine(to: CGPoint(x: size.width * 0.62, y: size.height * 0.28))
+            rightEar.addLine(to: CGPoint(x: size.width * 0.78, y: size.height * 0.25))
+            rightEar.closeSubpath()
+            context.fill(rightEar, with: .color(promoGold))
         }
     }
 }

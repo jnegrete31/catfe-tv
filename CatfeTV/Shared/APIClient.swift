@@ -678,8 +678,8 @@ class APIClient: ObservableObject {
                 print("[Birthdays] \(cachedBirthdayCats.count) cats have birthdays today")
             }
             
-            // Fetch upcoming birthdays (next 30 days)
-            let inputJSON = "{\"json\":{\"days\":30}}"
+            // Fetch upcoming birthdays (next 14 days / 2 weeks)
+            let inputJSON = "{\"json\":{\"days\":14}}"
             let encodedInput = inputJSON.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? inputJSON
             let upcomingUrl = URL(string: "\(baseURL)/api/trpc/birthdays.getUpcoming?input=\(encodedInput)")!
             let upcomingRequest = URLRequest(url: upcomingUrl)
