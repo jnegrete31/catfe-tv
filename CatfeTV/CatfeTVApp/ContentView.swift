@@ -207,26 +207,33 @@ struct ContentView: View {
             }
         }
         
-        // Refresh photos and adopted cats every 60 seconds (separate from screen refresh)
-        Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { _ in
+        // Refresh photos and adopted cats every 5 minutes (was 60s — photos don't change that fast)
+        Timer.scheduledTimer(withTimeInterval: 300, repeats: true) { _ in
             Task { @MainActor in
                 await apiClient.refreshPhotos()
                 await apiClient.fetchRecentlyAdoptedCats()
                 await apiClient.fetchAdoptionCount()
+            }
+        }
+        
+        // Refresh guest photos, spotlights, popularity, and traits every 10 minutes
+        // (was bundled with photos at 60s — these change even less frequently)
+        Timer.scheduledTimer(withTimeInterval: 600, repeats: true) { _ in
+            Task { @MainActor in
                 await apiClient.refreshGuestPhotos()
             }
         }
         
-        // Refresh Roller sessions every 15 minutes for Live Availability & Today's Sessions
-        // Server-side caches Roller API responses for 5 min, so this reduces actual API calls
-        Timer.scheduledTimer(withTimeInterval: 900, repeats: true) { _ in
+        // Refresh Roller sessions every 30 minutes for Live Availability & Today's Sessions
+        // Server-side caches Roller API responses for 15 min now, so less frequent polling is fine
+        Timer.scheduledTimer(withTimeInterval: 1800, repeats: true) { _ in
             Task { @MainActor in
                 await apiClient.fetchRollerSessions()
             }
         }
         
-        // Refresh social posts, birthdays, and volunteers every 5 minutes
-        Timer.scheduledTimer(withTimeInterval: 300, repeats: true) { _ in
+        // Refresh social posts, birthdays, events, and volunteers every 10 minutes (was 5 min)
+        Timer.scheduledTimer(withTimeInterval: 600, repeats: true) { _ in
             Task { @MainActor in
                 await apiClient.fetchSocialPosts()
                 await apiClient.fetchBirthdayCats()
