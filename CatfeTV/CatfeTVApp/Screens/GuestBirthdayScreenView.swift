@@ -4,6 +4,7 @@
 //
 //  Guest Birthday Celebration - displays guest first names celebrating
 //  their birthday at Catfé. Premium dark theme matching cat birthday screen.
+//  Supports optional guest photo (side-by-side layout when photo present).
 //
 
 import SwiftUI
@@ -37,6 +38,16 @@ struct GuestBirthdayScreenView: View {
             .replacingOccurrences(of: "!", with: "")
             .trimmingCharacters(in: .whitespacesAndNewlines)
         return cleaned.isEmpty ? "Our Guest" : cleaned
+    }
+    
+    /// Guest photo URL from imagePath field
+    private var guestPhotoUrl: String? {
+        guard let path = screen.imagePath, !path.isEmpty else { return nil }
+        return path
+    }
+    
+    private var hasPhoto: Bool {
+        guestPhotoUrl != nil
     }
     
     // Premium dark theme colors (matching cat birthday screen)
@@ -150,22 +161,103 @@ struct GuestBirthdayScreenView: View {
                     )
             }
             
-            // Main content - centered
-            VStack(spacing: 0) {
+            // Main content - adaptive layout based on photo presence
+            if hasPhoto {
+                photoLayout
+            } else {
+                centeredLayout
+            }
+        }
+        .onAppear {
+            withAnimation(.easeOut(duration: 0.8)) {
+                appeared = true
+            }
+        }
+    }
+    
+    // MARK: - Layout with Photo (side-by-side)
+    
+    private var photoLayout: some View {
+        HStack(spacing: 48) {
+            // Photo side (left)
+            VStack {
+                Spacer()
+                ZStack {
+                    // Outer glow ring
+                    Circle()
+                        .stroke(
+                            LinearGradient(
+                                colors: [softCopper, copperAccent, lightCopper, softCopper],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 4
+                        )
+                        .frame(width: 330, height: 330)
+                        .opacity(0.6)
+                    
+                    // Photo
+                    if let photoUrl = guestPhotoUrl, let url = URL(string: photoUrl) {
+                        AsyncImage(url: url) { phase in
+                            switch phase {
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: 320, height: 320)
+                                    .clipShape(Circle())
+                                    .overlay(
+                                        Circle()
+                                            .stroke(softCopper, lineWidth: 3)
+                                    )
+                            case .failure:
+                                Circle()
+                                    .fill(Color(hex: "2A1F18"))
+                                    .frame(width: 320, height: 320)
+                                    .overlay(
+                                        Text("🎂")
+                                            .font(.system(size: 80))
+                                    )
+                            default:
+                                Circle()
+                                    .fill(Color(hex: "2A1F18"))
+                                    .frame(width: 320, height: 320)
+                                    .overlay(
+                                        ProgressView()
+                                            .tint(softCopper)
+                                    )
+                            }
+                        }
+                    }
+                    
+                    // Sparkle accent on photo
+                    Text("✨")
+                        .font(.system(size: 32))
+                        .offset(x: 140, y: -140)
+                        .opacity(appeared ? 1 : 0)
+                }
+                .opacity(appeared ? 1 : 0)
+                .offset(x: appeared ? 0 : -40)
+                Spacer()
+            }
+            .frame(maxWidth: .infinity)
+            
+            // Text side (right)
+            VStack(alignment: .leading, spacing: 0) {
                 Spacer()
                 
-                // Top label with decorative lines
+                // Top label
                 HStack(spacing: 12) {
                     LinearGradient(
                         colors: [.clear, softCopper],
                         startPoint: .leading,
                         endPoint: .trailing
                     )
-                    .frame(width: 80, height: 1)
+                    .frame(width: 60, height: 1)
                     
                     Text("✨ Birthday Celebration ✨")
-                        .font(.system(size: 16, weight: .medium))
-                        .tracking(5)
+                        .font(.system(size: 14, weight: .medium))
+                        .tracking(4)
                         .foregroundColor(softCopper)
                     
                     LinearGradient(
@@ -173,38 +265,35 @@ struct GuestBirthdayScreenView: View {
                         startPoint: .leading,
                         endPoint: .trailing
                     )
-                    .frame(width: 80, height: 1)
+                    .frame(width: 60, height: 1)
                 }
                 .opacity(appeared ? 1 : 0)
-                .offset(y: appeared ? 0 : -20)
                 
-                Spacer().frame(height: 24)
+                Spacer().frame(height: 20)
                 
                 // Birthday cake emoji
                 Text("🎂")
-                    .font(.system(size: 100))
+                    .font(.system(size: 72))
                     .opacity(appeared ? 1 : 0)
                     .scaleEffect(appeared ? 1 : 0.5)
                 
-                Spacer().frame(height: 24)
+                Spacer().frame(height: 16)
                 
                 // Happy Birthday text
                 Text("Happy Birthday!")
-                    .font(.system(size: 72, weight: .bold, design: .serif))
+                    .font(.system(size: 60, weight: .bold, design: .serif))
                     .foregroundColor(warmCream)
                     .opacity(appeared ? 1 : 0)
-                    .offset(y: appeared ? 0 : 20)
                 
-                Spacer().frame(height: 16)
+                Spacer().frame(height: 12)
                 
-                // Guest name - prominent display
+                // Guest name
                 Text(guestName)
-                    .font(.system(size: 56, weight: .semibold, design: .serif))
+                    .font(.system(size: 48, weight: .semibold, design: .serif))
                     .foregroundColor(softCopper)
                     .opacity(appeared ? 1 : 0)
-                    .offset(y: appeared ? 0 : 20)
                 
-                Spacer().frame(height: 28)
+                Spacer().frame(height: 20)
                 
                 // Decorative divider
                 LinearGradient(
@@ -215,41 +304,124 @@ struct GuestBirthdayScreenView: View {
                 .frame(width: 200, height: 1)
                 .opacity(appeared ? 1 : 0)
                 
-                Spacer().frame(height: 28)
+                Spacer().frame(height: 20)
                 
                 // Subtitle
                 Text("We hope you have a wonderful birthday\ncelebration at Catfé!")
-                    .font(.system(size: 24, weight: .medium, design: .serif))
+                    .font(.system(size: 22, weight: .medium, design: .serif))
                     .foregroundColor(Color(hex: "A89080"))
-                    .multilineTextAlignment(.center)
                     .opacity(appeared ? 1 : 0)
                 
-                Spacer().frame(height: 32)
+                Spacer().frame(height: 24)
                 
-                // Party emojis row
-                HStack(spacing: 24) {
-                    Text("🎉")
-                        .font(.system(size: 40))
-                    Text("🎈")
-                        .font(.system(size: 40))
-                    Text("🐱")
-                        .font(.system(size: 40))
-                    Text("🎈")
-                        .font(.system(size: 40))
-                    Text("🎉")
-                        .font(.system(size: 40))
+                // Party emojis
+                HStack(spacing: 20) {
+                    Text("🎉").font(.system(size: 36))
+                    Text("🎈").font(.system(size: 36))
+                    Text("🐱").font(.system(size: 36))
+                    Text("🎈").font(.system(size: 36))
+                    Text("🎉").font(.system(size: 36))
                 }
                 .opacity(appeared ? 1 : 0)
                 
                 Spacer()
             }
-            .padding(.horizontal, 60)
+            .frame(maxWidth: .infinity)
         }
-        .onAppear {
-            withAnimation(.easeOut(duration: 0.8)) {
-                appeared = true
+        .padding(.horizontal, 60)
+    }
+    
+    // MARK: - Centered Layout (no photo)
+    
+    private var centeredLayout: some View {
+        VStack(spacing: 0) {
+            Spacer()
+            
+            // Top label with decorative lines
+            HStack(spacing: 12) {
+                LinearGradient(
+                    colors: [.clear, softCopper],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+                .frame(width: 80, height: 1)
+                
+                Text("✨ Birthday Celebration ✨")
+                    .font(.system(size: 16, weight: .medium))
+                    .tracking(5)
+                    .foregroundColor(softCopper)
+                
+                LinearGradient(
+                    colors: [softCopper, .clear],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+                .frame(width: 80, height: 1)
             }
+            .opacity(appeared ? 1 : 0)
+            .offset(y: appeared ? 0 : -20)
+            
+            Spacer().frame(height: 24)
+            
+            // Birthday cake emoji
+            Text("🎂")
+                .font(.system(size: 100))
+                .opacity(appeared ? 1 : 0)
+                .scaleEffect(appeared ? 1 : 0.5)
+            
+            Spacer().frame(height: 24)
+            
+            // Happy Birthday text
+            Text("Happy Birthday!")
+                .font(.system(size: 72, weight: .bold, design: .serif))
+                .foregroundColor(warmCream)
+                .opacity(appeared ? 1 : 0)
+                .offset(y: appeared ? 0 : 20)
+            
+            Spacer().frame(height: 16)
+            
+            // Guest name - prominent display
+            Text(guestName)
+                .font(.system(size: 56, weight: .semibold, design: .serif))
+                .foregroundColor(softCopper)
+                .opacity(appeared ? 1 : 0)
+                .offset(y: appeared ? 0 : 20)
+            
+            Spacer().frame(height: 28)
+            
+            // Decorative divider
+            LinearGradient(
+                colors: [.clear, copperAccent, .clear],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+            .frame(width: 200, height: 1)
+            .opacity(appeared ? 1 : 0)
+            
+            Spacer().frame(height: 28)
+            
+            // Subtitle
+            Text("We hope you have a wonderful birthday\ncelebration at Catfé!")
+                .font(.system(size: 24, weight: .medium, design: .serif))
+                .foregroundColor(Color(hex: "A89080"))
+                .multilineTextAlignment(.center)
+                .opacity(appeared ? 1 : 0)
+            
+            Spacer().frame(height: 32)
+            
+            // Party emojis row
+            HStack(spacing: 24) {
+                Text("🎉").font(.system(size: 40))
+                Text("🎈").font(.system(size: 40))
+                Text("🐱").font(.system(size: 40))
+                Text("🎈").font(.system(size: 40))
+                Text("🎉").font(.system(size: 40))
+            }
+            .opacity(appeared ? 1 : 0)
+            
+            Spacer()
         }
+        .padding(.horizontal, 60)
     }
     
     // MARK: - Cat Silhouette
