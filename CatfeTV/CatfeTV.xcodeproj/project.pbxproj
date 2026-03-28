@@ -69,6 +69,7 @@
 				UPE00001 /* UpcomingEventsScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = UPE00002 /* UpcomingEventsScreenView.swift */; };
 				LGO00001 /* LogoScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LGO00002 /* LogoScreenView.swift */; };
 				SPP00001 /* SponsorPromoScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SPP00002 /* SponsorPromoScreenView.swift */; };
+			GBD00001 /* GuestBirthdayScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = GBD00002 /* GuestBirthdayScreenView.swift */; };
 			CWC00001 /* CatWordCloudScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CWC00002 /* CatWordCloudScreenView.swift */; };
 			OSP00001 /* OverstayPopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = OSP00002 /* OverstayPopupView.swift */; };
 		22810065BDE340519254637D /* CosmicHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86CB68B09382437D9B459095 /* CosmicHelpers.swift */; };
@@ -146,6 +147,7 @@
 			UPE00002 /* UpcomingEventsScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpcomingEventsScreenView.swift; sourceTree = "<group>"; };
 			LGO00002 /* LogoScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogoScreenView.swift; sourceTree = "<group>"; };
 			SPP00002 /* SponsorPromoScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SponsorPromoScreenView.swift; sourceTree = "<group>"; };
+			GBD00002 /* GuestBirthdayScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestBirthdayScreenView.swift; sourceTree = "<group>"; };
 			CWC00002 /* CatWordCloudScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatWordCloudScreenView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -232,6 +234,7 @@
 					UPE00002 /* UpcomingEventsScreenView.swift */,
 					LGO00002 /* LogoScreenView.swift */,
 					SPP00002 /* SponsorPromoScreenView.swift */,
+					GBD00002 /* GuestBirthdayScreenView.swift */,
 					CWC00002 /* CatWordCloudScreenView.swift */,
 			);
 			path = Screens;
@@ -413,6 +416,7 @@
 					UPE00001 /* UpcomingEventsScreenView.swift in Sources */,
 					LGO00001 /* LogoScreenView.swift in Sources */,
 					SPP00001 /* SponsorPromoScreenView.swift in Sources */,
+					GBD00001 /* GuestBirthdayScreenView.swift in Sources */,
 					CWC00001 /* CatWordCloudScreenView.swift in Sources */,
 
 

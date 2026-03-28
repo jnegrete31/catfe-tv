@@ -41,6 +41,7 @@ enum ScreenType: String, Codable, CaseIterable, Identifiable {
     case catWordCloud = "CAT_WORD_CLOUD"
     case logo = "LOGO"
     case sponsorPromo = "SPONSOR_PROMO"
+    case guestBirthday = "GUEST_BIRTHDAY"
     case custom = "CUSTOM"
     
     var id: String { rawValue }
@@ -76,6 +77,7 @@ enum ScreenType: String, Codable, CaseIterable, Identifiable {
         case .catWordCloud: return "Cat Word Cloud"
         case .logo: return "Logo"
         case .sponsorPromo: return "Sponsor Promo"
+        case .guestBirthday: return "Guest Birthday"
         case .custom: return "Custom"
         }
     }
@@ -107,6 +109,7 @@ enum ScreenType: String, Codable, CaseIterable, Identifiable {
         case .catWordCloud: return "text.bubble.fill"
         case .logo: return "sparkle"
         case .sponsorPromo: return "gift.fill"
+        case .guestBirthday: return "birthday.cake.fill"
         case .custom: return "star.fill"
         }
     }
