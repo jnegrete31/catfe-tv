@@ -40,9 +40,9 @@ struct GuestBirthdayScreenView: View {
         return cleaned.isEmpty ? "Our Guest" : cleaned
     }
     
-    /// Guest photo URL from imagePath field
+    /// Guest photo URL from imageURL field
     private var guestPhotoUrl: String? {
-        guard let path = screen.imagePath, !path.isEmpty else { return nil }
+        guard let path = screen.imageURL, !path.isEmpty else { return nil }
         return path
     }
     
