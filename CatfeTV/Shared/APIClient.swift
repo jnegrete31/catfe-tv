@@ -749,7 +749,15 @@ class APIClient: ObservableObject {
     func getActiveScreens() -> [Screen] {
         // Backend now handles playlist filtering and scheduling via playlists.getActiveScreensWithTemplates
         // Just return all screens as-is (already filtered and ordered by backend)
-        screens.filter { $0.isActive }
+        var activeScreens = screens.filter { $0.isActive }
+        
+        // Only show BIRTHDAY_CELEBRATION screens when there are cat birthdays today
+        // (Backend already filters these, but this is a client-side safety net)
+        if cachedBirthdayCats.isEmpty {
+            activeScreens = activeScreens.filter { $0.type != .birthdayCelebration }
+        }
+        
+        return activeScreens
     }
     
     // MARK: - Local Cache
