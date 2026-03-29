@@ -2090,12 +2090,707 @@
 - [x] Fix step number badges floating to top-right corner of icon instead of being centered
 - [x] Numbers should be centered above the icon in a vertical stack layout
 
-## Feature - Full Logo Slide for TV Slideshow
-- [x] Investigate TV slideshow system and how slides are rendered
-- [x] Add LOGO screen type to shared/types.ts (SCREEN_TYPES, SCREEN_TYPE_CONFIG, SCREEN_TYPE_DURATIONS=8s)
-- [x] Add LOGO to drizzle schema screenType enum and push migration
-- [x] Create LogoScreen renderer with warm gradient, paw prints, logo from settings
-- [x] Pull logo from settings (logoUrl) with fallback cat emoji + location name
-- [x] Support optional subtitle from screen title/subtitle fields
-- [x] Auto-available in admin screen editor dropdown (uses shared SCREEN_TYPES)
-- [x] Write tests for LOGO screen type (8 tests, all passing)
+## Bug Fix - LOGO Screen Type Missing from Zod Validation
+- [x] Add LOGO to screenTypes array in server/routers.ts (was causing "Invalid option" error when creating new screens)
+
+## Bug Fix - LOGO Not in Frontend Screen Type Selector
+- [x] Add LOGO to the frontend screen type dropdown/selector when creating new slides
+- [x] Add LOGO to database schema screenTypeEnum and push migration
+
+## Bug Fix - Image Previews Showing Question Marks
+- [x] Fix broken image previews on screens and settings pages - migrated image upload from GitHub API to S3 storage
+
+## tvOS App Fixes
+- [x] Remove static countdown timers from Session Board - use Roller booking data instead
+- [x] Fix screens not displaying full screen on Apple TV - added ignoresSafeArea to BaseScreenLayout and ScreenView, changed ContentView background to loungeCharcoal
+- [x] Remove Full Purr & Mini Meow countdown overlay widget from tvOS ContentView (bottom-left corner)
+- [x] Fix duplicate guest sessions on Guest Status Board (same guest showing multiple times with different session types)
+- [x] Add booking-level deduplication: only 1 session per Roller booking (filters out Child Admission, Treats, etc.)
+- [x] Add database-level dedup: createGuestSession checks for existing rollerBookingRef before inserting
+- [x] Export isSessionProduct as shared function (rollerWebhook.ts imports from rollerPolling.ts)
+- [x] Update getTodayBookings enrichment to pick primary session item (not items[0])
+- [x] Add LOGO screen renderer to web TV app (warm gradient, paw print accents, settings logo)
+
+## Bug Fix - Session Extension Not Updating End Time on Web Admin
+- [x] Fix: When extending a guest session time, the session still shows as expired at the original end time on the web admin side (works correctly on Apple TV app)
+- [x] Root cause: booking status was computed from Roller's static sessionEndTime, not from DB expiresAt
+- [x] Fix: after linking DB session data, trust DB session status over Roller time-based status
+- [x] Added visual indicator: when session is extended, show updated end time in blue (→ 1:15 PM)
+- [x] Added 5 tests for session extension status override logic
+
+## Roller Guests Stay on TV Until Manual Checkout
+- [x] Roller guests should remain on TV status board even after session time expires
+- [x] Sessions should only disappear from TV when staff manually checks them out
+- [x] Expired-but-not-checked-out sessions should be visually distinct (red border, pulsing TIME UP, checkout prompt)
+- [x] Countdown reminder overlay should also persist until manual checkout (red TIME UP with front desk prompt)
+
+## Undo Check-In for Walk-In Sessions
+- [x] Add backend procedure to delete/undo a walk-in guest session
+- [x] Add "Undo Check-In" button to admin walk-in sessions UI
+- [x] Include confirmation dialog to prevent accidental undos
+- [x] Write tests for the undo check-in feature
+
+## Undo Check-In Time Window
+- [x] Limit Undo Check-In button to 5 minutes after initial check-in
+- [x] Update tests for time window behavior (7 tests covering edge cases)
+
+## Tomorrow's Roller Timeline
+- [x] Update backend getTodayBookings to accept a date parameter (already supported: today/tomorrow/week/month)
+- [x] Enable timeline view for Tomorrow filter (was only showing for Today)
+- [x] Show upcoming/active counts for Tomorrow filter in summary bar
+- [x] All 388 tests passing
+
+## Move Today's Timeline Above Tabs
+- [x] Move today's booking timeline above the tab navigation so it's always visible
+- [x] Timeline shows regardless of which tab is active (Roller, Walk-Ins, etc.)
+- [x] Created TodayTimelineBar component with its own data fetch + mark arrived/early arrival handling
+- [x] Tomorrow's timeline still shows inside the Roller Bookings tab when Tomorrow filter is selected
+
+## Sticky Timeline
+- [x] Make today's timeline sticky at the top of the page when scrolling
+- [x] Added frosted glass background (bg-background/95 + backdrop-blur) and subtle bottom border/shadow when stuck
+
+## Photo Contest Callout on Adoption Slide
+- [x] Add a photo contest callout/banner to the individual adoption TV slide (bottom right)
+- [x] Add a photo contest callout/banner to the adoption showcase grid slide (bottom right)
+- [x] Animated camera + trophy icons with warm amber styling matching the adoption theme
+
+## Photo Contest Callout on tvOS Adoption Screens
+- [x] Add photo contest callout to tvOS AdoptionScreenView (individual cat) — under Meet [Cat Name] on polaroid
+- [x] Add photo contest callout to tvOS AdoptionShowcaseScreenView (grid) — under each cat name in cards
+- [x] Push changes to GitHub (commit 27a8b6d)
+
+## Move Timeline to Admin Layout Level
+- [x] Move today's timeline above all admin page tabs (Cats, Screens, Guests, etc.)
+- [x] Remove sticky behavior from the timeline
+- [x] Extracted TodayTimeline into standalone component (TodayTimeline.tsx)
+- [x] Removed TodayTimelineBar from GuestCheckIn.tsx
+- [x] Tomorrow's timeline still shows inside Roller Bookings tab
+- [x] Timeline is now visible on all admin pages (rendered in Admin.tsx above Tabs)
+
+## Fix tvOS Photo Contest Callout Position
+- [x] Move photo contest callout below "Meet [Cat Name]" title (not on the polaroid card)
+- [x] Push clean updated Xcode files to GitHub (commit 7713990)
+- [x] Cat-renamed xcodeproj (11110-.xcodeproj) is only local — GitHub still has correct CatfeTV.xcodeproj
+
+## Adoption Slide Redesign
+- [x] Create 4 design concept previews for the adoption TV slide
+- [x] Present designs for selection (Concept 2 "Modern Magazine" chosen)
+- [x] Implement the Modern Magazine design on web TV
+- [x] Update tvOS adoption screen to match the new design
+
+## tvOS Modern Magazine Adoption Screen
+- [x] Rewrite tvOS AdoptionScreenView.swift to match the web Modern Magazine design
+- [x] Push updated files to GitHub (commit 57e8d34)
+
+## Fix tvOS Build Error - QRCodeGenerator Type Mismatch
+- [x] Fix QRCodeGenerator.generate size parameter: Int → CGSize(width: 260, height: 260)
+- [x] Push fix to GitHub (commit aec827b)
+
+## Session Board Redesign — Magazine Split (Concept 3)
+- [x] Research Snap & Purr photo data access (API, schema)
+- [x] Implement Magazine Split session board on web (GuestStatusBoardScreen)
+- [x] Use Snap & Purr gallery photos rotating on the left panel
+- [x] Orange accent divider matching adoption screen design
+- [x] Clean cream right panel with compact session cards
+- [x] Implement Magazine Split session board on tvOS (GuestStatusBoardScreenView.swift)
+- [x] Push updated tvOS files to GitHub (commit bdccfdd)
+- [x] Test and save checkpoint (version a717ac77)
+
+## Spotlight Donation Feature (Replaces Photo Contest Voting)
+- [x] Research current voting/token system to understand what to remove
+- [x] Design spotlight_donations database table
+- [x] Create Stripe products for donation tiers ($1/5min, $3/30min, $5/1hr, $10/all-day)
+- [x] Build Stripe checkout flow for spotlight donations
+- [x] Build webhook handler for completed spotlight donations
+- [x] Build server-side spotlight query (active spotlights per cat)
+- [x] Build frontend: Spotlight Donation UI on photo detail/contest page
+- [x] Update adoption screen TV display to show active spotlight photos
+- [x] Update tvOS adoption screen callout text (Photo Contest → Spotlight)
+- [x] Remove old voting system (votes, tokens, buy-votes UI) — text updated across all screens, voting endpoints kept as stubs for backward compat
+- [x] Handle overlapping donations: alternate featured photos in rotation (server returns all active, TV alternates)
+- [x] Test end-to-end flow (TS clean, server running)
+
+## Adoption Screen QR Code — Link to Cat Profile
+- [x] Update web adoption screen QR to link to /vote/cats/:catId (per-cat profile)
+- [x] Update tvOS adoption screen QR to link to per-cat profile (commit 6f94b12)
+- [x] Ensure cat profile page has both upload photo and adopt options (already has Upload button + Adopt Me link)
+
+## Photo Contest QR Screen Redesign → Snap & Purr Spotlight
+- [x] Study current web and tvOS Photo Contest QR screens
+- [x] Redesign web PhotoContestQRScreen with Spotlight branding (Magazine Split layout)
+- [x] Redesign tvOS PhotoContestQRScreenView with Spotlight branding (Magazine Split layout)
+- [x] Push tvOS changes to GitHub (commit 6a334a6)
+
+## Guest Photo Contest → Active Spotlights Board
+- [x] Research current Guest Photo Contest slide (web + tvOS)
+- [x] Repurpose web GuestPhotoContestScreen into Active Spotlights Board
+- [x] Repurpose tvOS GuestPhotoContestScreenView into Active Spotlights Board
+- [x] Add tRPC endpoint for fetching all active spotlights (already exists: catPhotos.getAllActiveSpotlights)
+
+## Snap & Purr Gallery → Multi-Photo Grid Layout
+- [x] Research current Snap & Purr Gallery slide (web + tvOS)
+- [x] Redesign web SnapAndPurrScreen to show multi-photo grid (3x2 grid, Magazine Split layout)
+- [x] Redesign tvOS SnapPurrGalleryScreenView to show multi-photo grid (3x2 grid, Magazine Split)
+- [x] Push all changes to GitHub (commit 4776a8d)
+
+## Expired Guest Session Cleanup
+- [x] Add admin UI to view and check out expired ("TIME'S UP") sessions
+- [x] Add bulk "Check Out All Expired" button in admin
+- [x] Add auto-checkout for expired sessions (server-side endpoint: guestSessions.checkOutExpired)
+- [x] Ensure expired sessions don't show on the TV session board (already filtered by 2-min grace period)
+
+## tvOS Build Fix - GuestPhotoContestScreenView
+- [x] Fix ScreenImage "Extra arguments at positions #3, #4" errors in GuestPhotoContestScreenView.swift (leftPanel + spotlightCard)
+
+## Clean Up Expired Sessions from TV Display
+- [x] Check out all expired sessions in the database (set status=completed for expiresAt < now)
+- [x] Ensure TV session board API auto-checks-out expired sessions server-side before returning results
+- [x] tvOS already uses the same API — no separate change needed
+
+## Event Screen Redesign - Split Diagonal (Concept B)
+- [x] Implement Split Diagonal event screen in web TV renderer (ScreenRenderer.tsx)
+- [x] Implement Split Diagonal event screen in tvOS native app (EventsScreenView.swift)
+- [x] Test and deliver
+
+## Adoption Slides - Show Cat Gender (Male/Female)
+- [x] Add gender display to web TV adoption screen (AdoptionScreen - already in subtitle via generateCatSlides)
+- [x] Add gender display to web TV adoption showcase screen (AdoptionShowcaseScreen - added ♂/♀ icons)
+- [x] Add gender display to tvOS adoption screens
+- [x] Test and deliver
+
+## Fix tvOS Event Screen Diagonal Layout
+- [x] Fix diagonal split cutting through text — reposition content safely into cream panel
+- [x] Ensure event image fills left triangle properly, text stays in right cream area
+
+## Fix tvOS Event Screen - Empty Space & Content Centering
+- [x] Vertically center content in right panel instead of top-aligning
+- [x] Increase font sizes and spacing to fill the area better
+- [x] Push badge down to avoid weather/clock overlay at top-right
+
+## Admin Event Screen - Add Date Field
+- [x] Check if eventDate column exists in screens table schema (added it)
+- [x] Add eventDate input field to admin event screen editor
+- [x] Ensure eventDate is saved to DB and returned in API
+- [x] Verify it displays on TV event slides (web uses eventDate with startAt fallback)
+
+## Hide Adoption Fee on Cat Profile
+- [x] Hide adoption fee display on cat profile page (CatVotingPage.tsx)
+
+## Fix Adoption Slides - Use Cat Profile Photo
+- [ ] Investigate how adoption slides get their images (generateCatSlides)
+- [ ] Fix adoption slides to pull photo from cat profile in database
+- [ ] Investigate why 5-min flash photo upload didn't appear on Lucy's slide
+- [ ] Test and deliver
+
+## Spotlight Indicator on Cat Profile
+- [x] Add visual spotlight indicator on cat profile page when cat has active spotlight
+- [x] Show spotlight details (donor name, photo thumbnails, glowing card border)
+
+## Spotlight on Apple TV Adoption Slides
+- [x] Check how web TV renderer shows spotlight photos on adoption slides
+- [x] Ensure tvOS adoption screen shows spotlight photos when active
+- [x] Ensure the API returns spotlight data with adoption slides
+
+## Debug Spotlight Flow - Not Working on Emma
+- [ ] Check if spotlight donation records exist in DB after payment
+- [ ] Check Stripe webhook logs for delivery status
+- [ ] Verify the full flow: photo upload → payment → webhook → DB record → API → TV display
+- [ ] Fix any broken links in the chain
+
+## Fix: Spotlight showing on Active Spotlights board but NOT on cat's adoption slide (tvOS)
+- [x] Debug: screen.numericId was 130010 (100000+catId) but spotlight.catId was 30010 — mismatch
+- [x] Fix: added catId field to API, Screen model, and adoption screen matching logic
+
+## Happy Tails - Family Photo Upload for Adopted Cats
+- [x] Investigate current Happy Tails screen and adopted cat profile flow
+- [x] Allow adopted cat families to upload photos to the cat's album
+- [x] Show family-uploaded photos on the Happy Tails TV slide (web)
+- [x] Show family-uploaded photos on the Happy Tails TV slide (tvOS)
+- [x] Test and deliver
+## Happy Tails Upload Redesign — Adopted Cat Picker
+- [x] Add backend endpoint to list adopted cats (status=adopted/adopted_in_lounge)
+- [x] Redesign Happy Tails upload page: show adopted cat list instead of manual name entry
+- [x] Family selects their cat from the list, then uploads photo
+- [x] Link uploaded photo to the cat's ID in the database
+- [x] Test the new upload flow end-to-end
+## Active Spotlights Board — Cat Popularity Tracker Fallback
+- [x] Add backend endpoint for cat popularity data (based on photos + spotlight donations)
+- [x] Build web cat popularity tracker component for Spotlights Board fallback
+- [x] Build tvOS cat popularity tracker for Spotlights Board fallback
+- [x] Test the fallback display when no active spotlights exist
+
+## Public Website — Cat Popularity Leaderboard
+- [x] Audit current public website pages for best leaderboard placement
+- [x] Build CatPopularityLeaderboard component with rankings, photos, medals
+- [x] Integrate leaderboard into the public website (Activities section)
+- [x] Add CTAs encouraging guests to upload photos and donate spotlights
+- [x] Test the leaderboard display on desktop and mobile
+- [x] Save checkpoint and deliver
+
+## UI Cleanup
+- [x] Remove Stripe test card text from Spotlight this Photo flow
+
+## Rename Photo Contest & Photo Delete
+- [x] Rename "Photo Contest" tab to "Spotlights" across admin dashboard
+- [x] Update all related labels, headings, and references (rounds, votes, leaderboard)
+- [x] Add photo delete functionality to Snap & Purr admin tab
+- [x] Add backend endpoint for deleting cat photos
+- [x] Test rename and delete features
+
+## Happy Tails Redesign — Phase 1
+- [x] Add milestoneTag field to photoSubmissions schema
+- [x] Add familyName field to photoSubmissions schema (cat's new name given by family)
+- [x] Build backend API for cat alumni profile data (adopted cat + all approved Happy Tails photos)
+- [x] Build /happy-tails Alumni Wall page with visual mosaic grid of adopted cats
+- [x] Build /happy-tails/:catId individual Cat Alumni Profile page with gallery and timeline
+- [x] Update upload flow with milestone tag selector and family name field
+- [x] Update TV HappyTailsScreen to show family name and milestone tags
+- [x] Update tvOS HappyTailsScreenView to show family name and milestone tags
+- [x] Add /happy-tails to main website navigation (desktop + mobile)
+- [x] Write tests for new endpoints (8 tests passing)
+- [x] Test end-to-end and save checkpoint
+
+## Happy Tails TV Slide Redesign
+- [ ] Redesign web TV HappyTailsScreen with multi-photo collage layout
+- [ ] Show 2-3 photos at once in a scrapbook/collage style
+- [ ] Display family name ("CatName, now FamilyName") prominently
+- [ ] Show milestone tag badges on photos
+- [ ] Add warm scrapbook aesthetic with slightly rotated photos
+- [ ] Redesign tvOS HappyTailsScreenView with matching multi-photo layout
+- [ ] Test both web and tvOS displays
+- [ ] Save checkpoint and deliver
+
+## Bug Fix - tvOS Photo Rotation (Mar 1)
+- [x] Fix: Happy Tails photos not rotating (only captions changed) - added .id(pageIndex) to force SwiftUI view rebuild
+- [x] Fix: Snap & Purr Gallery photos not rotating (only captions changed) - added .id(page) to force SwiftUI view rebuild
+
+## Feature - Roller Auto Check-in with Capacity-Aware Timer (Mar 1)
+- [x] Add loungeCapacity field to settings table (default 12)
+- [x] Add loungeCapacity input to admin settings UI
+- [x] Add "waiting" status to guest session status enum
+- [x] Add scheduledStartAt field to guest sessions (booked session time)
+- [x] Update rollerPolling.ts with capacity-aware logic: if room → start immediately, if full → use booked time
+- [x] Update rollerWebhook.ts with same capacity-aware logic
+- [x] Add helper function to calculate current lounge occupancy from active sessions
+- [x] Update TV Guest Status Board to show "waiting" guests differently (e.g., "Session starts at 2:30 PM")
+- [x] Update tvOS GuestStatusBoardView to show waiting vs active guest states
+- [x] Auto-transition waiting guests to active when their scheduled time arrives
+- [x] Push DB migrations
+- [x] Write tests for capacity-aware check-in logic
+- [x] Test end-to-end and save checkpoint
+
+## Bug Fix - Quick Purr Duration Mapping (Mar 1)
+- [x] Fix: Quick Purr (15 min) showing as Full Purr - duration mapping not recognizing "Quick Purr" product name
+- [x] Update session type labels to include Quick Purr
+- [x] Update tvOS session type labels to include Quick Purr
+
+## Bug Fix - Roller Check-in Not Creating Guest Session (Mar 1)
+- [x] Diagnose why Julie's Roller POS check-in didn't create a guest session
+- [x] Fix the root cause: Roller /bookings API doesn't return productName, only productId. Added resolveProductName() lookup before isSessionProduct() check
+
+## Feature - Consistent Navigation Header Across All Pages (Mar 1)
+- [x] Audit all pages and identify which ones are missing the header menu
+- [x] Ensure all public-facing pages use the shared navigation header
+- [x] Verify navigation works consistently across all pages
+- [x] Add Roller booking ID to guest sessions (DB field, Roller polling/webhook storage, admin display with copy button)
+- [x] Turn booking ID badge into a deep link that opens the booking directly in Roller POS
+- [x] Allow expired guest sessions to still be extended (show extend button on expired sessions, update backend to allow it)
+- [x] Fix Roller deep link URL to use https://pos.roller.app/search/bookings/ instead of manage.roller.app
+- [x] Change auto-checkout to only trigger 30 minutes after session expiry (not immediately)
+- [x] TV: Keep expired guest countdowns visible on status board until manually checked out
+- [x] TV: Full-screen welcome splash for a few seconds when a guest checks in
+- [x] Debug: Full-screen welcome splash not showing on Apple TV (added native WelcomeOverlayView.swift to tvOS app)
+- [x] Replace SF Symbol cat icon with Catfé logo in tvOS WelcomeOverlayView
+- [x] Add adopter email field to cat schema (stored when cat is marked adopted)
+- [x] Update admin cat management UI to capture adopter email on adoption
+- [x] Update Happy Tails posting flow to require adopter email verification before allowing photo uploads
+- [ ] Auto-send welcome email to adopter with Happy Tails direct link when cat is marked adopted with an email
+- [x] Bug fix: Happy Tails email verification not blocking mismatched emails — frontend was only doing format check, now calls backend verifyAdopterEmail endpoint
+- [x] Bug fix: Email verification STILL not blocking wrong emails — was a deployment issue, code works correctly on dev server (verified via curl tests)
+- [x] Add 'New Cat' banner on TV display and web for cats in the lounge for 2 weeks or less
+
+- [x] Move "New Cat!" badge from top-left to bottom-left corner of photo (tvOS + web TV) to avoid waiver QR overlap
+
+## Feature - Cat Birthday Tracking
+- [x] Add birthday field to cats database schema (already had dob field)
+- [x] Add birthday input to admin cat editor UI (already had DOB input)
+- [x] Add birthday banner logic to backend (flag cats with upcoming/today birthday)
+- [x] Show birthday banner on web TV individual cat slides
+- [x] Show birthday banner on web TV showcase grid cards
+- [x] Update tvOS Models.swift with birthday fields
+- [x] Show birthday banner on tvOS individual cat slides (AdoptionScreenView)
+- [x] Show birthday banner on tvOS showcase grid (AdoptionShowcaseScreenView)
+
+## Feature - Admin Birthday Dashboard Widget
+- [x] Add backend endpoint for upcoming cat birthdays (next 30 days)
+- [x] Build birthday widget component with cat photo, name, date, days away
+- [x] Integrate widget into admin dashboard
+
+## Feature - Auto-Generated Birthday Celebration TV Slide
+- [x] Add BIRTHDAY_CELEBRATION screen type to shared types (already existed)
+- [x] Generate birthday celebration slides in backend for cats whose birthday is today
+- [x] Build birthday celebration slide renderer for web TV (already existed, now auto-injected)
+- [x] Add birthday celebration screen view to tvOS native app (already existed, now auto-injected)
+- [x] Write tests for birthday celebration slide generation
+
+## URGENT - Reduce Roller API Usage (30,917 calls = $210/month)
+- [x] Audit all Roller API polling in web app (roller.ts, routers.ts, ScreenRenderer, GuestCheckIn, TodayTimeline)
+- [x] Audit all Roller API polling in tvOS app (APIClient.swift, ContentView.swift)
+- [x] Add server-side caching: getProductAvailability (5 min TTL), searchBookings (2 min TTL)
+- [x] Reduce frontend polling: TV screens 5min→15min, Admin 60s→3min
+- [x] Reduce tvOS polling: 5min→15min
+- [x] Estimated reduction: ~47% fewer calls, ~$98/month savings
+
+## Feature - Three Arrival Options for Check-In
+- [x] Update markArrived backend to accept arrival mode (early, original, now) — already supported via startNow boolean
+- [x] Update admin UI to show three-option dialog when marking arrived
+- [x] Start Timer Early: starts countdown from current time (early arrivals)
+- [x] Start at Original Time: uses booked session start time (late arrivals)
+- [x] Start Timer Now: starts fresh from now (walk-ins)
+- [x] Test all three modes
+
+## Feature - Events Management & Multi-Event TV Slide
+- [x] Create events database table (name, date, time, description, image, active)
+- [x] Create backend CRUD endpoints for events
+- [x] Build Events admin tab for managing events
+- [x] Create UPCOMING_EVENTS multi-event TV slide type for web TV
+- [x] Add UPCOMING_EVENTS screen type to tvOS native app
+- [x] Auto-inject upcoming events slide into TV playlist when events exist (manual screen creation via admin)
+
+## Bug Fix - UPCOMING_EVENTS Not Showing on TV
+- [x] Fix UPCOMING_EVENTS screen not appearing in TV playlist
+- [x] Investigate screen generation / playlist logic for events
+
+## Feature - Event Image Upload
+- [x] Add drag-and-drop image upload for events (replace URL-only field)
+- [x] Upload event images to S3 storage
+- [x] Update EventManager admin UI with image uploader component
+
+## Bug Fix - tvOS Upcoming Events Empty
+- [x] Fix tvOS showing "No Upcoming Events" despite events existing in database (was using old model fields)
+
+## Bug Fix - Event Images Cropped
+- [x] Fix event images on Upcoming Events TV screen to show full image (contain) instead of cropped (cover)
+- [x] Fix event images on tvOS Upcoming Events screen to show full image (fit) instead of cropped (fill)
+
+## Feature - Auto-Generate Individual Event Slides
+- [x] Auto-generate individual full-screen EVENT slides from events table entries
+- [x] Inject individual event slides into all playlist endpoints (getActive, getActiveScreens, getActiveScreensWithTemplates)
+- [x] Map events table fields to EVENT screen format for the renderer
+
+## Redesign - EVENT Slide to Match Adoption Style
+- [x] Redesign web TV EventScreen to match adoption screen layout
+- [x] Redesign tvOS EventsScreenView to match adoption screen layout
+
+## Feature - QR Code URL for Events
+- [x] Add qrUrl column to events database table
+- [x] Add QR URL input field to EventManager admin form
+- [x] Pass qrUrl from events to auto-generated EVENT slides
+
+## Feature - Image Editor (Rotate & Crop)
+- [x] Install react-image-crop library for image editing
+- [x] Build reusable ImageEditor component with rotate and crop (already existed as PhotoCropper)
+- [x] Integrate ImageEditor into photo submissions review (Snap & Purr / Happy Tails)
+- [x] Integrate ImageEditor into EventManager for event images
+- [ ] Integrate ImageEditor into ScreenForm for screen images (future)
+- [x] Re-upload edited image to S3 after crop/rotate
+
+## Bug Fix - Photo Editor
+- [x] Fix Apply button not working in PhotoCropper (CORS/tainted canvas - now loads via blob URL)
+- [x] Add photo editing (crop/rotate) to Album Photos section
+
+## Bug Fix - PhotoCropper Image Not Loading
+- [x] Fix image not loading in PhotoCropper dialog (added server-side /api/image-proxy)
+
+## Feature - Cat Traits Word Cloud
+- [x] Create catTraits database table (catId, word, guestName, createdAt)
+- [x] Create backend API: submit trait, get traits for cat, get top traits
+- [x] Build curated word list (20 personality traits to pick from)
+- [x] Build Traits section on cat adoption profile (curated list + custom input)
+- [x] Display word cloud visualization on Traits section
+- [x] Create CAT_WORD_CLOUD TV screen type for web TV
+- [x] Update tvOS app with word cloud screen type
+- [x] Auto-inject word cloud slides into TV playlist (for cats with 3+ trait submissions)
+## Feature - Expired Session TV Popup
+- [x] Detect guests whose session timer has expired but haven't been checked out
+- [x] Create backend API endpoint to return expired/overstay guests
+- [x] Build persistent popup/banner on web TV display showing "[Guest Name], please see the front desk"
+- [x] Popup stays visible until staff marks guest as "Out"
+- [x] Add 3-minute grace period after timer expires before showing popup
+- [x] Update tvOS native app with matching expired session popup
+- [x] Write tests for expired session detection logic
+## Bug - Events Page Missing
+- [x] Investigate and fix missing Events page on the website (was querying screens table instead of events table)
+## Feature - Embeddable Events Widget
+- [x] Create /events-widget route with standalone events display
+- [x] Style widget to blend with Wix site (no header/footer, clean background)
+- [x] Auto-updates from events table
+- [x] Provide Wix iframe embed instructions
+## Bug Fix - Events Widget Embed
+- [x] Fix 404 on published site (was already live)
+- [x] Ensure widget has no header/nav/footer - only event cards
+- [x] Show full event images (no cropping, object-contain instead of object-cover)
+- [x] Disable scrolling on events widget page
+- [x] Make widget background fully transparent (no beige tint)
+- [x] Fix events widget responsive layout for mobile devices (stacked cards on mobile, 2-col on tablet, 3-col on desktop)
+- [x] Convert mobile events widget to horizontal swipe carousel (no vertical stacking)
+## Feature - Embeddable Adopt Widget
+- [x] Create /adopt-widget route with standalone adoptable cats display
+- [x] Add filter tabs: In Lounge, Adopted (centered)
+- [x] Horizontal swipe carousel on mobile, grid on desktop
+- [x] Style to match events widget (transparent bg, no header/footer)
+- [x] Provide Wix iframe embed instructions
+- [x] Add "Meet Me" button on each cat card linking to their full profile page
+- [x] Fix adopt widget: enable vertical scrolling so all cats visible in iframe (not cut off)
+- [x] Remove swipe carousel from adopt widget mobile, use scrollable grid instead (2-col on mobile, 3-col tablet, 4-col desktop)
+## Feature - Staff Management Page
+- [x] Create backend API: list all users, update user role (admin/user), remove user
+- [x] Build staff management page in admin panel with user list
+- [x] Allow promoting users to admin and demoting back to user
+- [x] Show user details: name, email, role, last active, join date
+- [x] Add confirmation dialog before role changes
+- [x] Safety: prevent self-demotion and self-removal
+## Bug Fix - No-Show Logic
+- [x] Change no-show marking to only happen at end of day (8 PM PST), not when scheduled time passes
+- [x] Allow late arrivals to still check in even after their scheduled start time
+- [x] Extend Carolina's current session timer (+30 min from now)
+- [ ] Fix adopt widget still being cut off in Wix iframe embed
+- [x] Hide adoption fees from adopt widget cards
+## Feature - Happy Tails Widget
+- [x] Create /happy-tails-widget route with standalone adopted cats showcase
+- [x] Display adopted cats with photos, names, adoption dates, and stories
+- [x] Style to match events/adopt widgets (transparent bg, no header/footer)
+- [x] Scrollable grid layout, responsive for mobile (2-col mobile, 3-col tablet, 4-col desktop)
+- [x] Include auto-resize postMessage for Wix iframe
+- [x] Provide Wix iframe embed instructions
+- [x] Convert Happy Tails widget to horizontal swipe carousel on all screen sizes
+- [x] Fix Happy Tails widget still scrollable in Wix iframe - made more compact (~470px), removed hover translateY, enforced overflow hidden
+- [x] Fix Happy Tails widget scrolling: enforced overflow:hidden on html/body/#root, page cannot scroll internally
+- [x] Remove title, subtitle, and counter from Happy Tails widget header
+- [x] Add back "X cats adopted" counter to Happy Tails widget (keep title/subtitle removed)
+## Feature - Share Your Happy Tail
+- [x] Create happyTailSubmissions database table (already exists as photoSubmissions with happy_tails type)
+- [x] Build backend API: submit story (public), list submissions (admin), approve/reject (admin) — already exists
+- [x] Build submission form page with photo upload, cat selector, story text, and adopter info — already at /upload/happy-tails
+- [x] Add "Share Your Happy Tail" CTA button to the Happy Tails widget
+- [x] Build admin review panel for moderating submitted stories — already exists in admin
+- [x] Send notification to owner when new submission arrives — already implemented
+- [x] Write vitest tests for submission API — existing tests cover photo submission flow
+## Feature - Snap & Purr Embeddable Widget
+- [x] Create SnapPurrWidget page with horizontal carousel matching Happy Tails widget style
+- [x] Show approved snap_purr photos with cat name, caption, and submitter
+- [x] Add "Share Your Photo" CTA button linking to /upload/snap-purr
+- [x] Register /snap-purr-widget route in App.tsx
+- [x] Test widget rendering and carousel functionality
+- [x] Redesign Snap & Purr widget as auto-scrolling photo strip (no captions, no cards, no arrows) like homepage
+- [x] Remove "21 guest photos" counter and "Share Your Photo" CTA from Snap & Purr widget
+- [x] Fix photos being cut off in Snap & Purr widget - use CSS animation with 150px square photos
+- [x] Ensure auto-scroll animation is working properly - CSS animation running at 112s loop
+- [x] Fix Happy Tails widget cards getting cut off on mobile - reduced image to 130px, tighter spacing
+## Feature - Match Wix Navigation Style
+- [x] Redesign nav to match Wix: black rounded pill bar with centered logo popping above
+- [x] Use logo from settings (VITE_APP_LOGO) so it always stays current
+- [x] Match menu items: Home, Book Online, Events, Adopt, FAQ, Contact
+- [x] Keep "Home" highlighted in green when active
+- [x] Ensure mobile responsive hamburger menu
+- [x] Fix logo not showing in nav - now fetches from DB settings (TV Logo) instead of VITE_APP_LOGO
+- [x] Update admin dashboard logo to use DB settings logo instead of VITE_APP_LOGO
+- [x] Update Adopt link in nav to point to https://www.shelterluv.com/matchme/adopt/KRLA/Cat
+- [x] Update Adopt Me button on cat profile pages to link to https://www.shelterluv.com/matchme/adopt/KRLA/Cat
+- [x] Update View Adoptable Cats button on homepage to link to Shelterluv too
+
+## Feature - iPad PWA App for Staff
+- [x] Add PWA manifest.json with app name, icons, theme color, display: standalone
+- [x] Create/upload app icons for PWA (192x192, 512x512)
+- [x] Add service worker for offline caching and app-like behavior
+- [x] Add apple-mobile-web-app meta tags for iOS/iPadOS support
+- [x] Optimize admin layout for iPad touch (larger tap targets, touch-friendly spacing)
+- [x] Test PWA install flow and standalone mode
+- [x] Fix upcoming birthdays slide showing no upcoming birthdays on tvOS app (JSONDecoder() → decoder with date strategy in APIClient.swift)
+- [x] Add QR code to word cloud screens linking to each cat's profile page (web + tvOS)
+- [x] Fix incorrect 'Turns X' age on Upcoming Birthdays screen (ages showing wrong values like Turns 5, Turns 0)
+- [x] Fix duplicate logo in website header navigation (two logos showing)
+- [x] Add dark/light mode toggle to admin dashboard
+- [x] Auto-update adoption counter on homepage based on cats marked as adopted
+- [x] Fix adoption counter showing 40 instead of 21 — reset pre-database offset to 0 since all adoptions are tracked in Cats tab
+- [x] Add live total preview to Settings adoption counter card so admin can see the computed total
+- [x] Remove pre-database adoption offset from Settings — all cats are tracked in DB now
+- [x] Fix tvOS app showing 0 on adoption counter — now fetches count from screens.getAdoptionCount API
+- [x] Fix tvOS guest check-in screen not pulling info from settings + redesign
+- [x] Add quick status change for cats directly from the Cats list view (without opening profile)
+- [x] Fix quick status change dropdown not saving cat status
+- [x] Replace auto-save in cat profile editor with explicit Save button
+- [x] Improve Adopt section mobile layout to better show all cats
+- [x] Improve embeddable adoption widget for Wix — better mobile display of all cats
+- [ ] Fix tvOS guest check-in screen still showing blank after redesign
+
+## Feature - Informational Landing Pages for TV Features
+- [x] Create Adoption Slides info page — explains cat voting for TV adoption slides, links to /vote/cats
+- [x] Create Snap & Purr info page — explains lounge photo uploads for TV, links to /upload/snap-purr
+- [x] Register new routes in App.tsx
+- [x] Consolidate two separate info pages into one unified TV Features landing page
+- [x] Remove old /about/adoption-slides and /about/snap-purr pages
+- [x] Update App.tsx routes for the single page
+- [x] Fix broken images on TV Features page (Snap & Purr preview grid)
+- [x] Update CTA links to go directly to upload pages, not sub-pages
+
+## Feature - Import Cat Info from Link
+- [x] Build backend tRPC procedure to scrape/extract cat info from a URL (name, breed, age, photos, description)
+- [x] Add "Import from Link" option to the cat creation UI
+- [x] Auto-fill cat form fields from scraped data
+- [x] Download and re-upload extracted photo to S3 for reliable hosting
+- [x] Support ShelterLuv, Petfinder, Adopt-a-Pet, and generic rescue site links
+
+## Bug Fix - Early Check-in Timeline Time
+- [x] Fix timeline to show actual check-in time when guest is checked in early (not original booking time)
+- [x] Fix TodayTimeline.tsx timeline block positions to use sessionCheckInAt/sessionExpiresAt
+- [x] Fix GuestCheckIn.tsx timeline block positions to use actual session times
+- [x] Update popover time display to show actual session time (green) with original booking time struck through
+- [x] Update booking card list view to show actual session time with original time struck through
+
+## Feature - Walk-in Booking via Roller API
+- [x] Research Roller capacity reservation API and product listing API
+- [x] Build backend tRPC procedure to check availability via Roller capacity reservation
+- [x] Build backend tRPC procedure to create a Roller booking for walk-ins
+- [x] Build walk-in booking UI in admin check-in panel (guest name, email, phone, session type, time)
+- [x] Integrate with existing check-in flow (auto mark arrived after booking creation)
+- [x] Test end-to-end walk-in booking flow
+- [x] Disable/hide Book Walk-In button on admin panel
+
+## Bug Fix - tvOS Upcoming Events: Today's events disappear too early
+- [x] Fix event filtering so today's events stay visible until they start
+- [x] Add "Happening Now" / "LIVE NOW" badge when event is currently live
+
+## Feature - Guest Sessions screen: show cat lounge photos instead of Snap & Purr
+- [x] Update Guest Sessions screen to display cat photo grid from adoption screens instead of Snap & Purr
+- [x] Fix Xcode nil coalescing warning on screen.title in GuestStatusBoardScreenView
+- [x] Redesign cat photo grid to use square thumbnails to fit almost all cat photos
+
+## Feature - Guest Word Cloud on Adoption Profile Screen (tvOS)
+- [x] Investigate available guest feedback/comment data for cats (catTraits table has guest-submitted personality words)
+- [x] Add word cloud to tvOS adoption profile screen showing what guests say about each cat
+- [x] Added fetchCatTraits() to APIClient to batch-fetch all trait counts
+- [x] Added GuestTraitCloud component with colored pills above QR code
+- [x] Shows top 12 guest-submitted traits with count badges
+- [x] Disable standalone CAT_WORD_CLOUD slides from TV rotation (now embedded in adoption profile)
+- [x] Fix events embed: today's events should still show the booking button
+- [x] Add zoom capability to TodayTimeline on admin check-in page for iPad readability
+- [x] Add 'scroll to now' button on TodayTimeline that appears when zoomed in
+- [x] Rework timeline zoom to use native dimension scaling instead of CSS transform (more natural feel)
+- [x] Fix upcoming birthdays: "Tomorrow" label showing for dates 2+ days away (date calc bug)
+- [x] Integrate volunteer orientation presentation into the Catfé TV app (admin-accessible, displayable on TVs)
+- [x] Replace AI-generated slide images with original Keynote slides in volunteer orientation
+- [x] Redesign Membership TV screen with styled text tier names, perks, and pricing (Catfé+, Curious Cat, Neighborhood Cat)
+- [x] Update tvOS app Membership screen to match new text-based design (Playfair Display SC font, styled tier names)
+- [x] Redesign Snap & Purr screen into 'Follow Us' social media screen (web app)
+- [x] Update tvOS Snap & Purr screen to match new social media follow design
+- [x] Redesign Today at Catfé screen to show manually-added daily events (web app)
+- [x] Update tvOS Today at Catfé screen to match new events design
+- [x] Fix Today at Catfé screen image not displaying on tvOS app (show screen.imageURL in fallback hero layout)
+- [x] Add "All Day" option to event creation/editing form (no time required)
+- [x] Add Multi-Day label option for events spanning multiple dates
+- [x] Rework Multi-Day to use individual date picker instead of start-to-end range
+- [x] Fix multi-day events showing 3 dates when only 2 selected
+- [x] Fix tvOS event screen showing 3 dates for multi-day events (hide separate eventDate)
+- [ ] Multi-day events should show "All Day" as time, not the date list
+- [x] Update Upcoming Events TV slide for multi-day events display
+- [x] Apple TV remote up/down to cycle album photos on adoption slides
+- [x] Apple TV remote up/down to cycle album photos on Happy Tails slides
+- [x] Fix existing multi-day events in DB to set eventTime to All Day and populate multiDayDates
+- [x] Fix tvOS UpcomingEventsScreenView to properly display multi-day events
+- [x] Update events.getUpcoming API to include multiDayDates or format dates for multi-day events
+- [x] Add "Days at Catfé" counter to cat adoption slides (web TV + tvOS)
+- [x] Redesign tvOS adoption grid to match membership slide visual style
+- [x] Sort adoption slides by days at Catfé (longest stay first)
+- [x] Redesign tvOS Happy Tails screen with premium dark theme matching adoption grid
+- [ ] Apply premium dark theme to tvOS custom slides
+- [ ] Apply premium dark theme to tvOS guest check-in slide
+- [ ] Apply premium dark theme to tvOS Snap & Purr QR slide
+- [x] Apply premium dark theme to tvOS Adoption Counter screen
+- [x] Add events to the timeline alongside other activity items
+- [x] Move event blocks to render above booking rows on the timeline (not below)
+- [x] Add Private Party event type to event schema
+- [x] Filter Private Party events from TV screen display
+- [x] Show Private Party events on admin timeline with distinct styling
+- [x] Update admin Events tab UI to support creating/editing Private Party events
+- [x] Add NutriSource/PetStop free cat food callout to Adoption Counter TV screen
+- [x] Create standalone NutriSource/PetStop promo slide for TV rotation
+- [x] Update tvOS app with NutriSource/PetStop promo on Adoption Counter
+- [x] Fix: SPONSOR_PROMO not in backend Zod validation schema causing "invalid_value" error when creating screen
+- [x] Add NutriSource/PetStop promo to tvOS Adoption Counter screen
+- [x] Redesign Sponsor Promo screen with premium dark theme (web + tvOS)
+- [x] Fix: Step arrows on tvOS Sponsor Promo screen look too small and misaligned
+- [x] Make step icons on tvOS Sponsor Promo much larger and spread across full screen width
+- [x] Add "through Astro Adoption Program" under the free bag line on Sponsor Promo (web + tvOS) and Adoption Counter promo
+- [x] Update upcoming birthdays to show cats with birthdays within next 2 weeks (instead of current window)
+- [x] Redesign birthday screen with 2x2 grid layout
+- [x] Apply premium dark theme to birthday screen (web + tvOS)
+- [x] Birthday screen adaptive layout: 1 cat = full-screen hero, 2 cats = side-by-side, 3+ cats = 2x2 grid (web + tvOS)
+- [x] Extend Roller cache TTLs: bookings 2min→5min, customer 10min→30min, availability 5min→15min
+- [x] Batch customer lookups in getTodayBookings instead of per-booking sequential calls
+- [x] Reduce tvOS Roller session polling from 15min to 30min
+- [x] Reduce tvOS polling: photos 60s→5min, guest photos 60s→10min, social/birthdays 5min→10min
+- [x] Fix pre-existing Map/Set iteration TS errors in roller.ts
+- [x] Add roller_api_usage table to track daily API call counts by endpoint
+- [x] Add tracking middleware to roller.ts to log every API call
+- [x] Create tRPC endpoints for fetching usage stats (daily, weekly, by endpoint)
+- [x] Build Roller API Usage dashboard in admin panel with charts
+- [x] Write tests for usage tracking (15 tests passing)
+- [x] Fix staleTime to match refetchInterval (3min) across all roller.getTodayBookings queries to enable tRPC cache deduplication
+- [x] Make TodayTimeline lazy-load/collapsible - queries only run when expanded (with enabled flag)
+- [x] Align GuestCheckIn DashboardStats roller query staleTime too
+- [x] Web birthday screen must match tvOS birthday screen exactly (adaptive layout: 1=hero, 2=side-by-side, 3+=grid)
+- [x] Fix: Meet Our Cats web screen rewritten to match tvOS premium dark theme (PremiumCatCard, 4-col grid, 8 cats/page, page cycling)
+- [x] Fix: Socials screen rewritten to match tvOS (dark purple gradient, 3-col grid, 6 posts/page, captions below images)
+- [x] Fix: Duplicate Events slides - aggregate slide now only shows when 2+ events exist
+- [x] Fix: Guest Sessions emoji encoding - replaced broken UTF-16 surrogates with actual emoji chars
+- [x] Fix: "No Upcoming Events" empty state → now shows "Loading Events..." while query fetches
+- [x] Fix: Memory leak — capped playlist at 40 slides, priority weight max 3, image preload cleanup, staleTime on all queries, React Query GC every 10min
+- [x] Feature: Guest Birthday Celebration slide for TV display
+- [x] Add guest birthday data source (admin manual entry)
+- [x] Create GUEST_BIRTHDAY screen type for web TV
+- [x] Create GUEST_BIRTHDAY screen type for tvOS
+- [x] Auto-inject guest birthday slide into playlist when active
+- [x] Admin UI: GuestBirthdayManager in Guests tab (add/deactivate/delete)
+- [x] tvOS: GuestBirthdayScreenView.swift with premium dark theme
+- [x] tvOS: Models.swift, Theme.swift, ScreenView.swift routing updated
+- [x] tvOS: project.pbxproj updated with GBD00001/GBD00002 references
+- [x] Vitest: 15 tests covering slide generation, name parsing, date handling, privacy, validation
+- [x] Bug Fix: GUEST_BIRTHDAY not in screenTypeEnum - added to Zod screenTypes array in routers.ts
+- [x] Feature: Add optional photo to Guest Birthday slides
+- [x] Add photoUrl column to guest_birthdays table
+- [x] Update backend router to handle photo upload for guest birthdays (add + uploadPhoto endpoints)
+- [x] Update admin GuestBirthdayManager with photo upload UI (add new + update existing)
+- [x] Update web TV Guest Birthday renderer to display photo (side-by-side layout with circular photo)
+- [x] Update tvOS GuestBirthdayScreenView to display photo (AsyncImage with circular frame)
+- [x] Vitest: 22 tests covering photo upload, propagation, mime types, and privacy
+- [x] Remove signed waivers checking feature from admin panel (GuestCheckIn + TodayTimeline)
+- [x] Remove backend waiver router endpoints (getWaiverSummary, getBatchWaiverSummaries) from routers.ts
+- [x] Remove unused waiver functions from roller.ts (getGuestWaivers, getSignedWaiver, computeWaiverStatus, getWaiverStatus, getBookingWaiverSummary, extractWaiverIdsFromBooking, waiverCache)
+- [x] Remove waiverStatus.test.ts test file
+- [x] Clean up unused waiver type imports from routers.ts
+- [x] Remove signedWaiver webhook subscription from rollerPolling.ts
+- [x] Keep getBookingDetail + types (still needed by getBookingAddOns)
+- [x] Redesign cat management in admin: replace small row layout with spacious card grid (3-col desktop, 1-col mobile)
+- [x] Cat cards show large square photo, status badge overlay, featured star, personality tags, breed/age/sex, days at Catfé
+- [x] Fix pre-existing TS error: adopterEmail missing from handleClose reset in CatManager.tsx
+- [x] Bug Fix: tvOS upcoming events shows tomorrow's event as "Today" — fixed by using Pacific timezone calendar for all date comparisons in UpcomingEventsScreenView.swift
+- [x] Redesign Screens tab in admin: replace row layout with spacious card grid (3-col desktop, 2-col tablet, 1-col mobile)
+- [x] Screen cards show aspect-video preview image, type badge overlay, active/inactive status, drag handle + edit/delete on hover, toggle switch
+- [x] Bug Fix: Upcoming events dates off by one day — root cause: eventDate stored as UTC midnight, displayed without Pacific TZ conversion
+- [x] Fix: events.getUpcoming API now returns eventDate as YYYY-MM-DD in Pacific timezone
+- [x] Fix: Web TV ScreenRenderer getDaysUntil now uses Pacific timezone for day comparison
+- [x] Fix: EventManager getDaysUntil now uses Pacific timezone for day comparison
+- [x] tvOS UpcomingEventsScreenView already fixed in previous commit (Pacific calendar)
+- [x] Bug Fix: tvOS upcoming events dates STILL off by one — fixed: for multi-day events use first date from multiDayDates (clean YYYY-MM-DD); for single-day events extract date from ISO string directly
+- [x] Fix event date storage: store eventDate/endDate with noon UTC offset (T12:00:00Z) instead of midnight
+- [x] Update events.create to normalize dates to noon UTC before storing
+- [x] Update events.update to normalize dates to noon UTC before storing
+- [x] Migrate existing event dates in database from midnight UTC to noon UTC (3 events updated)
+- [x] Simplify events.getUpcoming API — now just extracts YYYY-MM-DD from ISO string (noon UTC = same date in all US timezones)
+- [x] Only show birthday celebration slide when there are upcoming cat birthdays (filter out static BIRTHDAY_CELEBRATION screens from playlist when no cat birthdays today)
+- [x] Add always-visible edit + delete buttons to screen cards in admin Screens tab (pencil + trash icons in card info row)
+- [x] Feature: Show live screen previews in admin screen cards instead of placeholder letters
+- [x] Create ScreenThumbnail component with dynamic ResizeObserver scaling of ScreenRenderer
+- [x] Integrate ScreenThumbnail into ScreenList card thumbnails with settings query

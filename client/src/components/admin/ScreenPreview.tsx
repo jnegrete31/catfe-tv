@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -365,6 +365,25 @@ function FormScreenContent({ screen }: { screen: FormPreviewScreen }) {
         </div>
       );
       
+    case "SPONSOR_PROMO":
+      return (
+        <div 
+          className="w-full h-full flex flex-col items-center justify-center"
+          style={{ background: 'linear-gradient(160deg, #F5E6D3 0%, #EDE0D4 40%, #E8DDD0 100%)' }}
+        >
+          <div className="text-center px-8">
+            <div className="text-sm tracking-[0.2em] uppercase mb-3" style={{ color: '#86C5A9' }}>Adoption Perk</div>
+            <h2 className="text-4xl font-bold mb-2" style={{ color: '#2d2d2d', fontFamily: 'Georgia, serif' }}>FREE Bag of Cat Food</h2>
+            <p className="text-lg mb-4" style={{ color: 'rgba(45,45,45,0.6)' }}>Adopt from Catfé &amp; visit Pet Stop!</p>
+            <div className="flex items-center justify-center gap-4">
+              <span className="text-2xl font-bold" style={{ color: '#2d2d2d' }}>NutriSource</span>
+              <span style={{ color: '#DAA520' }}>+</span>
+              <span className="text-2xl font-bold" style={{ color: '#2d2d2d' }}>Pet Stop</span>
+            </div>
+          </div>
+        </div>
+      );
+
     default:
       return (
         <div 
@@ -543,6 +562,48 @@ export function PlaylistPreview({ screens, settings }: PlaylistPreviewProps) {
         </DialogContent>
       </Dialog>
     </>
+  );
+}
+
+// Lightweight thumbnail that renders the actual TV screen in a card
+// Uses CSS transform scaling to show a miniature live preview
+export function ScreenThumbnail({ screen, settings }: ScreenPreviewProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(0.2);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const el = containerRef.current;
+    const calc = () => {
+      const w = el.clientWidth;
+      if (w > 0) setScale(w / 1920);
+    };
+    calc();
+    const ro = new ResizeObserver(() => calc());
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative w-full aspect-video overflow-hidden bg-black"
+    >
+      <div
+        style={{
+          width: "1920px",
+          height: "1080px",
+          transform: `scale(${scale})`,
+          transformOrigin: "top left",
+          pointerEvents: "none",
+          position: "absolute",
+          top: 0,
+          left: 0,
+        }}
+      >
+        <ScreenRenderer screen={screen} settings={settings} />
+      </div>
+    </div>
   );
 }
 

@@ -13,11 +13,10 @@ import {
   SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
-  verticalListSortingStrategy,
+  rectSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -31,33 +30,36 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { SCREEN_TYPE_CONFIG } from "@shared/types";
-import type { Screen } from "@shared/types";
+import type { Screen, Settings } from "@shared/types";
 import { trpc } from "@/lib/trpc";
+import { ScreenThumbnail } from "./ScreenPreview";
 import { toast } from "sonner";
 import { 
   GripVertical, 
-  Edit2, 
+  Pencil, 
   Trash2, 
   Clock, 
   Calendar,
   Shield,
   Image as ImageIcon,
+  Eye,
+  EyeOff,
 } from "lucide-react";
-import { format } from "date-fns";
 
 interface ScreenListProps {
   screens: Screen[];
   onEdit: (screen: Screen) => void;
 }
 
-interface SortableScreenItemProps {
+interface SortableScreenCardProps {
   screen: Screen;
   onEdit: (screen: Screen) => void;
   onDelete: (screen: Screen) => void;
   onToggleActive: (screen: Screen, active: boolean) => void;
+  settings: Settings | null;
 }
 
-function SortableScreenItem({ screen, onEdit, onDelete, onToggleActive }: SortableScreenItemProps) {
+function SortableScreenCard({ screen, onEdit, onDelete, onToggleActive, settings }: SortableScreenCardProps) {
   const {
     attributes,
     listeners,
@@ -71,6 +73,7 @@ function SortableScreenItem({ screen, onEdit, onDelete, onToggleActive }: Sortab
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 50 : undefined,
   };
   
   const typeConfig = SCREEN_TYPE_CONFIG[screen.type as keyof typeof SCREEN_TYPE_CONFIG];
@@ -81,105 +84,152 @@ function SortableScreenItem({ screen, onEdit, onDelete, onToggleActive }: Sortab
   const schedulingEnabled = (screen as any).schedulingEnabled;
   
   return (
-    <Card
+    <div
       ref={setNodeRef}
       style={style}
-      className={`p-3 sm:p-4 ${!screen.isActive ? "opacity-60" : ""}`}
+      className={`group rounded-xl border bg-card overflow-hidden hover:shadow-md transition-all cursor-pointer ${!screen.isActive ? "opacity-50" : ""}`}
+      onClick={() => onEdit(screen)}
     >
-      <div className="flex items-start gap-2 sm:gap-3">
-        {/* Drag Handle */}
-        <button
-          {...attributes}
-          {...listeners}
-          className="touch-none p-1 -ml-1 text-muted-foreground hover:text-foreground shrink-0 mt-1"
-        >
-          <GripVertical className="w-4 h-4 sm:w-5 sm:h-5" />
-        </button>
+      {/* Live Screen Preview Thumbnail */}
+      <div className="relative w-full aspect-video bg-muted">
+        <ScreenThumbnail screen={screen} settings={settings} />
         
-        {/* Image Thumbnail */}
-        <div className="w-12 h-9 sm:w-16 sm:h-12 shrink-0 rounded overflow-hidden bg-muted">
-          {screen.imagePath ? (
-            <img 
-              src={screen.imagePath} 
-              alt="" 
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <ImageIcon className="w-4 h-4 sm:w-6 sm:h-6 text-muted-foreground" />
-            </div>
-          )}
+        {/* Type badge overlay - top left */}
+        <div className="absolute top-2 left-2">
+          <Badge 
+            className="text-xs font-medium shadow-sm backdrop-blur-sm"
+            style={{ 
+              backgroundColor: typeConfig?.bgColor,
+              color: typeConfig?.color,
+              borderColor: typeConfig?.color + '40',
+            }}
+          >
+            {typeConfig?.label || screen.type}
+          </Badge>
         </div>
         
-        {/* Content */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
-            <Badge 
+        {/* Protected shield - top right */}
+        {screen.isProtected && (
+          <div className="absolute top-2 right-2 bg-amber-400 text-amber-900 rounded-full p-1.5 shadow-sm">
+            <Shield className="w-3.5 h-3.5 fill-current" />
+          </div>
+        )}
+        
+        {/* Active/Inactive indicator overlay - bottom left */}
+        <div className="absolute bottom-2 left-2">
+          <div 
+            className={`flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-full shadow-sm backdrop-blur-sm ${
+              screen.isActive 
+                ? "bg-green-100/90 text-green-700" 
+                : "bg-gray-100/90 text-gray-500"
+            }`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleActive(screen, !screen.isActive);
+            }}
+          >
+            {screen.isActive ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+            {screen.isActive ? "Active" : "Inactive"}
+          </div>
+        </div>
+        
+        {/* Drag handle overlay - bottom right */}
+        <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+          <button
+            {...attributes}
+            {...listeners}
+            className="touch-none p-1.5 rounded-full bg-white/90 shadow-md text-muted-foreground hover:text-foreground"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <GripVertical className="w-3.5 h-3.5" />
+          </button>
+          <Button
+            variant="secondary"
+            size="icon"
+            className="h-7 w-7 rounded-full shadow-md"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(screen);
+            }}
+          >
+            <Pencil className="w-3 h-3" />
+          </Button>
+          {!screen.isProtected && (
+            <Button
               variant="secondary"
-              className="text-[10px] sm:text-xs"
-              style={{ 
-                backgroundColor: typeConfig?.bgColor,
-                color: typeConfig?.color,
+              size="icon"
+              className="h-7 w-7 rounded-full shadow-md text-destructive hover:text-destructive"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(screen);
               }}
             >
-              {typeConfig?.label || screen.type}
-            </Badge>
-            {screen.isProtected && (
-              <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500 shrink-0" />
-            )}
-          </div>
-          
-          <h3 className="font-medium text-sm sm:text-base truncate">{screen.title}</h3>
-          
-          {screen.subtitle && (
-            <p className="text-xs sm:text-sm text-muted-foreground truncate">
-              {screen.subtitle}
-            </p>
+              <Trash2 className="w-3 h-3" />
+            </Button>
           )}
-          
-          <div className="flex items-center gap-2 sm:gap-3 mt-1 text-[10px] sm:text-xs text-muted-foreground flex-wrap">
-            <span className="flex items-center gap-0.5 sm:gap-1">
-              <Clock className="w-3 h-3" />
-              {screen.durationSeconds}s
-            </span>
-            <span className="hidden sm:inline">Priority: {screen.priority}</span>
-            {hasScheduleRules && (
-              <span className={`flex items-center gap-0.5 sm:gap-1 ${schedulingEnabled ? 'text-blue-600' : 'text-muted-foreground'}`}>
-                <Calendar className="w-3 h-3" />
-                {schedulingEnabled ? 'Sched' : 'Off'}
-              </span>
-            )}
-          </div>
         </div>
+      </div>
+
+      {/* Card Info */}
+      <div className="p-3 space-y-1.5">
+        <h3 className="font-semibold text-sm truncate">{screen.title}</h3>
         
-        {/* Actions - vertical on mobile, horizontal on desktop */}
-        <div className="flex flex-col sm:flex-row items-center gap-1.5 sm:gap-2 shrink-0">
-          <Switch
-            checked={screen.isActive}
-            onCheckedChange={(checked) => onToggleActive(screen, checked)}
-          />
-          <div className="flex items-center gap-0.5 sm:gap-1">
+        {screen.subtitle && (
+          <p className="text-xs text-muted-foreground truncate">
+            {screen.subtitle}
+          </p>
+        )}
+        
+        {/* Meta row */}
+        <div className="flex items-center gap-2 text-[10px] text-muted-foreground flex-wrap">
+          <span className="flex items-center gap-0.5">
+            <Clock className="w-3 h-3" />
+            {screen.durationSeconds}s
+          </span>
+          <span>P{screen.priority}</span>
+          {hasScheduleRules && (
+            <span className={`flex items-center gap-0.5 ${schedulingEnabled ? 'text-blue-600' : ''}`}>
+              <Calendar className="w-3 h-3" />
+              {schedulingEnabled ? 'Scheduled' : 'Sched Off'}
+            </span>
+          )}
+        </div>
+
+        {/* Active toggle + action buttons row */}
+        <div className="flex items-center justify-between pt-1">
+          <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+            <Switch
+              checked={screen.isActive}
+              onCheckedChange={(checked) => onToggleActive(screen, checked)}
+              className="scale-90"
+            />
+            <span className="text-[10px] text-muted-foreground">
+              {screen.isActive ? "On" : "Off"}
+            </span>
+          </div>
+          <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 sm:h-9 sm:w-9"
+              className="h-7 w-7 text-muted-foreground hover:text-foreground"
               onClick={() => onEdit(screen)}
             >
-              <Edit2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <Pencil className="w-3.5 h-3.5" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 sm:h-9 sm:w-9"
-              onClick={() => onDelete(screen)}
-              disabled={screen.isProtected}
-            >
-              <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </Button>
+            {!screen.isProtected && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                onClick={() => onDelete(screen)}
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </Button>
+            )}
           </div>
         </div>
       </div>
-    </Card>
+    </div>
   );
 }
 
@@ -188,6 +238,11 @@ export function ScreenList({ screens, onEdit }: ScreenListProps) {
   const [deleteTarget, setDeleteTarget] = useState<Screen | null>(null);
   
   const utils = trpc.useUtils();
+  
+  // Fetch settings for live screen previews
+  const { data: settingsData } = trpc.settings.get.useQuery(undefined, {
+    staleTime: 60000,
+  });
   
   const updateOrderMutation = trpc.screens.updateOrder.useMutation({
     onSuccess: () => {
@@ -301,15 +356,16 @@ export function ScreenList({ screens, onEdit }: ScreenListProps) {
         collisionDetection={closestCenter}
         onDragEnd={handleDragEnd}
       >
-        <SortableContext items={items.map(s => s.id)} strategy={verticalListSortingStrategy}>
-          <div className="space-y-2 sm:space-y-3">
+        <SortableContext items={items.map(s => s.id)} strategy={rectSortingStrategy}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {items.map((screen) => (
-              <SortableScreenItem
+              <SortableScreenCard
                 key={screen.id}
                 screen={screen}
                 onEdit={onEdit}
                 onDelete={handleDelete}
                 onToggleActive={handleToggleActive}
+                settings={settingsData || null}
               />
             ))}
           </div>
