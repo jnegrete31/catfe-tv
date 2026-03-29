@@ -288,23 +288,35 @@ struct UpcomingEventsScreenView: View {
     
     // MARK: - Helpers
     
+    /// Pacific timezone calendar for all date comparisons (Catfé is in Santa Clarita, CA)
+    private var pacificCalendar: Calendar {
+        var cal = Calendar.current
+        cal.timeZone = TimeZone(identifier: "America/Los_Angeles") ?? .current
+        return cal
+    }
+    
+    /// Compute days difference between today and a date string, both in Pacific timezone
+    private func daysDifference(_ dateStr: String) -> Int? {
+        guard let date = parseDate(dateStr) else { return nil }
+        let cal = pacificCalendar
+        let today = cal.startOfDay(for: Date())
+        let eventDay = cal.startOfDay(for: date)
+        return cal.dateComponents([.day], from: today, to: eventDay).day
+    }
+    
     /// Check if an event is currently happening
     /// The eventDate stores the start time, so if we're past it and it's still today, it's happening now
     private func isEventHappeningNow(_ event: CatfeEvent) -> Bool {
         guard let dateStr = event.eventDate, let eventDate = parseDate(dateStr) else { return false }
         let now = currentTime
-        let calendar = Calendar.current
-        let isToday = calendar.isDateInToday(eventDate)
+        let cal = pacificCalendar
+        let isToday = cal.isDateInToday(eventDate)
         // Event has started (now >= eventDate) and it's still today
         return isToday && now >= eventDate
     }
     
     private func daysUntilText(_ dateStr: String) -> String {
-        guard let date = parseDate(dateStr) else { return "" }
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        let eventDay = calendar.startOfDay(for: date)
-        let diff = calendar.dateComponents([.day], from: today, to: eventDay).day ?? 0
+        guard let diff = daysDifference(dateStr) else { return "" }
         if diff == 0 { return "Today!" }
         if diff == 1 { return "Tomorrow" }
         if diff < 0 { return "Past" }
@@ -312,22 +324,14 @@ struct UpcomingEventsScreenView: View {
     }
     
     private func daysUntilColor(_ dateStr: String) -> Color {
-        guard let date = parseDate(dateStr) else { return Color(hex: "7c3aed") }
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        let eventDay = calendar.startOfDay(for: date)
-        let diff = calendar.dateComponents([.day], from: today, to: eventDay).day ?? 0
+        guard let diff = daysDifference(dateStr) else { return Color(hex: "7c3aed") }
         if diff == 0 { return Color(hex: "dc2626") }
         if diff == 1 { return Color(hex: "d97706") }
         return Color(hex: "7c3aed")
     }
     
     private func daysUntilBgColor(_ dateStr: String) -> Color {
-        guard let date = parseDate(dateStr) else { return Color(hex: "ede9fe") }
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        let eventDay = calendar.startOfDay(for: date)
-        let diff = calendar.dateComponents([.day], from: today, to: eventDay).day ?? 0
+        guard let diff = daysDifference(dateStr) else { return Color(hex: "ede9fe") }
         if diff == 0 { return Color(hex: "fecaca") }
         if diff == 1 { return Color(hex: "fef3c7") }
         return Color(hex: "ede9fe")
