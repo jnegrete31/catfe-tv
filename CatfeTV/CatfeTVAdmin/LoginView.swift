@@ -10,7 +10,7 @@ import SwiftUI
 struct LoginView: View {
     @State private var showWebView = false
     
-    private let adminURL = URL(string: "https://catfetv-amdmxcoq.manus.space/admin")!
+    private let adminURL = URL(string: "https://tv.catfe.la/admin")!
     
     var body: some View {
         ZStack {

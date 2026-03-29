@@ -430,7 +430,7 @@ struct GuestPhotoContestScreenView: View {
             
             if let qrUrl = screen.qrCodeURL, !qrUrl.isEmpty {
                 HStack(spacing: 12) {
-                    let fullUrl = qrUrl.hasPrefix("http") ? qrUrl : "https://www.catfetv.com\(qrUrl)"
+                    let fullUrl = qrUrl.hasPrefix("http") ? qrUrl : "https://tv.catfe.la\(qrUrl)"
                     if let qrImage = QRCodeGenerator.generate(from: fullUrl, size: CGSize(width: 200, height: 200)) {
                         Image(uiImage: qrImage)
                             .interpolation(.none)

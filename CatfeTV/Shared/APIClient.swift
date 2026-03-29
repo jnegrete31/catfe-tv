@@ -14,7 +14,7 @@ class APIClient: ObservableObject {
     static let shared = APIClient()
     
     // Manus backend configuration
-    private let baseURL = "https://catfetv-amdmxcoq.manus.space"
+    private let baseURL = "https://tv.catfe.la"
     
     @Published var screens: [Screen] = []
     @Published var settings: AppSettings = .default

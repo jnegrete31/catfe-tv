@@ -48,7 +48,7 @@ class AuthService: ObservableObject {
     static let shared = AuthService()
     
     // Manus OAuth configuration
-    private let baseURL = "https://catfetv-amdmxcoq.manus.space"
+    private let baseURL = "https://tv.catfe.la"
     private let oauthPortalURL = "https://manus.im/login"
     
     @Published var currentUser: User?

@@ -222,7 +222,7 @@ struct EventsScreenView: View {
                         
                         // QR Code
                         if let qrURL = screen.qrCodeURL, !qrURL.isEmpty {
-                            let fullURL = qrURL.hasPrefix("http") ? qrURL : "https://catfetv.com" + qrURL
+                            let fullURL = qrURL.hasPrefix("http") ? qrURL : "https://tv.catfe.la" + qrURL
                             EventQRCode(url: fullURL, label: screen.qrLabel ?? "Scan to RSVP")
                                 .opacity(appeared ? 1 : 0)
                                 .scaleEffect(appeared ? 1 : 0.9)

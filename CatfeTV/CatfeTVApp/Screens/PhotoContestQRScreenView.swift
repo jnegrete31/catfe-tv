@@ -31,7 +31,7 @@ struct PhotoContestQRScreenView: View {
     private var qrURL: String {
         let raw = screen.qrCodeURL ?? "/vote/cats"
         if raw.hasPrefix("http") { return raw }
-        return "https://catfetv.com" + raw
+        return "https://tv.catfe.la" + raw
     }
     
     var body: some View {
@@ -319,7 +319,7 @@ struct PhotoContestQRScreenView: View {
         type: .photoContestQR,
         title: "Spotlight Your Favorites",
         subtitle: "Snap a photo, upload it, and feature it on their adoption screen!",
-        qrCodeURL: "https://catfetv.com/vote/cats",
+        qrCodeURL: "https://tv.catfe.la/vote/cats",
         duration: 15
     ))
 }

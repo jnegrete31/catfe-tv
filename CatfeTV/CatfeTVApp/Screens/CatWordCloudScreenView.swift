@@ -152,7 +152,7 @@ struct CatWordCloudScreenView: View {
                         HStack(spacing: 20) {
                             // QR Code
                             if let qrUrl = screen.qrCodeURL, !qrUrl.isEmpty {
-                                let fullUrl = qrUrl.hasPrefix("http") ? qrUrl : "https://www.catfetv.com" + qrUrl
+                                let fullUrl = qrUrl.hasPrefix("http") ? qrUrl : "https://tv.catfe.la" + qrUrl
                                 QRCodeView(url: fullUrl, size: 100, label: nil)
                             }
                             

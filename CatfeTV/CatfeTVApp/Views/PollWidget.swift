@@ -169,7 +169,7 @@ class PollService: ObservableObject {
     @Published var error: String?
     
     // Update this URL to your published Manus app URL
-    private let baseURL = "https://catfetv-amdmxcoq.manus.space"
+    private let baseURL = "https://tv.catfe.la"
     
     var voteURL: String {
         if let poll = currentPoll {

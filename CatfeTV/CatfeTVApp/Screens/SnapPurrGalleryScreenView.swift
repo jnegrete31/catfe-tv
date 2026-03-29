@@ -163,7 +163,7 @@ struct SnapPurrGalleryScreenView: View {
     
     @ViewBuilder
     private func qrCodeCard() -> some View {
-        let qrURL = screen.qrCodeURL ?? "https://www.catfetv.com/vote/cats"
+        let qrURL = screen.qrCodeURL ?? "https://tv.catfe.la/vote/cats"
         
         HStack(spacing: 16) {
             // QR Code

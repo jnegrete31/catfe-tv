@@ -663,7 +663,7 @@ struct AdoptionScreenView: View {
                         
                         // QR Code — prepend base URL if path is relative
                         if let qrURL = screen.qrCodeURL, !qrURL.isEmpty {
-                            let fullURL = qrURL.hasPrefix("http") ? qrURL : "https://catfetv.com" + qrURL
+                            let fullURL = qrURL.hasPrefix("http") ? qrURL : "https://tv.catfe.la" + qrURL
                             MagazineQRCode(url: fullURL, label: screen.qrLabel ?? "Upload photos & adopt")
                                 .opacity(appeared ? 1 : 0)
                                 .scaleEffect(appeared ? 1 : 0.9)
