@@ -207,6 +207,12 @@ struct GenericScreenView: View {
     private let bronzeColor = Color(hex: "B87333")
     private let goldColor = Color(hex: "D4A574")
     
+    /// Whether this screen has an uploaded image
+    private var hasImage: Bool {
+        if let url = screen.imageURL, !url.isEmpty { return true }
+        return false
+    }
+    
     var body: some View {
         ZStack {
             // Dark premium background
@@ -244,97 +250,185 @@ struct GenericScreenView: View {
             }
             .ignoresSafeArea()
             
-            // Content
-            VStack(spacing: 30) {
-                Spacer()
-                
-                // Image if available
-                if let imageURL = screen.imageURL, !imageURL.isEmpty {
-                    ScreenImage(url: imageURL)
-                        .frame(maxWidth: 600, maxHeight: 380)
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(copperColor.opacity(0.2), lineWidth: 1)
-                        )
-                        .shadow(color: .black.opacity(0.4), radius: 25, x: 0, y: 12)
-                        .opacity(appeared ? 1 : 0)
-                        .scaleEffect(appeared ? 1 : 0.9)
-                        .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.1), value: appeared)
-                }
-                
-                // Title
-                Text(screen.title)
-                    .font(.system(size: 48, weight: .bold, design: .serif))
-                    .foregroundColor(creamColor)
-                    .multilineTextAlignment(.center)
-                    .opacity(appeared ? 1 : 0)
-                    .animation(.easeOut(duration: 0.6).delay(0.15), value: appeared)
-                
-                // Decorative divider
-                HStack(spacing: 12) {
-                    Rectangle()
-                        .fill(
-                            LinearGradient(
-                                colors: [.clear, copperColor],
-                                startPoint: .leading, endPoint: .trailing
-                            )
-                        )
-                        .frame(width: 60, height: 1)
-                    Text("✦")
-                        .font(.system(size: 10))
-                        .foregroundColor(copperColor)
-                    Rectangle()
-                        .fill(
-                            LinearGradient(
-                                colors: [copperColor, .clear],
-                                startPoint: .leading, endPoint: .trailing
-                            )
-                        )
-                        .frame(width: 60, height: 1)
-                }
-                .opacity(appeared ? 1 : 0)
-                .animation(.easeOut(duration: 0.6).delay(0.2), value: appeared)
-                
-                // Subtitle
-                if let subtitle = screen.subtitle {
-                    Text(subtitle)
-                        .font(.system(size: 26, weight: .medium, design: .serif))
-                        .foregroundColor(copperColor)
-                        .multilineTextAlignment(.center)
-                        .opacity(appeared ? 1 : 0)
-                        .animation(.easeOut(duration: 0.6).delay(0.25), value: appeared)
-                }
-                
-                // Body text
-                if let body = screen.bodyText {
-                    Text(body)
-                        .font(.system(size: 22, weight: .regular, design: .serif))
-                        .foregroundColor(creamColor.opacity(0.7))
-                        .multilineTextAlignment(.center)
-                        .lineSpacing(8)
-                        .frame(maxWidth: 800)
-                        .opacity(appeared ? 1 : 0)
-                        .animation(.easeOut(duration: 0.6).delay(0.3), value: appeared)
-                }
-                
-                // QR Code
-                if let qrUrl = screen.qrCodeURL, !qrUrl.isEmpty {
-                    QRCodeView(url: qrUrl, size: 200, label: screen.qrLabel)
-                        .opacity(appeared ? 1 : 0)
-                        .scaleEffect(appeared ? 1 : 0.8)
-                        .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.35), value: appeared)
-                }
-                
-                Spacer()
+            // Content — side-by-side when image present, centered when not
+            if hasImage {
+                imageLayout
+            } else {
+                centeredLayout
             }
-            .padding(60)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .ignoresSafeArea()
         .onAppear {
             withAnimation { appeared = true }
         }
+    }
+    
+    // MARK: - Side-by-side layout (image left, text+QR right)
+    
+    private var imageLayout: some View {
+        GeometryReader { geo in
+            HStack(spacing: 0) {
+                // Left: Full-height image (~45% width)
+                ZStack(alignment: .trailing) {
+                    ScreenImage(url: screen.imageURL)
+                        .frame(width: geo.size.width * 0.45, height: geo.size.height)
+                        .clipped()
+                    
+                    // Soft gradient fade on right edge
+                    LinearGradient(
+                        colors: [.clear, bgColor],
+                        startPoint: .leading, endPoint: .trailing
+                    )
+                    .frame(width: 120)
+                }
+                .frame(width: geo.size.width * 0.45)
+                .opacity(appeared ? 1 : 0)
+                .animation(.easeOut(duration: 0.8).delay(0.1), value: appeared)
+                
+                // Right: Text + QR (~55% width)
+                VStack(alignment: .leading, spacing: 0) {
+                    Spacer()
+                    
+                    // Decorative accent line
+                    LinearGradient(
+                        colors: [copperColor, goldColor],
+                        startPoint: .leading, endPoint: .trailing
+                    )
+                    .frame(width: 80, height: 3)
+                    .cornerRadius(2)
+                    .padding(.bottom, 24)
+                    .opacity(appeared ? 1 : 0)
+                    .animation(.easeOut(duration: 0.6).delay(0.2), value: appeared)
+                    
+                    // Title
+                    Text(screen.title)
+                        .font(.system(size: 52, weight: .bold, design: .serif))
+                        .foregroundColor(creamColor)
+                        .lineLimit(4)
+                        .opacity(appeared ? 1 : 0)
+                        .animation(.easeOut(duration: 0.6).delay(0.25), value: appeared)
+                    
+                    // Subtitle
+                    if let subtitle = screen.subtitle {
+                        Text(subtitle)
+                            .font(.system(size: 28, weight: .medium, design: .serif))
+                            .foregroundColor(copperColor)
+                            .padding(.top, 12)
+                            .opacity(appeared ? 1 : 0)
+                            .animation(.easeOut(duration: 0.6).delay(0.3), value: appeared)
+                    }
+                    
+                    // Body text
+                    if let body = screen.bodyText {
+                        Text(body)
+                            .font(.system(size: 24, weight: .regular, design: .serif))
+                            .foregroundColor(creamColor.opacity(0.7))
+                            .lineSpacing(8)
+                            .padding(.top, 16)
+                            .frame(maxWidth: geo.size.width * 0.4)
+                            .opacity(appeared ? 1 : 0)
+                            .animation(.easeOut(duration: 0.6).delay(0.35), value: appeared)
+                    }
+                    
+                    // QR Code — inline with label beside it
+                    if let qrUrl = screen.qrCodeURL, !qrUrl.isEmpty {
+                        HStack(spacing: 20) {
+                            QRCodeView(url: qrUrl, size: 160, label: nil)
+                            
+                            if let label = screen.qrLabel {
+                                Text(label)
+                                    .font(.system(size: 22, weight: .medium, design: .serif))
+                                    .foregroundColor(creamColor.opacity(0.7))
+                                    .frame(maxWidth: 250)
+                            }
+                        }
+                        .padding(.top, 32)
+                        .opacity(appeared ? 1 : 0)
+                        .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.4), value: appeared)
+                    }
+                    
+                    Spacer()
+                }
+                .padding(.leading, 40)
+                .padding(.trailing, 60)
+                .frame(width: geo.size.width * 0.55)
+            }
+        }
+    }
+    
+    // MARK: - Centered layout (no image — text + optional QR)
+    
+    private var centeredLayout: some View {
+        VStack(spacing: 30) {
+            Spacer()
+            
+            // Title
+            Text(screen.title)
+                .font(.system(size: 48, weight: .bold, design: .serif))
+                .foregroundColor(creamColor)
+                .multilineTextAlignment(.center)
+                .opacity(appeared ? 1 : 0)
+                .animation(.easeOut(duration: 0.6).delay(0.15), value: appeared)
+            
+            // Decorative divider
+            HStack(spacing: 12) {
+                Rectangle()
+                    .fill(
+                        LinearGradient(
+                            colors: [.clear, copperColor],
+                            startPoint: .leading, endPoint: .trailing
+                        )
+                    )
+                    .frame(width: 60, height: 1)
+                Text("\u{2726}")
+                    .font(.system(size: 10))
+                    .foregroundColor(copperColor)
+                Rectangle()
+                    .fill(
+                        LinearGradient(
+                            colors: [copperColor, .clear],
+                            startPoint: .leading, endPoint: .trailing
+                        )
+                    )
+                    .frame(width: 60, height: 1)
+            }
+            .opacity(appeared ? 1 : 0)
+            .animation(.easeOut(duration: 0.6).delay(0.2), value: appeared)
+            
+            // Subtitle
+            if let subtitle = screen.subtitle {
+                Text(subtitle)
+                    .font(.system(size: 26, weight: .medium, design: .serif))
+                    .foregroundColor(copperColor)
+                    .multilineTextAlignment(.center)
+                    .opacity(appeared ? 1 : 0)
+                    .animation(.easeOut(duration: 0.6).delay(0.25), value: appeared)
+            }
+            
+            // Body text
+            if let body = screen.bodyText {
+                Text(body)
+                    .font(.system(size: 22, weight: .regular, design: .serif))
+                    .foregroundColor(creamColor.opacity(0.7))
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(8)
+                    .frame(maxWidth: 800)
+                    .opacity(appeared ? 1 : 0)
+                    .animation(.easeOut(duration: 0.6).delay(0.3), value: appeared)
+            }
+            
+            // QR Code
+            if let qrUrl = screen.qrCodeURL, !qrUrl.isEmpty {
+                QRCodeView(url: qrUrl, size: 200, label: screen.qrLabel)
+                    .opacity(appeared ? 1 : 0)
+                    .scaleEffect(appeared ? 1 : 0.8)
+                    .animation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.35), value: appeared)
+            }
+            
+            Spacer()
+        }
+        .padding(60)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
