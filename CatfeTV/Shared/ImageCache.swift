@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import ImageIO
 
 #if os(iOS)
 import UIKit
@@ -26,7 +27,11 @@ struct CachedImageData {
     init(image: PlatformImage, data: Data) {
         self.image = image
         self.rawData = data
-        self.isAnimated = (image.images?.count ?? 0) > 1
+        // Check both UIImage.images AND raw data for GIF detection
+        // In release builds, UIImage.images may be nil even for animated GIFs
+        let hasAnimatedFrames = (image.images?.count ?? 0) > 1
+        let isGIF = data.count >= 3 && data.prefix(3).elementsEqual([0x47, 0x49, 0x46])
+        self.isAnimated = hasAnimatedFrames || isGIF
     }
 }
 
@@ -189,14 +194,24 @@ class ImageCacheManager: ObservableObject {
 
 // MARK: - Animated GIF UIViewRepresentable
 
-/// Renders an animated UIImage (GIF) using UIImageView for smooth frame-by-frame playback.
-/// UIImageView natively supports animatedImage, which SwiftUI Image does not.
+/// Renders an animated GIF using UIImageView by decoding frames directly from raw Data.
+/// This approach is more reliable in release/archive builds than relying on UIImage.images,
+/// which can be stripped by compiler optimizations.
 struct AnimatedGIFView: UIViewRepresentable {
-    let image: PlatformImage
+    let imageData: Data
     let contentMode: UIView.ContentMode
     
+    /// Legacy initializer — accepts a UIImage but requires raw data for reliable animation
     init(image: PlatformImage, contentMode: UIView.ContentMode = .scaleAspectFill) {
-        self.image = image
+        // This initializer is kept for backward compatibility but won't have raw data
+        // Animation may not work — prefer init(data:contentMode:)
+        self.imageData = Data()
+        self.contentMode = contentMode
+    }
+    
+    /// Preferred initializer — decodes GIF frames directly from raw bytes
+    init(data: Data, contentMode: UIView.ContentMode = .scaleAspectFill) {
+        self.imageData = data
         self.contentMode = contentMode
     }
     
@@ -210,22 +225,72 @@ struct AnimatedGIFView: UIViewRepresentable {
         imageView.setContentHuggingPriority(.defaultLow, for: .vertical)
         imageView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         imageView.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
+        
+        configureAnimation(imageView: imageView)
         return imageView
     }
     
     func updateUIView(_ uiView: UIImageView, context: Context) {
-        if let frames = image.images, !frames.isEmpty {
-            uiView.animationImages = frames
-            uiView.animationDuration = image.duration
-            uiView.animationRepeatCount = 0
-            uiView.image = frames.first
-            uiView.startAnimating()
-        } else {
-            uiView.stopAnimating()
-            uiView.animationImages = nil
-            uiView.image = image
-        }
         uiView.contentMode = contentMode
+        // Re-configure animation on every update to handle view recycling in release builds
+        configureAnimation(imageView: uiView)
+    }
+    
+    private func configureAnimation(imageView: UIImageView) {
+        // Always decode frames from raw data for reliability in release builds
+        if !imageData.isEmpty {
+            let decoded = Self.decodeGIFFrames(from: imageData)
+            if !decoded.frames.isEmpty {
+                imageView.animationImages = decoded.frames
+                imageView.animationDuration = decoded.duration
+                imageView.animationRepeatCount = 0 // Loop forever
+                imageView.image = decoded.frames.first
+                imageView.startAnimating()
+                return
+            }
+        }
+        
+        // Fallback: show as static image from data
+        if !imageData.isEmpty, let staticImage = UIImage(data: imageData) {
+            imageView.stopAnimating()
+            imageView.animationImages = nil
+            imageView.image = staticImage
+        }
+    }
+    
+    /// Decode GIF frames directly from raw Data bytes using ImageIO.
+    /// This is more reliable than UIImage.animatedImage in release builds.
+    static func decodeGIFFrames(from data: Data) -> (frames: [UIImage], duration: Double) {
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil) else {
+            return ([], 0)
+        }
+        
+        let frameCount = CGImageSourceGetCount(source)
+        guard frameCount > 1 else { return ([], 0) }
+        
+        var frames: [UIImage] = []
+        var totalDuration: Double = 0
+        
+        for i in 0..<frameCount {
+            // Use options to prevent excessive memory usage
+            let options: [CFString: Any] = [
+                kCGImageSourceShouldCacheImmediately: true
+            ]
+            guard let cgImage = CGImageSourceCreateImageAtIndex(source, i, options as CFDictionary) else { continue }
+            frames.append(UIImage(cgImage: cgImage))
+            
+            if let properties = CGImageSourceCopyPropertiesAtIndex(source, i, nil) as? [String: Any],
+               let gifDict = properties[kCGImagePropertyGIFDictionary as String] as? [String: Any] {
+                let delay = (gifDict[kCGImagePropertyGIFUnclampedDelayTime as String] as? Double)
+                    ?? (gifDict[kCGImagePropertyGIFDelayTime as String] as? Double)
+                    ?? 0.1
+                totalDuration += max(delay, 0.02)
+            } else {
+                totalDuration += 0.1
+            }
+        }
+        
+        return (frames, totalDuration)
     }
 }
 
@@ -233,7 +298,8 @@ struct AnimatedGIFView: UIViewRepresentable {
 
 /// Drop-in replacement for AsyncImage with caching and animated GIF support.
 /// - Static images: renders via the `content` closure (SwiftUI Image) — fully backward compatible
-/// - Animated GIFs: renders via AnimatedGIFView (UIViewRepresentable) — automatic, no code changes needed
+/// - Animated GIFs: renders via AnimatedGIFView (UIViewRepresentable) using raw data bytes
+///   for reliable animation in both debug and release/archive builds
 struct CachedAsyncImage<Content: View, Placeholder: View>: View {
     let url: URL?
     let content: (Image) -> Content
@@ -261,7 +327,8 @@ struct CachedAsyncImage<Content: View, Placeholder: View>: View {
         Group {
             if let data = cachedData {
                 if data.isAnimated {
-                    AnimatedGIFView(image: data.image, contentMode: gifContentMode)
+                    // Use raw data bytes for GIF animation — reliable in release builds
+                    AnimatedGIFView(data: data.rawData, contentMode: gifContentMode)
                 } else {
                     content(Image(uiImage: data.image))
                 }
@@ -271,7 +338,7 @@ struct CachedAsyncImage<Content: View, Placeholder: View>: View {
                 placeholder()
             }
         }
-        .task {
+        .task(id: url) {
             await loadImage()
         }
     }
