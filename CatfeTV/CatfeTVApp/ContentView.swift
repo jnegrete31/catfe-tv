@@ -52,16 +52,15 @@ struct ContentView: View {
                         Spacer()
                     }
                     
-                    // Top-left overlay: Waiver QR widget
-                    VStack {
-                        HStack {
-                            WaiverWidget()
-                                .padding(.top, 40)
-                                .padding(.leading, 60)
-                            Spacer()
-                        }
-                        Spacer()
+                    // Top-left overlay: Today at Catfé widget + Waiver QR
+                    VStack(alignment: .leading, spacing: 12) {
+                        TodayAtCatfeWidget()
+                        WaiverWidget()
                     }
+                    .padding(.top, 40)
+                    .padding(.leading, 60)
+                    .frame(maxWidth: 400, alignment: .leading)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                     
                     // Logo Widget (bottom-right corner)
                     VStack {
