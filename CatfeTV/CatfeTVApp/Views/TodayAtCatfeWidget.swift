@@ -3,8 +3,8 @@
 //  CatfeTVApp
 //
 //  Persistent overlay widget showing today's events in the top-left corner.
-//  Displays event names, times, and uploaded photos with a "NOW" indicator
-//  for events currently happening.
+//  Each event row shows the uploaded photo filling the left half,
+//  with event name, time, and NOW badge on the right half.
 //
 
 import SwiftUI
@@ -28,7 +28,7 @@ struct TodayAtCatfeWidget: View {
     
     @ViewBuilder
     private func widgetContent(currentTime: Date) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 0) {
             // Header
             HStack(spacing: 10) {
                 Image(systemName: "calendar.badge.clock")
@@ -39,21 +39,23 @@ struct TodayAtCatfeWidget: View {
                     .font(.system(size: 22, weight: .bold, design: .rounded))
                     .foregroundColor(.loungeCream)
             }
+            .padding(.horizontal, 20)
+            .padding(.top, 16)
+            .padding(.bottom, 12)
             
-            // Divider
-            Rectangle()
-                .fill(Color.loungeWarmOrange.opacity(0.4))
-                .frame(height: 1)
-            
-            // Event list
-            VStack(alignment: .leading, spacing: 10) {
-                ForEach(todayEvents) { event in
+            // Event cards
+            VStack(spacing: 0) {
+                ForEach(Array(todayEvents.enumerated()), id: \.element.id) { index, event in
+                    if index > 0 {
+                        Rectangle()
+                            .fill(Color.loungeWarmOrange.opacity(0.15))
+                            .frame(height: 1)
+                    }
                     eventRow(event: event, currentTime: currentTime)
                 }
             }
         }
-        .padding(20)
-        .frame(maxWidth: 380)
+        .frame(width: 380)
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .fill(Color.loungeCharcoal.opacity(0.92))
@@ -62,6 +64,7 @@ struct TodayAtCatfeWidget: View {
                         .stroke(Color.loungeWarmOrange.opacity(0.3), lineWidth: 1)
                 )
         )
+        .clipShape(RoundedRectangle(cornerRadius: 20))
         .shadow(color: .black.opacity(0.4), radius: 12, x: 0, y: 4)
     }
     
@@ -69,64 +72,95 @@ struct TodayAtCatfeWidget: View {
     private func eventRow(event: CatfeEvent, currentTime: Date) -> some View {
         let isAllDay = event.eventTime == nil || event.eventTime?.isEmpty == true
         let isHappening = isEventHappeningNow(event: event, currentTime: currentTime)
+        let hasPhoto = event.imagePath != nil && !(event.imagePath?.isEmpty ?? true)
         
-        HStack(alignment: .center, spacing: 12) {
-            // Event photo (if uploaded) or indicator dot
-            if let imagePath = event.imagePath, !imagePath.isEmpty, let url = URL(string: imagePath) {
+        HStack(spacing: 0) {
+            // Left half: Event photo
+            if hasPhoto, let imagePath = event.imagePath, let url = URL(string: imagePath) {
                 AsyncImage(url: url) { phase in
                     switch phase {
                     case .success(let image):
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fill)
-                            .frame(width: 48, height: 48)
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                            .frame(width: 160, height: 100)
+                            .clipped()
                     case .failure:
-                        eventDot(isHappening: isHappening)
+                        photoPlaceholder(isHappening: isHappening)
                     default:
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(Color.loungeStone.opacity(0.3))
-                            .frame(width: 48, height: 48)
+                        Rectangle()
+                            .fill(Color.loungeStone.opacity(0.2))
+                            .frame(width: 160, height: 100)
+                            .overlay(
+                                ProgressView()
+                                    .tint(.loungeStone)
+                            )
                     }
                 }
             } else {
-                eventDot(isHappening: isHappening)
+                // No photo: show a styled placeholder with icon
+                photoPlaceholder(isHappening: isHappening)
             }
             
-            VStack(alignment: .leading, spacing: 4) {
-                // Event name + NOW badge
-                HStack(spacing: 8) {
-                    Text(event.name)
-                        .font(.system(size: 20, weight: .semibold, design: .rounded))
-                        .foregroundColor(isHappening ? .loungeWarmOrange : .loungeCream)
-                        .lineLimit(1)
-                    
-                    if isHappening {
-                        Text("NOW")
-                            .font(.system(size: 14, weight: .bold, design: .rounded))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 2)
-                            .background(Color.green.opacity(0.8))
-                            .cornerRadius(6)
-                    }
+            // Right half: Event info
+            VStack(alignment: .leading, spacing: 6) {
+                // NOW badge
+                if isHappening {
+                    Text("NOW")
+                        .font(.system(size: 12, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 2)
+                        .background(Color.green.opacity(0.8))
+                        .cornerRadius(6)
                 }
                 
+                // Event name
+                Text(event.name)
+                    .font(.system(size: 20, weight: .semibold, design: .rounded))
+                    .foregroundColor(isHappening ? .loungeWarmOrange : .loungeCream)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+                
                 // Time or "All Day"
-                Text(isAllDay ? "All Day" : formatEventTime(event.eventTime))
-                    .font(.system(size: 16, weight: .regular, design: .rounded))
-                    .foregroundColor(.loungeStone)
+                HStack(spacing: 6) {
+                    Image(systemName: isAllDay ? "sun.max.fill" : "clock")
+                        .font(.system(size: 14))
+                        .foregroundColor(.loungeStone)
+                    
+                    Text(isAllDay ? "All Day" : formatEventTime(event.eventTime))
+                        .font(.system(size: 16, weight: .regular, design: .rounded))
+                        .foregroundColor(.loungeStone)
+                }
             }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .frame(height: 100)
     }
     
     // MARK: - Subviews
     
     @ViewBuilder
-    private func eventDot(isHappening: Bool) -> some View {
-        Circle()
-            .fill(isHappening ? Color.green : Color.loungeAmber.opacity(0.5))
-            .frame(width: 10, height: 10)
+    private func photoPlaceholder(isHappening: Bool) -> some View {
+        Rectangle()
+            .fill(
+                LinearGradient(
+                    colors: [
+                        isHappening ? Color.loungeWarmOrange.opacity(0.3) : Color.loungeAmber.opacity(0.2),
+                        isHappening ? Color.loungeWarmOrange.opacity(0.1) : Color.loungeAmber.opacity(0.05)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            .frame(width: 160, height: 100)
+            .overlay(
+                Image(systemName: "party.popper.fill")
+                    .font(.system(size: 32))
+                    .foregroundColor(isHappening ? .loungeWarmOrange.opacity(0.5) : .loungeAmber.opacity(0.4))
+            )
     }
     
     // MARK: - Helpers
