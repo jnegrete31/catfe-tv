@@ -3,7 +3,7 @@
 //  CatfeTVApp
 //
 //  Persistent overlay widget showing today's events in the top-left corner.
-//  Displays event names, times, and descriptions with a "NOW" indicator
+//  Displays event names, times, and uploaded photos with a "NOW" indicator
 //  for events currently happening.
 //
 
@@ -70,22 +70,31 @@ struct TodayAtCatfeWidget: View {
         let isAllDay = event.eventTime == nil || event.eventTime?.isEmpty == true
         let isHappening = isEventHappeningNow(event: event, currentTime: currentTime)
         
-        HStack(alignment: .top, spacing: 12) {
-            // Now indicator dot or time icon
-            if isHappening {
-                Circle()
-                    .fill(Color.green)
-                    .frame(width: 10, height: 10)
-                    .padding(.top, 6)
+        HStack(alignment: .center, spacing: 12) {
+            // Event photo (if uploaded) or indicator dot
+            if let imagePath = event.imagePath, !imagePath.isEmpty, let url = URL(string: imagePath) {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 48, height: 48)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                    case .failure:
+                        eventDot(isHappening: isHappening)
+                    default:
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Color.loungeStone.opacity(0.3))
+                            .frame(width: 48, height: 48)
+                    }
+                }
             } else {
-                Circle()
-                    .fill(Color.loungeAmber.opacity(0.5))
-                    .frame(width: 10, height: 10)
-                    .padding(.top, 6)
+                eventDot(isHappening: isHappening)
             }
             
             VStack(alignment: .leading, spacing: 4) {
-                // Event name
+                // Event name + NOW badge
                 HStack(spacing: 8) {
                     Text(event.name)
                         .font(.system(size: 20, weight: .semibold, design: .rounded))
@@ -107,16 +116,17 @@ struct TodayAtCatfeWidget: View {
                 Text(isAllDay ? "All Day" : formatEventTime(event.eventTime))
                     .font(.system(size: 16, weight: .regular, design: .rounded))
                     .foregroundColor(.loungeStone)
-                
-                // Description (if available)
-                if let desc = event.description, !desc.isEmpty {
-                    Text(desc)
-                        .font(.system(size: 16, weight: .regular, design: .rounded))
-                        .foregroundColor(.loungeCream.opacity(0.7))
-                        .lineLimit(2)
-                }
             }
         }
+    }
+    
+    // MARK: - Subviews
+    
+    @ViewBuilder
+    private func eventDot(isHappening: Bool) -> some View {
+        Circle()
+            .fill(isHappening ? Color.green : Color.loungeAmber.opacity(0.5))
+            .frame(width: 10, height: 10)
     }
     
     // MARK: - Helpers
