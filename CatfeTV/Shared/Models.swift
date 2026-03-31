@@ -960,6 +960,9 @@ struct CatfeEvent: Codable, Identifiable {
     let isActive: Bool?
     let formattedDates: String?
     let isMultiDay: Bool?
+    let nextUpcomingDate: String?  // Next future date for multi-date events
+    let hasFutureDates: Bool?      // Whether this event still has future dates
+    let multiDayDates: String?     // JSON array of all dates for multi-date events
 }
 
 // MARK: - Volunteer Model (from volunteers.getFeatured API)

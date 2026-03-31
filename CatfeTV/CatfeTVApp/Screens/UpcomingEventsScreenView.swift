@@ -17,7 +17,13 @@ struct UpcomingEventsScreenView: View {
     @State private var currentTime = Date()
     
     private var events: [CatfeEvent] {
-        apiClient.cachedUpcomingEvents
+        // Filter out events where all dates have passed
+        apiClient.cachedUpcomingEvents.filter { event in
+            if let hasFuture = event.hasFutureDates {
+                return hasFuture
+            }
+            return true // If field not present, include by default
+        }
     }
     
     var body: some View {
@@ -171,8 +177,8 @@ struct UpcomingEventsScreenView: View {
                     
                     Spacer()
                     
-                    // Days-until badge using eventDate
-                    let dateStr = event.eventDate ?? ""
+                    // Days-until badge: use nextUpcomingDate for multi-date events
+                    let dateStr = event.nextUpcomingDate ?? event.eventDate ?? ""
                     if !dateStr.isEmpty {
                         if happeningNow {
                             // Happening Now badge - animated pulse effect
