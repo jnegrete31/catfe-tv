@@ -3,7 +3,7 @@
 //  CatfeTVApp
 //
 //  Tabby Tokens loyalty rewards program screen — Premium dark theme
-//  Shows program overview, earning rates, how it works, and QR code
+//  Shows program overview, how it works, and QR code
 //  Matches the web TabbyTokensScreen component design
 //
 
@@ -17,28 +17,14 @@ private let tokenAmber = Color(hex: "d97706")
 private let tokenGold = Color(hex: "fbbf24")
 private let tokenLightGold = Color(hex: "f59e0b")
 private let tokenCopper = Color(hex: "C4956A")
-private let tokenDarkCard = Color(hex: "2A1F18")
 
 // MARK: - Data Models
-
-private struct TokenRate {
-    let name: String
-    let duration: String
-    let tokens: Int
-}
 
 private struct HowItWorksStep {
     let number: String
     let title: String
     let description: String
 }
-
-private let defaultRates: [TokenRate] = [
-    TokenRate(name: "Quick Purr", duration: "15 min", tokens: 2),
-    TokenRate(name: "Mini Meow", duration: "30 min", tokens: 5),
-    TokenRate(name: "Full Purr", duration: "60 min", tokens: 10),
-    TokenRate(name: "Events", duration: "Special", tokens: 15),
-]
 
 private let steps: [HowItWorksStep] = [
     HowItWorksStep(
@@ -136,19 +122,15 @@ struct TabbyTokensScreenView: View {
                         .animation(.easeOut(duration: 0.6).delay(0.3), value: appeared)
                         .padding(.bottom, geo.size.height * 0.04)
                     
-                    // Three columns: How It Works | Earn Per Visit | QR Code
-                    HStack(alignment: .top, spacing: geo.size.width * 0.03) {
+                    // Two columns: How It Works | QR Code
+                    HStack(alignment: .top, spacing: geo.size.width * 0.06) {
                         // Column 1: How It Works
                         howItWorksColumn(geo: geo)
-                            .frame(width: geo.size.width * 0.32)
+                            .frame(width: geo.size.width * 0.48)
                         
-                        // Column 2: Earn Per Visit
-                        earnPerVisitColumn(geo: geo)
-                            .frame(width: geo.size.width * 0.32)
-                        
-                        // Column 3: QR Code
+                        // Column 2: QR Code
                         qrCodeColumn(geo: geo)
-                            .frame(width: geo.size.width * 0.24)
+                            .frame(width: geo.size.width * 0.34)
                     }
                     .padding(.horizontal, geo.size.width * 0.04)
                     
@@ -233,6 +215,10 @@ struct TabbyTokensScreenView: View {
                     stepRow(step: step, index: index)
                 }
             }
+            
+            // Redeem callout
+            redeemCallout()
+                .padding(.top, 28)
         }
     }
     
@@ -270,69 +256,6 @@ struct TabbyTokensScreenView: View {
         .animation(.easeOut(duration: 0.5).delay(0.5 + Double(index) * 0.15), value: appeared)
     }
     
-    // MARK: - Earn Per Visit Column
-    
-    private func earnPerVisitColumn(geo: GeometryProxy) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text("Earn Per Visit")
-                .font(.system(size: 28, weight: .semibold, design: .serif))
-                .foregroundColor(tokenGold)
-                .opacity(appeared ? 1 : 0)
-                .offset(y: appeared ? 0 : -20)
-                .animation(.easeOut(duration: 0.5).delay(0.5), value: appeared)
-                .padding(.bottom, 20)
-            
-            VStack(spacing: 14) {
-                ForEach(Array(defaultRates.enumerated()), id: \.offset) { index, rate in
-                    rateRow(rate: rate, index: index)
-                }
-            }
-            
-            // Redeem callout
-            redeemCallout()
-                .padding(.top, 20)
-        }
-    }
-    
-    private func rateRow(rate: TokenRate, index: Int) -> some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(rate.name)
-                    .font(.system(size: 20, weight: .semibold, design: .serif))
-                    .foregroundColor(tokenCream)
-                
-                Text("\(rate.duration) session")
-                    .font(.system(size: 13, weight: .regular, design: .default))
-                    .foregroundColor(tokenCopper.opacity(0.5))
-            }
-            
-            Spacer()
-            
-            HStack(alignment: .firstTextBaseline, spacing: 4) {
-                Text("\(rate.tokens)")
-                    .font(.system(size: 34, weight: .bold, design: .serif))
-                    .foregroundColor(tokenAmber)
-                
-                Text("tokens")
-                    .font(.system(size: 13, weight: .regular, design: .default))
-                    .foregroundColor(tokenCopper.opacity(0.5))
-            }
-        }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 14)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(tokenAmber.opacity(0.08))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(tokenAmber.opacity(0.15), lineWidth: 1)
-                )
-        )
-        .opacity(appeared ? 1 : 0)
-        .offset(y: appeared ? 0 : 20)
-        .animation(.easeOut(duration: 0.4).delay(0.6 + Double(index) * 0.1), value: appeared)
-    }
-    
     private func redeemCallout() -> some View {
         HStack {
             Spacer()
@@ -359,7 +282,7 @@ struct TabbyTokensScreenView: View {
         )
         .opacity(appeared ? 1 : 0)
         .offset(y: appeared ? 0 : 20)
-        .animation(.easeOut(duration: 0.5).delay(1.1), value: appeared)
+        .animation(.easeOut(duration: 0.5).delay(1.0), value: appeared)
     }
     
     // MARK: - QR Code Column
