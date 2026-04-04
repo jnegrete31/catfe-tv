@@ -280,6 +280,7 @@ extension ScreenType {
         case .logo: return .loungeAmber
         case .guestBirthday: return .catfeGold
         case .sponsorPromo: return .loungeAmber
+        case .tabbyTokens: return .loungeAmber
         case .custom: return .loungeWarmOrange
         }
     }

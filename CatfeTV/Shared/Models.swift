@@ -42,6 +42,7 @@ enum ScreenType: String, Codable, CaseIterable, Identifiable {
     case logo = "LOGO"
     case sponsorPromo = "SPONSOR_PROMO"
     case guestBirthday = "GUEST_BIRTHDAY"
+    case tabbyTokens = "TABBY_TOKENS"
     case custom = "CUSTOM"
     
     var id: String { rawValue }
@@ -78,6 +79,7 @@ enum ScreenType: String, Codable, CaseIterable, Identifiable {
         case .logo: return "Logo"
         case .sponsorPromo: return "Sponsor Promo"
         case .guestBirthday: return "Guest Birthday"
+        case .tabbyTokens: return "Tabby Tokens"
         case .custom: return "Custom"
         }
     }
@@ -110,6 +112,7 @@ enum ScreenType: String, Codable, CaseIterable, Identifiable {
         case .logo: return "sparkle"
         case .sponsorPromo: return "gift.fill"
         case .guestBirthday: return "birthday.cake.fill"
+        case .tabbyTokens: return "gift.circle.fill"
         case .custom: return "star.fill"
         }
     }

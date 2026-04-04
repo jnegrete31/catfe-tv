@@ -34,7 +34,8 @@ struct ScreenView: View {
              .birthdayCelebration, .volunteerSpotlight,
              .guestPhotoContest, .photoContestQR,
              .upcomingEvents, .catWordCloud, .logo,
-             .sponsorPromo, .guestBirthday:
+             .sponsorPromo, .guestBirthday,
+             .tabbyTokens:
             return true
         case .custom, .poll, .pollQR:
             return false
@@ -103,6 +104,8 @@ struct ScreenView: View {
                 SponsorPromoScreenView(screen: screen)
             case .guestBirthday:
                 GuestBirthdayScreenView(screen: screen)
+            case .tabbyTokens:
+                TabbyTokensScreenView(screen: screen, settings: settings)
             case .custom, .poll, .pollQR:
                 // Generic/custom types: use template overlay if available, otherwise fallback
                 if hasTemplateOverlay {

@@ -72,6 +72,7 @@
 				SPP00001 /* SponsorPromoScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = SPP00002 /* SponsorPromoScreenView.swift */; };
 			GBD00001 /* GuestBirthdayScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = GBD00002 /* GuestBirthdayScreenView.swift */; };
 			CWC00001 /* CatWordCloudScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CWC00002 /* CatWordCloudScreenView.swift */; };
+			TTK00001 /* TabbyTokensScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = TTK00002 /* TabbyTokensScreenView.swift */; };
 			OSP00001 /* OverstayPopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = OSP00002 /* OverstayPopupView.swift */; };
 		22810065BDE340519254637D /* CosmicHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86CB68B09382437D9B459095 /* CosmicHelpers.swift */; };
 		303610EFC664458D9517DB33 /* HappyTailsQRScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95CD9A1BFCB64E6BB89476CB /* HappyTailsQRScreenView.swift */; };
@@ -151,6 +152,7 @@
 			SPP00002 /* SponsorPromoScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SponsorPromoScreenView.swift; sourceTree = "<group>"; };
 			GBD00002 /* GuestBirthdayScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestBirthdayScreenView.swift; sourceTree = "<group>"; };
 			CWC00002 /* CatWordCloudScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatWordCloudScreenView.swift; sourceTree = "<group>"; };
+			TTK00002 /* TabbyTokensScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabbyTokensScreenView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -238,6 +240,7 @@
 					SPP00002 /* SponsorPromoScreenView.swift */,
 					GBD00002 /* GuestBirthdayScreenView.swift */,
 					CWC00002 /* CatWordCloudScreenView.swift */,
+					TTK00002 /* TabbyTokensScreenView.swift */,
 			);
 			path = Screens;
 			sourceTree = "<group>";
@@ -421,6 +424,7 @@
 					SPP00001 /* SponsorPromoScreenView.swift in Sources */,
 					GBD00001 /* GuestBirthdayScreenView.swift in Sources */,
 					CWC00001 /* CatWordCloudScreenView.swift in Sources */,
+					TTK00001 /* TabbyTokensScreenView.swift in Sources */,
 
 
 					TV017 /* TemplateOverlayView.swift in Sources */,
