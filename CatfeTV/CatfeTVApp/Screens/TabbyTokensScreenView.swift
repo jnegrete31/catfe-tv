@@ -3,7 +3,7 @@
 //  CatfeTVApp
 //
 //  Tabby Tokens loyalty rewards program screen — Premium dark theme
-//  3-column layout: Earn Rates | How It Works | QR Code
+//  2-column layout: How It Works | QR Code, centered title
 //  Matches the web TabbyTokensScreen component design
 //
 
@@ -19,20 +19,6 @@ private let tokenLightGold = Color(hex: "f59e0b")
 private let tokenCopper = Color(hex: "C4956A")
 
 // MARK: - Data Models
-
-private struct EarnRate {
-    let tokens: Int
-    let title: String
-    let subtitle: String
-    let bgOpacity: Double
-    let borderOpacity: Double
-}
-
-private let earnRates: [EarnRate] = [
-    EarnRate(tokens: 5, title: "Mini Meow", subtitle: "30-minute session", bgOpacity: 0.08, borderOpacity: 0.15),
-    EarnRate(tokens: 10, title: "Full Purr", subtitle: "60-minute session", bgOpacity: 0.12, borderOpacity: 0.25),
-    EarnRate(tokens: 15, title: "Events", subtitle: "Special event bonus", bgOpacity: 0.08, borderOpacity: 0.15),
-]
 
 private struct HowItWorksStep {
     let number: String
@@ -118,26 +104,22 @@ struct TabbyTokensScreenView: View {
                 
                 // Main content
                 VStack(spacing: 0) {
-                    // Header: Logo + Title
+                    // Header: Centered logo + Title
                     headerView(geo: geo)
                         .padding(.top, geo.size.height * 0.06)
                         .padding(.bottom, geo.size.height * 0.04)
                     
-                    // 3-column layout
-                    HStack(alignment: .top, spacing: geo.size.width * 0.03) {
-                        // Column 1: Earn Rates
-                        earnRatesColumn(geo: geo)
-                            .frame(width: geo.size.width * 0.34)
-                        
-                        // Column 2: How It Works
+                    // 2-column layout: How It Works | QR Code
+                    HStack(alignment: .center, spacing: geo.size.width * 0.06) {
+                        // Column 1: How It Works
                         howItWorksColumn(geo: geo)
-                            .frame(width: geo.size.width * 0.26)
+                            .frame(width: geo.size.width * 0.40)
                         
-                        // Column 3: QR Code
+                        // Column 2: QR Code
                         qrCodeColumn(geo: geo)
-                            .frame(width: geo.size.width * 0.28)
+                            .frame(width: geo.size.width * 0.35)
                     }
-                    .padding(.horizontal, geo.size.width * 0.04)
+                    .padding(.horizontal, geo.size.width * 0.06)
                     
                     Spacer(minLength: 16)
                 }
@@ -152,10 +134,10 @@ struct TabbyTokensScreenView: View {
         }
     }
     
-    // MARK: - Header
+    // MARK: - Header (Centered)
     
     private func headerView(geo: GeometryProxy) -> some View {
-        HStack(spacing: 20) {
+        VStack(spacing: 12) {
             // Token logo
             AsyncImage(url: URL(string: tokenLogoUrl)) { phase in
                 switch phase {
@@ -184,77 +166,17 @@ struct TabbyTokensScreenView: View {
             .frame(width: 140, height: 140)
             .shadow(color: tokenGold.opacity(0.4), radius: 20, x: 0, y: 4)
             
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Tabby Tokens")
-                    .font(.system(size: 60, weight: .bold, design: .serif))
-                    .foregroundColor(tokenCream)
-                
-                Text("Earn Rewards Every Visit")
-                    .font(.system(size: 24, weight: .medium, design: .serif))
-                    .foregroundColor(tokenAmber)
-            }
+            Text("Tabby Tokens")
+                .font(.system(size: 64, weight: .bold, design: .serif))
+                .foregroundColor(tokenCream)
             
-            Spacer()
+            Text("Earn Rewards Every Visit")
+                .font(.system(size: 24, weight: .medium, design: .serif))
+                .foregroundColor(tokenAmber)
         }
-        .padding(.horizontal, geo.size.width * 0.06)
         .opacity(appeared ? 1 : 0)
         .offset(y: appeared ? 0 : -30)
         .animation(.easeOut(duration: 0.7), value: appeared)
-    }
-    
-    // MARK: - Earn Rates Column
-    
-    private func earnRatesColumn(geo: GeometryProxy) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text("Earn Tokens")
-                .font(.system(size: 30, weight: .semibold, design: .serif))
-                .foregroundColor(tokenGold)
-                .padding(.bottom, 20)
-                .opacity(appeared ? 1 : 0)
-                .offset(x: appeared ? 0 : -40)
-                .animation(.easeOut(duration: 0.6).delay(0.3), value: appeared)
-            
-            VStack(spacing: 16) {
-                ForEach(Array(earnRates.enumerated()), id: \.offset) { index, rate in
-                    earnRateRow(rate: rate, index: index)
-                }
-            }
-        }
-    }
-    
-    private func earnRateRow(rate: EarnRate, index: Int) -> some View {
-        HStack(spacing: 20) {
-            // Big token number
-            Text("\(rate.tokens)")
-                .font(.system(size: 48, weight: .bold, design: .serif))
-                .foregroundColor(tokenGold)
-                .frame(minWidth: 70)
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text(rate.title)
-                    .font(.system(size: 22, weight: .semibold, design: .serif))
-                    .foregroundColor(tokenCream)
-                
-                Text(rate.subtitle)
-                    .font(.system(size: 16, weight: .regular, design: .default))
-                    .foregroundColor(tokenCopper.opacity(0.6))
-            }
-            
-            Spacer()
-        }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 18)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(tokenAmber.opacity(rate.bgOpacity))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(tokenGold.opacity(rate.borderOpacity), lineWidth: 1)
-                )
-        )
-        .opacity(appeared ? 1 : 0)
-        .offset(x: appeared ? 0 : -40)
-        .animation(.easeOut(duration: 0.5).delay(0.3 + Double(index) * 0.12), value: appeared)
     }
     
     // MARK: - How It Works Column
