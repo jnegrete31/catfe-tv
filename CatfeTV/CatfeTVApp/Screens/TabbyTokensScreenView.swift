@@ -34,6 +34,65 @@ private let steps: [HowItWorksStep] = [
 
 // MARK: - Main View
 
+// MARK: - Raining Token Model
+
+private struct FallingToken: Identifiable {
+    let id: Int
+    let xPercent: CGFloat   // horizontal position as % of width
+    let size: CGFloat       // token image size
+    let duration: Double    // fall animation duration
+    let delay: Double       // staggered start delay
+}
+
+private let fallingTokens: [FallingToken] = (0..<18).map { i in
+    FallingToken(
+        id: i,
+        xPercent: CGFloat(i) * 5.5 + 1,
+        size: CGFloat(28 + (i % 5) * 8),
+        duration: Double(6 + (i % 4) * 2),
+        delay: Double(i) * 0.8.truncatingRemainder(dividingBy: 8)
+    )
+}
+
+// MARK: - Falling Token View
+
+private struct FallingTokenView: View {
+    let token: FallingToken
+    let logoUrl: String
+    let geoHeight: CGFloat
+    
+    @State private var falling = false
+    
+    var body: some View {
+        AsyncImage(url: URL(string: logoUrl)) { phase in
+            switch phase {
+            case .success(let image):
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+            default:
+                Color.clear
+            }
+        }
+        .frame(width: token.size, height: token.size)
+        .opacity(0.15)
+        .blur(radius: 0.5)
+        .offset(y: falling ? geoHeight + 80 : -80)
+        .rotationEffect(.degrees(falling ? 360 : 0))
+        .onAppear {
+            withAnimation(
+                .linear(duration: token.duration)
+                .delay(token.delay)
+                .repeatForever(autoreverses: false)
+            ) {
+                falling = true
+            }
+        }
+    }
+}
+
+// MARK: - Main View
+
 struct TabbyTokensScreenView: View {
     let screen: Screen
     var settings: AppSettings = .default
@@ -51,6 +110,19 @@ struct TabbyTokensScreenView: View {
             ZStack {
                 // Dark background
                 tokenBg.ignoresSafeArea()
+                
+                // Raining Tabby Tokens
+                ForEach(fallingTokens) { token in
+                    FallingTokenView(
+                        token: token,
+                        logoUrl: tokenLogoUrl,
+                        geoHeight: geo.size.height
+                    )
+                    .position(
+                        x: geo.size.width * token.xPercent / 100,
+                        y: geo.size.height / 2
+                    )
+                }
                 
                 // Warm radial glows
                 Circle()
