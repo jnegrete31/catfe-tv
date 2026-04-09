@@ -44,15 +44,18 @@ private struct FallingToken: Identifiable {
     let delay: Double       // staggered start delay
 }
 
-private let fallingTokens: [FallingToken] = (0..<18).map { i in
-    FallingToken(
-        id: i,
-        xPercent: CGFloat(i) * 5.5 + 1,
-        size: CGFloat(28 + (i % 5) * 8),
-        duration: Double(6 + (i % 4) * 2),
-        delay: Double(i) * 0.8.truncatingRemainder(dividingBy: 8)
-    )
-}
+private let fallingTokens: [FallingToken] = {
+    var tokens: [FallingToken] = []
+    for i in 0..<18 {
+        let xPct: CGFloat = CGFloat(i) * 5.5 + 1.0
+        let sz: CGFloat = CGFloat(28 + (i % 5) * 8)
+        let dur: Double = Double(6 + (i % 4) * 2)
+        let dly: Double = Double(i) * 0.8
+        let delayMod: Double = dly.truncatingRemainder(dividingBy: 8.0)
+        tokens.append(FallingToken(id: i, xPercent: xPct, size: sz, duration: dur, delay: delayMod))
+    }
+    return tokens
+}()
 
 // MARK: - Falling Token View
 
